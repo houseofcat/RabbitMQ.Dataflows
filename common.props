@@ -12,7 +12,7 @@
         <DebugType>embedded</DebugType>
         <EmbedAllSources>true</EmbedAllSources>
         <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <!--<SymbolPackageFormat>snupkg</SymbolPackageFormat>-->
 
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
