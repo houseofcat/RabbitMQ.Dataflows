@@ -6,7 +6,7 @@ using System.Threading.Tasks.Dataflow;
 
 namespace HouseofCat.Workflows
 {
-    public class DataflowEngine<TIn, TOut>
+    public class DataflowEngine<TIn, TOut> where TOut : class, new()
     {
         private readonly ILogger<DataflowEngine<TIn, TOut>> _logger;
         private readonly ActionBlock<TIn> _block;
@@ -48,7 +48,7 @@ namespace HouseofCat.Workflows
                 if (_postWorkBody != null)
                 {
                     var output = await _workBody(data).ConfigureAwait(false);
-                    if (output != null)
+                    if (output != default)
                     {
                         await _postWorkBody(output).ConfigureAwait(false);
                     }
