@@ -50,8 +50,7 @@ namespace HouseofCat.Library.Services
         private void GuardAgainstBadHashKey(EncryptionMethod method)
         {
             if (method == EncryptionMethod.AES256_ARGON2ID
-                && _argonHashKey == null
-                && _argonHashKey.Length == 0)
+                && (_argonHashKey == null || _argonHashKey.Length == 0))
             { throw new ArgumentException($"{nameof(_argonHashKey)} has not been defined yet."); }
         }
     }

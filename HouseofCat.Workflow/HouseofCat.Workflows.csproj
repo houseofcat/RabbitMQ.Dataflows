@@ -1,15 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-  </PropertyGroup>
+  <Import Project="..\common.props" />
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.6" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Library.Logger\HouseofCat.Library.Logger.csproj" />
+    <ProjectReference Include="..\HouseofCat.Library.Logger\HouseofCat.Logger.csproj" />
   </ItemGroup>
 
 </Project>

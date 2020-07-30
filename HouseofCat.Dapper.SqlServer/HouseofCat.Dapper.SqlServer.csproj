@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>HouseofCat.Library.Dapper.SqlServer</AssemblyName>
+    <RootNamespace>HouseofCat.Library.Dapper</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.0.35" />
+    <PackageReference Include="FastMember" Version="1.5.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HouseofCat.Dapper\HouseofCat.Dapper.csproj" />
+  </ItemGroup>
+
+</Project>
