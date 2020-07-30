@@ -3,26 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30320.27
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Utilities", "HouseofCat.Utilities\HouseofCat.Utilities.csproj", "{2BF50B4E-7EE9-4C51-80AA-68405D76F21A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Workflows", "HouseofCat.Workflow\HouseofCat.Workflows.csproj", "{E3D8F002-1DD4-4926-BD15-20B6115AA60C}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Encryption", "HouseofCat.Encryption\HouseofCat.Encryption.csproj", "{97C0674A-E7DC-4EF6-8E8C-1D06FE2FCAC2}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Compression", "HouseofCat.Compression\HouseofCat.Compression.csproj", "{276C2CF1-4013-4035-AFAB-8DF0481BE4E7}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Logger", "HouseofCat.Logger\HouseofCat.Logger.csproj", "{0FEAE831-B148-4EA8-AD4F-1E85606C156F}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Algorithms", "HouseofCat.Algorithms\HouseofCat.Algorithms.csproj", "{6300805C-D8A6-4F9C-BAC7-67964B792CB4}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Services", "HouseofCat.Services\HouseofCat.Services.csproj", "{6D8C345C-3CB3-4EE2-8332-04CF2FB27A72}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dapper.SqlServer", "HouseofCat.Dapper.SqlServer\HouseofCat.Dapper.SqlServer.csproj", "{8F9C35D4-D79E-4E37-B18D-B8E56F68BD35}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dapper.LegacySqlServer", "HouseofCat.Dapper.LegacySqlServer\HouseofCat.Dapper.LegacySqlServer.csproj", "{1614AA07-D30F-4847-B506-957DD0109E70}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dapper", "HouseofCat.Dapper\HouseofCat.Dapper.csproj", "{BAB7F573-FD85-4C02-9FBB-A4390FF35D21}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{29F4C0CA-2EA4-433C-8112-9A1336392E52}"
 	ProjectSection(SolutionItems) = preProject
 		common.props = common.props
@@ -32,9 +12,31 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		version.props = version.props
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Host.SerilogSqlServer", "HouseofCat.AspNetCore.Serilog\HouseofCat.Host.SerilogSqlServer.csproj", "{F87490D3-D318-4425-8044-1FA2BD1B24A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Utilities", "src\HouseofCat.Utilities\HouseofCat.Utilities.csproj", "{2BF50B4E-7EE9-4C51-80AA-68405D76F21A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Compression.LZ4", "HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj", "{E7F4AFF1-3D8D-4250-B813-F7BD5D558451}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Workflows", "src\HouseofCat.Workflow\HouseofCat.Workflows.csproj", "{E3D8F002-1DD4-4926-BD15-20B6115AA60C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Encryption", "src\HouseofCat.Encryption\HouseofCat.Encryption.csproj", "{97C0674A-E7DC-4EF6-8E8C-1D06FE2FCAC2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Compression", "src\HouseofCat.Compression\HouseofCat.Compression.csproj", "{276C2CF1-4013-4035-AFAB-8DF0481BE4E7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Logger", "src\HouseofCat.Logger\HouseofCat.Logger.csproj", "{0FEAE831-B148-4EA8-AD4F-1E85606C156F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Algorithms", "src\HouseofCat.Algorithms\HouseofCat.Algorithms.csproj", "{6300805C-D8A6-4F9C-BAC7-67964B792CB4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Services", "src\HouseofCat.Services\HouseofCat.Services.csproj", "{6D8C345C-3CB3-4EE2-8332-04CF2FB27A72}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dapper.SqlServer", "src\HouseofCat.Dapper.SqlServer\HouseofCat.Dapper.SqlServer.csproj", "{8F9C35D4-D79E-4E37-B18D-B8E56F68BD35}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dapper.LegacySqlServer", "src\HouseofCat.Dapper.LegacySqlServer\HouseofCat.Dapper.LegacySqlServer.csproj", "{1614AA07-D30F-4847-B506-957DD0109E70}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dapper", "src\HouseofCat.Dapper\HouseofCat.Dapper.csproj", "{BAB7F573-FD85-4C02-9FBB-A4390FF35D21}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Host.SerilogSqlServer", "src\HouseofCat.Host.SerilogSqlServer\HouseofCat.Host.SerilogSqlServer.csproj", "{F87490D3-D318-4425-8044-1FA2BD1B24A6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Compression.LZ4", "src\HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj", "{E7F4AFF1-3D8D-4250-B813-F7BD5D558451}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HouseofCat.Reflection", "src\HouseofCat.Reflection\HouseofCat.Reflection.csproj", "{FA0ED709-D706-46E1-801A-2D43F1093840}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -90,6 +92,10 @@ Global
 		{E7F4AFF1-3D8D-4250-B813-F7BD5D558451}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7F4AFF1-3D8D-4250-B813-F7BD5D558451}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7F4AFF1-3D8D-4250-B813-F7BD5D558451}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA0ED709-D706-46E1-801A-2D43F1093840}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA0ED709-D706-46E1-801A-2D43F1093840}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA0ED709-D706-46E1-801A-2D43F1093840}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA0ED709-D706-46E1-801A-2D43F1093840}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

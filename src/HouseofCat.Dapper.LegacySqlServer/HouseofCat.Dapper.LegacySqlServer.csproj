@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\common.props" />
+  <Import Project="..\..\common.props" />
+  
   <PropertyGroup>
-    <AssemblyName>HouseofCat.Dapper.SqlServer</AssemblyName>
+    <AssemblyName>HouseofCat.Dapper.LegacySqlServer</AssemblyName>
     <RootNamespace>HouseofCat.Dapper</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.35" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.0.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
   </ItemGroup>
 
   <ItemGroup>
