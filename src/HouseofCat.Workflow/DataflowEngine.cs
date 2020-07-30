@@ -4,7 +4,7 @@ using System;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-namespace HouseofCat.Workflow
+namespace HouseofCat.Workflows
 {
     public class DataflowEngine<TIn, TOut>
     {
@@ -60,7 +60,7 @@ namespace HouseofCat.Workflow
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Execption occurred in the Dataflow Engine.");
+                _logger.LogError(ex, Constants.Dataflow.Error);
             }
         }
 
