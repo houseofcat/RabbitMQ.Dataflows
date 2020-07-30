@@ -4,7 +4,13 @@ using static HouseofCat.Services.Enums;
 
 namespace HouseofCat.Services
 {
-    public class CompressionService
+    public interface ICompressionService
+    {
+        Task<byte[]> CompressAsync(byte[] data, CompressionMethod method);
+        Task<byte[]> DecompressAsync(byte[] data, CompressionMethod method);
+    }
+
+    public class CompressionService : ICompressionService
     {
         public async Task<byte[]> DecompressAsync(byte[] data, CompressionMethod method)
         {

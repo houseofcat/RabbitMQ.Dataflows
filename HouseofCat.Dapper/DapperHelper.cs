@@ -7,7 +7,7 @@ namespace HouseofCat.Dapper
 {
     public static class DapperHelper
     {
-        public static DynamicParameters ConstructDynamicParameters<TIn>(TIn input) where TIn : new()
+        public static DynamicParameters ConstructDynamicParameters<TIn>(TIn input) where TIn : class, new()
         {
             var objectMemberAccessor = TypeAccessor.Create(input.GetType());
 
@@ -17,7 +17,7 @@ namespace HouseofCat.Dapper
                     .ToDictionary(x => x.Name, x => objectMemberAccessor[input, x.Name]));
         }
 
-        public static DynamicParameters ConstructDynamicParametersFromReadableProperties<TIn>(TIn input) where TIn : new()
+        public static DynamicParameters ConstructDynamicParametersFromReadableProperties<TIn>(TIn input) where TIn : class, new()
         {
             var objectMemberAccessor = TypeAccessor.Create(input.GetType());
             var propertyDictionary = new Dictionary<string, object>();
