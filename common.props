@@ -18,12 +18,6 @@
         <PackageIcon>houseofcat.png</PackageIcon>
     </PropertyGroup>
     <ItemGroup>
-        <None Include="..\houseofcat.png">
-            <Pack>True</Pack>
-            <PackagePath></PackagePath>
-        </None>
-    </ItemGroup>
-    <ItemGroup>
         <PackageReference Include="Microsoft.SourceLink.GitLab" Version="1.0.0" PrivateAssets="all" />
     </ItemGroup>
 </Project>

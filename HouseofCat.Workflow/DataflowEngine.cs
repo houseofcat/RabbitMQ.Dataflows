@@ -8,7 +8,7 @@ namespace HouseofCat.Workflow
 {
     public class DataflowEngine<TIn, TOut>
     {
-        private readonly ILogger<DataflowEngine<TOut, TIn>> _logger;
+        private readonly ILogger<DataflowEngine<TIn, TOut>> _logger;
         private readonly ActionBlock<TIn> _block;
         private readonly Func<TIn, Task<TIn>> _preWorkBody;
         private readonly Func<TIn, Task<TOut>> _workBody;
@@ -21,7 +21,7 @@ namespace HouseofCat.Workflow
             Func<TIn, Task<TIn>> preWorkBody = null,
             Func<TOut, Task> postWorkBody = null)
         {
-            _logger = LogHelper.GetLogger<DataflowEngine<TOut, TIn>>();
+            _logger = LogHelper.GetLogger<DataflowEngine<TIn, TOut>>();
             _workBody = workBody ?? throw new ArgumentNullException(nameof(workBody));
 
             _preWorkBody = preWorkBody;
