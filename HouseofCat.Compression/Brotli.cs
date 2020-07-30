@@ -5,15 +5,15 @@ using System.Threading.Tasks;
 
 namespace HouseofCat.Compression
 {
-    public static class Gzip
+    public static class Brotli
     {
         public static async Task<byte[]> CompressAsync(byte[] input)
         {
             using var compressedStream = new MemoryStream();
 
-            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Compress))
+            using (var bstream = new BrotliStream(compressedStream, CompressionMode.Compress))
             {
-                await gzipStream
+                await bstream
                     .WriteAsync(input)
                     .ConfigureAwait(false);
             }
@@ -25,9 +25,9 @@ namespace HouseofCat.Compression
         {
             using var compressedStream = new MemoryStream();
 
-            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Compress))
+            using (var bstream = new BrotliStream(compressedStream, CompressionMode.Compress))
             {
-                await gzipStream
+                await bstream
                     .WriteAsync(input)
                     .ConfigureAwait(false);
             }
@@ -40,9 +40,9 @@ namespace HouseofCat.Compression
             using var uncompressedStream = new MemoryStream();
 
             using (var compressedStream = new MemoryStream(input))
-            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
+            using (var bstream = new BrotliStream(compressedStream, CompressionMode.Decompress, false))
             {
-                await gzipStream
+                await bstream
                     .CopyToAsync(uncompressedStream)
                     .ConfigureAwait(false);
             }
@@ -55,9 +55,9 @@ namespace HouseofCat.Compression
             using var uncompressedStream = new MemoryStream();
 
             using (var compressedStream = new MemoryStream(input.ToArray()))
-            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
+            using (var bstream = new BrotliStream(compressedStream, CompressionMode.Decompress, false))
             {
-                await gzipStream
+                await bstream
                     .CopyToAsync(uncompressedStream)
                     .ConfigureAwait(false);
             }

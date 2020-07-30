@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace HouseofCat.Library.Utilities.Random
+namespace HouseofCat.Utilities.Random
 {
     /// <summary>
     /// Static class for generating filler (random) data for users and Tests.

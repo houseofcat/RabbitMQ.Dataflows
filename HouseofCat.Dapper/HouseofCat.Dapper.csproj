@@ -1,8 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-  </PropertyGroup>
+  <Import Project="..\common.props" />
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.35" />

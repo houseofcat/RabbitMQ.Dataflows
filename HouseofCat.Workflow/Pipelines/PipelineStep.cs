@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks.Dataflow;
 
-namespace HouseofCat.Library.Workflows.Pipelines
+namespace HouseofCat.Workflows.Pipelines
 {
     public class PipelineStep
     {

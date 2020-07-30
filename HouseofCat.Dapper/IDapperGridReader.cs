@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Library.Dapper
+namespace HouseofCat.Dapper
 {
     public interface IDapperGridReader
     {

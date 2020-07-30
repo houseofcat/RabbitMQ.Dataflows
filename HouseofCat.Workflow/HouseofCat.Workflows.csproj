@@ -6,7 +6,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Library.Logger\HouseofCat.Logger.csproj" />
+    <ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
   </ItemGroup>
 
 </Project>

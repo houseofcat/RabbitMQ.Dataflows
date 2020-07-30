@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace HouseofCat.Library.Utilities.Time
+namespace HouseofCat.Utilities.Time
 {
     public static class Time
     {

@@ -2,7 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Library.Encryption.Hash
+namespace HouseofCat.Encryption.Hash
 {
     public static class ArgonHash
     {

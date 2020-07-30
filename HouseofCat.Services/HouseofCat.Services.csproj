@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\common.props" />
-    
+
   <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Library.Compression\HouseofCat.Compression.csproj" />
-    <ProjectReference Include="..\HouseofCat.Library.Encryption\HouseofCat.Encryption.csproj" />
+    <ProjectReference Include="..\HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj" />
+    <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
+    <ProjectReference Include="..\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
   </ItemGroup>
 
 </Project>

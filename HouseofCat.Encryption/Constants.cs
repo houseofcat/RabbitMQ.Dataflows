@@ -1,4 +1,4 @@
-﻿namespace HouseofCat.Library.Encryption
+﻿namespace HouseofCat.Encryption
 {
     public static class Constants
     {

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\common.props" />
+    
+    <PropertyGroup>
+        <RootNamespace>HouseofCat.Compression</RootNamespace>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="K4os.Compression.LZ4.Streams" Version="1.1.11" />
+    </ItemGroup>
+
+</Project>

@@ -1,4 +1,4 @@
-﻿namespace HouseofCat.Library.Workflows.Pipelines
+﻿namespace HouseofCat.Workflows.Pipelines
 {
     public static class Constants
     {

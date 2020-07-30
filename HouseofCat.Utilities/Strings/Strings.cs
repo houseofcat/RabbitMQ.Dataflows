@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace HouseofCat.Library.Utilities
+namespace HouseofCat.Utilities
 {
     public static class Strings
     {

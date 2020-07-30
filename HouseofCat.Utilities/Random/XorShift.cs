@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HouseofCat.Library.Utilities.Random
+namespace HouseofCat.Utilities.Random
 {
     // Fast but flawed implementation, can only generate divisible by 4 sets of data in Unsafe.
     public class XorShift

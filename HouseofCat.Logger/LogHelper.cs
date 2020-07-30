@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace HouseofCat.Library.Logger
+namespace HouseofCat.Logger
 {
     public static class LogHelper
     {

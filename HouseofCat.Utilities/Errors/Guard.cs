@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace HouseofCat.Library.Utilities.Errors
+namespace HouseofCat.Utilities.Errors
 {
     public static class Guard
     {

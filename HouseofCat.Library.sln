@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Algorithms", "Ho
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Services", "HouseofCat.Services\HouseofCat.Services.csproj", "{6D8C345C-3CB3-4EE2-8332-04CF2FB27A72}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dapper.SqlServer", "HouseofCat.Dapper\HouseofCat.Dapper.SqlServer.csproj", "{8F9C35D4-D79E-4E37-B18D-B8E56F68BD35}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dapper.SqlServer", "HouseofCat.Dapper.SqlServer\HouseofCat.Dapper.SqlServer.csproj", "{8F9C35D4-D79E-4E37-B18D-B8E56F68BD35}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dapper.LegacySqlServer", "HouseofCat.Dapper.LegacySqlServer\HouseofCat.Dapper.LegacySqlServer.csproj", "{1614AA07-D30F-4847-B506-957DD0109E70}"
 EndProject
@@ -30,6 +30,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		version.props = version.props
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Host.SerilogSqlServer", "HouseofCat.AspNetCore.Serilog\HouseofCat.Host.SerilogSqlServer.csproj", "{F87490D3-D318-4425-8044-1FA2BD1B24A6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Compression.LZ4", "HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj", "{E7F4AFF1-3D8D-4250-B813-F7BD5D558451}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -77,6 +81,14 @@ Global
 		{BAB7F573-FD85-4C02-9FBB-A4390FF35D21}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BAB7F573-FD85-4C02-9FBB-A4390FF35D21}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BAB7F573-FD85-4C02-9FBB-A4390FF35D21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F87490D3-D318-4425-8044-1FA2BD1B24A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F87490D3-D318-4425-8044-1FA2BD1B24A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F87490D3-D318-4425-8044-1FA2BD1B24A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F87490D3-D318-4425-8044-1FA2BD1B24A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7F4AFF1-3D8D-4250-B813-F7BD5D558451}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7F4AFF1-3D8D-4250-B813-F7BD5D558451}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7F4AFF1-3D8D-4250-B813-F7BD5D558451}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7F4AFF1-3D8D-4250-B813-F7BD5D558451}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

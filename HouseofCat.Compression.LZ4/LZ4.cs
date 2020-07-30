@@ -1,19 +1,26 @@
-﻿using System;
+﻿using K4os.Compression.LZ4.Streams;
+using System;
 using System.IO;
-using System.IO.Compression;
 using System.Threading.Tasks;
 
 namespace HouseofCat.Compression
 {
-    public static class Gzip
+    public static class LZ4
     {
+        private readonly static LZ4EncoderSettings encoderSettings = new LZ4EncoderSettings
+        {
+            CompressionLevel = K4os.Compression.LZ4.LZ4Level.L00_FAST,
+        };
+
+        private readonly static LZ4DecoderSettings decoderSettings = new LZ4DecoderSettings();
+
         public static async Task<byte[]> CompressAsync(byte[] input)
         {
             using var compressedStream = new MemoryStream();
 
-            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Compress))
+            using (var lz4Stream = LZ4Stream.Encode(compressedStream, encoderSettings, false))
             {
-                await gzipStream
+                await lz4Stream
                     .WriteAsync(input)
                     .ConfigureAwait(false);
             }
@@ -25,9 +32,9 @@ namespace HouseofCat.Compression
         {
             using var compressedStream = new MemoryStream();
 
-            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Compress))
+            using (var lz4Stream = LZ4Stream.Encode(compressedStream, encoderSettings, false))
             {
-                await gzipStream
+                await lz4Stream
                     .WriteAsync(input)
                     .ConfigureAwait(false);
             }
@@ -40,9 +47,9 @@ namespace HouseofCat.Compression
             using var uncompressedStream = new MemoryStream();
 
             using (var compressedStream = new MemoryStream(input))
-            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
+            using (var lz4Stream = LZ4Stream.Decode(compressedStream, decoderSettings, false))
             {
-                await gzipStream
+                await lz4Stream
                     .CopyToAsync(uncompressedStream)
                     .ConfigureAwait(false);
             }
@@ -55,9 +62,9 @@ namespace HouseofCat.Compression
             using var uncompressedStream = new MemoryStream();
 
             using (var compressedStream = new MemoryStream(input.ToArray()))
-            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
+            using (var lz4Stream = LZ4Stream.Decode(compressedStream, decoderSettings, false))
             {
-                await gzipStream
+                await lz4Stream
                     .CopyToAsync(uncompressedStream)
                     .ConfigureAwait(false);
             }

@@ -1,4 +1,4 @@
-﻿namespace HouseofCat.Library.Algorithms.Math
+﻿namespace HouseofCat.Algorithms.Math
 {
     public static class ThreeSum
     {

@@ -1,10 +1,10 @@
-﻿using HouseofCat.Library.Logger;
+﻿using HouseofCat.Logger;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-namespace HouseofCat.Library.Workflow
+namespace HouseofCat.Workflow
 {
     public class DataflowEngine<TIn, TOut>
     {

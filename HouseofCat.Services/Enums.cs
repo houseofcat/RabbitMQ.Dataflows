@@ -1,4 +1,4 @@
-﻿namespace HouseofCat.Library.Services
+﻿namespace HouseofCat.Services
 {
     public static class Enums
     {
@@ -12,6 +12,7 @@
             Gzip,
             Deflate,
             Brotli,
+            LZ4,
         }
 
         public enum SerializationMethod

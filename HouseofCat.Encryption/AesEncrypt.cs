@@ -5,7 +5,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using System;
 using System.IO;
 
-namespace HouseofCat.Library.Encryption
+namespace HouseofCat.Encryption
 {
     public static class AesEncrypt
     {

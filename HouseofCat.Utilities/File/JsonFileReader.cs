@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Library.Utilities.File
+namespace HouseofCat.Utilities.File
 {
     public static class JsonFileReader
     {

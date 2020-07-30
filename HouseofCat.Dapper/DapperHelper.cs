@@ -3,7 +3,7 @@ using FastMember;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace HouseofCat.Library.Dapper
+namespace HouseofCat.Dapper
 {
     public static class DapperHelper
     {

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
 
-namespace HouseofCat.Library.Dapper
+namespace HouseofCat.Dapper
 {
     public static class SqlServerDapper
     {
