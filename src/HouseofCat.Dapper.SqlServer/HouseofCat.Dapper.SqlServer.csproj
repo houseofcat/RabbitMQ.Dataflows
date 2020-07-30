@@ -3,6 +3,7 @@
   <PropertyGroup>
     <AssemblyName>HouseofCat.Dapper.SqlServer</AssemblyName>
     <RootNamespace>HouseofCat.Dapper</RootNamespace>
+	<Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -2,7 +2,8 @@
     <Import Project="..\..\common.props" />
     
     <PropertyGroup>
-        <RootNamespace>HouseofCat.Compression</RootNamespace>
+      <RootNamespace>HouseofCat.Compression</RootNamespace>
+	  <Version>1.0.0</Version>
     </PropertyGroup>
     
     <ItemGroup>
