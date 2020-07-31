@@ -2,32 +2,15 @@
 using FastMember;
 using System.Collections.Generic;
 using System.Linq;
+using HouseofCat.Reflection;
 
 namespace HouseofCat.Dapper
 {
     public static class DapperHelper
     {
-        public static DynamicParameters ConstructDynamicParameters<TIn>(TIn input) where TIn : class, new()
+        public static DynamicParameters ToDynamicParameters<TIn>(this TIn input, bool readOnlyProperties) where TIn : class, new()
         {
-            var objectMemberAccessor = TypeAccessor.Create(input.GetType());
-
-            return new DynamicParameters(
-                objectMemberAccessor
-                    .GetMembers()
-                    .ToDictionary(x => x.Name, x => objectMemberAccessor[input, x.Name]));
-        }
-
-        public static DynamicParameters ConstructDynamicParametersFromReadableProperties<TIn>(TIn input) where TIn : class, new()
-        {
-            var objectMemberAccessor = TypeAccessor.Create(input.GetType());
-            var propertyDictionary = new Dictionary<string, object>();
-            foreach (var member in objectMemberAccessor.GetMembers())
-            {
-                if (member.CanRead)
-                { propertyDictionary.Add(member.Name, objectMemberAccessor[input, member.Name]); }
-            }
-
-            return new DynamicParameters(propertyDictionary);
+            return new DynamicParameters(input.ToDictionary(readOnlyProperties));
         }
     }
 }

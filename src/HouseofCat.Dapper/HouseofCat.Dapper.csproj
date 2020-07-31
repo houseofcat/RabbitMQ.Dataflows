@@ -9,5 +9,8 @@
     <PackageReference Include="Dapper" Version="2.0.35" />
     <PackageReference Include="FastMember" Version="1.5.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HouseofCat.Reflection\HouseofCat.Reflection.csproj" />
+  </ItemGroup>
 
 </Project>
