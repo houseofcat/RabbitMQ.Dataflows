@@ -6,6 +6,9 @@ A library for All The Things!
 
 ![HouseofCat.Library](https://github.com/houseofcat/HouseofCat.Library/workflows/HouseofCat.Library/badge.svg)  
 
+## Description
+Check out each project for a `README.md` to see if there are additional instructions/examples.
+
 ## HouseofCat.Algorithms
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Algorithms.svg)](https://www.nuget.org/packages/HouseofCat.Algorithms/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Algorithms.svg)](https://www.nuget.org/packages/HouseofCat.Algorithms/)  
