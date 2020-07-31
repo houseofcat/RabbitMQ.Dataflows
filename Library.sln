@@ -9,7 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		houseofcat.png = houseofcat.png
 		LICENSE = LICENSE
 		README.md = README.md
-		version.props = version.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Utilities", "src\HouseofCat.Utilities\HouseofCat.Utilities.csproj", "{2BF50B4E-7EE9-4C51-80AA-68405D76F21A}"
@@ -40,7 +39,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Reflection", "sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Extensions", "src\HouseofCat.Extensions\HouseofCat.Extensions.csproj", "{36256F7A-4DCD-4460-8EB6-931A6B1B32E6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HouseofCat.CookedRabbit", "src\HouseofCat.CookedRabbit\HouseofCat.CookedRabbit.csproj", "{AF7AF28A-6704-4E62-9977-23E1FE1490D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.CookedRabbit", "src\HouseofCat.CookedRabbit\HouseofCat.CookedRabbit.csproj", "{AF7AF28A-6704-4E62-9977-23E1FE1490D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

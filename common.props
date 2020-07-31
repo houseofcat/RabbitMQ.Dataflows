@@ -11,13 +11,6 @@
     <IsOSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsOSX>
     <IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux>
 
-    <EmbedAllSources>true</EmbedAllSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageIcon>houseofcat.png</PackageIcon>
     <PackageTags>C# NetCore HouseofCat HouseofCat.io</PackageTags>
     <PackageReleaseNotes>Simplification</PackageReleaseNotes>
@@ -25,6 +18,13 @@
     <RepositoryUrl>https://github.com/houseofcat/Library</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <NoWarn>1591</NoWarn>
+
+    <!-- Sourcelink-->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedAllSources>true</EmbedAllSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(IsWindows)'=='true'">
@@ -38,15 +38,12 @@
   <PropertyGroup Condition="'$(IsLinux)'=='true'">
     <DefineConstants>Linux</DefineConstants>
   </PropertyGroup>
-    
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp3.1|AnyCPU'">
-    <DebugType>embedded</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net5.0|AnyCPU'">
-    <DebugType>embedded</DebugType>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
+    <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
 
   <ItemGroup>
@@ -55,8 +52,8 @@
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
-  
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitLab" Version="1.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
   </ItemGroup>
 </Project>
