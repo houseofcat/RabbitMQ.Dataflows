@@ -1,4 +1,4 @@
-name: ReleasePublish
+name: nuget-publish
 
 on:
   workflow_dispatch:
@@ -29,8 +29,6 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
-    - name: Test
-      run: dotnet test --no-restore
     - name: Publish HouseofCat.Algorithms
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
