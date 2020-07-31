@@ -3,7 +3,7 @@ using HouseofCat.Encryption;
 using HouseofCat.Encryption.Hash;
 using HouseofCat.Logger;
 using HouseofCat.RabbitMQ.Pools;
-using HouseofCat.RabbitMQ.Workflows;
+using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.Utilities.File;
 using HouseofCat.Utilities.Time;
 using HouseofCat.Workflows.Pipelines;
@@ -16,7 +16,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HouseofCat.RabbitMQ.Service
+namespace HouseofCat.RabbitMQ.Services
 {
     public interface IRabbitService
     {
@@ -215,14 +215,14 @@ namespace HouseofCat.RabbitMQ.Service
 
         public IConsumer<ReceivedData> GetConsumer(string consumerName)
         {
-            if (!Consumers.ContainsKey(consumerName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerSettingsMessage, consumerName));
+            if (!Consumers.ContainsKey(consumerName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerOptionsMessage, consumerName));
             return Consumers[consumerName];
         }
 
         public IConsumer<ReceivedData> GetConsumerByPipelineName(string consumerPipelineName)
         {
-            if (!ConsumerPipelineNameToConsumerOptions.ContainsKey(consumerPipelineName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerPipelineSettingsMessage, consumerPipelineName));
-            if (!Consumers.ContainsKey(ConsumerPipelineNameToConsumerOptions[consumerPipelineName].ConsumerName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerSettingsMessage, ConsumerPipelineNameToConsumerOptions[consumerPipelineName].ConsumerName));
+            if (!ConsumerPipelineNameToConsumerOptions.ContainsKey(consumerPipelineName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerPipelineOptionsMessage, consumerPipelineName));
+            if (!Consumers.ContainsKey(ConsumerPipelineNameToConsumerOptions[consumerPipelineName].ConsumerName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerOptionsMessage, ConsumerPipelineNameToConsumerOptions[consumerPipelineName].ConsumerName));
             return Consumers[ConsumerPipelineNameToConsumerOptions[consumerPipelineName].ConsumerName];
         }
 

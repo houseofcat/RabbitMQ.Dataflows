@@ -1,7 +1,7 @@
 using HouseofCat.Utilities.Random;
 using Xunit;
 
-namespace CookedRabbit.Core.Tests
+namespace HouseofCat.RabbitMQ.Tests
 {
     public class UtilsTests
     {

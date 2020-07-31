@@ -60,7 +60,7 @@ namespace HouseofCat.Workflows
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, Constants.Dataflow.Error);
+                _logger.LogError(ex, Constants.Dataflows.Error);
             }
         }
 

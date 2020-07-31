@@ -1,6 +1,6 @@
 ﻿using BenchmarkDotNet.Running;
 
-namespace CookedRabbit.Core.Benchmark
+namespace Examples.RabbitMQ.Benchmark
 {
     public static class Program
     {

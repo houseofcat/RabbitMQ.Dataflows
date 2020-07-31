@@ -2,14 +2,14 @@ using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.Encryption.Hash;
 using HouseofCat.RabbitMQ;
-using HouseofCat.RabbitMQ.Service;
+using HouseofCat.RabbitMQ.Services;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace CookedRabbit.Core.Tests
+namespace HouseofCat.RabbitMQ.Tests
 {
     public class EncryptionTests
     {

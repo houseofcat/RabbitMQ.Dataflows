@@ -84,7 +84,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
             for (int i = 0; i < Options.PoolOptions.MaxConnections; i++)
             {
-                var serviceName = string.IsNullOrEmpty(Options.PoolOptions.ServiceName) ? $"CookedRabbit:{i}" : $"{Options.PoolOptions.ServiceName}:{i}";
+                var serviceName = string.IsNullOrEmpty(Options.PoolOptions.ServiceName) ? $"HoC.RabbitMQ:{i}" : $"{Options.PoolOptions.ServiceName}:{i}";
                 try
                 {
                     await _connections

@@ -69,7 +69,7 @@ namespace HouseofCat.Workflows.Pipelines
             bool? ensureOrdered = null,
             int? bufferSizeOverride = null)
         {
-            if (Ready) throw new InvalidOperationException(Constants.Pipeline.InvalidAddError);
+            if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
 
             var options = GetExecuteStepOptions(localMaxDoP, ensureOrdered, bufferSizeOverride);
             var pipelineStep = new PipelineStep
@@ -98,7 +98,7 @@ namespace HouseofCat.Workflows.Pipelines
                         pipelineStep.Block = step;
                         Steps.Add(pipelineStep);
                     }
-                    else { throw new InvalidOperationException(Constants.Pipeline.InvalidStepFound); }
+                    else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
                 }
                 else
                 {
@@ -110,7 +110,7 @@ namespace HouseofCat.Workflows.Pipelines
                         pipelineStep.Block = step;
                         Steps.Add(pipelineStep);
                     }
-                    else { throw new InvalidOperationException(Constants.Pipeline.InvalidStepFound); }
+                    else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
                 }
             }
         }
@@ -121,7 +121,7 @@ namespace HouseofCat.Workflows.Pipelines
             bool? ensureOrdered = null,
             int? bufferSizeOverride = null)
         {
-            if (Ready) throw new InvalidOperationException(Constants.Pipeline.InvalidAddError);
+            if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
 
             for (int i = 0; i < stepFunctions.Count; i++)
             {
@@ -135,7 +135,7 @@ namespace HouseofCat.Workflows.Pipelines
             bool? ensureOrdered = null,
             int? bufferSizeOverride = null)
         {
-            if (Ready) throw new InvalidOperationException(Constants.Pipeline.InvalidAddError);
+            if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
 
             var options = GetExecuteStepOptions(localMaxDoP, ensureOrdered, bufferSizeOverride);
             var pipelineStep = new PipelineStep
@@ -164,7 +164,7 @@ namespace HouseofCat.Workflows.Pipelines
                         pipelineStep.Block = step;
                         Steps.Add(pipelineStep);
                     }
-                    else { throw new InvalidOperationException(Constants.Pipeline.InvalidStepFound); }
+                    else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
                 }
                 else
                 {
@@ -175,7 +175,7 @@ namespace HouseofCat.Workflows.Pipelines
                         pipelineStep.Block = step;
                         Steps.Add(pipelineStep);
                     }
-                    else { throw new InvalidOperationException(Constants.Pipeline.InvalidStepFound); }
+                    else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
                 }
             }
         }
@@ -186,7 +186,7 @@ namespace HouseofCat.Workflows.Pipelines
             bool? ensureOrdered = null,
             int? bufferSizeOverride = null)
         {
-            if (Ready) throw new InvalidOperationException(Constants.Pipeline.InvalidAddError);
+            if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
 
             for (int i = 0; i < stepFunctions.Count; i++)
             {
@@ -196,8 +196,8 @@ namespace HouseofCat.Workflows.Pipelines
 
         public void Finalize(Action<TOut> finalizeStep)
         {
-            if (Ready) throw new InvalidOperationException(Constants.Pipeline.AlreadyFinalized);
-            if (Steps.Count == 0) throw new InvalidOperationException(Constants.Pipeline.CantFinalize);
+            if (Ready) throw new InvalidOperationException(Constants.Pipelines.AlreadyFinalized);
+            if (Steps.Count == 0) throw new InvalidOperationException(Constants.Pipelines.CantFinalize);
 
             if (finalizeStep != null)
             {
@@ -221,7 +221,7 @@ namespace HouseofCat.Workflows.Pipelines
                         sourceBlock.LinkTo(step, _linkStepOptions);
                         Steps.Add(pipelineStep);
                     }
-                    else { throw new InvalidOperationException(Constants.Pipeline.InvalidStepFound); }
+                    else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
                 }
                 else
                 {
@@ -235,7 +235,7 @@ namespace HouseofCat.Workflows.Pipelines
                         sourceBlock.LinkTo(step, _linkStepOptions);
                         Steps.Add(pipelineStep);
                     }
-                    else { throw new InvalidOperationException(Constants.Pipeline.InvalidStepFound); }
+                    else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
                 }
             }
             else
@@ -246,8 +246,8 @@ namespace HouseofCat.Workflows.Pipelines
 
         public void Finalize(Func<TOut, Task> finalizeStep)
         {
-            if (Ready) throw new InvalidOperationException(Constants.Pipeline.AlreadyFinalized);
-            if (Steps.Count == 0) throw new InvalidOperationException(Constants.Pipeline.CantFinalize);
+            if (Ready) throw new InvalidOperationException(Constants.Pipelines.AlreadyFinalized);
+            if (Steps.Count == 0) throw new InvalidOperationException(Constants.Pipelines.CantFinalize);
 
             if (finalizeStep != null)
             {
@@ -294,11 +294,11 @@ namespace HouseofCat.Workflows.Pipelines
 
         public async Task<bool> QueueForExecutionAsync(TIn input)
         {
-            if (!Ready) throw new InvalidOperationException(Constants.Pipeline.NotFinalized);
+            if (!Ready) throw new InvalidOperationException(Constants.Pipelines.NotFinalized);
 
             if (Steps[0].Block is ITargetBlock<TIn> firstStep)
             {
-                _logger.LogTrace(Constants.Pipeline.Queued, _pipelineName);
+                _logger.LogTrace(Constants.Pipelines.Queued, _pipelineName);
                 return await firstStep.SendAsync(input).ConfigureAwait(false);
             }
 
@@ -307,7 +307,7 @@ namespace HouseofCat.Workflows.Pipelines
 
         public async Task<bool> AwaitCompletionAsync()
         {
-            if (!Ready) throw new InvalidOperationException(Constants.Pipeline.NotFinalized);
+            if (!Ready) throw new InvalidOperationException(Constants.Pipelines.NotFinalized);
 
             if (Steps[0].Block is ITargetBlock<TIn> firstStep)
             {
@@ -317,7 +317,7 @@ namespace HouseofCat.Workflows.Pipelines
                 // Await the last step.
                 if (Steps[^1].Block is ITargetBlock<TIn> lastStep)
                 {
-                    _logger.LogTrace(Constants.Pipeline.AwaitsCompletion, _pipelineName);
+                    _logger.LogTrace(Constants.Pipelines.AwaitsCompletion, _pipelineName);
                     await lastStep.Completion.ConfigureAwait(false);
                     return true;
                 }
@@ -364,9 +364,9 @@ namespace HouseofCat.Workflows.Pipelines
 
                 var ex = GetAnyPipelineStepsFault();
                 if (ex != null)
-                { _logger.LogCritical(ex, Constants.Pipeline.Faulted, _pipelineName); }
+                { _logger.LogCritical(ex, Constants.Pipelines.Faulted, _pipelineName); }
                 else  // No Steps are Faulted... Hooray!
-                { _logger.LogDebug(Constants.Pipeline.Healthy, _pipelineName); }
+                { _logger.LogDebug(Constants.Pipelines.Healthy, _pipelineName); }
             }
         }
     }

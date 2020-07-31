@@ -1,6 +1,6 @@
 ﻿using HouseofCat.RabbitMQ;
-using HouseofCat.RabbitMQ.Service;
-using HouseofCat.RabbitMQ.Workflows;
+using HouseofCat.RabbitMQ.Services;
+using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.Workflows.Pipelines;
 using Microsoft.Extensions.Logging;
 using System;
@@ -9,7 +9,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CookedRabbit.Core.ConsumerPipelineMicroservice
+namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
 {
     public static class Program
     {
@@ -168,7 +168,7 @@ namespace CookedRabbit.Core.ConsumerPipelineMicroservice
             public string StringMessage { get; set; }
         }
 
-        public class WorkState : HouseofCat.RabbitMQ.Workflows.WorkState
+        public class WorkState : HouseofCat.RabbitMQ.Pipelines.WorkState
         {
             public Message Message { get; set; }
             public ulong LetterId { get; set; }

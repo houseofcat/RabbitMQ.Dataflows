@@ -2,7 +2,6 @@ using HouseofCat.Logger;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Workflows;
-using HouseofCat.Workflows.Pipelines;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -24,8 +23,6 @@ namespace HouseofCat.RabbitMQ
         ReadOnlyMemory<byte> HashKey { get; set; }
 
         Task DataflowExecutionEngineAsync(Func<TFromQueue, Task<bool>> workBodyAsync, int maxDoP = 4, bool ensureOrdered = true, CancellationToken token = default);
-        Task PipelineExecutionEngineAsync<TLocalOut>(IPipeline<TFromQueue, TLocalOut> pipeline, bool waitForCompletion, CancellationToken token = default);
-        Task PipelineStreamEngineAsync<TOut>(IPipeline<ReceivedData, TOut> pipeline, bool waitForCompletion, CancellationToken token = default);
 
         ChannelReader<TFromQueue> GetConsumerBuffer();
         ValueTask<TFromQueue> ReadAsync();
@@ -40,7 +37,6 @@ namespace HouseofCat.RabbitMQ
     {
         private readonly ILogger<Consumer> _logger;
         private readonly SemaphoreSlim _conLock = new SemaphoreSlim(1, 1);
-        private readonly SemaphoreSlim _pipeExecLock = new SemaphoreSlim(1, 1);
         private readonly SemaphoreSlim _dataFlowExecLock = new SemaphoreSlim(1, 1);
         private IChannelHost _chanHost;
         private bool _disposedValue;
@@ -470,125 +466,6 @@ namespace HouseofCat.RabbitMQ
             finally { _dataFlowExecLock.Release(); }
         }
 
-        public async Task PipelineStreamEngineAsync<TOut>(IPipeline<ReceivedData, TOut> pipeline, bool waitForCompletion, CancellationToken token = default)
-        {
-            await _pipeExecLock
-                .WaitAsync(2000)
-                .ConfigureAwait(false);
-
-            try
-            {
-                await foreach (var receivedData in _dataBuffer.Reader.ReadAllAsync(token))
-                {
-                    if (receivedData == null) { continue; }
-
-                    _logger.LogDebug(
-                        LogMessages.Consumer.ConsumerPipelineQueueing,
-                        ConsumerOptions.ConsumerName,
-                        receivedData.DeliveryTag);
-
-                    await pipeline
-                        .QueueForExecutionAsync(receivedData)
-                        .ConfigureAwait(false);
-
-                    if (waitForCompletion)
-                    {
-                        _logger.LogTrace(
-                            LogMessages.Consumer.ConsumerPipelineWaiting,
-                            ConsumerOptions.ConsumerName,
-                            receivedData.DeliveryTag);
-
-                        await receivedData
-                            .Completion()
-                            .ConfigureAwait(false);
-
-                        _logger.LogTrace(
-                            LogMessages.Consumer.ConsumerPipelineWaitingDone,
-                            ConsumerOptions.ConsumerName,
-                            receivedData.DeliveryTag);
-                    }
-
-                    if (token.IsCancellationRequested)
-                    { return; }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning(
-                    LogMessages.Consumer.ConsumerPipelineActionCancelled,
-                    ConsumerOptions.ConsumerName);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    LogMessages.Consumer.ConsumerPipelineError,
-                    ConsumerOptions.ConsumerName,
-                    ex.Message);
-            }
-            finally { _pipeExecLock.Release(); }
-        }
-
-        public async Task PipelineExecutionEngineAsync<TOut>(IPipeline<ReceivedData, TOut> pipeline, bool waitForCompletion, CancellationToken token = default)
-        {
-            await _pipeExecLock
-                .WaitAsync(2000)
-                .ConfigureAwait(false);
-
-            try
-            {
-                while (await _dataBuffer.Reader.WaitToReadAsync(token).ConfigureAwait(false))
-                {
-                    while (_dataBuffer.Reader.TryRead(out var receivedData))
-                    {
-                        if (receivedData == null) { continue; }
-
-                        _logger.LogDebug(
-                            LogMessages.Consumer.ConsumerPipelineQueueing,
-                            ConsumerOptions.ConsumerName,
-                            receivedData.DeliveryTag);
-
-                        await pipeline
-                            .QueueForExecutionAsync(receivedData)
-                            .ConfigureAwait(false);
-
-                        if (waitForCompletion)
-                        {
-                            _logger.LogTrace(
-                                LogMessages.Consumer.ConsumerPipelineWaiting,
-                                ConsumerOptions.ConsumerName,
-                                receivedData.DeliveryTag);
-
-                            await receivedData
-                                .Completion()
-                                .ConfigureAwait(false);
-
-                            _logger.LogTrace(
-                                LogMessages.Consumer.ConsumerPipelineWaitingDone,
-                                ConsumerOptions.ConsumerName,
-                                receivedData.DeliveryTag);
-                        }
-
-                        if (token.IsCancellationRequested)
-                        { return; }
-                    }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogInformation(
-                    LogMessages.Consumer.ConsumerPipelineActionCancelled,
-                    ConsumerOptions.ConsumerName);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    LogMessages.Consumer.ConsumerPipelineError,
-                    ConsumerOptions.ConsumerName,
-                    ex.Message);
-            }
-            finally { _pipeExecLock.Release(); }
-        }
-
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -596,7 +473,6 @@ namespace HouseofCat.RabbitMQ
                 if (disposing)
                 {
                     _dataFlowExecLock.Dispose();
-                    _pipeExecLock.Dispose();
                     _conLock.Dispose();
                 }
 

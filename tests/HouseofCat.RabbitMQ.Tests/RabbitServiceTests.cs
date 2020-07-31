@@ -1,10 +1,9 @@
-using CookedRabbit.Core.Service;
-using HouseofCat.RabbitMQ.Service;
+using HouseofCat.RabbitMQ.Services;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace CookedRabbit.Core.Tests
+namespace HouseofCat.RabbitMQ.Tests
 {
     public class RabbitServiceTests
     {

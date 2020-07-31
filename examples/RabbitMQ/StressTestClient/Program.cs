@@ -7,7 +7,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace CookedRabbit.Core.StressAndStabilityConsole
+namespace Examples.RabbitMQ.StressAndStabilityConsole
 {
     public static class Program
     {

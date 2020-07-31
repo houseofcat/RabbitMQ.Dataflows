@@ -1,6 +1,6 @@
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
-using HouseofCat.RabbitMQ.Service;
+using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Utilities.File;
 using HouseofCat.Workflows.Pipelines;
 using System;
@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace CookedRabbit.Core.Tests
+namespace HouseofCat.RabbitMQ.Tests
 {
     public class ConsumerTests
     {
@@ -118,7 +118,7 @@ namespace CookedRabbit.Core.Tests
             public string StringMessage { get; set; }
         }
 
-        public class WorkState : HouseofCat.RabbitMQ.Workflows.WorkState
+        public class WorkState : HouseofCat.RabbitMQ.Pipelines.WorkState
         {
             public Message Message { get; set; }
             public ulong LetterId { get; set; }

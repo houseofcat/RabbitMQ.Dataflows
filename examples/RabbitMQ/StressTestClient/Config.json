@@ -17,7 +17,7 @@
     }
   },
   "PoolOptions": {
-    "ServiceName": "CookedRabbit",
+    "ServiceName": "HoC.RabbitMQ",
     "MaxConnections": 5,
     "MaxChannels": 25,
     "SleepOnErrorInterval": 1000

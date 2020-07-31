@@ -1,10 +1,10 @@
 ﻿using HouseofCat.RabbitMQ;
-using HouseofCat.RabbitMQ.Service;
+using HouseofCat.RabbitMQ.Services;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace CookedRabbit.Core.SimpleClient
+namespace Examples.RabbitMQ.SimpleClient
 {
     public static class Program
     {

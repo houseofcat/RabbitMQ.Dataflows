@@ -37,8 +37,8 @@ namespace HouseofCat.RabbitMQ
         public readonly static string QueueChannelError = "Can't queue a letter to a closed Threading.Channel.";
 
         public readonly static string ChannelReadErrorMessage = "Can't use reader on a closed Threading.Channel.";
-        public readonly static string NoConsumerSettingsMessage = "Consumer {0} not found in Consumers dictionary.";
-        public readonly static string NoConsumerPipelineSettingsMessage = "ConsumerPipeline {0} not found in ConsumerPipelineSettings dictionary.";
+        public readonly static string NoConsumerOptionsMessage = "Consumer {0} not found in Consumers dictionary.";
+        public readonly static string NoConsumerPipelineOptionsMessage = "ConsumerPipeline {0} not found in ConsumerPipelineOptions dictionary.";
 
         public readonly static string ValidationMessage = "ConnectionPool is not initialized or is shutdown.";
         public readonly static string ShutdownValidationMessage = "ConnectionPool is not initialized. Can't be Shutdown.";

@@ -57,6 +57,14 @@ Check out each project for a `README.md` to see if there are additional instruct
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Client.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Client/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Client.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Client/)  
 
+## HouseofCat.RabbitMQ
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
+
+## HouseofCat.RabbitMQ
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
+
 ## HouseofCat.Reflection
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Reflection.svg)](https://www.nuget.org/packages/HouseofCat.Reflection/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Reflection.svg)](https://www.nuget.org/packages/HouseofCat.Reflection/)  
@@ -72,5 +80,9 @@ Check out each project for a `README.md` to see if there are additional instruct
 ## HouseofCat.Workflows
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Workflows/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Workflows/)  
+
+## HouseofCat.Workflows.Pipelines
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Workflows.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.Workflows.Pipelines/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Workflows.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.Workflows.Pipelines/)  
 
 # [HouseofCat.io](https://houseofcat.io)

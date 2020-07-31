@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace HouseofCat.RabbitMQ.Workflows
+namespace HouseofCat.RabbitMQ.Pipelines
 {
     public interface IWorkState
     {

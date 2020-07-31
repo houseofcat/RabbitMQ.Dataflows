@@ -3,7 +3,7 @@ using BenchmarkDotNet.Jobs;
 using HouseofCat.Utilities.Random;
 using System;
 
-namespace CookedRabbit.Core.Benchmark
+namespace Examples.RabbitMQ.Benchmark
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser, ThreadingDiagnoser]

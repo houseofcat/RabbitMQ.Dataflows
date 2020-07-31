@@ -25,6 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ.Pipelines\HouseofCat.RabbitMQ.Pipelines.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ.Services\HouseofCat.RabbitMQ.Services.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
   </ItemGroup>
 

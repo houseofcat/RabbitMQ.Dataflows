@@ -125,7 +125,7 @@ namespace HouseofCat.RabbitMQ.Pools
         }
 
         private const int CloseCode = 200;
-        private const string CloseMessage = "CookedRabbit manual close channel initiated.";
+        private const string CloseMessage = "HouseofCat.RabbitMQ manual close channel initiated.";
 
         public void Close()
         {

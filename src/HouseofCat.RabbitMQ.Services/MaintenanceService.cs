@@ -3,7 +3,7 @@ using HouseofCat.Utilities.Errors;
 using RabbitMQ.Client;
 using System.Threading.Tasks;
 
-namespace CookedRabbit.Core.Service
+namespace HouseofCat.RabbitMQ.Services
 {
     public interface IMaintenanceService
     {
