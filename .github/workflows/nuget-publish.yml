@@ -91,7 +91,7 @@ jobs:
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
-          PROJECT_FILE_PATH: src/HouseofCat.Extensions.Host.SerilogSqlServer/HouseofCat.Extensions.Host.SerilogSqlServer.csproj
+          PROJECT_FILE_PATH: src/HouseofCat.Extensions.Host.Serilog/HouseofCat.Extensions.Host.Serilog.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Logger
       uses: brandedoutcast/publish-nuget@v2.5.2

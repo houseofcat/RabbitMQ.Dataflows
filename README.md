@@ -42,8 +42,8 @@ Check out each project for a `README.md` to see if there are additional instruct
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.svg)](https://www.nuget.org/packages/HouseofCat.Extensions/)  
 
 ## HouseofCat.Extensions.Host.SerilogSqlServer
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Extensions.Host.SerilogSqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Host.SerilogSqlServer/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.Host.SerilogSqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Host.SerilogSqlServer/)  
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Extensions.Host.Serilog.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Host.Serilog/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.Host.Serilog.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Host.Serilog/)  
 
 ## HouseofCat.Logger
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Logger.svg)](https://www.nuget.org/packages/HouseofCat.Logger/)  
