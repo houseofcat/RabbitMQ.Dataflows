@@ -9,10 +9,6 @@ on:
         default: 'warning'
       tags:
         description: 'Manual Publish'
-  push:
-    branches: [ 'release/**' ]
-  pull_request:
-    branches: [ 'release/**' ]
 
 jobs:
   build:
@@ -36,79 +32,66 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Algorithms/HouseofCat.Algorithms.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
     - name: Publish HouseofCat.Compression
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Compression/HouseofCat.Compression.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
     - name: Publish HouseofCat.Compression.LZ4
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Compression.LZ4/HouseofCat.Compression.LZ4.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
     - name: Publish HouseofCat.Dapper
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Dapper/HouseofCat.Dapper.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
     - name: Publish HouseofCat.Dapper
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Dapper.LegacySqlServer/HouseofCat.Dapper.LegacySqlServer.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
     - name: Publish HouseofCat.Dapper.SqlServer
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Dapper.SqlServer/HouseofCat.Dapper.SqlServer.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
     - name: Publish HouseofCat.Dapper.LegacySqlServer
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Dapper.LegacySqlServer/HouseofCat.Dapper.LegacySqlServer.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
     - name: Publish HouseofCat.Encryption
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Encryption/HouseofCat.Encryption.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
     - name: Publish HouseofCat.Host.SerilogSqlServer
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Host.SerilogSqlServer/HouseofCat.Host.SerilogSqlServer.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
     - name: Publish HouseofCat.Logger
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Logger/HouseofCat.Logger.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
     - name: Publish HouseofCat.Reflection
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Reflection/HouseofCat.Reflection.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
     - name: Publish HouseofCat.Services
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Services/HouseofCat.Services.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
     - name: Publish HouseofCat.Utilities
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Utilities/HouseofCat.Utilities.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
     - name: Publish HouseofCat.Workflow
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
