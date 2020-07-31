@@ -32,11 +32,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dapper.LegacySql
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dapper", "src\HouseofCat.Dapper\HouseofCat.Dapper.csproj", "{BAB7F573-FD85-4C02-9FBB-A4390FF35D21}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Host.SerilogSqlServer", "src\HouseofCat.Host.SerilogSqlServer\HouseofCat.Host.SerilogSqlServer.csproj", "{F87490D3-D318-4425-8044-1FA2BD1B24A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Extensions.Host.Serilog", "src\HouseofCat.Host.SerilogSqlServer\HouseofCat.Extensions.Host.Serilog.csproj", "{F87490D3-D318-4425-8044-1FA2BD1B24A6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Compression.LZ4", "src\HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj", "{E7F4AFF1-3D8D-4250-B813-F7BD5D558451}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HouseofCat.Reflection", "src\HouseofCat.Reflection\HouseofCat.Reflection.csproj", "{FA0ED709-D706-46E1-801A-2D43F1093840}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Reflection", "src\HouseofCat.Reflection\HouseofCat.Reflection.csproj", "{FA0ED709-D706-46E1-801A-2D43F1093840}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Extensions", "src\HouseofCat.Extensions\HouseofCat.Extensions.csproj", "{36256F7A-4DCD-4460-8EB6-931A6B1B32E6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HouseofCat.CookedRabbit", "src\HouseofCat.CookedRabbit\HouseofCat.CookedRabbit.csproj", "{AF7AF28A-6704-4E62-9977-23E1FE1490D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -96,6 +100,14 @@ Global
 		{FA0ED709-D706-46E1-801A-2D43F1093840}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA0ED709-D706-46E1-801A-2D43F1093840}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA0ED709-D706-46E1-801A-2D43F1093840}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36256F7A-4DCD-4460-8EB6-931A6B1B32E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36256F7A-4DCD-4460-8EB6-931A6B1B32E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36256F7A-4DCD-4460-8EB6-931A6B1B32E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36256F7A-4DCD-4460-8EB6-931A6B1B32E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF7AF28A-6704-4E62-9977-23E1FE1490D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF7AF28A-6704-4E62-9977-23E1FE1490D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF7AF28A-6704-4E62-9977-23E1FE1490D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF7AF28A-6704-4E62-9977-23E1FE1490D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

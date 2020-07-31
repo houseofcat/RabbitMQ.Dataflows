@@ -6,7 +6,7 @@ namespace HouseofCat.Utilities.File
 {
     public static class JsonFileReader
     {
-        public static async Task<TOut> ReadJsonFileAsync<TOut>(string fileNamePath)
+        public static async Task<TOut> ReadFileAsync<TOut>(string fileNamePath)
         {
             using var stream = new FileStream(fileNamePath, FileMode.Open);
 

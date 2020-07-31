@@ -8,8 +8,8 @@ namespace HouseofCat.Services
 {
     public interface IEncryptionService
     {
-        byte[] Decrypt(byte[] data, EncryptionMethod method);
-        byte[] Encrypt(byte[] data, EncryptionMethod method);
+        byte[] Decrypt(ReadOnlyMemory<byte> data, EncryptionMethod method);
+        byte[] Encrypt(ReadOnlyMemory<byte> data, EncryptionMethod method);
         Task SetHashKeyAsync(string passphrase, string salt, EncryptionMethod method);
     }
 
@@ -25,7 +25,7 @@ namespace HouseofCat.Services
             };
         }
 
-        public byte[] Decrypt(byte[] data, EncryptionMethod method)
+        public byte[] Decrypt(ReadOnlyMemory<byte> data, EncryptionMethod method)
         {
             GuardAgainstBadHashKey(method);
             return method switch
@@ -36,7 +36,7 @@ namespace HouseofCat.Services
             };
         }
 
-        public byte[] Encrypt(byte[] data, EncryptionMethod method)
+        public byte[] Encrypt(ReadOnlyMemory<byte> data, EncryptionMethod method)
         {
             GuardAgainstBadHashKey(method);
             return method switch

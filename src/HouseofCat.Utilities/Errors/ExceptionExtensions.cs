@@ -16,6 +16,7 @@ namespace HouseofCat.Utilities.Errors
             ParseStackTrace(ex, stacky);
             return stacky;
         }
+
         public static Stacky PrettifyStackTraceWithParameters(this Exception ex, params object[] args)
         {
             var stacky = new Stacky

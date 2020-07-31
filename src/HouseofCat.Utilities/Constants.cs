@@ -4,7 +4,7 @@ namespace HouseofCat.Utilities
 {
     public static class Constants
     {
-        public static class Guard
+        public static class Guards
         {
             public readonly static string CantBeNull = "{0} can't be null or empty.";
             public readonly static string BothCantBeNull = "Both {0} and {1} can't be null or empty.";

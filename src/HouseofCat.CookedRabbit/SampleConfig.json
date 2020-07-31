@@ -1,0 +1,99 @@
+{
+    "FactorySettings": {
+        "Uri": "amqp://guest:guest@localhost:5672/",
+        "MaxChannelsPerConnection": 25,
+        "HeartbeatInterval": 6,
+        "AutoRecovery": true,
+        "TopologyRecovery": true,
+        "NetRecoveryTimeout": 10,
+        "ContinuationTimeout": 10,
+        "EnableDispatchConsumersAsync": true,
+        "SslSettings": {
+            "EnableSsl": false,
+            "CertServerName": "",
+            "LocalCertPath": "",
+            "LocalCertPassword": "",
+            "ProtocolVersions": 3072
+        }
+    },
+    "PoolSettings": {
+        "ServiceName": "PipelineClient",
+        "MaxConnections": 5,
+        "MaxChannels": 25,
+        "SleepOnErrorInterval": 1000
+    },
+    "PublisherSettings": {
+        "LetterQueueBufferSize": 100,
+        "PriorityLetterQueueBufferSize": 100,
+        "BehaviorWhenFull": 0,
+        "CreatePublishReceipts": true,
+        "Compress": false,
+        "Encrypt": false
+    },
+    "GlobalConsumerSettings": {
+        "AggressiveSettings": {
+            "ErrorSuffix": "Error",
+            "BatchSize": 128,
+            "BehaviorWhenFull": 0,
+            "UseTransientChannels": true,
+            "AutoAck": false,
+            "NoLocal": false,
+            "Exclusive": false,
+            "GlobalConsumerPipelineSettings": {
+                "WaitForCompletion": false,
+                "MaxDegreesOfParallelism": 64,
+                "EnsureOrdered": false
+            }
+        },
+        "ModerateSettings": {
+            "ErrorSuffix": "Error",
+            "BatchSize": 48,
+            "BehaviorWhenFull": 0,
+            "UseTransientChannels": true,
+            "AutoAck": false,
+            "NoLocal": false,
+            "Exclusive": false,
+            "GlobalConsumerPipelineSettings": {
+                "WaitForCompletion": true,
+                "MaxDegreesOfParallelism": 24,
+                "EnsureOrdered": false
+            }
+        },
+        "LightSettings": {
+            "ErrorSuffix": "Error",
+            "BatchSize": 8,
+            "BehaviorWhenFull": 0,
+            "UseTransientChannels": true,
+            "AutoAck": false,
+            "NoLocal": false,
+            "Exclusive": false,
+            "GlobalConsumerPipelineSettings": {
+                "WaitForCompletion": true,
+                "MaxDegreesOfParallelism": 4,
+                "EnsureOrdered": false
+            }
+        },
+        "SingleThreaded": {
+            "ErrorSuffix": "Error",
+            "BatchSize": 1,
+            "BehaviorWhenFull": 0,
+            "UseTransientChannels": true,
+            "AutoAck": false,
+            "NoLocal": false,
+            "Exclusive": false,
+            "GlobalConsumerPipelineSettings": {
+                "WaitForCompletion": true,
+                "MaxDegreesOfParallelism": 1,
+                "EnsureOrdered": false
+            }
+        }
+    },
+    "ConsumerSettings": {
+        "ConsumerFromConfig": {
+            "Enabled": true,
+            "GlobalSettings": "AggressiveSettings",
+            "ConsumerName": "ConsumerFromConfig",
+            "QueueName": "TestRabbitServiceQueue"
+        }
+    }
+}

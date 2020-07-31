@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\common.props" />
+
+  <PropertyGroup>
+    <RootNamespace>CookedRabbit.Core</RootNamespace>
+    <Version>4.0.0</Version>
+    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
+    <PackageTags>C# RabbitMQ Cooked Rabbit CookedRabbit NetCore HouseofCat</PackageTags>
+    <PackageReleaseNotes>Lots of cleanup, lots of code solidification.</PackageReleaseNotes>
+
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <DocumentationFile>CookedRabbit.Core.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RabbitMQ.Core.Client" Version="1.0.611" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
+    <ProjectReference Include="..\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
+    <ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
+    <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
+    <ProjectReference Include="..\HouseofCat.Workflows\HouseofCat.Workflows.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="WorkEngines\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="CookedRabbit.Core.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

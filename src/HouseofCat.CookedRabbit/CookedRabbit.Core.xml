@@ -1,0 +1,598 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>HouseofCat.CookedRabbit</name>
+    </assembly>
+    <members>
+        <member name="P:CookedRabbit.Core.Config.FactorySettings">
+            <summary>
+            Class to hold settings for ConnectionFactory (RabbitMQ) options.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.Config.PoolSettings">
+            <summary>
+            Class to hold settings for Channel/ConnectionPool options.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.Config.PublisherSettings">
+            <summary>
+            Class to hold settings for Publisher/AutoPublisher options.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.Config.GlobalConsumerSettings">
+            <summary>
+            Class to hold the global Consumer settings. Will apply these to every consumer.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.Config.ConsumerSettings">
+            <summary>
+            Dictionary to hold all the ConsumerSettings using the ConsumerOption class.
+            </summary>
+        </member>
+        <member name="T:CookedRabbit.Core.Enums.ContentType">
+            <summary>
+            Allows for quickling setting ContentType for RabbitMQ IBasicProperties.
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Javascript">
+            <summary>
+            ContentType.Javascript
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Json">
+            <summary>
+            ContentType.Json
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Urlencoded">
+            <summary>
+            ContentType.Urlencoded
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Xml">
+            <summary>
+            ContentType.Xml
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Zip">
+            <summary>
+            ContentType.Zip
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Pdf">
+            <summary>
+            ContentType.Pdf
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Sql">
+            <summary>
+            ContentType.Sql
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Graphql">
+            <summary>
+            ContentType.Graphql
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Ldjson">
+            <summary>
+            ContentType.Ldjson
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Msword">
+            <summary>
+            ContentType.Msword
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Openword">
+            <summary>
+            ContentType.Openword
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Excel">
+            <summary>
+            ContentType.Excel
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Openexcel">
+            <summary>
+            ContentType.Openexcel
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Powerpoint">
+            <summary>
+            ContentType.Powerpoint
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Openpowerpoint">
+            <summary>
+            ContentType.Openpowerpoint
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Opendocument">
+            <summary>
+            ContentType.Opendocument
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Audiompeg">
+            <summary>
+            ContentType.Audiompeg
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Audiovorbis">
+            <summary>
+            ContentType.Audiovorbis
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Multiformdata">
+            <summary>
+            ContentType.Multiformdata
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Textcss">
+            <summary>
+            ContentType.Textcss
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Texthtml">
+            <summary>
+            ContentType.Texthtml
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Textcsv">
+            <summary>
+            ContentType.Textcsv
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Textplain">
+            <summary>
+            ContentType.Textplain
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Png">
+            <summary>
+            ContentType.Png
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Jpeg">
+            <summary>
+            ContentType.Jpeg
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.ContentType.Gif">
+            <summary>
+            ContentType.Gif
+            </summary>
+        </member>
+        <member name="T:CookedRabbit.Core.Enums.Charset">
+            <summary>
+            Allows for quickling combining Charset with ContentType for RabbitMQ IBasicProperties.
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.Charset.Utf8">
+            <summary>
+            Charset.Utf8
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.Charset.Utf16">
+            <summary>
+            Charset.Utf16
+            </summary>
+        </member>
+        <member name="F:CookedRabbit.Core.Enums.Charset.Utf32">
+            <summary>
+            Charset.Utf32
+            </summary>
+        </member>
+        <member name="M:CookedRabbit.Core.EnumExtensions.Description(System.Enum)">
+            <summary>
+            Extension method of getting the Description value to string.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="P:CookedRabbit.Core.FactoryOptions.Uri">
+            <summary>
+            ConnectionFactory (RabbitMQ) Uri connection string.
+            <para>amqp(s)://guest:guest@localhost:5672/vhost</para>
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.FactoryOptions.MaxChannelsPerConnection">
+            <summary>
+            ConnectionFactory (RabbitMQ) max connection property.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.FactoryOptions.HeartbeatInterval">
+            <summary>
+            ConnectionFactory (RabbitMQ) timespan (in seconds) between heartbeats. More than two timeouts in a row trigger RabbitMQ AutoRecovery.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.FactoryOptions.TopologyRecovery">
+            <summary>
+            ConnectionFactory (RabbitMQ) topology recovery property.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.FactoryOptions.NetRecoveryTimeout">
+            <summary>
+            ConnectionFactory (RabbitMQ) the amount of time to wait before netrecovery begins (seconds).
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.FactoryOptions.ContinuationTimeout">
+            <summary>
+            ConnectionFactory (RabbitMQ) specify the amount of time before timeout on protocol operations (seconds).
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.FactoryOptions.EnableDispatchConsumersAsync">
+            <summary>
+            ConnectionFactory (RabbitMQ) property to enable Async consumers. Can't be true and retrieve regular consumers.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.FactoryOptions.SslSettings">
+            <summary>
+            Class to hold settings for ChannelFactory/SSL (RabbitMQ) settings.
+            </summary>
+        </member>
+        <member name="T:CookedRabbit.Core.GlobalConsumerOptions">
+            <summary>
+            Global overrides for your consumers.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.PoolOptions.ServiceName">
+            <summary>
+            Value to configure the ConnectionPool prefix for display names on RabbitMQ server.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.PoolOptions.MaxConnections">
+            <summary>
+            Number of connections to be created in the ConnectionPool. Used in round-robin to create channels.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.PoolOptions.MaxChannels">
+            <summary>
+            Number of channels to keep in each of the channel pools. Used in round-robin to perform actions.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.PoolOptions.SleepOnErrorInterval">
+            <summary>
+            The time to sleep (in ms) when an error occurs on Channel or Connection creation. It's best not to be hyper aggressive with this value.
+            </summary>
+        </member>
+        <member name="M:CookedRabbit.Core.ReceivedData.AckMessage">
+            <summary>
+            Acknowledges the message server side.
+            </summary>
+        </member>
+        <member name="M:CookedRabbit.Core.ReceivedData.NackMessage(System.Boolean)">
+            <summary>
+            Negative Acknowledges the message server side with option to requeue.
+            </summary>
+        </member>
+        <member name="M:CookedRabbit.Core.ReceivedData.RejectMessage(System.Boolean)">
+            <summary>
+            Reject Message server side with option to requeue.
+            </summary>
+        </member>
+        <member name="M:CookedRabbit.Core.ReceivedData.GetBodyAsync(System.Boolean,System.Boolean)">
+            <summary>
+            Use this method to retrieve the internal buffer as byte[]. Decomcrypts only apply to non-Letter data.
+            <para>Combine this with AMQP header X-CR-OBJECTTYPE to get message wrapper payloads.</para>
+            <para>Header Example: ("X-CR-OBJECTTYPE", "LETTER")</para>
+            <para>Header Example: ("X-CR-OBJECTTYPE", "MESSAGE")</para>
+            <em>Note: Always decomrypts Letter bodies to get type regardless of parameters.</em>
+            </summary>
+        </member>
+        <member name="M:CookedRabbit.Core.ReceivedData.GetBodyAsUtf8StringAsync(System.Boolean,System.Boolean)">
+            <summary>
+            Use this method to retrieve the internal buffer as string. Decomcrypts only apply to non-Letter data.
+            <para>Combine this with AMQP header X-CR-OBJECTTYPE to get message wrapper payloads.</para>
+            <para>Header Example: ("X-CR-OBJECTTYPE", "LETTER")</para>
+            <para>Header Example: ("X-CR-OBJECTTYPE", "MESSAGE")</para>
+            <em>Note: Always decomrypts Letter bodies to get type regardless of parameters.</em>
+            </summary>
+        </member>
+        <member name="M:CookedRabbit.Core.ReceivedData.GetTypeFromJsonAsync``1(System.Boolean,System.Boolean,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Use this method to attempt to deserialize into your type based on internal buffer. Decomcrypts only apply to non-Letter data.
+            <para>Combine this with AMQP header X-CR-OBJECTTYPE to get message wrapper payloads.</para>
+            <para>Header Example: ("X-CR-OBJECTTYPE", "LETTER")</para>
+            <para>Header Example: ("X-CR-OBJECTTYPE", "MESSAGE")</para>
+            <em>Note: Always decomcrypts Letter bodies to get type regardless of parameters.</em>
+            </summary>
+            <typeparam name="TResult"></typeparam>
+            <param name="decrypt"></param>
+            <param name="decompress"></param>
+            <param name="jsonSerializerOptions"></param>
+        </member>
+        <member name="M:CookedRabbit.Core.ReceivedData.GetTypesFromJsonAsync``1(System.Boolean,System.Boolean,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Use this method to attempt to deserialize into your types based on internal buffer. Decomcrypts only apply to non-Letter data.
+            <para>Combine this with AMQP header X-CR-OBJECTTYPE to get message wrapper payloads.</para>
+            <para>Header Example: ("X-CR-OBJECTTYPE", "LETTER")</para>
+            <para>Header Example: ("X-CR-OBJECTTYPE", "MESSAGE")</para>
+            <em>Note: Always decomcrypts Letter bodies to get type regardless of parameters.</em>
+            </summary>
+            <typeparam name="TResult"></typeparam>
+            <param name="decrypt"></param>
+            <param name="decompress"></param>
+            <param name="jsonSerializerOptions"></param>
+        </member>
+        <member name="M:CookedRabbit.Core.ReceivedData.Complete">
+            <summary>
+            A way to indicate this message is fully finished with.
+            </summary>
+        </member>
+        <member name="M:CookedRabbit.Core.ReceivedData.Completion">
+            <summary>
+            A way to await the message until it is marked complete.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.SslOptions.EnableSsl">
+            <summary>
+            RabbitMQ option to enable SSL.
+            <para>Set Cf_RabbitPort to 5671 as well as enabling this.</para>
+            <para>To configure client and server: http://www.rabbitmq.com/ssl.html#configuring-dotnet</para>
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.SslOptions.CertServerName">
+            <summary>
+            RabbitMQ to set the Certificate Server Name.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.SslOptions.LocalCertPath">
+            <summary>
+            RabbitMQ option to set the local file name path of the cert to use for authentication.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.SslOptions.LocalCertPassword">
+            <summary>
+            RabbitMQ option to set the password for the local certificate in use.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.SslOptions.AcceptedPolicyErrors">
+            <summary>
+            RabbitMQ option to allow the following acceptable policy errors (if any). Not Readable by Json Config yet.
+            </summary>
+        </member>
+        <member name="P:CookedRabbit.Core.SslOptions.ProtocolVersions">
+            <summary>
+            RabbitMQ option to specify which secure SSL protocols to use/allow. Not Readable by Json Config yet.
+            <para>Recommend Tls12+ as the most recent/secure protocol.</para>
+            </summary>
+        </member>
+        <member name="M:CookedRabbit.Core.Pools.IChannelPool.GetAckChannelAsync">
+            <summary>
+            This pulls an ackable <see cref="T:CookedRabbit.Core.Pools.IChannelHost"/> out of the <see cref="T:CookedRabbit.Core.Pools.IChannelPool"/> for usage.
+            <para>If the <see cref="T:CookedRabbit.Core.Pools.IChannelHost"/> was previously flagged on error, multi-attempts to recreate it before returning an open channel back to the user.
+            If you only remove channels and never add them, you will drain your <see cref="T:CookedRabbit.Core.Pools.IChannelPool"/>.</para>
+            <para>Use <see cref="M:CookedRabbit.Core.Pools.IChannelPool.ReturnChannelAsync(CookedRabbit.Core.Pools.IChannelHost,System.Boolean)"/> to return Channels.</para>
+            <para><em>Note: During an outage event, you will pause here until a viable channel can be acquired.</em></para>
+            </summary>
+            <returns><see cref="T:CookedRabbit.Core.Pools.IChannelHost"/></returns>
+        </member>
+        <member name="M:CookedRabbit.Core.Pools.IChannelPool.GetChannelAsync">
+            <summary>
+            This pulls a <see cref="T:CookedRabbit.Core.Pools.IChannelHost"/> out of the <see cref="T:CookedRabbit.Core.Pools.IChannelPool"/> for usage.
+            <para>If the <see cref="T:CookedRabbit.Core.Pools.IChannelHost"/> was previously flagged on error, multi-attempts to recreate it before returning an open channel back to the user.
+            If you only remove channels and never add them, you will drain your <see cref="T:CookedRabbit.Core.Pools.IChannelPool"/>.</para>
+            <para>Use <see cref="M:CookedRabbit.Core.Pools.IChannelPool.ReturnChannelAsync(CookedRabbit.Core.Pools.IChannelHost,System.Boolean)"/> to return the <see cref="T:CookedRabbit.Core.Pools.IChannelHost"/>.</para>
+            <para><em>Note: During an outage event, you will pause here until a viable channel can be acquired.</em></para>
+            </summary>
+            <returns><see cref="T:CookedRabbit.Core.Pools.IChannelHost"/></returns>
+        </member>
+        <member name="M:CookedRabbit.Core.Pools.IChannelPool.GetTransientChannelAsync(System.Boolean)">
+            <summary>
+            <para>Gives user a transient <see cref="T:CookedRabbit.Core.Pools.IChannelHost"/> is simply a channel not managed by this library.</para>
+            <para><em>Closing and disposing the <see cref="T:CookedRabbit.Core.Pools.IChannelHost"/> is the responsiblity of the user.</em></para>
+            </summary>
+            <param name="ackable"></param>
+            <returns><see cref="T:CookedRabbit.Core.Pools.IChannelHost"/></returns>
+        </member>
+        <member name="M:CookedRabbit.Core.Pools.ChannelPool.GetChannelAsync">
+            <summary>
+            This pulls a <see cref="T:CookedRabbit.Core.Pools.IChannelHost"/> out of the <see cref="T:CookedRabbit.Core.Pools.IChannelPool"/> for usage.
+            <para>If the <see cref="T:CookedRabbit.Core.Pools.IChannelHost"/> was previously flagged on error, multi-attempta to recreate it before returning an open channel back to the user.
+            If you only remove channels and never add them, you will drain your <see cref="T:CookedRabbit.Core.Pools.IChannelPool"/>.</para>
+            <para>Use <see cref="M:CookedRabbit.Core.Pools.ChannelPool.ReturnChannelAsync(CookedRabbit.Core.Pools.IChannelHost,System.Boolean)"/> to return the <see cref="T:CookedRabbit.Core.Pools.IChannelHost"/>.</para>
+            <para><em>Note: During an outage event, you will pause here until a viable channel can be acquired.</em></para>
+            </summary>
+            <returns><see cref="T:CookedRabbit.Core.Pools.IChannelHost"/></returns>
+        </member>
+        <member name="M:CookedRabbit.Core.Pools.ChannelPool.GetAckChannelAsync">
+            <summary>
+            This pulls an ackable <see cref="T:CookedRabbit.Core.Pools.IChannelHost"/> out of the <see cref="T:CookedRabbit.Core.Pools.IChannelPool"/> for usage.
+            <para>If the <see cref="T:CookedRabbit.Core.Pools.IChannelHost"/> was previously flagged on error, multi-attempta to recreate it before returning an open channel back to the user.
+            If you only remove channels and never add them, you will drain your <see cref="T:CookedRabbit.Core.Pools.IChannelPool"/>.</para>
+            <para>Use <see cref="M:CookedRabbit.Core.Pools.ChannelPool.ReturnChannelAsync(CookedRabbit.Core.Pools.IChannelHost,System.Boolean)"/> to return Channels.</para>
+            <para><em>Note: During an outage event, you will pause here until a viable channel can be acquired.</em></para>
+            </summary>
+            <returns><see cref="T:CookedRabbit.Core.Pools.IChannelHost"/></returns>
+        </member>
+        <member name="M:CookedRabbit.Core.Pools.ChannelPool.GetTransientChannelAsync(System.Boolean)">
+            <summary>
+            <para>Gives user a transient <see cref="T:CookedRabbit.Core.Pools.IChannelHost"/> is simply a channel not managed by this library.</para>
+            <para><em>Closing and disposing the <see cref="T:CookedRabbit.Core.Pools.IChannelHost"/> is the responsiblity of the user.</em></para>
+            </summary>
+            <param name="ackable"></param>
+            <returns><see cref="T:CookedRabbit.Core.Pools.IChannelHost"/></returns>
+        </member>
+        <member name="M:CookedRabbit.Core.Pools.ChannelPool.ReturnChannelAsync(CookedRabbit.Core.Pools.IChannelHost,System.Boolean)">
+            <summary>
+            Returns the <see cref="T:CookedRabbit.Core.Pools.ChannelHost"/> back to the <see cref="T:CookedRabbit.Core.Pools.ChannelPool"/>.
+            <para>All Aqmp IModel Channels close server side on error, so you have to indicate to the library when that happens.</para>
+            <para>The library does its best to listen for a dead <see cref="T:CookedRabbit.Core.Pools.ChannelHost"/>, but nothing is as reliable as the user flagging the channel for replacement.</para>
+            <para><em>Users flag the channel for replacement (e.g. when an error occurs) on it's next use.</em></para>
+            </summary>
+            <param name="chanHost"></param>
+            <param name="flagChannel"></param>
+        </member>
+        <member name="M:CookedRabbit.Core.Pools.ConnectionHost.HealthyAsync">
+            <summary>
+            Due to the complexity of the RabbitMQ Dotnet Client there are a few odd scenarios.
+            Just casually check Health() when looping through Connections, skip when not Healthy.
+            <para>AutoRecovery = False yields results like Closed, Dead, and IsOpen will be true, true, false or false, false, true.</para>
+            <para>AutoRecovery = True, yields difficult results like Closed, Dead, And IsOpen will be false, false, false or true, true, true (and other variations).</para>
+            </summary>
+        </member>
+        <member name="M:CookedRabbit.Core.Publisher.PublishAsync(CookedRabbit.Core.Letter,System.Boolean,System.Boolean)">
+            <summary>
+            Acquires a channel from the channel pool, then publishes message based on the letter/envelope parameters.
+            <para>Only throws exception when failing to acquire channel or when creating a receipt after the ReceiptBuffer is closed.</para>
+            </summary>
+            <param name="letter"></param>
+            <param name="createReceipt"></param>
+            <param name="withHeaders"></param>
+        </member>
+        <member name="M:CookedRabbit.Core.Publisher.PublishWithConfirmationAsync(CookedRabbit.Core.Letter,System.Boolean,System.Boolean)">
+            <summary>
+            Acquires an ackable channel from the channel pool, then publishes message based on the letter/envelope parameters and waits for confirmation.
+            <para>Only throws exception when failing to acquire channel or when creating a receipt after the ReceiptBuffer is closed.</para>
+            <para>Not fully ready for production yet.</para>
+            </summary>
+            <param name="letter"></param>
+            <param name="createReceipt"></param>
+            <param name="withHeaders"></param>
+        </member>
+        <member name="M:CookedRabbit.Core.Publisher.PublishManyAsync(System.Collections.Generic.IList{CookedRabbit.Core.Letter},System.Boolean,System.Boolean)">
+            <summary>
+            Use this method to sequentially publish all messages in a list in the order received.
+            </summary>
+            <param name="letters"></param>
+            <param name="createReceipt"></param>
+            <param name="withHeaders"></param>
+        </member>
+        <member name="M:CookedRabbit.Core.Publisher.PublishManyAsBatchAsync(System.Collections.Generic.IList{CookedRabbit.Core.Letter},System.Boolean,System.Boolean)">
+            <summary>
+            Use this method when a group of letters who have the same properties (deliverymode, messagetype, priority).
+            <para>Receipt with no error indicates that we successfully handed off to internal library, not necessarily published.</para>
+            </summary>
+            <param name="letters"></param>
+            <param name="createReceipt"></param>
+            <param name="withHeaders"></param>
+        </member>
+        <member name="M:CookedRabbit.Core.Service.RabbitService.#ctor(System.String,System.String,System.String,Microsoft.Extensions.Logging.ILoggerFactory,System.Func{CookedRabbit.Core.PublishReceipt,System.Threading.Tasks.ValueTask})">
+            <summary>
+            Reads config from a provided file name path. Builds out a RabbitService with instantiated dependencies based on config settings.
+            </summary>
+            <param name="fileNamePath"></param>
+            <param name="passphrase"></param>
+            <param name="salt"></param>
+            <param name="loggerFactory"></param>
+            <param name="processReceiptAsync"></param>
+        </member>
+        <member name="M:CookedRabbit.Core.Service.RabbitService.#ctor(CookedRabbit.Core.Config,System.String,System.String,Microsoft.Extensions.Logging.ILoggerFactory,System.Func{CookedRabbit.Core.PublishReceipt,System.Threading.Tasks.ValueTask})">
+            <summary>
+            Builds out a RabbitService with instantiated dependencies based on config settings.
+            </summary>
+            <param name="config"></param>
+            <param name="passphrase"></param>
+            <param name="salt"></param>
+            <param name="loggerFactory"></param>
+            <param name="processReceiptAsync"></param>
+        </member>
+        <member name="M:CookedRabbit.Core.Service.RabbitService.GetAsync(System.String)">
+            <summary>
+            Simple retrieve message (byte[]) from queue. Null if nothing was available or on error.
+            <para>AutoAcks message.</para>
+            </summary>
+            <param name="queueName"></param>
+        </member>
+        <member name="M:CookedRabbit.Core.Service.RabbitService.GetAsync``1(System.String)">
+            <summary>
+            Simple retrieve message (byte[]) from queue and convert to type T. Default (assumed null) if nothing was available (or on transmission error).
+            <para>AutoAcks message.</para>
+            </summary>
+            <param name="queueName"></param>
+        </member>
+        <member name="M:CookedRabbit.Core.Topologer.CreateQueueAsync(System.String,System.Boolean,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Create a queue asynchronously.
+            <para>Returns success or failure.</para>
+            </summary>
+            <param name="queueName"></param>
+            <param name="durable"></param>
+            <param name="exclusive"></param>
+            <param name="autoDelete"></param>
+            <param name="args"></param>
+            <returns>A bool indicating failure.</returns>
+        </member>
+        <member name="M:CookedRabbit.Core.Topologer.DeleteQueueAsync(System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Delete a queue asynchronously.
+            <para>Returns success or failure.</para>
+            </summary>
+            <param name="queueName"></param>
+            <param name="onlyIfUnused"></param>
+            <param name="onlyIfEmpty"></param>
+            <returns>A bool indicating failure.</returns>
+        </member>
+        <member name="M:CookedRabbit.Core.Topologer.BindQueueToExchangeAsync(System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Bind a queue to exchange asynchronously.
+            <para>Returns success or failure.</para>
+            </summary>
+            <param name="queueName"></param>
+            <param name="exchangeName"></param>
+            <param name="routingKey"></param>
+            <param name="args"></param>
+            <returns>A bool indicating failure.</returns>
+        </member>
+        <member name="M:CookedRabbit.Core.Topologer.UnbindQueueFromExchangeAsync(System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Unbind a queue from Exchange asynchronously.
+            <para>Returns success or failure.</para>
+            </summary>
+            <param name="queueName"></param>
+            <param name="exchangeName"></param>
+            <param name="routingKey"></param>
+            <param name="args"></param>
+            <returns>A bool indicating failure.</returns>
+        </member>
+        <member name="M:CookedRabbit.Core.Topologer.CreateExchangeAsync(System.String,System.String,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Create an Exchange asynchronously.
+            <para>Returns success or failure.</para>
+            </summary>
+            <param name="exchangeName"></param>
+            <param name="exchangeType"></param>
+            <param name="durable"></param>
+            <param name="autoDelete"></param>
+            <param name="args"></param>
+            <returns>A bool indicating failure.</returns>
+        </member>
+        <member name="M:CookedRabbit.Core.Topologer.DeleteExchangeAsync(System.String,System.Boolean)">
+            <summary>
+            Delete an Exchange asynchronously.
+            <para>Returns success or failure.</para>
+            </summary>
+            <param name="exchangeName"></param>
+            <param name="onlyIfUnused"></param>
+            <returns>A bool indicating failure.</returns>
+        </member>
+        <member name="M:CookedRabbit.Core.Topologer.BindExchangeToExchangeAsync(System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Bind an Exchange to another Exchange asynchronously.
+            <para>Returns success or failure.</para>
+            </summary>
+            <param name="childExchangeName"></param>
+            <param name="parentExchangeName"></param>
+            <param name="routingKey"></param>
+            <param name="args"></param>
+            <returns>A bool indicating failure.</returns>
+        </member>
+        <member name="M:CookedRabbit.Core.Topologer.UnbindExchangeFromExchangeAsync(System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Unbind an Exchange from another Exchange asynchronously.
+            <para>Returns success or failure.</para>
+            </summary>
+            <param name="childExchangeName"></param>
+            <param name="parentExchangeName"></param>
+            <param name="routingKey"></param>
+            <param name="args"></param>
+            <returns>A bool indicating failure.</returns>
+        </member>
+        <member name="T:CookedRabbit.Core.Utils.RandomData">
+            <summary>
+            Static class for generating filler (random) data for users and Tests.
+            </summary>
+        </member>
+    </members>
+</doc>

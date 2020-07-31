@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Utilities.Extensions
+namespace HouseofCat.Extensions
 {
     public static class IEnumerableExtensions
     {

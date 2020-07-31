@@ -1,4 +1,5 @@
 ﻿using HouseofCat.Compression;
+using System;
 using System.Threading.Tasks;
 using static HouseofCat.Services.Enums;
 
@@ -6,13 +7,13 @@ namespace HouseofCat.Services
 {
     public interface ICompressionService
     {
-        Task<byte[]> CompressAsync(byte[] data, CompressionMethod method);
-        Task<byte[]> DecompressAsync(byte[] data, CompressionMethod method);
+        Task<byte[]> CompressAsync(ReadOnlyMemory<byte> data, CompressionMethod method);
+        Task<byte[]> DecompressAsync(ReadOnlyMemory<byte> data, CompressionMethod method);
     }
 
     public class CompressionService : ICompressionService
     {
-        public async Task<byte[]> DecompressAsync(byte[] data, CompressionMethod method)
+        public async Task<byte[]> DecompressAsync(ReadOnlyMemory<byte> data, CompressionMethod method)
         {
             return method switch
             {
@@ -24,7 +25,7 @@ namespace HouseofCat.Services
             };
         }
 
-        public async Task<byte[]> CompressAsync(byte[] data, CompressionMethod method)
+        public async Task<byte[]> CompressAsync(ReadOnlyMemory<byte> data, CompressionMethod method)
         {
             return method switch
             {
