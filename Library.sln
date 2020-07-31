@@ -14,7 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Utilities", "src\HouseofCat.Utilities\HouseofCat.Utilities.csproj", "{2BF50B4E-7EE9-4C51-80AA-68405D76F21A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Workflows", "src\HouseofCat.Workflow\HouseofCat.Workflows.csproj", "{E3D8F002-1DD4-4926-BD15-20B6115AA60C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Workflows", "src\HouseofCat.Workflows\HouseofCat.Workflows.csproj", "{E3D8F002-1DD4-4926-BD15-20B6115AA60C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Encryption", "src\HouseofCat.Encryption\HouseofCat.Encryption.csproj", "{97C0674A-E7DC-4EF6-8E8C-1D06FE2FCAC2}"
 EndProject
