@@ -9,6 +9,10 @@ on:
         default: 'warning'
       tags:
         description: 'Manual Publish'
+  push:
+    branches: [ 'release/**' ]
+  pull_request:
+    branches: [ 'release/**' ]
 
 jobs:
   build:
