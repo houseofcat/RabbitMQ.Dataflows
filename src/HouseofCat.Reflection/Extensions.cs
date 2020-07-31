@@ -14,13 +14,26 @@ namespace HouseofCat.Reflection
             {
                 return acessor
                     .GetMembers()
-                    .Where(x => x.CanRead)
+                    .Where(x => x.CanRead && x.CanWrite == false)
                     .ToDictionary(x => x.Name, x => acessor[input, x.Name]);
             }
 
             return acessor
                 .GetMembers()
                 .ToDictionary(x => x.Name, x => acessor[input, x.Name]);
+        }
+
+        public static TOut ToObject<TOut>(this IDictionary<string, object> data) where TOut : class, new()
+        {
+            var t = Generics.New<TOut>.Instance.Invoke();
+            var acessor = TypeAccessor.Create(t.GetType());
+
+            foreach(var kvp in data)
+            {
+                acessor[t, kvp.Key] = kvp.Value;
+            }
+
+            return t;
         }
     }
 }

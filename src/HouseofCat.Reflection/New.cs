@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 
 namespace HouseofCat.Reflection
 {
-    public static class Instance
+    public static class Generics
     {
         /// <summary>
         /// A high performing New generic object instance creator.
@@ -12,7 +12,7 @@ namespace HouseofCat.Reflection
         /// <para>https://stackoverflow.com/questions/6582259/fast-creation-of-objects-instead-of-activator-createinstancetype</para>
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        public static class GenericNew<T>
+        public static class New<T>
         {
             public static readonly Func<T> Instance = Creator();
 
