@@ -33,6 +33,7 @@ jobs:
       run: dotnet test --no-restore
     - name: Publish HouseofCat.Algorithms
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Algorithms/HouseofCat.Algorithms.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
@@ -43,61 +44,73 @@ jobs:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Compression.LZ4
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Compression.LZ4/HouseofCat.Compression.LZ4.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Dapper
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Dapper/HouseofCat.Dapper.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Dapper
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Dapper.LegacySqlServer/HouseofCat.Dapper.LegacySqlServer.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Dapper.SqlServer
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Dapper.SqlServer/HouseofCat.Dapper.SqlServer.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Dapper.LegacySqlServer
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Dapper.LegacySqlServer/HouseofCat.Dapper.LegacySqlServer.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Encryption
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Encryption/HouseofCat.Encryption.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Host.SerilogSqlServer
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Host.SerilogSqlServer/HouseofCat.Host.SerilogSqlServer.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Logger
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Logger/HouseofCat.Logger.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Reflection
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Reflection/HouseofCat.Reflection.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Services
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Services/HouseofCat.Services.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Utilities
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Utilities/HouseofCat.Utilities.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Workflow
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Workflow/HouseofCat.Workflow.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
