@@ -1,23 +1,25 @@
 <Project>
   <PropertyGroup>
+
+    <!-- Shared Project Properties -->
     <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
-    <Authors>HouseofCat.io</Authors>
-    <Description>HouseofCat.io Library used across many projects.</Description>
-    <Copyright>Copyright © 2020</Copyright>
-    <Product>HouseofCat.io - The Library</Product>
-
+    <NoWarn>1591</NoWarn>
     <IsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</IsWindows>
     <IsOSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsOSX>
     <IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux>
 
+    <!-- NuGet Attributes -->
+    <Authors>HouseofCat.io</Authors>
+    <Description>HouseofCat.io Library used across many projects.</Description>
+    <Copyright>Copyright © 2020</Copyright>
+    <Product>HouseofCat.io - The Library</Product>
     <PackageIcon>houseofcat.png</PackageIcon>
     <PackageTags>C# NetCore HouseofCat HouseofCat.io</PackageTags>
     <PackageReleaseNotes>Simplification</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/houseofcat/Library</PackageProjectUrl>
     <RepositoryUrl>https://github.com/houseofcat/Library</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <NoWarn>1591</NoWarn>
 
     <!-- Sourcelink-->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -25,6 +27,10 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+
+    <!-- Analyze -->
+    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(IsWindows)'=='true'">

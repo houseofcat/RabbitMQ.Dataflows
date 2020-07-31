@@ -13,6 +13,10 @@ Check out each project for a `README.md` to see if there are additional instruct
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Algorithms.svg)](https://www.nuget.org/packages/HouseofCat.Algorithms/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Algorithms.svg)](https://www.nuget.org/packages/HouseofCat.Algorithms/)  
 
+## CookedRabbit.Core
+[![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Core.svg)](https://www.nuget.org/packages/CookedRabbit.Core/)  
+[![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.svg)](https://www.nuget.org/packages/CookedRabbit.Core/)  
+
 ## HouseofCat.Compression
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Compression.svg)](https://www.nuget.org/packages/HouseofCat.Compression/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Compression.svg)](https://www.nuget.org/packages/HouseofCat.Compression/)  
@@ -37,9 +41,13 @@ Check out each project for a `README.md` to see if there are additional instruct
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Encryption.svg)](https://www.nuget.org/packages/HouseofCat.Encryption/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Encryption.svg)](https://www.nuget.org/packages/HouseofCat.Encryption/)  
 
-## HouseofCat.Host.SerilogSqlServer
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Host.SerilogSqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Host.SerilogSqlServer/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Host.SerilogSqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Host.SerilogSqlServer/)  
+## HouseofCat.Extensions
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Extensions.svg)](https://www.nuget.org/packages/HouseofCat.Extensions/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.svg)](https://www.nuget.org/packages/HouseofCat.Extensions/)  
+
+## HouseofCat.Extensions.Host.SerilogSqlServer
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Extensions.Host.SerilogSqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Host.SerilogSqlServer/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.Host.SerilogSqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Host.SerilogSqlServer/)  
 
 ## HouseofCat.Logger
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Logger.svg)](https://www.nuget.org/packages/HouseofCat.Logger/)  
