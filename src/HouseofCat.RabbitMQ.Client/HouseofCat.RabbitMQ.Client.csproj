@@ -2,7 +2,7 @@
   <Import Project="..\..\common.props" />
   <PropertyGroup>
     <PackageTags>RabbitMQ.Client, NetCore3.1, Net5.0, Unofficial</PackageTags>
-    <Version>1.0.611</Version>
+    <Version>1.0.610</Version>
     <AssemblyVersion>1.0.611.0</AssemblyVersion>
     <FileVersion>1.0.611.0</FileVersion>
     <AssemblyName>HouseofCat.RabbitMQ.Client</AssemblyName>
