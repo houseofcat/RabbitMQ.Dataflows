@@ -285,7 +285,8 @@ namespace HouseofCat.RabbitMQ
 
         private async void ConsumerShutdown(object sender, ShutdownEventArgs e)
         {
-            await HandleUnexpectedShutdownAsync(e).ConfigureAwait(false);
+            await HandleUnexpectedShutdownAsync(e)
+                .ConfigureAwait(false);
         }
 
         private AsyncEventingBasicConsumer CreateAsyncConsumer()
