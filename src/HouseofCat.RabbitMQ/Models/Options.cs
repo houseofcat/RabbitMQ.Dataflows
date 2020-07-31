@@ -36,5 +36,20 @@ namespace HouseofCat.RabbitMQ
             if (!ConsumerOptions.ContainsKey(consumerName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerSettingsMessage, consumerName));
             return ConsumerOptions[consumerName];
         }
+
+        public void ApplyGlobalConsumerOptions()
+        {
+            foreach(var kvp in ConsumerOptions)
+            {
+                // Apply the global consumer settings and global consumer pipeline settings
+                // on top of (overriding) individual consumer settings. Opt out by not setting
+                // the global settings field.
+                if (!string.IsNullOrWhiteSpace(kvp.Value.GlobalSettings)
+                    && GlobalConsumerOptions.ContainsKey(kvp.Value.GlobalSettings))
+                {
+                    kvp.Value.ApplyGlobalOptions(GlobalConsumerOptions[kvp.Value.GlobalSettings]);
+                }
+            }
+        }
     }
 }

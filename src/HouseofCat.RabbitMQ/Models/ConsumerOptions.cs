@@ -15,5 +15,36 @@ namespace HouseofCat.RabbitMQ
         public string ErrorQueueName => $"{QueueName}.{ErrorSuffix ?? "Error"}";
 
         public ConsumerPipelineOptions ConsumerPipelineOptions { get; set; }
+
+
+        public void ApplyGlobalOptions(GlobalConsumerOptions globalConsumerOptions)
+        {
+            NoLocal = globalConsumerOptions.NoLocal ?? NoLocal;
+            Exclusive = globalConsumerOptions.Exclusive ?? Exclusive;
+            BatchSize = globalConsumerOptions.BatchSize ?? BatchSize;
+
+            AutoAck = globalConsumerOptions.AutoAck ?? AutoAck;
+            UseTransientChannels = globalConsumerOptions.UseTransientChannels ?? UseTransientChannels;
+            ErrorSuffix = globalConsumerOptions.ErrorSuffix ?? ErrorSuffix;
+            BehaviorWhenFull = globalConsumerOptions.BehaviorWhenFull ?? BehaviorWhenFull;
+
+            if (globalConsumerOptions.GlobalConsumerPipelineOptions != null)
+            {
+                if (ConsumerPipelineOptions == null)
+                { ConsumerPipelineOptions = new ConsumerPipelineOptions(); }
+
+                ConsumerPipelineOptions.WaitForCompletion =
+                    globalConsumerOptions.GlobalConsumerPipelineOptions.WaitForCompletion
+                    ?? ConsumerPipelineOptions.WaitForCompletion;
+
+                ConsumerPipelineOptions.MaxDegreesOfParallelism =
+                    globalConsumerOptions.GlobalConsumerPipelineOptions.MaxDegreesOfParallelism
+                    ?? ConsumerPipelineOptions.MaxDegreesOfParallelism;
+
+                ConsumerPipelineOptions.EnsureOrdered =
+                    globalConsumerOptions.GlobalConsumerPipelineOptions.EnsureOrdered
+                    ?? ConsumerPipelineOptions.EnsureOrdered;
+            }
+        }
     }
 }

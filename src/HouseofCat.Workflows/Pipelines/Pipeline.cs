@@ -92,9 +92,9 @@ namespace HouseofCat.Workflows.Pipelines
                         async (input) => stepFunc(await input.ConfigureAwait(false)),
                         options);
 
-                    if (lastStep.Block is ISourceBlock<Task<TLocalIn>> targetBlock)
+                    if (lastStep.Block is ISourceBlock<Task<TLocalIn>> sourceBlock)
                     {
-                        targetBlock.LinkTo(step, _linkStepOptions);
+                        sourceBlock.LinkTo(step, _linkStepOptions);
                         pipelineStep.Block = step;
                         Steps.Add(pipelineStep);
                     }
@@ -104,9 +104,9 @@ namespace HouseofCat.Workflows.Pipelines
                 {
                     var step = new TransformBlock<TLocalIn, Task<TLocalOut>>(stepFunc, options);
 
-                    if (lastStep.Block is ISourceBlock<TLocalIn> targetBlock)
+                    if (lastStep.Block is ISourceBlock<TLocalIn> sourceBlock)
                     {
-                        targetBlock.LinkTo(step, _linkStepOptions);
+                        sourceBlock.LinkTo(step, _linkStepOptions);
                         pipelineStep.Block = step;
                         Steps.Add(pipelineStep);
                     }
@@ -158,9 +158,9 @@ namespace HouseofCat.Workflows.Pipelines
                         async (input) => stepFunc(await input.ConfigureAwait(false)),
                         options);
 
-                    if (lastStep.Block is ISourceBlock<Task<TLocalIn>> targetBlock)
+                    if (lastStep.Block is ISourceBlock<Task<TLocalIn>> sourceBlock)
                     {
-                        targetBlock.LinkTo(step, _linkStepOptions);
+                        sourceBlock.LinkTo(step, _linkStepOptions);
                         pipelineStep.Block = step;
                         Steps.Add(pipelineStep);
                     }
@@ -169,9 +169,9 @@ namespace HouseofCat.Workflows.Pipelines
                 else
                 {
                     var step = new TransformBlock<TLocalIn, TLocalOut>(stepFunc, options);
-                    if (lastStep.Block is ISourceBlock<TLocalIn> targetBlock)
+                    if (lastStep.Block is ISourceBlock<TLocalIn> sourceBlock)
                     {
-                        targetBlock.LinkTo(step, _linkStepOptions);
+                        sourceBlock.LinkTo(step, _linkStepOptions);
                         pipelineStep.Block = step;
                         Steps.Add(pipelineStep);
                     }
@@ -215,10 +215,10 @@ namespace HouseofCat.Workflows.Pipelines
                         async input => finalizeStep(await input.ConfigureAwait(false)),
                         _executeStepOptions);
 
-                    if (lastStep.Block is ISourceBlock<Task<TOut>> targetBlock)
+                    if (lastStep.Block is ISourceBlock<Task<TOut>> sourceBlock)
                     {
                         pipelineStep.Block = step;
-                        targetBlock.LinkTo(step, _linkStepOptions);
+                        sourceBlock.LinkTo(step, _linkStepOptions);
                         Steps.Add(pipelineStep);
                     }
                     else { throw new InvalidOperationException(Constants.Pipeline.InvalidStepFound); }
@@ -229,10 +229,10 @@ namespace HouseofCat.Workflows.Pipelines
                         finalizeStep,
                         _executeStepOptions);
 
-                    if (lastStep.Block is ISourceBlock<TOut> targetBlock)
+                    if (lastStep.Block is ISourceBlock<TOut> sourceBlock)
                     {
                         pipelineStep.Block = step;
-                        targetBlock.LinkTo(step, _linkStepOptions);
+                        sourceBlock.LinkTo(step, _linkStepOptions);
                         Steps.Add(pipelineStep);
                     }
                     else { throw new InvalidOperationException(Constants.Pipeline.InvalidStepFound); }
@@ -265,20 +265,20 @@ namespace HouseofCat.Workflows.Pipelines
                         async t => await finalizeStep(await t.ConfigureAwait(false)).ConfigureAwait(false),
                         _executeStepOptions);
 
-                    if (lastStep.Block is ISourceBlock<Task<TOut>> targetBlock)
+                    if (lastStep.Block is ISourceBlock<Task<TOut>> sourceBlock)
                     {
                         pipelineStep.Block = step;
-                        targetBlock.LinkTo(step, _linkStepOptions);
+                        sourceBlock.LinkTo(step, _linkStepOptions);
                         Steps.Add(pipelineStep);
                     }
                 }
                 else
                 {
                     var step = new ActionBlock<TOut>(t => finalizeStep(t), _executeStepOptions);
-                    if (lastStep.Block is ISourceBlock<TOut> targetBlock)
+                    if (lastStep.Block is ISourceBlock<TOut> sourceBlock)
                     {
                         pipelineStep.Block = step;
-                        targetBlock.LinkTo(step, _linkStepOptions);
+                        sourceBlock.LinkTo(step, _linkStepOptions);
                         Steps.Add(pipelineStep);
                     }
                 }

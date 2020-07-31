@@ -54,7 +54,7 @@ namespace HouseofCat.RabbitMQ.Service
         public ITopologer Topologer { get; }
 
         public ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<ReceivedData>>();
-        private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerSetting { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
+        private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerOptions { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
 
         /// <summary>
         /// Reads config from a provided file name path. Builds out a RabbitService with instantiated dependencies based on config settings.
@@ -101,6 +101,7 @@ namespace HouseofCat.RabbitMQ.Service
             Publisher = new Publisher(ChannelPool, _hashKey);
             Topologer = new Topologer(ChannelPool);
 
+            Options.ApplyGlobalConsumerOptions();
             BuildConsumers();
 
             StartAsync(processReceiptAsync).GetAwaiter().GetResult();
@@ -159,64 +160,9 @@ namespace HouseofCat.RabbitMQ.Service
         {
             foreach (var consumerSetting in Options.ConsumerOptions)
             {
-                // Apply the global consumer settings and global consumer pipeline settings
-                // on top of (overriding) individual consumer settings. Opt out by not setting
-                // the global settings field.
-                if (!string.IsNullOrWhiteSpace(consumerSetting.Value.GlobalSettings)
-                    && Options.GlobalConsumerOptions.ContainsKey(consumerSetting.Value.GlobalSettings))
-                {
-                    var globalOverrides = Options.GlobalConsumerOptions[consumerSetting.Value.GlobalSettings];
-
-                    consumerSetting.Value.NoLocal =
-                        globalOverrides.NoLocal
-                        ?? consumerSetting.Value.NoLocal;
-
-                    consumerSetting.Value.Exclusive =
-                        globalOverrides.Exclusive
-                        ?? consumerSetting.Value.Exclusive;
-
-                    consumerSetting.Value.BatchSize =
-                        globalOverrides.BatchSize
-                        ?? consumerSetting.Value.BatchSize;
-
-                    consumerSetting.Value.AutoAck =
-                        globalOverrides.AutoAck
-                        ?? consumerSetting.Value.AutoAck;
-
-                    consumerSetting.Value.UseTransientChannels =
-                        globalOverrides.UseTransientChannels
-                        ?? consumerSetting.Value.UseTransientChannels;
-
-                    consumerSetting.Value.ErrorSuffix =
-                        globalOverrides.ErrorSuffix
-                        ?? consumerSetting.Value.ErrorSuffix;
-
-                    consumerSetting.Value.BehaviorWhenFull =
-                        globalOverrides.BehaviorWhenFull
-                        ?? consumerSetting.Value.BehaviorWhenFull;
-
-                    if (globalOverrides.GlobalConsumerPipelineOptions != null)
-                    {
-                        if (consumerSetting.Value.ConsumerPipelineOptions == null)
-                        { consumerSetting.Value.ConsumerPipelineOptions = new ConsumerPipelineOptions(); }
-
-                        consumerSetting.Value.ConsumerPipelineOptions.WaitForCompletion =
-                            globalOverrides.GlobalConsumerPipelineOptions.WaitForCompletion
-                            ?? consumerSetting.Value.ConsumerPipelineOptions.WaitForCompletion;
-
-                        consumerSetting.Value.ConsumerPipelineOptions.MaxDegreesOfParallelism =
-                            globalOverrides.GlobalConsumerPipelineOptions.MaxDegreesOfParallelism
-                            ?? consumerSetting.Value.ConsumerPipelineOptions.MaxDegreesOfParallelism;
-
-                        consumerSetting.Value.ConsumerPipelineOptions.EnsureOrdered =
-                            globalOverrides.GlobalConsumerPipelineOptions.EnsureOrdered
-                            ?? consumerSetting.Value.ConsumerPipelineOptions.EnsureOrdered;
-                    }
-                }
-
                 if (!string.IsNullOrEmpty(consumerSetting.Value.ConsumerPipelineOptions.ConsumerPipelineName))
                 {
-                    ConsumerPipelineNameToConsumerSetting.TryAdd(consumerSetting.Value.ConsumerPipelineOptions.ConsumerPipelineName, consumerSetting.Value);
+                    ConsumerPipelineNameToConsumerOptions.TryAdd(consumerSetting.Value.ConsumerPipelineOptions.ConsumerPipelineName, consumerSetting.Value);
                 }
                 Consumers.TryAdd(consumerSetting.Value.ConsumerName, new Consumer(ChannelPool, consumerSetting.Value, _hashKey));
             }
@@ -275,9 +221,9 @@ namespace HouseofCat.RabbitMQ.Service
 
         public IConsumer<ReceivedData> GetConsumerByPipelineName(string consumerPipelineName)
         {
-            if (!ConsumerPipelineNameToConsumerSetting.ContainsKey(consumerPipelineName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerPipelineSettingsMessage, consumerPipelineName));
-            if (!Consumers.ContainsKey(ConsumerPipelineNameToConsumerSetting[consumerPipelineName].ConsumerName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerSettingsMessage, ConsumerPipelineNameToConsumerSetting[consumerPipelineName].ConsumerName));
-            return Consumers[ConsumerPipelineNameToConsumerSetting[consumerPipelineName].ConsumerName];
+            if (!ConsumerPipelineNameToConsumerOptions.ContainsKey(consumerPipelineName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerPipelineSettingsMessage, consumerPipelineName));
+            if (!Consumers.ContainsKey(ConsumerPipelineNameToConsumerOptions[consumerPipelineName].ConsumerName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerSettingsMessage, ConsumerPipelineNameToConsumerOptions[consumerPipelineName].ConsumerName));
+            return Consumers[ConsumerPipelineNameToConsumerOptions[consumerPipelineName].ConsumerName];
         }
 
         public async Task DecomcryptAsync(Letter letter)
@@ -461,7 +407,7 @@ namespace HouseofCat.RabbitMQ.Service
                 }
 
                 Consumers = null;
-                ConsumerPipelineNameToConsumerSetting = null;
+                ConsumerPipelineNameToConsumerOptions = null;
                 _disposedValue = true;
             }
         }
