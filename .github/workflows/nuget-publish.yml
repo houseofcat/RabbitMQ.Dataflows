@@ -143,10 +143,10 @@ jobs:
           PROJECT_FILE_PATH: src/HouseofCat.Workflows/HouseofCat.Workflows.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           INCLUDE_SYMBOLS: true
-              - name: Publish HouseofCat.Workflows.Pipelines
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
+     - name: Publish HouseofCat.Workflows.Pipelines
+       uses: brandedoutcast/publish-nuget@v2.5.2
+       continue-on-error: true
+       with:
           PROJECT_FILE_PATH: src/HouseofCat.Workflows.Pipelines/HouseofCat.Workflows.Pipelines.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           INCLUDE_SYMBOLS: true
