@@ -50,7 +50,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dapper.LegacySql
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dapper", "src\HouseofCat.Dapper\HouseofCat.Dapper.csproj", "{BAB7F573-FD85-4C02-9FBB-A4390FF35D21}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Extensions.Host.Serilog", "src\HouseofCat.Extensions.Host.SerilogSqlServer\HouseofCat.Extensions.Host.Serilog.csproj", "{F87490D3-D318-4425-8044-1FA2BD1B24A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Extensions.Host.Serilog", "src\HouseofCat.Extensions.Host.Serilog\HouseofCat.Extensions.Host.Serilog.csproj", "{F87490D3-D318-4425-8044-1FA2BD1B24A6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Compression.LZ4", "src\HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj", "{E7F4AFF1-3D8D-4250-B813-F7BD5D558451}"
 EndProject
