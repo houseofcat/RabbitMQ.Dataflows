@@ -3,7 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Compression
+namespace HouseofCat.Compression.Builtin
 {
     public static class Gzip
     {

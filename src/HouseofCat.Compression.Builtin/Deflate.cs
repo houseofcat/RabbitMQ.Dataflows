@@ -3,17 +3,17 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Compression
+namespace HouseofCat.Compression.Builtin
 {
-    public static class Brotli
+    public static class Deflate
     {
         public static async Task<byte[]> CompressAsync(ReadOnlyMemory<byte> input)
         {
             using var compressedStream = new MemoryStream();
 
-            using (var bstream = new BrotliStream(compressedStream, CompressionMode.Compress))
+            using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Compress))
             {
-                await bstream
+                await deflateStream
                     .WriteAsync(input)
                     .ConfigureAwait(false);
             }
@@ -26,9 +26,9 @@ namespace HouseofCat.Compression
             using var uncompressedStream = new MemoryStream();
 
             using (var compressedStream = new MemoryStream(input.ToArray()))
-            using (var bstream = new BrotliStream(compressedStream, CompressionMode.Decompress, false))
+            using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress, false))
             {
-                await bstream
+                await deflateStream
                     .CopyToAsync(uncompressedStream)
                     .ConfigureAwait(false);
             }

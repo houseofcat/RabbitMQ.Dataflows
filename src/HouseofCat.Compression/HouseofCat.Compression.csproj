@@ -5,4 +5,8 @@
     <AssemblyVersion>1.0.1</AssemblyVersion>
     <FileVersion>1.0.1</FileVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HouseofCat.Compression.Builtin\HouseofCat.Compression.Builtin.csproj" />
+    <ProjectReference Include="..\HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj" />
+  </ItemGroup>
 </Project>

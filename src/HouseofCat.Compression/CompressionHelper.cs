@@ -1,19 +1,14 @@
 ﻿using HouseofCat.Compression;
+using HouseofCat.Compression.Builtin;
 using System;
 using System.Threading.Tasks;
 using static HouseofCat.Services.Enums;
 
 namespace HouseofCat.Services
 {
-    public interface ICompressionService
+    public static class CompressionHelper
     {
-        Task<byte[]> CompressAsync(ReadOnlyMemory<byte> data, CompressionMethod method);
-        Task<byte[]> DecompressAsync(ReadOnlyMemory<byte> data, CompressionMethod method);
-    }
-
-    public class CompressionService : ICompressionService
-    {
-        public async Task<byte[]> DecompressAsync(ReadOnlyMemory<byte> data, CompressionMethod method)
+        public static async Task<byte[]> DecompressAsync(ReadOnlyMemory<byte> data, CompressionMethod method)
         {
             return method switch
             {
@@ -25,7 +20,7 @@ namespace HouseofCat.Services
             };
         }
 
-        public async Task<byte[]> CompressAsync(ReadOnlyMemory<byte> data, CompressionMethod method)
+        public static async Task<byte[]> CompressAsync(ReadOnlyMemory<byte> data, CompressionMethod method)
         {
             return method switch
             {

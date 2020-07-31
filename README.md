@@ -69,10 +69,6 @@ Check out each project for a `README.md` to see if there are additional instruct
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Reflection.svg)](https://www.nuget.org/packages/HouseofCat.Reflection/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Reflection.svg)](https://www.nuget.org/packages/HouseofCat.Reflection/)  
 
-## HouseofCat.Services
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Services.svg)](https://www.nuget.org/packages/HouseofCat.Services/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Services.svg)](https://www.nuget.org/packages/HouseofCat.Services/)  
-
 ## HouseofCat.Utilities
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Utilities.svg)](https://www.nuget.org/packages/HouseofCat.Utilities/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Utilities.svg)](https://www.nuget.org/packages/HouseofCat.Utilities/)  

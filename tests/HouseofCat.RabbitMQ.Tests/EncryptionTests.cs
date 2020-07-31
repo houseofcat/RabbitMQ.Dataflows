@@ -1,4 +1,4 @@
-using HouseofCat.Compression;
+using HouseofCat.Compression.Builtin;
 using HouseofCat.Encryption;
 using HouseofCat.Encryption.Hash;
 using HouseofCat.RabbitMQ;
