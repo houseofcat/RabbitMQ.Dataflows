@@ -3,17 +3,16 @@
 
   <PropertyGroup>
     <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
     <PackageTags>C# RabbitMQ Cooked Rabbit CookedRabbit NetCore HouseofCat</PackageTags>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="RabbitMQ.Core.Client" Version="1.0.611" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
     <ProjectReference Include="..\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
     <ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
+    <ProjectReference Include="..\HouseofCat.RabbitMQ.Client\HouseofCat.RabbitMQ.Client.csproj" />
     <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
     <ProjectReference Include="..\HouseofCat.Workflows\HouseofCat.Workflows.csproj" />
   </ItemGroup>
