@@ -1,4 +1,4 @@
-name: HouseofCat.Library
+name: master-build
 
 on:
   push:
