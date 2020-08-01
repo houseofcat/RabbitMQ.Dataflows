@@ -50,6 +50,7 @@ namespace HouseofCat.Workflows.Pipelines
             _executeStepOptions = new ExecutionDataflowBlockOptions
             {
                 MaxDegreeOfParallelism = maxDegreeOfParallelism,
+                SingleProducerConstrained = true,
             };
 
             _executeStepOptions.EnsureOrdered = ensureOrdered ?? _executeStepOptions.EnsureOrdered;

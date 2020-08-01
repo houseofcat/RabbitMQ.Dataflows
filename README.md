@@ -79,6 +79,13 @@ A library that focuses on extending functionality to other objects.
 A library that focuses on extending IHost functionality to quickly setup Serilog.  
 
 
+## HouseofCat.Extensions.Workflows
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Extensions.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Workflows/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Workflows/)  
+
+A library that focuses on extending functionality to other objects.  
+
+
 ## HouseofCat.Logger
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Logger.svg)](https://www.nuget.org/packages/HouseofCat.Logger/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Logger.svg)](https://www.nuget.org/packages/HouseofCat.Logger/)  
