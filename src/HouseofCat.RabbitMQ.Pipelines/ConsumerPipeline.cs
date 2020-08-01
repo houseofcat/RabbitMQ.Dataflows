@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using static HouseofCat.RabbitMQ.Pipelines.Constants;
 
 namespace HouseofCat.RabbitMQ.Pipelines
 {
@@ -136,7 +137,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
                     if (receivedData == null) { continue; }
 
                     _logger.LogDebug(
-                        LogMessages.Consumer.ConsumerPipelineQueueing,
+                        ConsumerPipelines.ConsumerPipelineQueueing,
                         ConsumerOptions.ConsumerName,
                         receivedData.DeliveryTag);
 
@@ -147,7 +148,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
                     if (waitForCompletion)
                     {
                         _logger.LogTrace(
-                            LogMessages.Consumer.ConsumerPipelineWaiting,
+                            ConsumerPipelines.ConsumerPipelineWaiting,
                             ConsumerOptions.ConsumerName,
                             receivedData.DeliveryTag);
 
@@ -156,7 +157,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
                             .ConfigureAwait(false);
 
                         _logger.LogTrace(
-                            LogMessages.Consumer.ConsumerPipelineWaitingDone,
+                            ConsumerPipelines.ConsumerPipelineWaitingDone,
                             ConsumerOptions.ConsumerName,
                             receivedData.DeliveryTag);
                     }
@@ -168,13 +169,13 @@ namespace HouseofCat.RabbitMQ.Pipelines
             catch (OperationCanceledException)
             {
                 _logger.LogWarning(
-                    LogMessages.Consumer.ConsumerPipelineActionCancelled,
+                    ConsumerPipelines.ConsumerPipelineActionCancelled,
                     ConsumerOptions.ConsumerName);
             }
             catch (Exception ex)
             {
                 _logger.LogError(
-                    LogMessages.Consumer.ConsumerPipelineError,
+                    ConsumerPipelines.ConsumerPipelineError,
                     ConsumerOptions.ConsumerName,
                     ex.Message);
             }
@@ -196,7 +197,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
                         if (receivedData == null) { continue; }
 
                         _logger.LogDebug(
-                            LogMessages.Consumer.ConsumerPipelineQueueing,
+                            ConsumerPipelines.ConsumerPipelineQueueing,
                             ConsumerOptions.ConsumerName,
                             receivedData.DeliveryTag);
 
@@ -207,7 +208,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
                         if (waitForCompletion)
                         {
                             _logger.LogTrace(
-                                LogMessages.Consumer.ConsumerPipelineWaiting,
+                                ConsumerPipelines.ConsumerPipelineWaiting,
                                 ConsumerOptions.ConsumerName,
                                 receivedData.DeliveryTag);
 
@@ -216,7 +217,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
                                 .ConfigureAwait(false);
 
                             _logger.LogTrace(
-                                LogMessages.Consumer.ConsumerPipelineWaitingDone,
+                                ConsumerPipelines.ConsumerPipelineWaitingDone,
                                 ConsumerOptions.ConsumerName,
                                 receivedData.DeliveryTag);
                         }
@@ -229,13 +230,13 @@ namespace HouseofCat.RabbitMQ.Pipelines
             catch (OperationCanceledException)
             {
                 _logger.LogInformation(
-                    LogMessages.Consumer.ConsumerPipelineActionCancelled,
+                    ConsumerPipelines.ConsumerPipelineActionCancelled,
                     ConsumerOptions.ConsumerName);
             }
             catch (Exception ex)
             {
                 _logger.LogError(
-                    LogMessages.Consumer.ConsumerPipelineError,
+                    ConsumerPipelines.ConsumerPipelineError,
                     ConsumerOptions.ConsumerName,
                     ex.Message);
             }

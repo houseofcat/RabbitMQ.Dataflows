@@ -4,7 +4,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RabbitMQ.Core.Prototype
+namespace Angora.PrototypeClient
 {
     internal class Socket
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RabbitMQ.Core.Prototype
+namespace Angora.PrototypeClient
 {
     internal static class CustomBufferReaderExtensions
     {

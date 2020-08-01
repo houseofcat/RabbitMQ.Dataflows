@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace RabbitMQ.Core.Prototype
+namespace Angora.PrototypeClient
 {
     public class ConnectionFactory
     {

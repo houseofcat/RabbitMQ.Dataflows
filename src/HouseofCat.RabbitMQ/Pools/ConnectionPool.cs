@@ -80,7 +80,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
         private async Task CreateConnectionsAsync()
         {
-            _logger.LogTrace(LogMessages.ConnectionPool.CreateConnections);
+            _logger.LogTrace(LogMessages.ConnectionPools.CreateConnections);
 
             for (int i = 0; i < Options.PoolOptions.MaxConnections; i++)
             {
@@ -93,12 +93,12 @@ namespace HouseofCat.RabbitMQ.Pools
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, LogMessages.ConnectionPool.CreateConnectionException, serviceName);
+                    _logger.LogError(ex, LogMessages.ConnectionPools.CreateConnectionException, serviceName);
                     throw; // Non Optional Throw
                 }
             }
 
-            _logger.LogTrace(LogMessages.ConnectionPool.CreateConnectionsComplete);
+            _logger.LogTrace(LogMessages.ConnectionPools.CreateConnectionsComplete);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -149,7 +149,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
         public async Task ShutdownAsync()
         {
-            _logger.LogTrace(LogMessages.ConnectionPool.Shutdown);
+            _logger.LogTrace(LogMessages.ConnectionPools.Shutdown);
 
             await _poolLock
                 .WaitAsync()
@@ -167,7 +167,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
             _poolLock.Release();
 
-            _logger.LogTrace(LogMessages.ConnectionPool.ShutdownComplete);
+            _logger.LogTrace(LogMessages.ConnectionPools.ShutdownComplete);
         }
 
         protected virtual void Dispose(bool disposing)

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Text;
 
-namespace RabbitMQ.Core.Prototype
+namespace Angora.PrototypeClient
 {
     internal static class CustomBufferWriterExtensions
     {

@@ -110,9 +110,9 @@ namespace HouseofCat.RabbitMQ.Pools
         {
             _hostLock.Wait();
             if (e.Active)
-            { _logger.LogWarning(LogMessages.ChannelHost.FlowControlled); }
+            { _logger.LogWarning(LogMessages.ChannelHosts.FlowControlled); }
             else
-            { _logger.LogInformation(LogMessages.ChannelHost.FlowControlFinished); }
+            { _logger.LogInformation(LogMessages.ChannelHosts.FlowControlFinished); }
             FlowControlled = e.Active;
             _hostLock.Release();
         }

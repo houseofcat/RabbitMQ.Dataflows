@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Threading.Tasks;
 
-using static RabbitMQ.Core.Prototype.AmqpConstants;
+using static Angora.PrototypeClient.AmqpConstants;
 
-namespace RabbitMQ.Core.Prototype
+namespace Angora.PrototypeClient
 {
     internal class ConnectionMethods
     {
@@ -104,7 +104,7 @@ namespace RabbitMQ.Core.Prototype
 
                 var clientProperties = new Dictionary<string, object>
                 {
-                    { "product", "RabbitMQ.Core.Prototype" },
+                    { "product", "Angora.PrototypeClient" },
                     { "capabilities", capabilities },
                     { "connection_name", connectionName }
                 };

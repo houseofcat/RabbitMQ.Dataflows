@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace RabbitMQ.Core.Prototype
+namespace Angora.PrototypeClient
 {
     public class MessageProperties
     {

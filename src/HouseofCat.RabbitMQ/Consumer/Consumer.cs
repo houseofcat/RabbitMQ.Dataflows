@@ -105,12 +105,12 @@ namespace HouseofCat.RabbitMQ
                     bool success;
                     do
                     {
-                        _logger.LogTrace(LogMessages.Consumer.StartingConsumerLoop, ConsumerOptions.ConsumerName);
+                        _logger.LogTrace(LogMessages.Consumers.StartingConsumerLoop, ConsumerOptions.ConsumerName);
                         success = StartConsuming();
                     }
                     while (!success);
 
-                    _logger.LogDebug(LogMessages.Consumer.Started, ConsumerOptions.ConsumerName);
+                    _logger.LogDebug(LogMessages.Consumers.Started, ConsumerOptions.ConsumerName);
 
                     Started = true;
                 }
@@ -124,7 +124,7 @@ namespace HouseofCat.RabbitMQ
                 .WaitAsync()
                 .ConfigureAwait(false);
 
-            _logger.LogDebug(LogMessages.Consumer.StopConsumer, ConsumerOptions.ConsumerName);
+            _logger.LogDebug(LogMessages.Consumers.StopConsumer, ConsumerOptions.ConsumerName);
 
             try
             {
@@ -145,7 +145,7 @@ namespace HouseofCat.RabbitMQ
 
                     Started = false;
                     _logger.LogDebug(
-                        LogMessages.Consumer.StoppedConsumer,
+                        LogMessages.Consumers.StoppedConsumer,
                         ConsumerOptions.ConsumerName);
                 }
             }
@@ -158,7 +158,7 @@ namespace HouseofCat.RabbitMQ
             { return false; }
 
             _logger.LogInformation(
-                LogMessages.Consumer.StartingConsumer,
+                LogMessages.Consumers.StartingConsumer,
                 ConsumerOptions.ConsumerName);
 
             if (Options.FactoryOptions.EnableDispatchConsumersAsync)
@@ -207,7 +207,7 @@ namespace HouseofCat.RabbitMQ
             }
 
             _logger.LogInformation(
-                LogMessages.Consumer.StartedConsumer,
+                LogMessages.Consumers.StartedConsumer,
                 ConsumerOptions.ConsumerName);
             return true;
         }
@@ -220,28 +220,28 @@ namespace HouseofCat.RabbitMQ
             if (ConsumerOptions.UseTransientChannels ?? true)
             {
                 var autoAck = ConsumerOptions.AutoAck ?? false;
-                _logger.LogTrace(LogMessages.Consumer.GettingTransientChannelHost, ConsumerOptions.ConsumerName);
+                _logger.LogTrace(LogMessages.Consumers.GettingTransientChannelHost, ConsumerOptions.ConsumerName);
                 _chanHost = await ChannelPool
                     .GetTransientChannelAsync(!autoAck)
                     .ConfigureAwait(false);
             }
             else if (ConsumerOptions.AutoAck ?? false)
             {
-                _logger.LogTrace(LogMessages.Consumer.GettingChannelHost, ConsumerOptions.ConsumerName);
+                _logger.LogTrace(LogMessages.Consumers.GettingChannelHost, ConsumerOptions.ConsumerName);
                 _chanHost = await ChannelPool
                     .GetChannelAsync()
                     .ConfigureAwait(false);
             }
             else
             {
-                _logger.LogTrace(LogMessages.Consumer.GettingAckChannelHost, ConsumerOptions.ConsumerName);
+                _logger.LogTrace(LogMessages.Consumers.GettingAckChannelHost, ConsumerOptions.ConsumerName);
                 _chanHost = await ChannelPool
                     .GetAckChannelAsync()
                     .ConfigureAwait(false);
             }
 
             _logger.LogDebug(
-                LogMessages.Consumer.ChannelEstablished,
+                LogMessages.Consumers.ChannelEstablished,
                 ConsumerOptions.ConsumerName,
                 _chanHost?.ChannelId ?? 0ul);
         }
@@ -268,7 +268,7 @@ namespace HouseofCat.RabbitMQ
             var rabbitMessage = new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false), HashKey);
 
             _logger.LogDebug(
-                LogMessages.Consumer.ConsumerMessageReceived,
+                LogMessages.Consumers.ConsumerMessageReceived,
                 ConsumerOptions.ConsumerName,
                 bdea.DeliveryTag);
 
@@ -311,7 +311,7 @@ namespace HouseofCat.RabbitMQ
             var rabbitMessage = new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false), HashKey);
 
             _logger.LogDebug(
-                LogMessages.Consumer.ConsumerAsyncMessageReceived,
+                LogMessages.Consumers.ConsumerAsyncMessageReceived,
                 ConsumerOptions.ConsumerName,
                 bdea.DeliveryTag);
 
@@ -343,7 +343,7 @@ namespace HouseofCat.RabbitMQ
                     await _chanHost.MakeChannelAsync();
 
                     _logger.LogWarning(
-                        LogMessages.Consumer.ConsumerShutdownEvent,
+                        LogMessages.Consumers.ConsumerShutdownEvent,
                         ConsumerOptions.ConsumerName,
                         e.ReplyText);
 
@@ -440,7 +440,7 @@ namespace HouseofCat.RabbitMQ
                         if (receivedData != null)
                         {
                             _logger.LogDebug(
-                                LogMessages.Consumer.ConsumerDataflowQueueing,
+                                LogMessages.Consumers.ConsumerDataflowQueueing,
                                 ConsumerOptions.ConsumerName,
                                 receivedData.DeliveryTag);
 
@@ -454,13 +454,13 @@ namespace HouseofCat.RabbitMQ
             catch (OperationCanceledException)
             {
                 _logger.LogWarning(
-                    LogMessages.Consumer.ConsumerDataflowActionCancelled,
+                    LogMessages.Consumers.ConsumerDataflowActionCancelled,
                     ConsumerOptions.ConsumerName);
             }
             catch (Exception ex)
             {
                 _logger.LogError(
-                    LogMessages.Consumer.ConsumerDataflowError,
+                    LogMessages.Consumers.ConsumerDataflowError,
                     ConsumerOptions.ConsumerName,
                     ex.Message);
             }

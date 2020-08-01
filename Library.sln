@@ -16,21 +16,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4FCA30F5-D19B-4756-BC68-6BA7E668F786}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{4CAEFFFA-9AD6-48C1-9845-595631995363}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CEB4DD54-5D56-43D9-93DB-EB233068DD38}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.RabbitMQ.Tests", "tests\HouseofCat.RabbitMQ.Tests\HouseofCat.RabbitMQ.Tests.csproj", "{665761E3-5B61-423D-9351-6DCC2E7CA8C4}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RabbitMQ", "RabbitMQ", "{D73A1BA1-AD02-4BB6-A04A-FA3179EA8347}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerPipelineMicroservice", "examples\RabbitMQ\ConsumerPipelineMicroservice\ConsumerPipelineMicroservice.csproj", "{32B164A0-B293-4E1C-99EA-F7BD40CF4501}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmarks", "examples\RabbitMQ\Benchmarks\Benchmarks.csproj", "{C2A5EFAA-A36C-4A52-8120-4BEE4958D08F}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleClient", "examples\RabbitMQ\SimpleClient\SimpleClient.csproj", "{82134FE7-2CBE-4A59-9136-0D64B4426BDF}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StressTestClient", "examples\RabbitMQ\StressTestClient\StressTestClient.csproj", "{DF84EA10-99EA-4CC1-97E1-DDDBC00018D5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Utilities", "src\HouseofCat.Utilities\HouseofCat.Utilities.csproj", "{2BF50B4E-7EE9-4C51-80AA-68405D76F21A}"
 EndProject
@@ -39,6 +27,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Encryption", "src\HouseofCat.Encryption\HouseofCat.Encryption.csproj", "{97C0674A-E7DC-4EF6-8E8C-1D06FE2FCAC2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Compression", "src\HouseofCat.Compression\HouseofCat.Compression.csproj", "{276C2CF1-4013-4035-AFAB-8DF0481BE4E7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Compression.Builtin", "src\HouseofCat.Compression.Builtin\HouseofCat.Compression.Builtin.csproj", "{295F85B6-3A43-47D5-8B6D-9148B796C661}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Compression.LZ4", "src\HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj", "{E7F4AFF1-3D8D-4250-B813-F7BD5D558451}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Logger", "src\HouseofCat.Logger\HouseofCat.Logger.csproj", "{0FEAE831-B148-4EA8-AD4F-1E85606C156F}"
 EndProject
@@ -51,8 +43,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dapper", "src\HouseofCat.Dapper\HouseofCat.Dapper.csproj", "{BAB7F573-FD85-4C02-9FBB-A4390FF35D21}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Extensions.Host.Serilog", "src\HouseofCat.Extensions.Host.Serilog\HouseofCat.Extensions.Host.Serilog.csproj", "{F87490D3-D318-4425-8044-1FA2BD1B24A6}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Compression.LZ4", "src\HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj", "{E7F4AFF1-3D8D-4250-B813-F7BD5D558451}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Reflection", "src\HouseofCat.Reflection\HouseofCat.Reflection.csproj", "{FA0ED709-D706-46E1-801A-2D43F1093840}"
 EndProject
@@ -67,8 +57,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.RabbitMQ.Services", "src\HouseofCat.RabbitMQ.Services\HouseofCat.RabbitMQ.Services.csproj", "{369BB764-AEB8-43B9-BF3E-F5B7858DE473}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Workflows.Pipelines", "src\HouseofCat.Workflows.Pipelines\HouseofCat.Workflows.Pipelines.csproj", "{A4623BE8-FDB0-4BBB-AEDE-081109B80801}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Compression.Builtin", "src\HouseofCat.Compression.Builtin\HouseofCat.Compression.Builtin.csproj", "{295F85B6-3A43-47D5-8B6D-9148B796C661}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -172,6 +160,22 @@ Global
 		{295F85B6-3A43-47D5-8B6D-9148B796C661}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{295F85B6-3A43-47D5-8B6D-9148B796C661}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{295F85B6-3A43-47D5-8B6D-9148B796C661}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90780C51-177F-41C0-9BE2-D88CC8349518}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90780C51-177F-41C0-9BE2-D88CC8349518}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90780C51-177F-41C0-9BE2-D88CC8349518}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90780C51-177F-41C0-9BE2-D88CC8349518}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6CBEDA2-2FBE-428C-8945-5CA3C3F115FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6CBEDA2-2FBE-428C-8945-5CA3C3F115FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6CBEDA2-2FBE-428C-8945-5CA3C3F115FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6CBEDA2-2FBE-428C-8945-5CA3C3F115FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C04ABD4-FEAC-4B90-BC27-9E039FCFF63B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C04ABD4-FEAC-4B90-BC27-9E039FCFF63B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C04ABD4-FEAC-4B90-BC27-9E039FCFF63B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C04ABD4-FEAC-4B90-BC27-9E039FCFF63B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A09C4F5-0FB5-4DD6-B56B-2D03600F9443}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A09C4F5-0FB5-4DD6-B56B-2D03600F9443}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A09C4F5-0FB5-4DD6-B56B-2D03600F9443}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A09C4F5-0FB5-4DD6-B56B-2D03600F9443}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -202,6 +206,11 @@ Global
 		{369BB764-AEB8-43B9-BF3E-F5B7858DE473} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 		{A4623BE8-FDB0-4BBB-AEDE-081109B80801} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 		{295F85B6-3A43-47D5-8B6D-9148B796C661} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
+		{2ACF026A-88E5-406C-9E2B-A4452713C3D6} = {4CAEFFFA-9AD6-48C1-9845-595631995363}
+		{90780C51-177F-41C0-9BE2-D88CC8349518} = {2ACF026A-88E5-406C-9E2B-A4452713C3D6}
+		{F6CBEDA2-2FBE-428C-8945-5CA3C3F115FA} = {2ACF026A-88E5-406C-9E2B-A4452713C3D6}
+		{0C04ABD4-FEAC-4B90-BC27-9E039FCFF63B} = {2ACF026A-88E5-406C-9E2B-A4452713C3D6}
+		{2A09C4F5-0FB5-4DD6-B56B-2D03600F9443} = {2ACF026A-88E5-406C-9E2B-A4452713C3D6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D7099845-267C-4232-8764-5DF25D6B2C79}

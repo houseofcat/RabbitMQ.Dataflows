@@ -169,7 +169,7 @@ namespace HouseofCat.RabbitMQ
                 throw new InvalidOperationException(ExceptionMessages.QueueChannelError);
             }
 
-            _logger.LogDebug(LogMessages.AutoPublisher.LetterQueued, letter.LetterId, letter.LetterMetadata?.Id);
+            _logger.LogDebug(LogMessages.AutoPublishers.LetterQueued, letter.LetterId, letter.LetterMetadata?.Id);
 
             await _letterQueue
                 .Writer
@@ -200,7 +200,7 @@ namespace HouseofCat.RabbitMQ
                         letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypt] = Constants.HeaderValueForArgonAesEncrypt;
                     }
 
-                    _logger.LogDebug(LogMessages.AutoPublisher.LetterPublished, letter.LetterId, letter.LetterMetadata?.Id);
+                    _logger.LogDebug(LogMessages.AutoPublishers.LetterPublished, letter.LetterId, letter.LetterMetadata?.Id);
 
                     await PublishAsync(letter, _createPublishReceipts, _withHeaders)
                         .ConfigureAwait(false);
@@ -271,7 +271,7 @@ namespace HouseofCat.RabbitMQ
             }
             catch (Exception ex)
             {
-                _logger.LogDebug(LogMessages.Publisher.PublishFailed, $"{exchangeName}->{routingKey}", ex.Message);
+                _logger.LogDebug(LogMessages.Publishers.PublishFailed, $"{exchangeName}->{routingKey}", ex.Message);
                 error = true;
             }
             finally
@@ -309,7 +309,7 @@ namespace HouseofCat.RabbitMQ
             catch (Exception ex)
             {
                 _logger.LogDebug(
-                    LogMessages.Publisher.PublishFailed,
+                    LogMessages.Publishers.PublishFailed,
                     $"{exchangeName}->{routingKey}",
                     ex.Message);
 
@@ -365,7 +365,7 @@ namespace HouseofCat.RabbitMQ
             catch (Exception ex)
             {
                 _logger.LogDebug(
-                    LogMessages.Publisher.PublishFailed,
+                    LogMessages.Publishers.PublishFailed,
                     $"{exchangeName}->{routingKey}",
                     ex.Message);
 
@@ -409,7 +409,7 @@ namespace HouseofCat.RabbitMQ
             catch (Exception ex)
             {
                 _logger.LogDebug(
-                    LogMessages.Publisher.PublishFailed,
+                    LogMessages.Publishers.PublishFailed,
                     $"{exchangeName}->{routingKey}",
                     ex.Message);
 
@@ -450,7 +450,7 @@ namespace HouseofCat.RabbitMQ
             catch (Exception ex)
             {
                 _logger.LogDebug(
-                    LogMessages.Publisher.PublishLetterFailed,
+                    LogMessages.Publishers.PublishLetterFailed,
                     $"{letter.Envelope.Exchange}->{letter.Envelope.RoutingKey}",
                     letter.LetterId,
                     ex.Message);
@@ -501,7 +501,7 @@ namespace HouseofCat.RabbitMQ
             catch (Exception ex)
             {
                 _logger.LogDebug(
-                    LogMessages.Publisher.PublishLetterFailed,
+                    LogMessages.Publishers.PublishLetterFailed,
                     $"{letter.Envelope.Exchange}->{letter.Envelope.RoutingKey}",
                     letter.LetterId,
                     ex.Message);
@@ -548,7 +548,7 @@ namespace HouseofCat.RabbitMQ
                 catch (Exception ex)
                 {
                     _logger.LogDebug(
-                        LogMessages.Publisher.PublishLetterFailed,
+                        LogMessages.Publishers.PublishLetterFailed,
                         $"{letters[i].Envelope.Exchange}->{letters[i].Envelope.RoutingKey}",
                         letters[i].LetterId,
                         ex.Message);
@@ -605,7 +605,7 @@ namespace HouseofCat.RabbitMQ
             catch (Exception ex)
             {
                 _logger.LogDebug(
-                    LogMessages.Publisher.PublishBatchFailed,
+                    LogMessages.Publishers.PublishBatchFailed,
                     ex.Message);
 
                 error = true;

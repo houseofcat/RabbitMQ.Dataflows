@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Threading.Tasks;
 
-using static RabbitMQ.Core.Prototype.AmqpConstants;
+using static Angora.PrototypeClient.AmqpConstants;
 
-namespace RabbitMQ.Core.Prototype
+namespace Angora.PrototypeClient
 {
     internal class BasicMethods
     {

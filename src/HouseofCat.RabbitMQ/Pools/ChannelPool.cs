@@ -144,7 +144,7 @@ namespace HouseofCat.RabbitMQ.Pools
             var flagged = _flaggedChannels.ContainsKey(chanHost.ChannelId) && _flaggedChannels[chanHost.ChannelId];
             if (flagged || !healthy)
             {
-                _logger.LogWarning(LogMessages.ChannelPool.DeadChannel, chanHost.ChannelId);
+                _logger.LogWarning(LogMessages.ChannelPools.DeadChannel, chanHost.ChannelId);
 
                 var success = false;
                 while (!success)
@@ -187,7 +187,7 @@ namespace HouseofCat.RabbitMQ.Pools
             var flagged = _flaggedChannels.ContainsKey(chanHost.ChannelId) && _flaggedChannels[chanHost.ChannelId];
             if (flagged || !healthy)
             {
-                _logger.LogWarning(LogMessages.ChannelPool.DeadChannel, chanHost.ChannelId);
+                _logger.LogWarning(LogMessages.ChannelPools.DeadChannel, chanHost.ChannelId);
 
                 var success = false;
                 while (!success)
@@ -217,7 +217,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
             while (true)
             {
-                _logger.LogTrace(LogMessages.ChannelPool.CreateChannel, channelId);
+                _logger.LogTrace(LogMessages.ChannelPools.CreateChannel, channelId);
 
                 var sleep = false;
 
@@ -226,7 +226,7 @@ namespace HouseofCat.RabbitMQ.Pools
                 { connHost = await _connectionPool.GetConnectionAsync().ConfigureAwait(false); }
                 catch
                 {
-                    _logger.LogTrace(LogMessages.ChannelPool.CreateChannelFailedConnection, channelId);
+                    _logger.LogTrace(LogMessages.ChannelPools.CreateChannelFailedConnection, channelId);
                     sleep = true;
                 }
 
@@ -238,13 +238,13 @@ namespace HouseofCat.RabbitMQ.Pools
                         chanHost = new ChannelHost(channelId, connHost, ackable);
                         await _connectionPool.ReturnConnectionAsync(connHost); // Return Connection (or lose them.)
                         _flaggedChannels[chanHost.ChannelId] = false;
-                        _logger.LogDebug(LogMessages.ChannelPool.CreateChannelSuccess, channelId);
+                        _logger.LogDebug(LogMessages.ChannelPools.CreateChannelSuccess, channelId);
 
                         return chanHost;
                     }
                     catch
                     {
-                        _logger.LogTrace(LogMessages.ChannelPool.CreateChannelFailedConstruction, channelId);
+                        _logger.LogTrace(LogMessages.ChannelPools.CreateChannelFailedConstruction, channelId);
                         sleep = true;
                     }
                 }
@@ -255,7 +255,7 @@ namespace HouseofCat.RabbitMQ.Pools
                     if (connHost != null)
                     { await _connectionPool.ReturnConnectionAsync(connHost); } // Return Connection (or lose them.)
 
-                    _logger.LogDebug(LogMessages.ChannelPool.CreateChannelSleep, channelId);
+                    _logger.LogDebug(LogMessages.ChannelPools.CreateChannelSleep, channelId);
 
                     await Task
                         .Delay(Options.PoolOptions.SleepOnErrorInterval)
@@ -279,7 +279,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
             _flaggedChannels[chanHost.ChannelId] = flagChannel;
 
-            _logger.LogDebug(LogMessages.ChannelPool.ReturningChannel, chanHost.ChannelId, flagChannel);
+            _logger.LogDebug(LogMessages.ChannelPools.ReturningChannel, chanHost.ChannelId, flagChannel);
 
             if (chanHost.Ackable)
             {
@@ -299,7 +299,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
         public async Task ShutdownAsync()
         {
-            _logger.LogTrace(LogMessages.ChannelPool.Shutdown);
+            _logger.LogTrace(LogMessages.ChannelPools.Shutdown);
 
             await _poolLock
                 .WaitAsync()
@@ -318,7 +318,7 @@ namespace HouseofCat.RabbitMQ.Pools
             }
 
             _poolLock.Release();
-            _logger.LogTrace(LogMessages.ChannelPool.ShutdownComplete);
+            _logger.LogTrace(LogMessages.ChannelPools.ShutdownComplete);
         }
 
         private async Task CloseChannelsAsync()

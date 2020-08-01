@@ -9,10 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\src\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
+    <PackageReference Include="HouseofCat.RabbitMQ" Version="1.0.1" />
   </ItemGroup>
 
 </Project>

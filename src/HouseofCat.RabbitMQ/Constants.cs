@@ -67,13 +67,13 @@ namespace HouseofCat.RabbitMQ
 
     public static class LogMessages
     {
-        public static class ChannelHost
+        public static class ChannelHosts
         {
             public readonly static string FlowControlled = "Flow control detected on ChannelHost {0}";
             public readonly static string FlowControlFinished = "Flow control is finished on ChannelHost {0}";
         }
 
-        public static class ConnectionPool
+        public static class ConnectionPools
         {
             public readonly static string CreateConnections = "ConnectionPool creating Connections...";
             public readonly static string CreateConnectionsComplete = "ConnectionPool initialized.";
@@ -82,7 +82,7 @@ namespace HouseofCat.RabbitMQ
             public readonly static string ShutdownComplete = "ConnectionPool shutdown complete.";
         }
 
-        public static class ChannelPool
+        public static class ChannelPools
         {
             public readonly static string Initialization = "ChannelPool initialize call was made.";
             public readonly static string InitializationComplete = "ChannelPool initialized.";
@@ -97,20 +97,20 @@ namespace HouseofCat.RabbitMQ
             public readonly static string ShutdownComplete = "ChannelPool shutdown complete.";
         }
 
-        public static class Publisher
+        public static class Publishers
         {
             public readonly static string PublishFailed = "Publish to route ({0}) failed, flagging channel host. Error: {1}";
             public readonly static string PublishLetterFailed = "Publish to route ({0}) failed [LetterId: {1}] flagging channel host. Error: {2}";
             public readonly static string PublishBatchFailed = "Batch publish failed, flagging channel host. Error: {0}";
         }
 
-        public static class AutoPublisher
+        public static class AutoPublishers
         {
             public readonly static string LetterQueued = "AutoPublisher queued letter [LetterId:{0} InternalId:{1}].";
             public readonly static string LetterPublished = "AutoPublisher published letter [LetterId:{0} InternalId:{1}]. Listen for receipt to indicate success...";
         }
 
-        public static class Consumer
+        public static class Consumers
         {
             public readonly static string StartingConsumer = "Consumer ({0}) starting...";
             public readonly static string StartedConsumer = "Consumer ({0}) started.";
@@ -127,51 +127,9 @@ namespace HouseofCat.RabbitMQ
             public readonly static string ConsumerAsyncMessageReceived = "Consumer ({0}) async message received (DT:{1}). Adding to buffer...";
             public readonly static string ConsumerShutdownEvent = "Consumer ({0}) shutdown event has occurred. Reason: {1}. Attempting to restart consuming...";
 
-            public readonly static string ConsumerExecution = "Consumer ({0}) execution engine executing unit of work (ReceivedData:DT:{1}).";
-            public readonly static string ConsumerExecutionSuccess = "Consumer ({0}) execution engine executing unit of work (ReceivedData:DT:{1}) was successful... acking.";
-            public readonly static string ConsumerExecutionFailure = "Consumer ({0}) execution engine executing unit of work (ReceivedData:DT:{1}) was unsuccesful... nacking.";
-            public readonly static string ConsumerExecutionError = "Consumer ({0}) execution engine executing unit of work (ReceivedData:DT:{1}) triggered an error. Error: {2}";
-
-            public readonly static string ConsumerParallelExecution = "Consumer ({0}) parallel executing unit of work (ReceivedData:DT:{1}).";
-            public readonly static string ConsumerParallelExecutionSuccess = "Consumer ({0}) parallel executing unit of work (ReceivedData:DT:{1}) was successful... acking.";
-            public readonly static string ConsumerParallelExecutionFailure = "Consumer ({0}) parallel executing unit of work (ReceivedData:DT:{1}) was unsuccesful... nacking.";
-            public readonly static string ConsumerParallelExecutionError = "Consumer ({0}) parallel executing unit of work (ReceivedData:DT:{1}) triggered an error. Error: {2}";
-
             public readonly static string ConsumerDataflowActionCancelled = "Consumer ({0}) dataflow engine actions were cancelled.";
             public readonly static string ConsumerDataflowError = "Consumer ({0}) dataflow engine encountered an error. Error: {1}";
             public readonly static string ConsumerDataflowQueueing = "Consumer ({0}) dataflow engine queueing unit of work (ReceivedData:DT:{1}).";
-            public readonly static string ConsumerPipelineQueueing = "Consumer ({0}) pipeline engine queueing unit of work (ReceivedData:DT:{1}).";
-            public readonly static string ConsumerPipelineWaiting = "Consumer ({0}) pipeline engine waiting on completion of unit of work (ReceivedData:DT:{1})...";
-            public readonly static string ConsumerPipelineWaitingDone = "Consumer ({0}) pipeline engine waiting on completed unit of work (ReceivedData:DT:{1}).";
-
-            public readonly static string ConsumerPipelineActionCancelled = "Consumer ({0}) pipeline engine actions were cancelled.";
-            public readonly static string ConsumerPipelineError = "Consumer ({0}) pipeline engine encountered an error. Error: {1}";
-        }
-
-        public static class DataflowEngine
-        {
-            public readonly static string Execution = "Dataflow execution engine executing unit of work (DT:{0}).";
-            public readonly static string ExecutionSuccess = "Dataflow execution engine executing unit of work (DT:{0}) was successful... acking.";
-            public readonly static string ExecutionFailure = "Dataflow execution engine executing unit of work (DT:{0}) was unsuccesful... nacking.";
-            public readonly static string ExecutionError = "Dataflow execution engine executing unit of work (DT:{0}) triggered an error. Error: {1}";
-            public readonly static string QueueError = "Dataflow execution engine queueing unit of work (DT:{0}) triggered an error. Error: {1}";
-        }
-
-        public static class LetterDataflowEngine
-        {
-            public readonly static string Execution = "Dataflow execution engine executing unit of work (LetterId:{0} DT:{1}).";
-            public readonly static string ExecutionSuccess = "Dataflow execution engine executing unit of work (LetterId:{0} DT:{1}) was successful... acking.";
-            public readonly static string ExecutionFailure = "Dataflow execution engine executing unit of work (LetterId:{0} DT:{1}) was unsuccesful... nacking.";
-            public readonly static string ExecutionError = "Dataflow execution engine executing unit of work (LetterId:{0} DT:{1}) triggered an error. Error: {1}";
-            public readonly static string QueueError = "Dataflow execution engine queueing unit of work (LetterId:{0} DT:{1}) triggered an error. Error: {1}";
-        }
-
-        public static class Pipeline
-        {
-            public readonly static string Healthy = "Pipeline ({0}) appears healthy.";
-            public readonly static string Faulted = "Pipeline ({0}) has faulted. Replace/rebuild Pipeline or restart Application...";
-            public readonly static string AwaitsCompletion = "Pipeline ({0}) awaits completion.";
-            public readonly static string Queued = "Pipeline ({0}) queued item for execution.";
         }
     }
 }

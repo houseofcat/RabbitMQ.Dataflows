@@ -189,7 +189,7 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
             {
                 state.Message = state.ReceivedData.ContentType switch
                 {
-                    Constants.HeaderValueForLetter => await receivedData
+                    HouseofCat.RabbitMQ.Constants.HeaderValueForLetter => await receivedData
                         .GetTypeFromJsonAsync<Message>()
                         .ConfigureAwait(false),
 

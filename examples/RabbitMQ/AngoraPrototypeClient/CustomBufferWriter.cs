@@ -4,7 +4,7 @@ using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace RabbitMQ.Core.Prototype
+namespace Angora.PrototypeClient
 {
     internal ref struct CustomBufferWriter<T> where T : IBufferWriter<byte>
     {

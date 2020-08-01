@@ -1,5 +1,6 @@
 ---
 exclude_paths:
   - 'examples/**'
+  - 'benchmarks/**'
   - 'tests/**'
   - "**.md"

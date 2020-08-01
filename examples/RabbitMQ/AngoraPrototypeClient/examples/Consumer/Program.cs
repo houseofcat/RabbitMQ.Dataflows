@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using RabbitMQ.Core.Prototype;
+using Angora.PrototypeClient;
 
 namespace Consumer
 {

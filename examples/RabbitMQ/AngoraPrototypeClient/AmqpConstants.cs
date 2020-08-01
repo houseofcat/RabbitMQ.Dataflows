@@ -1,4 +1,4 @@
-﻿namespace RabbitMQ.Core.Prototype
+﻿namespace Angora.PrototypeClient
 {
     internal static class AmqpConstants
     {
