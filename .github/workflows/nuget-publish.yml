@@ -141,6 +141,18 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Utilities/HouseofCat.Utilities.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Windows.Keyboard
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Windows.Keyboard/HouseofCat.Windows.Keyboard.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Windows.NativeMethods
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Windows.NativeMethods/HouseofCat.Windows.NativeMethods.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Workflows
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\common.props" />
+  <PropertyGroup>
+    <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.1</AssemblyVersion>
+    <FileVersion>1.0.1</FileVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FastMember" Version="1.5.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HouseofCat.Extensions\HouseofCat.Extensions.csproj" />
+    <ProjectReference Include="..\HouseofCat.Windows.NativeMethods\HouseofCat.Windows.NativeMethods.csproj" />
+  </ItemGroup>
+</Project>

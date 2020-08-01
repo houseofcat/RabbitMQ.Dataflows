@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace HouseofCat.Utilities.Time
+namespace HouseofCat.Extensions
 {
     public static class StopwatchExtensions
     {
