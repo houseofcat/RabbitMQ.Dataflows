@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-namespace BatchBlockDemo
+namespace BufferBlockDemo
 {
     public static class Program
     {
@@ -21,32 +21,34 @@ namespace BatchBlockDemo
             }
         }
 
-        // A BatchBlock takes in multiple types of values and outputs those values joined together (amount specified in the constructor)
+        // The BufferBlock does not do much but get messages and output those messages.
+        // Why use it? Well it is good practice in Dataflow for the input and output of a workflow
+        // to consist of a BufferBlock. It's primarily used for PubSub scenarios.
         private static async Task SimpleDemoAsync()
         {
-            Console.WriteLine("BatchBlockDemo has started!");
-            var block = new BatchBlock<int>(3); // batch messages of type int, into 3
+            Console.WriteLine("BufferBlockDemo has started!");
+            var block = new BufferBlock<string>();
 
             for (int i = 0; i < 10; i++)
             {
-                block.Post(i);
+                block.Post(ProduceTimeData());
             }
 
-            block.Complete(); // No mo data.
+            block.Complete();
 
-            while (await block.OutputAvailableAsync().ConfigureAwait(false))
+            for (int i = 0; i < 10; i++)
             {
                 var output = await block.ReceiveAsync().ConfigureAwait(false);
-
-                Console.WriteLine($"BatchBlock BatchOutput: {string.Join(",", output)}");
-                Console.WriteLine($"BatchBlock OutputCount: {block.OutputCount}");
+                Console.WriteLine(output);
             }
 
-            // wait for completion.
             await block.Completion.ConfigureAwait(false);
 
             Console.WriteLine("Finished!");
             Console.ReadKey();
         }
+
+        private static string ProduceTimeData()
+        { return $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.ffffff zzz}"; }
     }
 }

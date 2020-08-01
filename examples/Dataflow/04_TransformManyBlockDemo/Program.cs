@@ -24,6 +24,7 @@ namespace TransformManyBlockDemo
 
         // TransformManyBlock is opposite to a BatchBlock. It takes a single input and creates many outputs.
         // We will also be demonstrating how to link to an ActionBlock to work on those outputs.
+        // Also make note that the order is still ensured.
         private static async Task SimpleDemoWithParallelismAsync()
         {
             Console.WriteLine("TransformManyBlockDemo has started!");
@@ -35,7 +36,7 @@ namespace TransformManyBlockDemo
             transformManyBlock.Post(20);
 
             // Connect the source block (Transform) to the target/action block (Action).
-            transformManyBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true});
+            transformManyBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true });
 
             transformManyBlock.Complete();
             await transformManyBlock.Completion.ConfigureAwait(false);
@@ -46,7 +47,7 @@ namespace TransformManyBlockDemo
 
         private static IEnumerable<string> ProduceTimeData(int count)
         {
-            for(int i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
                 yield return $"Input {i}:{DateTime.Now:yyyy-MM-dd HH:mm:ss.ffffff zzz}";
             }
