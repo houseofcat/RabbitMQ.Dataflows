@@ -17,7 +17,6 @@ namespace BoundedPubSubBufferBlockDemo
             }
             else
             {
-                //await SimpleDemoAsync().ConfigureAwait(false);
                 await SimpleMultipleConsumerWithBlockingDemoAsync().ConfigureAwait(false);
             }
         }

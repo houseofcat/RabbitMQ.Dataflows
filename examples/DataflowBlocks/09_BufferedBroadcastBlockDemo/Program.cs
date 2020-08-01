@@ -17,7 +17,6 @@ namespace BoundedPubSubBufferBlockDemo
             }
             else
             {
-                //await SimpleDemoAsync().ConfigureAwait(false);
                 await SimpleBufferedBroadcastBlockDemoAsync().ConfigureAwait(false);
             }
         }
@@ -29,7 +28,7 @@ namespace BoundedPubSubBufferBlockDemo
         // common top level/ingestion throttling strategy.
         private static async Task SimpleBufferedBroadcastBlockDemoAsync()
         {
-            Console.WriteLine("BroadcastBlockDemo has started!");
+            Console.WriteLine("BoundedPubSubBufferBlockDemo has started!");
             var sharedExecutionOptions = new ExecutionDataflowBlockOptions { BoundedCapacity = 10 };
 
             var bufferBlock = new BufferBlock<string>(sharedExecutionOptions);

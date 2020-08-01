@@ -3,15 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30320.27
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "01_ActionBlockDemo", "examples\Dataflow\01_ActionBlockDemo\01_ActionBlockDemo.csproj", "{29744AFE-3AE1-45CD-B13A-3091F337EEE0}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dataflow", "Dataflow", "{8D3B4E4E-A3C0-40B8-978E-13B77F2D005A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "02_TransformBlockDemo", "examples\Dataflow\02_TransformBlockDemo\02_TransformBlockDemo.csproj", "{B08BF214-929D-480A-9F5D-D4C20F8BCDC0}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "03_BatchBlockDemo", "examples\Dataflow\03_BatchBlockDemo\03_BatchBlockDemo.csproj", "{CE29A3C2-3D77-4BDF-8C88-7F4B529C7FC9}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "04_TransformManyBlockDemo", "examples\Dataflow\04_TransformManyBlockDemo\04_TransformManyBlockDemo.csproj", "{359B0618-D4BA-4E0D-8E1A-BED9CF334F06}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataflowBlocks", "DataflowBlocks", "{8D3B4E4E-A3C0-40B8-978E-13B77F2D005A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RabbitMQ", "RabbitMQ", "{7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}"
 EndProject
@@ -23,15 +15,29 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleClient", "examples\Ra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StressTestClient", "examples\RabbitMQ\StressTestClient\StressTestClient.csproj", "{46D0EB76-9918-422A-8750-33261921EAD8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "05_BufferBlockDemo", "examples\Dataflow\05_BufferBlockDemo\05_BufferBlockDemo.csproj", "{8B0AD78A-833D-4FC2-836D-415E18E4BFE3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "01_ActionBlockDemo", "examples\DataflowBlocks\01_ActionBlockDemo\01_ActionBlockDemo.csproj", "{29744AFE-3AE1-45CD-B13A-3091F337EEE0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "06_PubSubBufferBlockDemo", "examples\Dataflow\06_PubSubBufferBlockDemo\06_PubSubBufferBlockDemo.csproj", "{7E2A7D1D-7D80-4B79-BC37-71EE655676D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "02_TransformBlockDemo", "examples\DataflowBlocks\02_TransformBlockDemo\02_TransformBlockDemo.csproj", "{B08BF214-929D-480A-9F5D-D4C20F8BCDC0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "07_BoundedPubSubBufferBlockDemo", "examples\Dataflow\07_BoundedPubSubBufferBlockDemo\07_BoundedPubSubBufferBlockDemo.csproj", "{5D1C8CAC-51F7-40B7-A511-7BBB2B8278A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "03_BatchBlockDemo", "examples\DataflowBlocks\03_BatchBlockDemo\03_BatchBlockDemo.csproj", "{CE29A3C2-3D77-4BDF-8C88-7F4B529C7FC9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "08_BroadcastBlockDemo", "examples\Dataflow\08_BroadcastBlockDemo\08_BroadcastBlockDemo.csproj", "{2A442D3E-2938-4EB1-A17F-406306647B00}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "04_TransformManyBlockDemo", "examples\DataflowBlocks\04_TransformManyBlockDemo\04_TransformManyBlockDemo.csproj", "{359B0618-D4BA-4E0D-8E1A-BED9CF334F06}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "09_BufferedBroadcastBlockDemo", "examples\Dataflow\09_BufferedBroadcastBlockDemo\09_BufferedBroadcastBlockDemo.csproj", "{4D070463-7117-4C45-A5CE-12D878B019D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "05_BufferBlockDemo", "examples\DataflowBlocks\05_BufferBlockDemo\05_BufferBlockDemo.csproj", "{8B0AD78A-833D-4FC2-836D-415E18E4BFE3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "06_PubSubBufferBlockDemo", "examples\DataflowBlocks\06_PubSubBufferBlockDemo\06_PubSubBufferBlockDemo.csproj", "{7E2A7D1D-7D80-4B79-BC37-71EE655676D6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "07_BoundedPubSubBufferBlockDemo", "examples\DataflowBlocks\07_BoundedPubSubBufferBlockDemo\07_BoundedPubSubBufferBlockDemo.csproj", "{5D1C8CAC-51F7-40B7-A511-7BBB2B8278A6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "08_BroadcastBlockDemo", "examples\DataflowBlocks\08_BroadcastBlockDemo\08_BroadcastBlockDemo.csproj", "{2A442D3E-2938-4EB1-A17F-406306647B00}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "09_BufferedBroadcastBlockDemo", "examples\DataflowBlocks\09_BufferedBroadcastBlockDemo\09_BufferedBroadcastBlockDemo.csproj", "{4D070463-7117-4C45-A5CE-12D878B019D6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "10_JoinBlockDemo", "examples\DataflowBlocks\10_JoinBlockDemo\10_JoinBlockDemo.csproj", "{59129637-4400-4A5C-B902-8211B29DD6BB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "11_BatchJoinBlockDemo", "examples\DataflowBlocks\11_BatchJoinBlockDemo\11_BatchJoinBlockDemo.csproj", "{2D4F734C-0028-48D1-BB59-AC87622DE3F4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "12_WriteOnceBlockDemo", "examples\DataflowBlocks\12_WriteOnceBlockDemo\12_WriteOnceBlockDemo.csproj", "{6918FBA6-43AE-487C-ADDD-247257AB04A4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -91,6 +97,18 @@ Global
 		{4D070463-7117-4C45-A5CE-12D878B019D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D070463-7117-4C45-A5CE-12D878B019D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D070463-7117-4C45-A5CE-12D878B019D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59129637-4400-4A5C-B902-8211B29DD6BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59129637-4400-4A5C-B902-8211B29DD6BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59129637-4400-4A5C-B902-8211B29DD6BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59129637-4400-4A5C-B902-8211B29DD6BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D4F734C-0028-48D1-BB59-AC87622DE3F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D4F734C-0028-48D1-BB59-AC87622DE3F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D4F734C-0028-48D1-BB59-AC87622DE3F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D4F734C-0028-48D1-BB59-AC87622DE3F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6918FBA6-43AE-487C-ADDD-247257AB04A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6918FBA6-43AE-487C-ADDD-247257AB04A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6918FBA6-43AE-487C-ADDD-247257AB04A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6918FBA6-43AE-487C-ADDD-247257AB04A4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -109,6 +127,9 @@ Global
 		{5D1C8CAC-51F7-40B7-A511-7BBB2B8278A6} = {8D3B4E4E-A3C0-40B8-978E-13B77F2D005A}
 		{2A442D3E-2938-4EB1-A17F-406306647B00} = {8D3B4E4E-A3C0-40B8-978E-13B77F2D005A}
 		{4D070463-7117-4C45-A5CE-12D878B019D6} = {8D3B4E4E-A3C0-40B8-978E-13B77F2D005A}
+		{59129637-4400-4A5C-B902-8211B29DD6BB} = {8D3B4E4E-A3C0-40B8-978E-13B77F2D005A}
+		{2D4F734C-0028-48D1-BB59-AC87622DE3F4} = {8D3B4E4E-A3C0-40B8-978E-13B77F2D005A}
+		{6918FBA6-43AE-487C-ADDD-247257AB04A4} = {8D3B4E4E-A3C0-40B8-978E-13B77F2D005A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8DA80AD7-3877-43F5-B810-54A65AC0C8D2}

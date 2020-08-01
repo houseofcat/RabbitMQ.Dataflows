@@ -36,7 +36,7 @@ namespace PubSubBufferBlockDemo
             var printBlock2 = new ActionBlock<string>(
                 (input) => Console.WriteLine($"PrintBlock2: {input}"));
 
-            bufferBlock.LinkTo(printBlock1, new DataflowLinkOptions { PropagateCompletion = true}); // signal completion down the chain
+            bufferBlock.LinkTo(printBlock1, new DataflowLinkOptions { PropagateCompletion = true }); // signal completion down the chain
             bufferBlock.LinkTo(printBlock2, new DataflowLinkOptions { PropagateCompletion = true }); // signal completion down the chain
 
             for (int i = 0; i < 10; i++)
