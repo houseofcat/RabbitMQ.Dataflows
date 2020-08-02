@@ -192,15 +192,15 @@ A library that focuses on interacting, filtering, and/or replaying user inputs o
 
 
 ## HouseofCat.Windows.NativeMethods
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.NativeMethods.svg)](https://www.nuget.org/packages/HouseofCat.NativeMethods/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.NativeMethods.svg)](https://www.nuget.org/packages/HouseofCat.NativeMethods/)  
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Windows.NativeMethods.svg)](https://www.nuget.org/packages/HouseofCat.Windows.NativeMethods/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Windows.NativeMethods.svg)](https://www.nuget.org/packages/HouseofCat.Windows.NativeMethods/)  
 
 A library that focuses on consolidating Windows NativeMethods calls used by my libaries.  
 
 
 ## HouseofCat.Windows.Threading
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Threading.svg)](https://www.nuget.org/packages/HouseofCat.Threading/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Threading.svg)](https://www.nuget.org/packages/HouseofCat.Threading/)  
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Windows.Threading.svg)](https://www.nuget.org/packages/HouseofCat.Windows.Threading/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Windows.Threading.svg)](https://www.nuget.org/packages/HouseofCat.Windows.Threading/)  
 
 A library that focuses on simplifying affinity and thread management.  
 
