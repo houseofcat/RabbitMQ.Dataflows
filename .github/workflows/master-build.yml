@@ -18,6 +18,6 @@ jobs:
       with:
         dotnet-version: 5.0.100-preview.7.20366.6
     - name: Install dependencies
-      run: dotnet restore
+      run: dotnet restore Library.sln
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build Library.sln --configuration Release --no-restore
