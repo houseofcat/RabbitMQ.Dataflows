@@ -45,7 +45,7 @@ namespace HouseofCat.Windows
                 {
                     Keyboard = new KEYBDINPUT
                     {
-                        KeyCode = (ushort)key,
+                        KeyCode = Convert.ToUInt16(key),
                         Scan = SCANVALUE,
                         Flags = flags,
                         Time = 0,

@@ -82,9 +82,9 @@ namespace HouseofCat.Windows
             if (nCode >= 0)
             {
                 var time = SW.ElapsedMicroseconds();
-                var key = (object)Marshal.ReadInt32(lParam);
+                var key = Marshal.ReadInt32(lParam);
                 var action = wParam.ToInt32();
-                (var actionString, var flag) = NativeMethods.GetActivityFlags(action);
+                (var actionString, var flag) = Helpers.GetActivityFlags(action);
 
                 // Send to buffer for Async writes to UI.
                 KeyChannelWriter.TryWrite(string.Format(KeyEventTemplate, key, actionString, time));

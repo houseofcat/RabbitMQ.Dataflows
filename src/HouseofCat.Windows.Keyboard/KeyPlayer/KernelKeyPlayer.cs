@@ -122,13 +122,13 @@ namespace HouseofCat.Windows
                                 if (err > 1)
                                 {
                                     await KeyEventMessageChannelWriter
-                                    .WriteAsync(string.Format(SendInputError, err));
+                                        .WriteAsync(string.Format(SendInputError, err));
                                 }
                                 else
                                 {
                                     await KeyEventMessageChannelWriter
-                                    .WriteAsync(
-                                        string.Format(KeySequenceInputLog, enumerator.Current.KeySequence, currentTimestamp));
+                                        .WriteAsync(
+                                            string.Format(KeySequenceInputLog, enumerator.Current.KeySequence, currentTimestamp));
                                 }
                             }
                             catch (Exception ex)
