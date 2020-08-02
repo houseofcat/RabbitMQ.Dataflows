@@ -10,6 +10,42 @@ namespace HouseofCat.Windows
     {
         public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
+        #region Threading Section
+
+        /// <summary>
+        /// Gets PID using Kerne32.dll.
+        /// </summary>
+        /// <returns>ProcessId</returns>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern int GetCurrentProcessId();
+
+        /// <summary>
+        /// Get the amount of RAM (in KB) physically installed.
+        /// </summary>
+        /// <param name="TotalMemoryInKilobytes"></param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetPhysicallyInstalledSystemMemory(out long TotalMemoryInKilobytes);
+
+        /// <summary>
+        /// Gets the current Thread.
+        /// </summary>
+        /// <returns></returns>
+        [DllImport("Kernel32.dll")]
+        public static extern IntPtr GetCurrentThread();
+
+        /// <summary>
+        /// Sets the Thread affinity to a logical processor.
+        /// </summary>
+        /// <param name="hThread"></param>
+        /// <param name="dwThreadAffinityMask"></param>
+        /// <returns></returns>
+        [DllImport("Kernel32.dll")]
+        public static extern IntPtr SetThreadAffinityMask(IntPtr hThread, IntPtr dwThreadAffinityMask);
+
+        #endregion
+
         #region Reading Section
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]

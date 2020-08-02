@@ -93,6 +93,20 @@ A library that focuses on extending functionality to other workflow related obje
 A library that focuses on simplifying reading groups of byte[] (designated as frames).  
 
 
+## HouseofCat.Gremlins
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Gremlins.svg)](https://www.nuget.org/packages/HouseofCat.Gremlins/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Gremlins.svg)](https://www.nuget.org/packages/HouseofCat.Gremlins/)  
+
+A library that focuses on Chaos Engineering. Currently targets Windows OS.  
+
+
+## HouseofCat.Gremlins.SqlServer
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Gremlins.svg)](https://www.nuget.org/packages/HouseofCat.Gremlins/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Gremlins.svg)](https://www.nuget.org/packages/HouseofCat.Gremlins/)  
+
+A library that focuses on Chaos Engineering with SqlServer. Currently targets System.Data.SqlClient.  
+
+
 ## HouseofCat.Logger
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Logger.svg)](https://www.nuget.org/packages/HouseofCat.Logger/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Logger.svg)](https://www.nuget.org/packages/HouseofCat.Logger/)  
@@ -135,6 +149,13 @@ A library that extends HouseofCat.RabbitMQ functionality by providing Workflow/P
 A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.RabbitMQ library.  
 
 
+## HouseofCat.RabbitMQ.Services.Twilio
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Twilio/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Twilio/)  
+
+A library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio with the HouseofCat.RabbitMQ library.  
+
+
 ## HouseofCat.Reflection
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Reflection.svg)](https://www.nuget.org/packages/HouseofCat.Reflection/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Reflection.svg)](https://www.nuget.org/packages/HouseofCat.Reflection/)  
@@ -161,6 +182,41 @@ A library that focuses on making it easier to deal with sockets communication wi
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Utilities.svg)](https://www.nuget.org/packages/HouseofCat.Utilities/)  
 
 A library that focuses on general purpose utilities and functions that simplify the coding experience.  
+
+
+## HouseofCat.Windows.Keyboard
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Windows.Keyboard.svg)](https://www.nuget.org/packages/HouseofCat.Windows.Keyboard/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Windows.Keyboard.svg)](https://www.nuget.org/packages/HouseofCat.Windows.Keyboard/)  
+
+A library that focuses on interacting, filtering, and/or replaying user inputs on Windows, specifically Keyboard.  
+
+
+## HouseofCat.Windows.NativeMethods
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.NativeMethods.svg)](https://www.nuget.org/packages/HouseofCat.NativeMethods/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.NativeMethods.svg)](https://www.nuget.org/packages/HouseofCat.NativeMethods/)  
+
+A library that focuses on consolidating Windows NativeMethods calls used by my libaries.  
+
+
+## HouseofCat.Windows.Threading
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Threading.svg)](https://www.nuget.org/packages/HouseofCat.Threading/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Threading.svg)](https://www.nuget.org/packages/HouseofCat.Threading/)  
+
+A library that focuses on simplifying affinity and thread management.  
+
+
+## HouseofCat.Windows.WMI
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Windows.WMI.svg)](https://www.nuget.org/packages/HouseofCat.Windows.WMI/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Windows.WMI.svg)](https://www.nuget.org/packages/HouseofCat.Windows.WMI/)  
+
+A library that focuses on performing System.Management (Windows.Compatibility.Pack) WMI Queries.  
+
+
+## HouseofCat.Workflows
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Workflows/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Workflows/)  
+
+A library that focuses on Task Parallel Library and rapid Function execution.  
 
 
 ## HouseofCat.Workflows

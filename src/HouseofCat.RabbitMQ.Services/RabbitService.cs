@@ -30,6 +30,16 @@ namespace HouseofCat.RabbitMQ.Services
         Task<bool> CompressAsync(Letter letter);
         IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, int batchSize, bool? ensureOrdered, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : IWorkState;
         IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, IPipeline<ReceivedData, TOut> pipeline) where TOut : IWorkState;
+
+        /// <summary>
+        /// Use this CreateConsumerPipeline function when using the new ConsumerOption config that includes ConsumerPipeline settings.
+        /// </summary>
+        /// <typeparam name="TOut"></typeparam>
+        /// <param name="consumerName"></param>
+        /// <param name="pipelineBuilder"></param>
+        /// <returns></returns>
+        IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : IWorkState;
+
         Task DecomcryptAsync(Letter letter);
         Task<bool> DecompressAsync(Letter letter);
         bool Decrypt(Letter letter);
@@ -199,6 +209,26 @@ namespace HouseofCat.RabbitMQ.Services
         {
             var consumer = GetConsumer(consumerName);
             var pipeline = pipelineBuilder.Invoke(batchSize, ensureOrdered);
+
+            return new ConsumerPipeline<TOut>(consumer, pipeline);
+        }
+
+        /// <summary>
+        /// Use this CreateConsumerPipeline function when using the new ConsumerOption config that includes ConsumerPipeline settings.
+        /// </summary>
+        /// <typeparam name="TOut"></typeparam>
+        /// <param name="consumerName"></param>
+        /// <param name="pipelineBuilder"></param>
+        /// <returns></returns>
+        public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
+            string consumerName,
+            Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder)
+            where TOut : IWorkState
+        {
+            var consumer = GetConsumer(consumerName);
+            var pipeline = pipelineBuilder.Invoke(
+                consumer.ConsumerOptions.ConsumerPipelineOptions.MaxDegreesOfParallelism ?? 1,
+                consumer.ConsumerOptions.ConsumerPipelineOptions.EnsureOrdered ?? true);
 
             return new ConsumerPipeline<TOut>(consumer, pipeline);
         }

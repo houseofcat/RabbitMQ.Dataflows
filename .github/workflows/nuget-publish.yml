@@ -105,6 +105,18 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Framing/HouseofCat.Framing.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Gremlins
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Gremlins/HouseofCat.Gremlins.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Gremlins.SqlServer
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Gremlins.SqlServer/HouseofCat.Gremlins.SqlServer.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Logger
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -141,6 +153,12 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Services/HouseofCat.RabbitMQ.Services.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.RabbitMQ.Services.Twilio
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Services.Twilio/HouseofCat.RabbitMQ.Services.Twilio.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Reflection
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -176,6 +194,18 @@ jobs:
       continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Windows.NativeMethods/HouseofCat.Windows.NativeMethods.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Windows.Threading
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Windows.Threading/HouseofCat.Windows.Threading.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Windows.WMI
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Windows.WMI/HouseofCat.Windows.WMI.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Workflows
       uses: brandedoutcast/publish-nuget@v2.5.2
