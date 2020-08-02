@@ -83,7 +83,14 @@ A library that focuses on extending IHost functionality to quickly setup Serilog
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Extensions.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Workflows/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Workflows/)  
 
-A library that focuses on extending functionality to other objects.  
+A library that focuses on extending functionality to other workflow related objects.  
+
+
+## HouseofCat.Framing
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Framing.svg)](https://www.nuget.org/packages/HouseofCat.Framing/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Framing.svg)](https://www.nuget.org/packages/HouseofCat.Framing/)  
+
+A library that focuses on simplifying reading groups of byte[] (designated as frames).  
 
 
 ## HouseofCat.Logger
@@ -91,6 +98,13 @@ A library that focuses on extending functionality to other objects.
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Logger.svg)](https://www.nuget.org/packages/HouseofCat.Logger/)  
 
 A library that focuses on getting Microsoft.Extensions.LoggerFactory implemented adhoc globally.  
+
+
+## HouseofCat.Network
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Network.svg)](https://www.nuget.org/packages/HouseofCat.Network/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Network.svg)](https://www.nuget.org/packages/HouseofCat.Network/)  
+
+A library that focuses on making it easier to deal with systems networking.  
 
 
 ## HouseofCat.RabbitMQ
@@ -126,6 +140,20 @@ A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.Rabb
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Reflection.svg)](https://www.nuget.org/packages/HouseofCat.Reflection/)  
 
 A library that focuses on Reflection hackery.  
+
+
+## HouseofCat.Sockets
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Sockets.svg)](https://www.nuget.org/packages/HouseofCat.Sockets/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Sockets.svg)](https://www.nuget.org/packages/HouseofCat.Sockets/)  
+
+A library that focuses on making it easier to deal with socket communication.  
+
+
+## HouseofCat.Sockets.Utf8Json
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Sockets.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Sockets.Utf8Json/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Sockets.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Sockets.Utf8Json/)  
+
+A library that focuses on making it easier to deal with sockets communication with Utf8Json.  
 
 
 ## HouseofCat.Utilities

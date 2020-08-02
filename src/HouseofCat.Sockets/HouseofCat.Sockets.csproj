@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\common.props" />
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.IO.Pipelines" Version="4.7.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HouseofCat.Framing\HouseofCat.Framing.csproj" />
+    <ProjectReference Include="..\HouseofCat.Network\HouseofCat.Network.csproj" />
+  </ItemGroup>
+</Project>

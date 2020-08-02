@@ -81,7 +81,7 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Encryption/HouseofCat.Encryption.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-    - name: Publish HouseofCat.Excetions
+    - name: Publish HouseofCat.Extensions
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
@@ -99,11 +99,23 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Extensions.Workflows/HouseofCat.Extensions.Workflows.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Framing
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Framing/HouseofCat.Framing.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Logger
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Logger/HouseofCat.Logger.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Network
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Network/HouseofCat.Network.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.RabbitMQ
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -134,6 +146,18 @@ jobs:
       continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Reflection/HouseofCat.Reflection.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Sockets
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Sockets/HouseofCat.Sockets.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Sockets.Utf8Json
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Sockets.Utf8Json/HouseofCat.Sockets.Utf8Json.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Utilities
       uses: brandedoutcast/publish-nuget@v2.5.2
