@@ -82,7 +82,7 @@ namespace Windows.KeyRecorder
                     {
                         try
                         {
-                            var key = await Recorder.KeyChannelReader.ReadAsync();
+                            var key = await Recorder.KeyChannelReader.ReadAsync().ConfigureAwait(false);
 
                             if (ShowKBBufferCbx.Checked)
                             {
@@ -100,10 +100,13 @@ namespace Windows.KeyRecorder
         {
             syncContext.Post(
                 new SendOrPostCallback(
-                    obj =>
-                    {
-                        KeyBufferTbx.AppendText(string.Format(KeyMessageFormat, Interlocked.Increment(ref KeyCounter), obj));
-                    }), keySequence);
+                    obj => KeyBufferTbx
+                        .AppendText(
+                            string.Format(
+                                KeyMessageFormat,
+                                Interlocked.Increment(ref KeyCounter),
+                                obj))),
+                            keySequence);
         }
 
         private void SetupLogWriterTask()
@@ -115,7 +118,7 @@ namespace Windows.KeyRecorder
                     {
                         try
                         {
-                            var message = await Player.KeyEventMessageChannelReader.ReadAsync();
+                            var message = await Player.KeyEventMessageChannelReader.ReadAsync().ConfigureAwait(false);
 
                             if (ShowLogBufferCbx.Checked)
                             {
@@ -133,16 +136,25 @@ namespace Windows.KeyRecorder
         {
             syncContext.Post(
                 new SendOrPostCallback(
-                    obj =>
-                    {
-                        LogBufferTbx.AppendText(string.Format(LogMessageFormat, Interlocked.Increment(ref LogCounter), message));
-                    }), message);
+                    _ => LogBufferTbx
+                        .AppendText(
+                            string.Format(
+                                LogMessageFormat,
+                                Interlocked.Increment(ref LogCounter),
+                                message))),
+                            message);
         }
 
         private const string HomePage = "https://houseofcat.io";
         private void LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start(HomePage);
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = HomePage,
+                    UseShellExecute = true
+                });
+            //Process.Start(HomePage); // throws exceptions in NetCore 3.x/5.x
         }
     }
 }

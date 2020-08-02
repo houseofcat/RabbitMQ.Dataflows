@@ -1,9 +1,10 @@
+using HouseofCat.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System.Threading.Tasks;
 
-namespace MyWorkerService
+namespace Windows.NetCoreService
 {
     public static class Program
     {

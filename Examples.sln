@@ -47,7 +47,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Channels.Example", "example
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Windows.NetCoreService", "examples\Windows\Windows.NetCoreService\Windows.NetCoreService.csproj", "{A9F56CB3-8042-43C9-93DF-C7BFB9503EDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Windows.KeyRecorder", "examples\Windows\Windows.KeyRecorder\Windows.KeyRecorder.csproj", "{8D0C7165-87BC-42E1-B010-DEFFBE350059}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Windows.KeyRecorder", "examples\Windows\Windows.KeyRecorder\Windows.KeyRecorder.csproj", "{8D0C7165-87BC-42E1-B010-DEFFBE350059}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0ECC0D41-3C31-4896-914A-6F097E68CB69}"
+	ProjectSection(SolutionItems) = preProject
+		Note.txt = Note.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

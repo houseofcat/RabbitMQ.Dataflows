@@ -1,0 +1,3 @@
+In order to get some of these projects references working (they have direct references to Library) first run:  
+
+dotnet restore Examples.sln
