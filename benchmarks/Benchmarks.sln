@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30320.27
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Benchmarks", "benchmarks\RabbitMQ\RabbitMQ.Benchmarks.csproj", "{159870F9-7B57-4150-84DB-864C64FDDE03}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Benchmarks", "RabbitMQ\RabbitMQ.Benchmarks.csproj", "{159870F9-7B57-4150-84DB-864C64FDDE03}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RabbitMQ", "RabbitMQ", "{BE1DD00F-E64F-4C04-B93A-0252624985C7}"
 EndProject

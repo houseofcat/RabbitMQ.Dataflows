@@ -7,56 +7,56 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataflowBlocks", "DataflowB
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RabbitMQ", "RabbitMQ", "{7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Angora.PrototypeClient", "examples\RabbitMQ\AngoraPrototypeClient\Angora.PrototypeClient.csproj", "{F3782772-E220-4CC7-9F4E-28F418FAB498}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Angora.PrototypeClient", "RabbitMQ\AngoraPrototypeClient\Angora.PrototypeClient.csproj", "{F3782772-E220-4CC7-9F4E-28F418FAB498}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerPipelineMicroservice", "examples\RabbitMQ\ConsumerPipelineMicroservice\ConsumerPipelineMicroservice.csproj", "{20C70D17-BFC3-4FD6-AC63-94F8838FA0B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerPipelineMicroservice", "RabbitMQ\ConsumerPipelineMicroservice\ConsumerPipelineMicroservice.csproj", "{20C70D17-BFC3-4FD6-AC63-94F8838FA0B9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleClient", "examples\RabbitMQ\SimpleClient\SimpleClient.csproj", "{0F1B61A2-FC9E-466F-B199-31A696E37DAA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleClient", "RabbitMQ\SimpleClient\SimpleClient.csproj", "{0F1B61A2-FC9E-466F-B199-31A696E37DAA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StressTestClient", "examples\RabbitMQ\StressTestClient\StressTestClient.csproj", "{46D0EB76-9918-422A-8750-33261921EAD8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StressTestClient", "RabbitMQ\StressTestClient\StressTestClient.csproj", "{46D0EB76-9918-422A-8750-33261921EAD8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "01_ActionBlockDemo", "examples\DataflowBlocks\01_ActionBlockDemo\01_ActionBlockDemo.csproj", "{29744AFE-3AE1-45CD-B13A-3091F337EEE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "01_ActionBlockDemo", "DataflowBlocks\01_ActionBlockDemo\01_ActionBlockDemo.csproj", "{29744AFE-3AE1-45CD-B13A-3091F337EEE0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "02_TransformBlockDemo", "examples\DataflowBlocks\02_TransformBlockDemo\02_TransformBlockDemo.csproj", "{B08BF214-929D-480A-9F5D-D4C20F8BCDC0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "02_TransformBlockDemo", "DataflowBlocks\02_TransformBlockDemo\02_TransformBlockDemo.csproj", "{B08BF214-929D-480A-9F5D-D4C20F8BCDC0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "03_BatchBlockDemo", "examples\DataflowBlocks\03_BatchBlockDemo\03_BatchBlockDemo.csproj", "{CE29A3C2-3D77-4BDF-8C88-7F4B529C7FC9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "03_BatchBlockDemo", "DataflowBlocks\03_BatchBlockDemo\03_BatchBlockDemo.csproj", "{CE29A3C2-3D77-4BDF-8C88-7F4B529C7FC9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "04_TransformManyBlockDemo", "examples\DataflowBlocks\04_TransformManyBlockDemo\04_TransformManyBlockDemo.csproj", "{359B0618-D4BA-4E0D-8E1A-BED9CF334F06}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "04_TransformManyBlockDemo", "DataflowBlocks\04_TransformManyBlockDemo\04_TransformManyBlockDemo.csproj", "{359B0618-D4BA-4E0D-8E1A-BED9CF334F06}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "05_BufferBlockDemo", "examples\DataflowBlocks\05_BufferBlockDemo\05_BufferBlockDemo.csproj", "{8B0AD78A-833D-4FC2-836D-415E18E4BFE3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "05_BufferBlockDemo", "DataflowBlocks\05_BufferBlockDemo\05_BufferBlockDemo.csproj", "{8B0AD78A-833D-4FC2-836D-415E18E4BFE3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "06_PubSubBufferBlockDemo", "examples\DataflowBlocks\06_PubSubBufferBlockDemo\06_PubSubBufferBlockDemo.csproj", "{7E2A7D1D-7D80-4B79-BC37-71EE655676D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "06_PubSubBufferBlockDemo", "DataflowBlocks\06_PubSubBufferBlockDemo\06_PubSubBufferBlockDemo.csproj", "{7E2A7D1D-7D80-4B79-BC37-71EE655676D6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "07_BoundedPubSubBufferBlockDemo", "examples\DataflowBlocks\07_BoundedPubSubBufferBlockDemo\07_BoundedPubSubBufferBlockDemo.csproj", "{5D1C8CAC-51F7-40B7-A511-7BBB2B8278A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "07_BoundedPubSubBufferBlockDemo", "DataflowBlocks\07_BoundedPubSubBufferBlockDemo\07_BoundedPubSubBufferBlockDemo.csproj", "{5D1C8CAC-51F7-40B7-A511-7BBB2B8278A6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "08_BroadcastBlockDemo", "examples\DataflowBlocks\08_BroadcastBlockDemo\08_BroadcastBlockDemo.csproj", "{2A442D3E-2938-4EB1-A17F-406306647B00}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "08_BroadcastBlockDemo", "DataflowBlocks\08_BroadcastBlockDemo\08_BroadcastBlockDemo.csproj", "{2A442D3E-2938-4EB1-A17F-406306647B00}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "09_BufferedBroadcastBlockDemo", "examples\DataflowBlocks\09_BufferedBroadcastBlockDemo\09_BufferedBroadcastBlockDemo.csproj", "{4D070463-7117-4C45-A5CE-12D878B019D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "09_BufferedBroadcastBlockDemo", "DataflowBlocks\09_BufferedBroadcastBlockDemo\09_BufferedBroadcastBlockDemo.csproj", "{4D070463-7117-4C45-A5CE-12D878B019D6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "10_JoinBlockDemo", "examples\DataflowBlocks\10_JoinBlockDemo\10_JoinBlockDemo.csproj", "{59129637-4400-4A5C-B902-8211B29DD6BB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "10_JoinBlockDemo", "DataflowBlocks\10_JoinBlockDemo\10_JoinBlockDemo.csproj", "{59129637-4400-4A5C-B902-8211B29DD6BB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "11_BatchJoinBlockDemo", "examples\DataflowBlocks\11_BatchJoinBlockDemo\11_BatchJoinBlockDemo.csproj", "{2D4F734C-0028-48D1-BB59-AC87622DE3F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "11_BatchJoinBlockDemo", "DataflowBlocks\11_BatchJoinBlockDemo\11_BatchJoinBlockDemo.csproj", "{2D4F734C-0028-48D1-BB59-AC87622DE3F4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "12_WriteOnceBlockDemo", "examples\DataflowBlocks\12_WriteOnceBlockDemo\12_WriteOnceBlockDemo.csproj", "{6918FBA6-43AE-487C-ADDD-247257AB04A4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "12_WriteOnceBlockDemo", "DataflowBlocks\12_WriteOnceBlockDemo\12_WriteOnceBlockDemo.csproj", "{6918FBA6-43AE-487C-ADDD-247257AB04A4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Channels", "Channels", "{83456CB6-1C5D-4C04-B2B9-44EA03C69D86}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Windows", "Windows", "{2AB15392-A5ED-4F45-B319-A5D3F9CBD09A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Channels.Example", "examples\Channels\Channels.Example\Channels.Example.csproj", "{AF84F5AB-3652-4381-B5E4-ECA7D8C523EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Channels.Example", "Channels\Channels.Example\Channels.Example.csproj", "{AF84F5AB-3652-4381-B5E4-ECA7D8C523EF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Windows.NetCoreService", "examples\Windows\Windows.NetCoreService\Windows.NetCoreService.csproj", "{A9F56CB3-8042-43C9-93DF-C7BFB9503EDE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Windows.NetCoreService", "Windows\Windows.NetCoreService\Windows.NetCoreService.csproj", "{A9F56CB3-8042-43C9-93DF-C7BFB9503EDE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Windows.KeyRecorder", "examples\Windows\Windows.KeyRecorder\Windows.KeyRecorder.csproj", "{8D0C7165-87BC-42E1-B010-DEFFBE350059}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Windows.KeyRecorder", "Windows\Windows.KeyRecorder\Windows.KeyRecorder.csproj", "{8D0C7165-87BC-42E1-B010-DEFFBE350059}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0ECC0D41-3C31-4896-914A-6F097E68CB69}"
 	ProjectSection(SolutionItems) = preProject
 		Note.txt = Note.txt
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickSocket.Client", "examples\Channels\QuickSocket.Client\QuickSocket.Client.csproj", "{7D4D2BA9-47B0-436B-A456-08D7A6D7E64B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickSocket.Client", "Channels\QuickSocket.Client\QuickSocket.Client.csproj", "{7D4D2BA9-47B0-436B-A456-08D7A6D7E64B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickSocket.Server", "examples\Channels\QuickSocket.Server\QuickSocket.Server.csproj", "{6B077376-985B-4AA9-A3E4-9D005FAC5E82}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickSocket.Server", "Channels\QuickSocket.Server\QuickSocket.Server.csproj", "{6B077376-985B-4AA9-A3E4-9D005FAC5E82}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
