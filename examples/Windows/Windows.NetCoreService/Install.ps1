@@ -1,8 +1,8 @@
-﻿dotnet restore
-dotnet publish -c Release -o C:\Services\MyWorkerService
+dotnet restore
+dotnet publish -c Release -o "C:\Services\Windows.NetCoreService"
 
-sc.exe create MyWorkerService binpath=C:\Services\MyWorkerService\MyWorkerService.exe
-sc.exe start MyWorkerService
+sc.exe create Windows.NetCoreService binpath="C:\Services\Windows.NetCoreService\Windows.NetCoreService.exe"
+sc.exe start Windows.NetCoreService
 
-sc.exe stop MyWorkerService
-sc.exe delete MyWorkerService
+sc.exe stop Windows.NetCoreService
+sc.exe delete Windows.NetCoreService
