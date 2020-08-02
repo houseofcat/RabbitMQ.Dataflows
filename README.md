@@ -101,8 +101,8 @@ A library that focuses on Chaos Engineering. Currently targets Windows OS.
 
 
 ## HouseofCat.Gremlins.SqlServer
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Gremlins.svg)](https://www.nuget.org/packages/HouseofCat.Gremlins/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Gremlins.svg)](https://www.nuget.org/packages/HouseofCat.Gremlins/)  
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Gremlins.SqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Gremlins.SqlServer/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Gremlins.SqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Gremlins.SqlServer/)  
 
 A library that focuses on Chaos Engineering with SqlServer. Currently targets System.Data.SqlClient.  
 
