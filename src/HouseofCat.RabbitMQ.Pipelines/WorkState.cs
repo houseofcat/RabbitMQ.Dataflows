@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 using System.Runtime.Serialization;
 
 namespace HouseofCat.RabbitMQ.Pipelines
@@ -9,6 +10,8 @@ namespace HouseofCat.RabbitMQ.Pipelines
         IDictionary<string, object> Data { get; set; }
         IDictionary<string, bool> StepSuccess { get; set; }
         string StepIdentifier { get; set; }
+        bool IsFaulted { get; set; }
+        ExceptionDispatchInfo EDI { get; set; }
     }
 
     public abstract class WorkState : IWorkState
@@ -21,5 +24,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
         public virtual IDictionary<string, bool> StepSuccess { get; set; }
 
         public virtual string StepIdentifier { get; set; }
+        public bool IsFaulted { get; set; }
+        public ExceptionDispatchInfo EDI { get; set; }
     }
 }
