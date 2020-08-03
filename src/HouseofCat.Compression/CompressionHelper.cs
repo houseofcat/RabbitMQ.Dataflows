@@ -2,9 +2,9 @@
 using HouseofCat.Compression.Builtin;
 using System;
 using System.Threading.Tasks;
-using static HouseofCat.Services.Enums;
+using static HouseofCat.Compression.Enums;
 
-namespace HouseofCat.Services
+namespace HouseofCat.Compression
 {
     public static class CompressionHelper
     {

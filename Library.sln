@@ -84,6 +84,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Windows.WMI", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.RabbitMQ.Workflows", "src\HouseofCat.RabbitMQ.Workflows\HouseofCat.RabbitMQ.Workflows.csproj", "{75A7CD53-F942-40ED-95A2-1F9CC7C5F6E3}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Serialization", "src\HouseofCat.Serialization\HouseofCat.Serialization.csproj", "{6AE8BE48-BA11-4120-B8F8-3D42CF56DD46}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -222,6 +224,10 @@ Global
 		{75A7CD53-F942-40ED-95A2-1F9CC7C5F6E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75A7CD53-F942-40ED-95A2-1F9CC7C5F6E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{75A7CD53-F942-40ED-95A2-1F9CC7C5F6E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6AE8BE48-BA11-4120-B8F8-3D42CF56DD46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AE8BE48-BA11-4120-B8F8-3D42CF56DD46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6AE8BE48-BA11-4120-B8F8-3D42CF56DD46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AE8BE48-BA11-4120-B8F8-3D42CF56DD46}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -260,6 +266,7 @@ Global
 		{CD47CAAB-4AE0-4520-8FCA-00E46DD63E8B} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 		{A02B429D-59FF-4499-9DF7-8280CB1303BA} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 		{75A7CD53-F942-40ED-95A2-1F9CC7C5F6E3} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
+		{6AE8BE48-BA11-4120-B8F8-3D42CF56DD46} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D7099845-267C-4232-8764-5DF25D6B2C79}

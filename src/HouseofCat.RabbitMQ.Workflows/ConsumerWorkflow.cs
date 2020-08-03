@@ -1,13 +1,12 @@
-﻿using HouseofCat.Logger;
+﻿using HouseofCat.Compression;
+using HouseofCat.Encryption;
+using HouseofCat.Logger;
 using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.RabbitMQ.Services;
+using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Runtime.ExceptionServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
 namespace HouseofCat.RabbitMQ.Workflows
@@ -17,21 +16,26 @@ namespace HouseofCat.RabbitMQ.Workflows
         public string ConsumerWorkflowName { get; }
         public ConsumerOptions ConsumerOptions { get; }
 
-        // Main Flow
         private readonly ILogger<ConsumerWorkflow<TState>> _logger;
         private readonly IRabbitService _rabbitService;
         private readonly IConsumer<ReceivedData> _consumer;
         private readonly ExecutionDataflowBlockOptions _executeStepOptions;
         private readonly DataflowLinkOptions _linkStepOptions;
+        private IEncryptionProvider _encryptionProvider;
+        private ICompressionProvider _compressProvider;
+        private SerializationProvider _serializationProvider;
 
+        // Main Flow - PreProcessing
         private readonly BufferBlock<ReceivedData> _inputBuffer;
         private readonly TransformBlock<ReceivedData, TState> _createState;
         private readonly TransformBlock<TState, TState> _decryptBlock;
         private readonly TransformBlock<TState, TState> _decompressBlock;
         private readonly BufferBlock<TState> _readyForProcessing;
 
+        // Main Flow - Supplied Steps
         private readonly TransformBlock<TState, TState>[] _suppliedTransforms;
 
+        // Main Flow - PostProcessing
         private readonly BufferBlock<TState> _postProcessing;
         private readonly TransformBlock<TState, TState> _mainCompress;
         private readonly TransformBlock<TState, TState> _mainEncrypt;
@@ -68,23 +72,24 @@ namespace HouseofCat.RabbitMQ.Workflows
             _executeStepOptions.EnsureOrdered = _consumer.ConsumerOptions.ConsumerPipelineOptions.EnsureOrdered ?? true;
         }
 
-        public ConsumerWorkflow<TState> WithOptions()
+        public ConsumerWorkflow<TState> WithSerilizationProvider(SerializationProvider provider)
         {
+            Guard.AgainstNull(provider, nameof(provider));
+            _serializationProvider = provider;
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithSerilizationProvider()
+        public ConsumerWorkflow<TState> WithCompressionProvider(ICompressionProvider provider)
         {
+            Guard.AgainstNull(provider, nameof(provider));
+            _compressProvider = provider;
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithCompressionProvider()
+        public ConsumerWorkflow<TState> WithEncryptionProvider(IEncryptionProvider provider)
         {
-            return this;
-        }
-
-        public ConsumerWorkflow<TState> WithEncryptionProvider()
-        {
+            Guard.AgainstNull(provider, nameof(provider));
+            _encryptionProvider = provider;
             return this;
         }
 

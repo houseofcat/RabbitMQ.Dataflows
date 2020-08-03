@@ -143,7 +143,14 @@ A library that focuses on cloning the official Pivotal/VMWare RabbitMQ DotNetCli
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
 
-A library that extends HouseofCat.RabbitMQ functionality by providing Workflow/Pipeline support.  
+A library that extends HouseofCat.RabbitMQ functionality by providing simplified TPL Dataflow usage called Pipelines.  
+
+
+## HouseofCat.RabbitMQ.Workflows
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
+
+A library that extends HouseofCat.RabbitMQ functionality by providing robust Workflow support.  
 
 
 ## HouseofCat.RabbitMQ.Services
@@ -165,6 +172,13 @@ A library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio wit
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Reflection.svg)](https://www.nuget.org/packages/HouseofCat.Reflection/)  
 
 A library that focuses on Reflection hackery.  
+
+
+## HouseofCat.Serilization
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serilization.svg)](https://www.nuget.org/packages/HouseofCat.Serilization/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serilization.svg)](https://www.nuget.org/packages/HouseofCat.Serilization/)  
+
+A library that focuses on making it easier to deal with Serilization.  
 
 
 ## HouseofCat.Sockets

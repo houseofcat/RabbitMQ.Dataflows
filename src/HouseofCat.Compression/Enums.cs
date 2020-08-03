@@ -1,4 +1,4 @@
-﻿namespace HouseofCat.Services
+﻿namespace HouseofCat.Compression
 {
     public static class Enums
     {
