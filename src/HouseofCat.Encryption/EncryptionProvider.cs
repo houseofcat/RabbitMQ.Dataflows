@@ -9,8 +9,9 @@ namespace HouseofCat.Encryption
     {
         private byte[] _argonHashKey;
         private EncryptionOptions _options;
+        private EncryptionMethod _method;
 
-        public ArgonAesEncryptionProvider(string passphrase, string salt, EncryptionOptions options = null)
+        public ArgonAesEncryptionProvider(string passphrase, string salt, EncryptionMethod method, EncryptionOptions options = null)
         {
             Guard.AgainstNull(passphrase, nameof(passphrase));
             Guard.AgainstNull(salt, nameof(salt));
@@ -19,14 +20,14 @@ namespace HouseofCat.Encryption
             _argonHashKey = ArgonHash.GetHashKeyAsync(passphrase, salt, Encryption.Constants.Aes256.KeySize, _options?.HashOptions).GetAwaiter().GetResult();
         }
 
-        public byte[] Decrypt(ReadOnlyMemory<byte> data, EncryptionMethod method)
+        public byte[] Decrypt(ReadOnlyMemory<byte> data)
         {
-            return EncryptionHelper.Encrypt(data, method, _argonHashKey, _options);
+            return EncryptionHelper.Encrypt(data, _method, _argonHashKey, _options);
         }
 
-        public byte[] Encrypt(ReadOnlyMemory<byte> data, EncryptionMethod method)
+        public byte[] Encrypt(ReadOnlyMemory<byte> data)
         {
-            return EncryptionHelper.Decrypt(data, method, _argonHashKey, _options);
+            return EncryptionHelper.Decrypt(data, _method, _argonHashKey, _options);
         }
     }
 }

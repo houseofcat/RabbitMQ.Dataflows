@@ -16,7 +16,7 @@ namespace HouseofCat.RabbitMQ
         bool Ackable { get; }
         IModel Channel { get; set; }
         string ContentType { get; }
-        byte[] Data { get; }
+        byte[] Data { get; set; }
         ulong DeliveryTag { get; }
         Letter Letter { get; }
         IBasicProperties Properties { get; }
@@ -39,7 +39,7 @@ namespace HouseofCat.RabbitMQ
         public bool Ackable { get; }
         public IModel Channel { get; set; }
         public ulong DeliveryTag { get; }
-        public byte[] Data { get; private set; }
+        public byte[] Data { get; set; }
         public Letter Letter { get; private set; }
         public string ContentType { get; private set; }
 
