@@ -15,10 +15,18 @@ namespace HouseofCat.RabbitMQ
     {
         bool Ackable { get; }
         IModel Channel { get; set; }
+
         string ContentType { get; }
+        bool Encrypted { get; }
+        string EncryptionType { get; }
+        DateTime EncryptedDateTime { get; }
+        bool Compressed { get; }
+        string CompressionType { get; }
+
         byte[] Data { get; set; }
         ulong DeliveryTag { get; }
         Letter Letter { get; }
+
         IBasicProperties Properties { get; }
 
         bool AckMessage();

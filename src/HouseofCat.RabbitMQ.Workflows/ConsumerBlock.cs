@@ -64,26 +64,21 @@ namespace HouseofCat.RabbitMQ.Workflows
             throw new NotImplementedException();
         }
 
-        private async Task StartConsumerAsync()
+        public async Task StartConsumerAsync()
         {
             await _consumer.StartConsumerAsync();
+            await Task.Run(() => StreamToBufferAsync());
         }
 
-        private async Task TransferBufferAsync(bool waitForCompletion, CancellationToken token = default)
+        // TODO: And TaskCompletionSource w/ Token
+        // TODO: Store runner in Task;
+        private async Task StreamToBufferAsync(CancellationToken token = default)
         {
             try
             {
-                while (await _consumer.GetConsumerBuffer().WaitToReadAsync(token).ConfigureAwait(false))
+                await foreach(var message in _consumer.GetConsumerBuffer().ReadAllAsync(token).ConfigureAwait(false))
                 {
-                    while (_consumer.GetConsumerBuffer().TryRead(out var receivedData))
-                    {
-                        if (receivedData == null) { continue; }
-
-                        await _bufferBlock.SendAsync(receivedData);
-
-                        if (token.IsCancellationRequested)
-                        { return; }
-                    }
+                    await _bufferBlock.SendAsync(message);
                 }
             }
             catch (OperationCanceledException)
@@ -95,6 +90,5 @@ namespace HouseofCat.RabbitMQ.Workflows
 
             }
         }
-
     }
 }

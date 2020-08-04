@@ -45,21 +45,21 @@ namespace HouseofCat.RabbitMQ.Workflows
                 }, options);
         }
 
-        public static TransformBlock<TState, TState> GetByteManipulationTransformBlock<TState>(Func<ReadOnlyMemory<byte>, byte[]> action, ExecutionDataflowBlockOptions options, bool sending) where TState : class, IWorkState, new()
+        public static TransformBlock<TState, TState> GetByteManipulationTransformBlock<TState>(Func<ReadOnlyMemory<byte>, byte[]> action, ExecutionDataflowBlockOptions options, bool outbound, Predicate<TState> predicate) where TState : class, IWorkState, new()
         {
             return new TransformBlock<TState, TState>(
                 (state) =>
                 {
                     try
                     {
-                        if (sending)
+                        if (outbound)
                         {
                             if (state.SendData?.Length > 0)
                             { state.SendData = action(state.SendData); }
                             else if (state.SendLetter.Body?.Length > 0)
                             { state.SendLetter.Body = action(state.SendLetter.Body); }
                         }
-                        else
+                        else if (predicate(state))
                         {
                             state.ReceivedData.Data = action(state.ReceivedData.Data);
                         }
@@ -74,15 +74,25 @@ namespace HouseofCat.RabbitMQ.Workflows
                 }, options);
         }
 
-        public static TransformBlock<TState, TState> GetByteManipulationTransformBlock<TState>(Func<ReadOnlyMemory<byte>, Task<byte[]>> action, ExecutionDataflowBlockOptions options, bool sending) where TState : class, IWorkState, new()
+        public static TransformBlock<TState, TState> GetByteManipulationTransformBlock<TState>(Func<ReadOnlyMemory<byte>, Task<byte[]>> action, ExecutionDataflowBlockOptions options, bool outbound, Predicate<TState> predicate) where TState : class, IWorkState, new()
         {
             return new TransformBlock<TState, TState>(
                 async (state) =>
                 {
                     try
                     {
-                        state.ReceivedData.Data = await action(state.ReceivedData.Data);
-                        return state; 
+                        if (outbound)
+                        {
+                            if (state.SendData?.Length > 0)
+                            { state.SendData = await action(state.SendData); }
+                            else if (state.SendLetter.Body?.Length > 0)
+                            { state.SendLetter.Body = await action(state.SendLetter.Body); }
+                        }
+                        else if (predicate(state))
+                        {
+                            state.ReceivedData.Data = await action(state.ReceivedData.Data);
+                        }
+                        return state;
                     }
                     catch (Exception ex)
                     {

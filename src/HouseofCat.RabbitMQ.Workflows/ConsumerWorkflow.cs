@@ -28,8 +28,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         private SerializationProvider _serializationProvider;
 
         // Main Flow - PreProcessing
-        private ConsumerBlock<ReceivedData> _consumerBlock;
-        private BufferBlock<ReceivedData> _inputBuffer;
+        private ConsumerBlock<ReceivedData> _consumerBlock; // Doubles as a BufferBlock.
         private TransformBlock<ReceivedData, TState> _deserializeBlock;
         private TransformBlock<TState, TState> _decryptBlock;
         private TransformBlock<TState, TState> _decompressBlock;
@@ -40,7 +39,7 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         // Main Flow - PostProcessing
         private BufferBlock<TState> _postProcessingBuffer;
-        private TransformBlock<TState, TState> _createLetterBlock;
+        private TransformBlock<TState, TState> _createSendLetter;
         private TransformBlock<TState, TState> _compressBlock;
         private TransformBlock<TState, TState> _encryptBlock;
         private ActionBlock<TState> _finalization;
@@ -54,6 +53,9 @@ namespace HouseofCat.RabbitMQ.Workflows
         // Error/Fault Flow
         private BufferBlock<TState> _errorBuffer;
         private ActionBlock<TState> _errorAction;
+
+        // Used for Simplifying Dependency
+        private ISourceBlock<TState> _currentBlock;
 
         public ConsumerWorkflow(
             IRabbitService rabbitService,
@@ -97,12 +99,6 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithInputBuffer(int bufferCapacity)
-        {
-            _inputBuffer = new BufferBlock<ReceivedData>(new DataflowBlockOptions { BoundedCapacity = bufferCapacity > 0 ? bufferCapacity : 1000 });
-            return this;
-        }
-
         public ConsumerWorkflow<TState> WithErrorHandling(Action<TState> action, int bufferCapacity, int? maxDoPOverride = null, bool? ensureOrdered = null)
         {
             _errorBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = bufferCapacity > 0 ? bufferCapacity : 1000 });
@@ -111,11 +107,11 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithDeserializeStep(Func<ReceivedData, TState> createState, int? maxDoPOverride = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> WithDeserializeStep(Func<ReceivedData, TState> deserialize, int? maxDoPOverride = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
-            Guard.AgainstNull(createState, nameof(createState));
+            Guard.AgainstNull(deserialize, nameof(deserialize));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _deserializeBlock = BlockBuilders.GetStateTransformBlock(createState, executionOptions);
+            _deserializeBlock = BlockBuilders.GetStateTransformBlock(deserialize, executionOptions);
             return this;
         }
 
@@ -123,7 +119,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _decryptBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_encryptionProvider.Decrypt, executionOptions, false);
+            _decryptBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_encryptionProvider.Decrypt, executionOptions, false, x => x.ReceivedData.Encrypted);
             return this;
         }
 
@@ -131,7 +127,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _decompressBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_compressProvider.DecompressAsync, executionOptions, false);
+            _decompressBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_compressProvider.DecompressAsync, executionOptions, false, x => x.ReceivedData.Compressed);
             return this;
         }
 
@@ -163,11 +159,11 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithCreateLetter(int? maxDoPOverride = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> WithCreateSendLetter(Func<TState, Task<TState>> createLetter, int? maxDoPOverride = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            // TODO:
+            _createSendLetter = BlockBuilders.GetWrappedTransformBlock<TState>(createLetter, executionOptions);
             return this;
         }
 
@@ -175,7 +171,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _compressBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_compressProvider.CompressAsync, executionOptions, true);
+            _compressBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_compressProvider.CompressAsync, executionOptions, true, x => !x.ReceivedData.Compressed);
             return this;
         }
 
@@ -183,7 +179,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _encryptBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_encryptionProvider.Encrypt, executionOptions, true);
+            _encryptBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_encryptionProvider.Encrypt, executionOptions, true, x => !x.ReceivedData.Encrypted);
             return this;
         }
 
@@ -203,99 +199,85 @@ namespace HouseofCat.RabbitMQ.Workflows
 
             _consumerBlock = new ConsumerBlock<ReceivedData>(_consumer);
 
-            if (_inputBuffer == null)
-            { _inputBuffer = new BufferBlock<ReceivedData>(); }
-
             if (_readyBuffer == null)
             { _readyBuffer = new BufferBlock<TState>(); }
 
             if (_postProcessingBuffer == null)
             { _postProcessingBuffer = new BufferBlock<TState>(); }
 
-            _consumerBlock.LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
-            _inputBuffer.LinkTo(_deserializeBlock, overrideOptions ?? _linkStepOptions);
+            _consumerBlock.LinkTo(_deserializeBlock, overrideOptions ?? _linkStepOptions);
             _deserializeBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x == null);
+            SetCurrentSourceBlock(_deserializeBlock);
 
+            LinkPreProcessing(overrideOptions);
+            LinkSuppliedSteps(overrideOptions);
+            LinkPostProcessing(overrideOptions);
+
+            _errorBuffer.LinkTo(_errorAction, overrideOptions ?? _linkStepOptions);
+            _currentBlock = null;
+
+            return this;
+        }
+
+        private void LinkPreProcessing(DataflowLinkOptions overrideOptions = null)
+        {
             // Link Deserialize to DecryptBlock with predicate if its not null.
             if (_decryptBlock != null)
-            {
-                _deserializeBlock.LinkTo(_decryptBlock, overrideOptions ?? _linkStepOptions, x => x != null);
-                _decryptBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted);  // Decrypt Fault Linkage
+            { LinkWithFaultRoute(_currentBlock, _decryptBlock, x => x.IsFaulted, overrideOptions ?? _linkStepOptions); }
 
-                if (_decompressBlock != null)
-                {
-                    _decryptBlock.LinkTo(_decompressBlock, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
-                    _decompressBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted);  // Decompress Fault Linkage
-                }
-            }
-            else if (_decompressBlock != null)
-            {
-                _deserializeBlock.LinkTo(_decompressBlock, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
-                _decompressBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted);  // Decompress Fault Linkage
-            }
+            if (_decompressBlock != null)
+            { LinkWithFaultRoute(_currentBlock, _decompressBlock, x => x.IsFaulted, overrideOptions ?? _linkStepOptions); }
 
-            // If Decrypt and Decompress are both null, attach CreateStateBlock to ReadyForProcessingBuffer.
-            if (_decryptBlock == null && _decompressBlock == null)
-            { _deserializeBlock.LinkTo(_readyBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
-            // If Decrypt exists and Decompress does not, attach DecryptBlock to ReadyForProcessingBuffer.
-            else if (_decryptBlock != null && _decompressBlock == null)
-            { _decryptBlock.LinkTo(_readyBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
-            // If Decrypt & Decompress (or just Decompress) exists, attach Decompress to ReadyForProcessingBuffer.
-            else
-            { _decompressBlock.LinkTo(_readyBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
+            _currentBlock.LinkTo(_readyBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
+            SetCurrentSourceBlock(_readyBuffer); // Not Neeeded
+        }
 
+        private void LinkSuppliedSteps(DataflowLinkOptions overrideOptions = null)
+        {
             // Link all user steps.
             if (_suppliedTransforms?.Count > 0)
             {
                 for (int i = 0; i < _suppliedTransforms.Count; i++)
                 {
                     if (i == 0)
-                    {
-                        _readyBuffer.LinkTo(_suppliedTransforms[i], overrideOptions ?? _linkStepOptions);
-                        _suppliedTransforms[i].LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted); // Step Fault Linkage
-
-                    }
+                    { LinkWithFaultRoute(_currentBlock, _suppliedTransforms[i], x => x.IsFaulted, overrideOptions ?? _linkStepOptions); }
                     else // Link Previous Step, To Next Step
-                    {
-                        _suppliedTransforms[i - 1].LinkTo(_suppliedTransforms[i], overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
-                        _suppliedTransforms[i].LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted); // Step Fault Linkage
-                    }
+                    { LinkWithFaultRoute(_suppliedTransforms[i - 1], _suppliedTransforms[i], x => x.IsFaulted, overrideOptions ?? _linkStepOptions); }
                 }
 
-                // Link the last user step to PostProcessingBuffer.
-                _suppliedTransforms[^1].LinkTo(_postProcessingBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
-            }
-
-            if (_compressBlock != null)
-            {
-                _postProcessingBuffer.LinkTo(_compressBlock, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
-                _compressBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted); // Compress Fault Linkage
-
-                if (_encryptBlock != null)
+                // Link the last user step to PostProcessingBuffer/CreateSendLetter.
+                if (_createSendLetter != null)
+                { LinkWithFaultRoute(_suppliedTransforms[^1], _createSendLetter, x => x.IsFaulted, overrideOptions ?? _linkStepOptions); }
+                else
                 {
-                    _compressBlock.LinkTo(_encryptBlock, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
-                    _encryptBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted); // Encrypt Fault Linkage
+                    _suppliedTransforms[^1].LinkTo(_postProcessingBuffer, overrideOptions ?? _linkStepOptions);
+                    SetCurrentSourceBlock(_postProcessingBuffer);
                 }
             }
-            else if (_encryptBlock != null)
-            {
-                _postProcessingBuffer.LinkTo(_encryptBlock, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
-                _encryptBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted); // Encrypt Fault Linkage
-            }
+        }
 
-            // If Compress and Encrypt are both null, attach to PostProcessingBuffer.
-            if (_compressBlock == null && _encryptBlock == null)
-            { _postProcessingBuffer.LinkTo(_finalization, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
-            // If Compress exists and Encrypt does not, attach Finalization to Compression.
-            else if (_compressBlock != null && _encryptBlock == null)
-            { _compressBlock.LinkTo(_finalization, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
-            // If Compress & Encrypt (or just Encrypt) exists, attach Finalization to EncryptBlock.
-            else
-            { _encryptBlock.LinkTo(_finalization, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
+        private void LinkPostProcessing(DataflowLinkOptions overrideOptions = null)
+        {
+            if (_compressBlock != null)
+            { LinkWithFaultRoute(_currentBlock, _compressBlock, x => x.IsFaulted, overrideOptions); }
 
-            _errorBuffer.LinkTo(_errorAction, overrideOptions ?? _linkStepOptions);
+            if (_encryptBlock != null)
+            { LinkWithFaultRoute(_currentBlock, _encryptBlock, x => x.IsFaulted, overrideOptions); }
 
-            return this;
+            _currentBlock.LinkTo(_finalization, overrideOptions ?? _linkStepOptions); // Last Action
+        }
+
+        private void LinkWithFaultRoute(ISourceBlock<TState> source, IPropagatorBlock<TState, TState> target, Predicate<TState> faultPredicate, DataflowLinkOptions overrideOptions = null)
+        {
+            source.LinkTo(target, overrideOptions ?? _linkStepOptions);
+            target.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, faultPredicate); // Fault Linkage
+            SetCurrentSourceBlock(target);
+        }
+
+        // Simplifies node dependency logic by keeping track internally where we are in the graph.
+        private void SetCurrentSourceBlock(IDataflowBlock block)
+        {
+            _currentBlock = (ISourceBlock<TState>)block;
         }
 
         private ExecutionDataflowBlockOptions GetExecuteStepOptions(int? maxDoPOverride, bool? ensureOrdered, int? bufferSizeOverride)
@@ -311,6 +293,11 @@ namespace HouseofCat.RabbitMQ.Workflows
             }
 
             return _executeStepOptions;
+        }
+
+        public async Task StartAsync()
+        {
+            await _consumerBlock.StartConsumerAsync();
         }
     }
 }
