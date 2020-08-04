@@ -45,14 +45,24 @@ namespace HouseofCat.RabbitMQ.Workflows
                 }, options);
         }
 
-        public static TransformBlock<TState, TState> GetByteManipulationTransformBlock<TState>(Func<ReadOnlyMemory<byte>, byte[]> action, ExecutionDataflowBlockOptions options) where TState : class, IWorkState, new()
+        public static TransformBlock<TState, TState> GetByteManipulationTransformBlock<TState>(Func<ReadOnlyMemory<byte>, byte[]> action, ExecutionDataflowBlockOptions options, bool sending) where TState : class, IWorkState, new()
         {
             return new TransformBlock<TState, TState>(
                 (state) =>
                 {
                     try
                     {
-                        state.ReceivedData.Data = action(state.ReceivedData.Data);
+                        if (sending)
+                        {
+                            if (state.SendData?.Length > 0)
+                            { state.SendData = action(state.SendData); }
+                            else if (state.SendLetter.Body?.Length > 0)
+                            { state.SendLetter.Body = action(state.SendLetter.Body); }
+                        }
+                        else
+                        {
+                            state.ReceivedData.Data = action(state.ReceivedData.Data);
+                        }
                         return state;
                     }
                     catch (Exception ex)
@@ -64,7 +74,7 @@ namespace HouseofCat.RabbitMQ.Workflows
                 }, options);
         }
 
-        public static TransformBlock<TState, TState> GetByteManipulationTransformBlock<TState>(Func<ReadOnlyMemory<byte>, Task<byte[]>> action, ExecutionDataflowBlockOptions options) where TState : class, IWorkState, new()
+        public static TransformBlock<TState, TState> GetByteManipulationTransformBlock<TState>(Func<ReadOnlyMemory<byte>, Task<byte[]>> action, ExecutionDataflowBlockOptions options, bool sending) where TState : class, IWorkState, new()
         {
             return new TransformBlock<TState, TState>(
                 async (state) =>

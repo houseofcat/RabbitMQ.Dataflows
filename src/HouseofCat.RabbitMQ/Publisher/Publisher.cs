@@ -3,6 +3,7 @@ using HouseofCat.Encryption;
 using HouseofCat.Logger;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities.Errors;
+using HouseofCat.Utilities.Time;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System;
@@ -190,14 +191,17 @@ namespace HouseofCat.RabbitMQ
                     {
                         letter.Body = await Gzip.CompressAsync(letter.Body).ConfigureAwait(false);
                         letter.LetterMetadata.Compressed = _compress;
-                        letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypt] = Constants.HeaderValueForGzipCompress;
+                        letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = _compress;
+                        letter.LetterMetadata.CustomFields[Constants.HeaderForCompression] = Constants.HeaderValueForGzipCompress;
                     }
 
                     if (_encrypt)
                     {
                         letter.Body = AesEncrypt.Aes256Encrypt(letter.Body, _hashKey);
                         letter.LetterMetadata.Encrypted = _encrypt;
-                        letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypt] = Constants.HeaderValueForArgonAesEncrypt;
+                        letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypted] = _encrypt;
+                        letter.LetterMetadata.CustomFields[Constants.HeaderForEncryption] = Constants.HeaderValueForArgonAesEncrypt;
+                        letter.LetterMetadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
                     }
 
                     _logger.LogDebug(LogMessages.AutoPublishers.LetterPublished, letter.LetterId, letter.LetterMetadata?.Id);

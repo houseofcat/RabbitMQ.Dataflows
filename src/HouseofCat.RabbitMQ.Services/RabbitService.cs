@@ -282,7 +282,8 @@ namespace HouseofCat.RabbitMQ.Services
             {
                 letter.Body = AesEncrypt.Aes256Encrypt(letter.Body, _hashKey);
                 letter.LetterMetadata.Encrypted = true;
-                letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypt] = Constants.HeaderValueForArgonAesEncrypt;
+                letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypted] = true;
+                letter.LetterMetadata.CustomFields[Constants.HeaderForEncryption] = Constants.HeaderValueForArgonAesEncrypt;
                 letter.LetterMetadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
             }
             catch { return false; }
@@ -301,8 +302,11 @@ namespace HouseofCat.RabbitMQ.Services
                 letter.Body = AesEncrypt.Aes256Decrypt(letter.Body, _hashKey);
                 letter.LetterMetadata.Encrypted = false;
 
-                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForEncrypt))
-                { letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncrypt); }
+                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForEncrypted))
+                { letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncrypted); }
+
+                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForEncryption))
+                { letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncryption); }
 
                 if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForEncryptDate))
                 { letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncryptDate); }
@@ -324,7 +328,8 @@ namespace HouseofCat.RabbitMQ.Services
                 {
                     letter.Body = await Gzip.CompressAsync(letter.Body).ConfigureAwait(false);
                     letter.LetterMetadata.Compressed = true;
-                    letter.LetterMetadata.CustomFields[Constants.HeaderForCompress] = Constants.HeaderValueForGzipCompress;
+                    letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = true;
+                    letter.LetterMetadata.CustomFields[Constants.HeaderForCompression] = Constants.HeaderValueForGzipCompress;
                 }
                 catch { return false; }
             }
@@ -344,9 +349,15 @@ namespace HouseofCat.RabbitMQ.Services
                 {
                     letter.Body = await Gzip.DecompressAsync(letter.Body).ConfigureAwait(false);
                     letter.LetterMetadata.Compressed = false;
-                    if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForCompress))
+
+                    if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForCompressed))
                     {
-                        letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForCompress);
+                        letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForCompressed);
+                    }
+
+                    if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForCompression))
+                    {
+                        letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForCompression);
                     }
                 }
                 catch { return false; }

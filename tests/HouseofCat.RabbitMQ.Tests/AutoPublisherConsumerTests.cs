@@ -106,7 +106,7 @@ namespace HouseofCat.RabbitMQ.Tests
             var error = false;
 
             await consumer
-                .StartConsumerAsync(true, true)
+                .StartConsumerAsync()
                 .ConfigureAwait(false);
 
             var sw = Stopwatch.StartNew();

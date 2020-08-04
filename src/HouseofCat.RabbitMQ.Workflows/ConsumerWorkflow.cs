@@ -28,19 +28,21 @@ namespace HouseofCat.RabbitMQ.Workflows
         private SerializationProvider _serializationProvider;
 
         // Main Flow - PreProcessing
+        private ConsumerBlock<ReceivedData> _consumerBlock;
         private BufferBlock<ReceivedData> _inputBuffer;
         private TransformBlock<ReceivedData, TState> _deserializeBlock;
         private TransformBlock<TState, TState> _decryptBlock;
         private TransformBlock<TState, TState> _decompressBlock;
-        private BufferBlock<TState> _readyForProcessingBuffer;
 
         // Main Flow - Supplied Steps
+        private BufferBlock<TState> _readyBuffer;
         private List<TransformBlock<TState, TState>> _suppliedTransforms = new List<TransformBlock<TState, TState>>();
 
         // Main Flow - PostProcessing
         private BufferBlock<TState> _postProcessingBuffer;
-        private TransformBlock<TState, TState> _postCompressBlock;
-        private TransformBlock<TState, TState> _postEncryptBlock;
+        private TransformBlock<TState, TState> _createLetterBlock;
+        private TransformBlock<TState, TState> _compressBlock;
+        private TransformBlock<TState, TState> _encryptBlock;
         private ActionBlock<TState> _finalization;
 
         // Park Flow
@@ -51,7 +53,7 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         // Error/Fault Flow
         private BufferBlock<TState> _errorBuffer;
-        private ActionBlock<TState> _errorFinalization;
+        private ActionBlock<TState> _errorAction;
 
         public ConsumerWorkflow(
             IRabbitService rabbitService,
@@ -105,7 +107,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             _errorBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = bufferCapacity > 0 ? bufferCapacity : 1000 });
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferCapacity);
-            _errorFinalization = BlockBuilders.GetWrappedActionBlock(action, executionOptions);
+            _errorAction = BlockBuilders.GetWrappedActionBlock(action, executionOptions);
             return this;
         }
 
@@ -121,7 +123,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _decryptBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_encryptionProvider.Decrypt, executionOptions);
+            _decryptBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_encryptionProvider.Decrypt, executionOptions, false);
             return this;
         }
 
@@ -129,13 +131,13 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _decompressBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_compressProvider.DecompressAsync, executionOptions);
+            _decompressBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_compressProvider.DecompressAsync, executionOptions, false);
             return this;
         }
 
         public ConsumerWorkflow<TState> WithReadyToProcessBuffer(int bufferCapacity)
         {
-            _readyForProcessingBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = bufferCapacity > 0 ? bufferCapacity : 1000 });
+            _readyBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = bufferCapacity > 0 ? bufferCapacity : 1000 });
             return this;
         }
 
@@ -161,19 +163,27 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithPostProcessingCompression(int? maxDoPOverride = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> WithCreateLetter(int? maxDoPOverride = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _postCompressBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_compressProvider.CompressAsync, executionOptions);
+            // TODO:
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithPostProcessingEncryption(int? maxDoPOverride = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> WithCompression(int? maxDoPOverride = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        {
+            Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
+            var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
+            _compressBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_compressProvider.CompressAsync, executionOptions, true);
+            return this;
+        }
+
+        public ConsumerWorkflow<TState> WithEncryption(int? maxDoPOverride = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _postEncryptBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_encryptionProvider.Encrypt, executionOptions);
+            _encryptBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_encryptionProvider.Encrypt, executionOptions, true);
             return this;
         }
 
@@ -185,52 +195,24 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        // Visualization
-        // 1.) InputBuffer -> Deserialize
-        //
-        // 2.) Deserialize -> ErrorBuffer
-        // 2.) Deserialize -> Decrypt
-        // 2.) Deserialize -> Decrypt -> Decompress
-        // 2.) Deserialize -> Decompress
-        // 2.) Deserialize -> ReadyForProcessing
-        //
-        // 3.) Decrypt -> ErrorBuffer
-        // 3.) Decrypt -> Decompress (if not null) -> ReadForProcessing
-        // 3.) Decrypt -> ReadyForProcessing
-        //
-        // 4.) Decompress -> Error
-        // 4.) Decompress -> ReadyForProcessing
-        //
-        // Supplied Steps
-        // 5.) ReadyForProcessing -> Step[0]
-        // 5.) Step[0] -> Error
-        // 5.) For n : Step(n) link to Step(n-1)
-        // 5.) For n : Step(n) link to ErrorBuffer
-        // 5.) Step(n) => PostProcessingBuffer
-        //
-        // 6.) PostProcessing -> PostCompression -> PostEncryption -> Finalization
-        // 6.) PostProcessing -> PostEncryption -> Finalization
-        // 6.) PostProcessing -> PostCompression -> Finalization
-        // 6.) PostProcessing -> Finalization
-        //
-        // 7.) PostCompression -> ErrorBuffer
-        // 7.) PostEncryption -> ErrorBuffer
-        // 7.) ErrorBuffer -> ErrorFinilization
         public ConsumerWorkflow<TState> BuildLinkages(DataflowLinkOptions overrideOptions = null)
         {
             Guard.AgainstNull(_deserializeBlock, nameof(_deserializeBlock));
             Guard.AgainstNull(_errorBuffer, nameof(_errorBuffer));
             Guard.AgainstNull(_finalization, nameof(_finalization));
 
+            _consumerBlock = new ConsumerBlock<ReceivedData>(_consumer);
+
             if (_inputBuffer == null)
             { _inputBuffer = new BufferBlock<ReceivedData>(); }
 
-            if (_readyForProcessingBuffer == null)
-            { _readyForProcessingBuffer = new BufferBlock<TState>(); }
+            if (_readyBuffer == null)
+            { _readyBuffer = new BufferBlock<TState>(); }
 
             if (_postProcessingBuffer == null)
             { _postProcessingBuffer = new BufferBlock<TState>(); }
 
+            _consumerBlock.LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
             _inputBuffer.LinkTo(_deserializeBlock, overrideOptions ?? _linkStepOptions);
             _deserializeBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x == null);
 
@@ -254,13 +236,13 @@ namespace HouseofCat.RabbitMQ.Workflows
 
             // If Decrypt and Decompress are both null, attach CreateStateBlock to ReadyForProcessingBuffer.
             if (_decryptBlock == null && _decompressBlock == null)
-            { _deserializeBlock.LinkTo(_readyForProcessingBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
+            { _deserializeBlock.LinkTo(_readyBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
             // If Decrypt exists and Decompress does not, attach DecryptBlock to ReadyForProcessingBuffer.
             else if (_decryptBlock != null && _decompressBlock == null)
-            { _decryptBlock.LinkTo(_readyForProcessingBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
+            { _decryptBlock.LinkTo(_readyBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
             // If Decrypt & Decompress (or just Decompress) exists, attach Decompress to ReadyForProcessingBuffer.
             else
-            { _decompressBlock.LinkTo(_readyForProcessingBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
+            { _decompressBlock.LinkTo(_readyBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
 
             // Link all user steps.
             if (_suppliedTransforms?.Count > 0)
@@ -269,7 +251,7 @@ namespace HouseofCat.RabbitMQ.Workflows
                 {
                     if (i == 0)
                     {
-                        _readyForProcessingBuffer.LinkTo(_suppliedTransforms[i], overrideOptions ?? _linkStepOptions);
+                        _readyBuffer.LinkTo(_suppliedTransforms[i], overrideOptions ?? _linkStepOptions);
                         _suppliedTransforms[i].LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted); // Step Fault Linkage
 
                     }
@@ -280,37 +262,38 @@ namespace HouseofCat.RabbitMQ.Workflows
                     }
                 }
 
+                // Link the last user step to PostProcessingBuffer.
                 _suppliedTransforms[^1].LinkTo(_postProcessingBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
             }
 
-            if (_postCompressBlock != null)
+            if (_compressBlock != null)
             {
-                _postProcessingBuffer.LinkTo(_postCompressBlock, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
-                _postCompressBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted); // Compress Fault Linkage
+                _postProcessingBuffer.LinkTo(_compressBlock, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
+                _compressBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted); // Compress Fault Linkage
 
-                if (_postEncryptBlock != null)
+                if (_encryptBlock != null)
                 {
-                    _postCompressBlock.LinkTo(_postEncryptBlock, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
-                    _postEncryptBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted); // Encrypt Fault Linkage
+                    _compressBlock.LinkTo(_encryptBlock, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
+                    _encryptBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted); // Encrypt Fault Linkage
                 }
             }
-            else if (_postEncryptBlock != null)
+            else if (_encryptBlock != null)
             {
-                _postProcessingBuffer.LinkTo(_postEncryptBlock, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
-                _postEncryptBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted); // Encrypt Fault Linkage
+                _postProcessingBuffer.LinkTo(_encryptBlock, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
+                _encryptBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x.IsFaulted); // Encrypt Fault Linkage
             }
 
             // If Compress and Encrypt are both null, attach to PostProcessingBuffer.
-            if (_postCompressBlock == null && _postEncryptBlock == null)
+            if (_compressBlock == null && _encryptBlock == null)
             { _postProcessingBuffer.LinkTo(_finalization, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
             // If Compress exists and Encrypt does not, attach Finalization to Compression.
-            else if (_postCompressBlock != null && _postEncryptBlock == null)
-            { _postCompressBlock.LinkTo(_finalization, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
+            else if (_compressBlock != null && _encryptBlock == null)
+            { _compressBlock.LinkTo(_finalization, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
             // If Compress & Encrypt (or just Encrypt) exists, attach Finalization to EncryptBlock.
             else
-            { _postEncryptBlock.LinkTo(_finalization, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
+            { _encryptBlock.LinkTo(_finalization, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted); }
 
-            _errorBuffer.LinkTo(_errorFinalization, overrideOptions ?? _linkStepOptions);
+            _errorBuffer.LinkTo(_errorAction, overrideOptions ?? _linkStepOptions);
 
             return this;
         }

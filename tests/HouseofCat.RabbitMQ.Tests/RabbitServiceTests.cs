@@ -27,7 +27,7 @@ namespace HouseofCat.RabbitMQ.Tests
 
             var consumer = rabbitService.GetConsumer("TestMessageConsumer");
             await consumer
-                .StartConsumerAsync(false, true)
+                .StartConsumerAsync()
                 .ConfigureAwait(false);
         }
     }

@@ -16,10 +16,12 @@ namespace HouseofCat.RabbitMQ
         public const string HeaderValueForMessage = "MESSAGE";
         public const string HeaderValueForLetter = "LETTER";
         public const string HeaderValueForUnknown = "UNKNOWN";
-        public const string HeaderForEncrypt = "X-CR-ENCRYPTED";
+        public const string HeaderForEncrypted = "X-CR-ENCRYPTED";
+        public const string HeaderForEncryption = "X-CR-ENCRYPTION";
         public const string HeaderValueForArgonAesEncrypt = "ARGON2ID-AES256";
         public const string HeaderForEncryptDate = "X-CR-ENCRYPTDATE";
-        public const string HeaderForCompress = "X-CR-COMPRESSED";
+        public const string HeaderForCompressed = "X-CR-COMPRESSED";
+        public const string HeaderForCompression = "X-CR-COMPRESSION";
         public const string HeaderValueForGzipCompress = "GZIP";
 
         public const string RangeErrorMessage = "Value for {0} must be between {1} and {2}.";

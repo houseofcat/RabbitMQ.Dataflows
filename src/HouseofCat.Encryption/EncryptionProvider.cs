@@ -16,6 +16,7 @@ namespace HouseofCat.Encryption
             Guard.AgainstNull(passphrase, nameof(passphrase));
             Guard.AgainstNull(salt, nameof(salt));
 
+            _method = method;
             _options = options;
             _argonHashKey = ArgonHash.GetHashKeyAsync(passphrase, salt, Encryption.Constants.Aes256.KeySize, _options?.HashOptions).GetAwaiter().GetResult();
         }
