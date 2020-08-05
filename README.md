@@ -10,6 +10,8 @@ You will find library usage examples in the `examples` folder. Also can find gen
 
 ![master-build](https://github.com/houseofcat/HouseofCat.Library/workflows/master-build/badge.svg)  
 
+[![Gitter](https://badges.gitter.im/Library/community.svg)](https://gitter.im/Library/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 ## Description
 Check out each project for a `README.md` to see if there are additional instructions/examples.
 
