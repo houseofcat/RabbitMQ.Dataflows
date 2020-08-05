@@ -16,6 +16,7 @@ namespace HouseofCat.RabbitMQ.Workflows
     public class ConsumerWorkflow<TState> where TState : class, IWorkState, new()
     {
         public string ConsumerWorkflowName { get; }
+        public int ConsumerCount;
         public ConsumerOptions ConsumerOptions { get; }
 
         private readonly ILogger<ConsumerWorkflow<TState>> _logger;
@@ -28,7 +29,8 @@ namespace HouseofCat.RabbitMQ.Workflows
         private SerializationProvider _serializationProvider;
 
         // Main Flow - PreProcessing
-        private ConsumerBlock<ReceivedData> _consumerBlock; // Doubles as a BufferBlock.
+        private List<ConsumerBlock<ReceivedData>> _consumerBlocks; // Doubles as a BufferBlock.
+        private BufferBlock<ReceivedData> _inputBuffer;
         private TransformBlock<ReceivedData, TState> _deserializeBlock;
         private TransformBlock<TState, TState> _decryptBlock;
         private TransformBlock<TState, TState> _decompressBlock;
@@ -59,11 +61,15 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         public ConsumerWorkflow(
             IRabbitService rabbitService,
-            string consumerName)
+            string consumerWorkflowName,
+            string consumerName,
+            int consumerCount)
         {
             Guard.AgainstNull(rabbitService, nameof(rabbitService));
             Guard.AgainstNullOrEmpty(consumerName, nameof(consumerName));
 
+            ConsumerWorkflowName = consumerWorkflowName;
+            ConsumerCount = consumerCount;
             _logger = LogHelper.LoggerFactory.CreateLogger<ConsumerWorkflow<TState>>();
             _rabbitService = rabbitService;
             _consumer = rabbitService.GetConsumer(consumerName);
@@ -197,7 +203,8 @@ namespace HouseofCat.RabbitMQ.Workflows
             Guard.AgainstNull(_errorBuffer, nameof(_errorBuffer));
             Guard.AgainstNull(_finalization, nameof(_finalization));
 
-            _consumerBlock = new ConsumerBlock<ReceivedData>(_consumer);
+            if (_inputBuffer == null)
+            { _inputBuffer = new BufferBlock<ReceivedData>(); }
 
             if (_readyBuffer == null)
             { _readyBuffer = new BufferBlock<TState>(); }
@@ -205,7 +212,13 @@ namespace HouseofCat.RabbitMQ.Workflows
             if (_postProcessingBuffer == null)
             { _postProcessingBuffer = new BufferBlock<TState>(); }
 
-            _consumerBlock.LinkTo(_deserializeBlock, overrideOptions ?? _linkStepOptions);
+            for (int i = 0; i < ConsumerCount; i++)
+            {
+                _consumerBlocks.Add(new ConsumerBlock<ReceivedData>(_consumer));
+                _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
+            }
+
+            _inputBuffer.LinkTo(_deserializeBlock, overrideOptions ?? _linkStepOptions);
             _deserializeBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x == null);
             SetCurrentSourceBlock(_deserializeBlock);
 
@@ -297,7 +310,10 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         public async Task StartAsync()
         {
-            await _consumerBlock.StartConsumerAsync();
+            foreach (var consumerBlock in _consumerBlocks)
+            {
+                await consumerBlock.StartConsumerAsync();
+            }
         }
     }
 }
