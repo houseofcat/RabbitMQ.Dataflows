@@ -114,24 +114,14 @@ namespace HouseofCat.RabbitMQ.Services
             Options.ApplyGlobalConsumerOptions();
             BuildConsumers();
 
-            StartAsync(processReceiptAsync).GetAwaiter().GetResult();
-        }
+            Publisher
+                .StartAutoPublishAsync(processReceiptAsync)
+                .GetAwaiter()
+                .GetResult();
 
-        private async Task StartAsync(Func<PublishReceipt, ValueTask> processReceiptAsync)
-        {
-            await _serviceLock.WaitAsync().ConfigureAwait(false);
-
-            try
-            {
-                await Publisher
-                    .StartAutoPublishAsync(processReceiptAsync)
-                    .ConfigureAwait(false);
-
-                await BuildConsumerTopology()
-                    .ConfigureAwait(false);
-            }
-            finally
-            { _serviceLock.Release(); }
+            BuildConsumerTopology()
+                .GetAwaiter()
+                .GetResult();
         }
 
         public async ValueTask ShutdownAsync(bool immediately)

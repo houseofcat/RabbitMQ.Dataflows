@@ -80,8 +80,8 @@ namespace HouseofCat.RabbitMQ
             }
 
             _channelPool = channelPool;
-            _receiptBuffer = Channel.CreateUnbounded<PublishReceipt>(
-                new UnboundedChannelOptions
+            _receiptBuffer = Channel.CreateBounded<PublishReceipt>(
+                new BoundedChannelOptions(1024)
                 {
                     SingleWriter = false,
                     SingleReader = true,
@@ -105,14 +105,14 @@ namespace HouseofCat.RabbitMQ
                         FullMode = Options.PublisherOptions.BehaviorWhenFull
                     });
 
-                _publishingTask = Task.Run(() => ProcessDeliveriesAsync(_letterQueue.Reader).ConfigureAwait(false));
+                _publishingTask = ProcessLettersAsync(_letterQueue.Reader);
 
                 if (processReceiptAsync == null)
                 { processReceiptAsync = ProcessReceiptAsync; }
 
                 if (_processReceiptsAsync == null)
                 {
-                    _processReceiptsAsync = Task.Run(() => ProcessReceiptsAsync(processReceiptAsync));
+                    _processReceiptsAsync = ProcessReceiptsAsync(processReceiptAsync);
                 }
 
                 AutoPublisherStarted = true;
@@ -178,8 +178,9 @@ namespace HouseofCat.RabbitMQ
                 .ConfigureAwait(false);
         }
 
-        private async Task ProcessDeliveriesAsync(ChannelReader<Letter> channelReader)
+        private async Task ProcessLettersAsync(ChannelReader<Letter> channelReader)
         {
+            await Task.Yield();
             while (await channelReader.WaitToReadAsync().ConfigureAwait(false))
             {
                 while (channelReader.TryRead(out var letter))
@@ -214,6 +215,7 @@ namespace HouseofCat.RabbitMQ
 
         private async Task ProcessReceiptsAsync(Func<PublishReceipt, ValueTask> processReceiptAsync)
         {
+            await Task.Yield();
             await foreach (var receipt in _receiptBuffer.Reader.ReadAllAsync())
             {
                 await processReceiptAsync(receipt).ConfigureAwait(false);
