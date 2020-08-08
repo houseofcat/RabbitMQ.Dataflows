@@ -53,6 +53,7 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         // Used for Simplifying Dependency
         private ISourceBlock<TState> _currentBlock;
+        public Task Completion { get; private set; }
 
         public ConsumerWorkflow(
             IRabbitService rabbitService,
@@ -246,7 +247,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             LinkPostProcessing(overrideOptions);
 
             _errorBuffer.LinkTo(_errorAction, overrideOptions ?? _linkStepOptions);
-            _currentBlock = null;
+            Completion = _currentBlock.Completion;
         }
 
         private void LinkPreProcessing(DataflowLinkOptions overrideOptions = null)
@@ -348,13 +349,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             foreach (var consumerBlock in _consumerBlocks)
             {
                 await consumerBlock.StopConsumingAsync();
-                consumerBlock.Complete();
-            }
-
-            // Wati for all the work to be processed on each consumer.
-            foreach (var consumerBlock in _consumerBlocks)
-            {
-                await consumerBlock.Completion;
+                consumerBlock.Complete(); // Set complete at the top level.
             }
         }
     }
