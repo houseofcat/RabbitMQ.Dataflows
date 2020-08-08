@@ -99,6 +99,12 @@
       "GlobalSettings": "AggressiveSettings",
       "ConsumerName": "ConsumerFromConfig",
       "QueueName": "TestRabbitServiceQueue"
+    },
+    "TestConsumer": {
+      "Enabled": true,
+      "GlobalSettings": "AggressiveSettings",
+      "ConsumerName": "TestConsumer",
+      "QueueName": "TestRabbitServiceQueue"
     }
   }
 }

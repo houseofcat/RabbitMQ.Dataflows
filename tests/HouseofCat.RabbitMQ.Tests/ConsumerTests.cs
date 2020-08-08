@@ -21,7 +21,7 @@ namespace HouseofCat.RabbitMQ.Tests
         public ConsumerTests(ITestOutputHelper output)
         {
             this.output = output;
-            options = JsonFileReader.ReadFileAsync<Options>("TestConfig.json").GetAwaiter().GetResult();
+            options = JsonFileReader.ReadFileAsync<Options>("Config.json").GetAwaiter().GetResult();
 
             channelPool = new ChannelPool(options);
             topologer = new Topologer(options);
@@ -59,11 +59,22 @@ namespace HouseofCat.RabbitMQ.Tests
         [Fact]
         public async Task CreateConsumerStartAndStop()
         {
-            await topologer.CreateQueueAsync("TestConsumerQueue").ConfigureAwait(false);
             var con = new Consumer(channelPool, "TestMessageConsumer");
 
             await con.StartConsumerAsync().ConfigureAwait(false);
             await con.StopConsumerAsync().ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task CreateManyConsumersStartAndStop()
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                var con = new Consumer(channelPool, "TestConsumer");
+
+                await con.StartConsumerAsync().ConfigureAwait(false);
+                await con.StopConsumerAsync().ConfigureAwait(false);
+            }
         }
 
         [Fact]

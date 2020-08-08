@@ -88,25 +88,22 @@ namespace HouseofCat.RabbitMQ
                 if (!Started && ConsumerOptions.Enabled)
                 {
                     _shutdown = false;
-                    _dataBuffer = Channel.CreateBounded<ReceivedData>(
-                    new BoundedChannelOptions(ConsumerOptions.BatchSize.Value)
-                    {
-                        FullMode = ConsumerOptions.BehaviorWhenFull.Value
-                    });
-
-                    await _dataBuffer
-                        .Writer
-                        .WaitToWriteAsync()
-                        .ConfigureAwait(false);
 
                     await SetChannelHostAsync()
                         .ConfigureAwait(false);
 
+                    _dataBuffer = Channel.CreateBounded<ReceivedData>(
+                        new BoundedChannelOptions(ConsumerOptions.BatchSize.Value)
+                        {
+                            FullMode = ConsumerOptions.BehaviorWhenFull.Value
+                        });
+
+                    await Task.Yield();
                     bool success;
                     do
                     {
                         _logger.LogTrace(LogMessages.Consumers.StartingConsumerLoop, ConsumerOptions.ConsumerName);
-                        success = StartConsuming();
+                        success = await StartConsumingAsync();
                     }
                     while (!success);
 
@@ -152,7 +149,7 @@ namespace HouseofCat.RabbitMQ
             finally { _conLock.Release(); }
         }
 
-        private bool StartConsuming()
+        private async Task<bool> StartConsumingAsync()
         {
             if (_shutdown)
             { return false; }
@@ -169,41 +166,59 @@ namespace HouseofCat.RabbitMQ
                     _asyncConsumer.Shutdown -= ConsumerShutdownAsync;
                 }
 
-                _asyncConsumer = CreateAsyncConsumer();
-                if (_asyncConsumer == null) { return false; }
+                try
+                {
+                    _asyncConsumer = CreateAsyncConsumer();
+                    if (_asyncConsumer == null) { return false; }
 
-                _chanHost
-                    .GetChannel()
-                    .BasicConsume(
-                        ConsumerOptions.QueueName,
-                        ConsumerOptions.AutoAck ?? false,
-                        ConsumerOptions.ConsumerName,
-                        ConsumerOptions.NoLocal ?? false,
-                        ConsumerOptions.Exclusive ?? false,
-                        null,
-                        _asyncConsumer);
+                    _chanHost
+                        .GetChannel()
+                        .BasicConsume(
+                            ConsumerOptions.QueueName,
+                            ConsumerOptions.AutoAck ?? false,
+                            ConsumerOptions.ConsumerName,
+                            ConsumerOptions.NoLocal ?? false,
+                            ConsumerOptions.Exclusive ?? false,
+                            null,
+                            _asyncConsumer);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Exception creating internal RabbitMQ consumer.");
+                    await Task.Delay(1000);
+                    return false;
+                }
             }
             else
             {
-                if (_asyncConsumer != null)
+                if (_consumer != null)
                 {
                     _consumer.Received -= ReceiveHandler;
                     _consumer.Shutdown -= ConsumerShutdown;
                 }
 
-                _consumer = CreateConsumer();
-                if (_consumer == null) { return false; }
+                try
+                {
+                    _consumer = CreateConsumer();
+                    if (_consumer == null) { return false; }
 
-                _chanHost
-                    .GetChannel()
-                    .BasicConsume(
-                        ConsumerOptions.QueueName,
-                        ConsumerOptions.AutoAck ?? false,
-                        ConsumerOptions.ConsumerName,
-                        ConsumerOptions.NoLocal ?? false,
-                        ConsumerOptions.Exclusive ?? false,
-                        null,
-                        _consumer);
+                    _chanHost
+                        .GetChannel()
+                        .BasicConsume(
+                            ConsumerOptions.QueueName,
+                            ConsumerOptions.AutoAck ?? false,
+                            ConsumerOptions.ConsumerName,
+                            ConsumerOptions.NoLocal ?? false,
+                            ConsumerOptions.Exclusive ?? false,
+                            null,
+                            _consumer);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Exception creating internal RabbitMQ consumer.");
+                    await Task.Delay(1000);
+                    return false;
+                }
             }
 
             _logger.LogInformation(
@@ -348,7 +363,7 @@ namespace HouseofCat.RabbitMQ
                         ConsumerOptions.ConsumerName,
                         e.ReplyText);
 
-                    success = StartConsuming();
+                    success = await StartConsumingAsync();
                 }
                 while (!_shutdown && !success);
             }

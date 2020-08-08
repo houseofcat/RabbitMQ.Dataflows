@@ -21,17 +21,17 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         public static ConsumerWorkflow<WorkState> _workflow;
         public static Stopwatch Stopwatch;
         public static LogLevel LogLevel = LogLevel.Information;
-        public static int ConsumerCount = 2;
-        public static long GlobalCount = 100_000;
+        public static int ConsumerCount = 1;
+        public static long GlobalCount = 10_000;
         public static long CurrentCount;
-        public static bool EnsureOrdered = false; // use with simulate IO delay to determine if ensuring order is causing delays
+        public static bool EnsureOrdered = true; // use with simulate IO delay to determine if ensuring order is causing delays
         public static bool SimulateIODelay = false;
         public static int MinIODelay = 40;
         public static int MaxIODelay = 60;
         public static bool AwaitShutdown = true;
         public static bool LogOutcome = false;
         public static bool UseStreamPipeline = false;
-        public static int MaxDoP = 64;
+        public static int MaxDoP = 1;
         public static Random Rand = new Random();
 
         public static async Task Main()
@@ -43,7 +43,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
             await Console.Out.WriteLineAsync($"Publishing {GlobalCount} messages!").ConfigureAwait(false);
             await SetupAsync().ConfigureAwait(false);
 
-            await Console.Out.WriteLineAsync("Setting up workflow messages...").ConfigureAwait(false);
+            await Console.Out.WriteLineAsync("Setting up workflow...").ConfigureAwait(false);
 
             var jsonProvider = new Utf8JsonProvider(StandardResolver.Default);
             var encryptionProvider = new EncryptionProvider("passwordforencryption", "saltforencryption", EncryptionMethod.AES256_ARGON2ID);
@@ -62,7 +62,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
                 .WithErrorHandling(ErrorHandlingAsync, 1000)
                 .WithFinalization(FinalizationAsync);
 
-            await Console.Out.WriteLineAsync("Starting consumers...").ConfigureAwait(false);
+            await Console.Out.WriteLineAsync("Starting Workflow...").ConfigureAwait(false);
             Stopwatch = Stopwatch.StartNew();
             await _workflow
                 .StartAsync()
@@ -105,6 +105,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
                 .CreateQueueAsync("TestRabbitServiceQueue")
                 .ConfigureAwait(false);
 
+            await Task.Yield();
             for (var i = 0L; i < GlobalCount; i++)
             {
                 var letter = letterTemplate.Clone();

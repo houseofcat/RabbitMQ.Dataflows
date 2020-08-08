@@ -149,8 +149,8 @@ namespace HouseofCat.RabbitMQ.Pools
                 var success = false;
                 while (!success)
                 {
-                    await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
                     success = await chanHost.MakeChannelAsync().ConfigureAwait(false);
+                    await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
                 }
             }
 
@@ -212,14 +212,12 @@ namespace HouseofCat.RabbitMQ.Pools
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private async Task<IChannelHost> CreateChannelAsync(ulong channelId, bool ackable)
         {
-            IChannelHost chanHost;
+            IChannelHost chanHost = null;
             IConnectionHost connHost = null;
 
             while (true)
             {
                 _logger.LogTrace(LogMessages.ChannelPools.CreateChannel, channelId);
-
-                var sleep = false;
 
                 // Get ConnectionHost
                 try
@@ -227,40 +225,40 @@ namespace HouseofCat.RabbitMQ.Pools
                 catch
                 {
                     _logger.LogTrace(LogMessages.ChannelPools.CreateChannelFailedConnection, channelId);
-                    sleep = true;
+                    await ReturnConnectionWithOptionalSleep(connHost, channelId, Options.PoolOptions.SleepOnErrorInterval);
+                    continue;
                 }
 
                 // Create a Channel Host
-                if (!sleep)
+                try
                 {
-                    try
-                    {
-                        chanHost = new ChannelHost(channelId, connHost, ackable);
-                        await _connectionPool.ReturnConnectionAsync(connHost); // Return Connection (or lose them.)
-                        _flaggedChannels[chanHost.ChannelId] = false;
-                        _logger.LogDebug(LogMessages.ChannelPools.CreateChannelSuccess, channelId);
+                    chanHost = new ChannelHost(channelId, connHost, ackable);
+                    await ReturnConnectionWithOptionalSleep(connHost, channelId, 0);
+                    _flaggedChannels[chanHost.ChannelId] = false;
+                    _logger.LogDebug(LogMessages.ChannelPools.CreateChannelSuccess, channelId);
 
-                        return chanHost;
-                    }
-                    catch
-                    {
-                        _logger.LogTrace(LogMessages.ChannelPools.CreateChannelFailedConstruction, channelId);
-                        sleep = true;
-                    }
+                    return chanHost;
                 }
-
-                // Sleep on failure.
-                if (sleep)
+                catch
                 {
-                    if (connHost != null)
-                    { await _connectionPool.ReturnConnectionAsync(connHost); } // Return Connection (or lose them.)
-
-                    _logger.LogDebug(LogMessages.ChannelPools.CreateChannelSleep, channelId);
-
-                    await Task
-                        .Delay(Options.PoolOptions.SleepOnErrorInterval)
-                        .ConfigureAwait(false);
+                    _logger.LogTrace(LogMessages.ChannelPools.CreateChannelFailedConstruction, channelId);
+                    await ReturnConnectionWithOptionalSleep(connHost, channelId, Options.PoolOptions.SleepOnErrorInterval);
                 }
+            }
+        }
+
+        private async Task ReturnConnectionWithOptionalSleep(IConnectionHost connHost, ulong channelId, int sleep)
+        {
+            if (connHost != null)
+            { await _connectionPool.ReturnConnectionAsync(connHost); } // Return Connection (or lose them.)
+
+            if (sleep > 0)
+            {
+                _logger.LogDebug(LogMessages.ChannelPools.CreateChannelSleep, channelId);
+
+                await Task
+                    .Delay(sleep)
+                    .ConfigureAwait(false);
             }
         }
 

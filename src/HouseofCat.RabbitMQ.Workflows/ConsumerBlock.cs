@@ -66,16 +66,19 @@ namespace HouseofCat.RabbitMQ.Workflows
         public async Task StartConsumingAsync()
         {
             await _consumer.StartConsumerAsync();
-            await Task.Run(() => StreamToBufferAsync());
+            _cts = new CancellationTokenSource();
+            _bufferProcessor =StreamToBufferAsync(_cts.Token);
         }
 
         public async Task StopConsumingAsync()
         {
             await _consumer.StopConsumerAsync();
+            _cts.Cancel();
         }
 
-        // TODO: And TaskCompletionSource w/ Token
-        // TODO: Store runner in Task;
+        private CancellationTokenSource _cts;
+        private Task _bufferProcessor;
+
         private async Task StreamToBufferAsync(CancellationToken token = default)
         {
             try
@@ -87,12 +90,10 @@ namespace HouseofCat.RabbitMQ.Workflows
             }
             catch (OperationCanceledException)
             {
-                _logger.LogWarning("Consumer task was cancelled. Disregard if this was manually invoked.");
+                _logger.LogDebug("Consumer task was cancelled. Disregard if this was manually invoked.");
             }
             catch (Exception ex)
-            {
-                _logger.LogError(ex, "Reading consumer buffer through an exception.");
-            }
+            { _logger.LogError(ex, "Reading consumer buffer through an exception."); }
         }
     }
 }

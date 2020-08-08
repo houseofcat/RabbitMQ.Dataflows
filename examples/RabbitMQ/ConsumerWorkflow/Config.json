@@ -64,7 +64,7 @@
     },
     "LightSettings": {
       "ErrorSuffix": "Error",
-      "BatchSize": 8,
+      "BatchSize": 16,
       "BehaviorWhenFull": 0,
       "SleepOnIdleInterval": 100,
       "UseTransientChannels": true,
@@ -73,7 +73,7 @@
       "Exclusive": false,
       "GlobalConsumerPipelineOptions": {
         "WaitForCompletion": true,
-        "MaxDegreesOfParallelism": 4,
+        "MaxDegreesOfParallelism": 8,
         "EnsureOrdered": false
       }
     },
@@ -96,7 +96,7 @@
   "ConsumerOptions": {
     "ConsumerFromConfig": {
       "Enabled": true,
-      "GlobalSettings": "AggressiveSettings",
+      "GlobalSettings": "ModerateSettings",
       "ConsumerName": "ConsumerFromConfig",
       "QueueName": "TestRabbitServiceQueue"
     }

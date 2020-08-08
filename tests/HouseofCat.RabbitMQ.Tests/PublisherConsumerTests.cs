@@ -29,7 +29,7 @@ namespace HouseofCat.RabbitMQ.Tests
         }
 
         [Fact]
-        public async Task AutoPublishAndConsume()
+        public async Task PublishAndConsume()
         {
             await topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
             await publisher.StartAutoPublishAsync().ConfigureAwait(false);
