@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
     <AssemblyName>ConsumerWorkflow</AssemblyName>
-    <RootNamespace>Examples.RabbitMQ.ConsumerWorkflowConsumerWorkflow</RootNamespace>
+    <RootNamespace>Examples.RabbitMQ.ConsumerWorkflow</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

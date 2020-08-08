@@ -2,11 +2,12 @@
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace ChannelExample
+namespace Channels.Example
 {
     public static class Program
     {
-        public static Channel<int> GlobalChannel = Channel.CreateUnbounded<int>();
+        public static long GlobalCount = 1_000_000;
+        public static Channel<long> GlobalChannel = Channel.CreateBounded<long>(1000);
 
         public static async Task Main(string[] args)
         {
@@ -19,18 +20,26 @@ namespace ChannelExample
             await reader;
 
             await Console.Out.WriteLineAsync("We are finished!");
+
+            //GC.AddMemoryPressure(GlobalCount * 64);
+            //GC.Collect();
+            //GC.WaitForPendingFinalizers();
+            Console.ReadKey();
         }
 
         public static async Task WriteDataAsync()
         {
             //await Task.Yield(); // forces the calling thread to immediately 
-            var counter = 0;
+            var counter = 0L;
             while(await GlobalChannel.Writer.WaitToWriteAsync())
             {
                 await GlobalChannel.Writer.WriteAsync(counter++);
 
-                if (counter == 100)
-                { GlobalChannel.Writer.Complete(); }
+                if (counter == GlobalCount)
+                {
+                    GlobalChannel.Writer.Complete();
+                    break;
+                }
             }
         }
 
