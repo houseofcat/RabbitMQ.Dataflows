@@ -21,7 +21,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         public static ConsumerWorkflow<WorkState> _workflow;
         public static Stopwatch Stopwatch;
         public static LogLevel LogLevel = LogLevel.Information;
-        public static int ConsumerCount = 3;
+        public static int ConsumerCount = 2;
         public static long GlobalCount = 100_000;
         public static long CurrentCount;
         public static bool EnsureOrdered = false; // use with simulate IO delay to determine if ensuring order is causing delays

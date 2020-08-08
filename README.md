@@ -149,8 +149,8 @@ A library that extends HouseofCat.RabbitMQ functionality by providing simplified
 
 
 ## HouseofCat.RabbitMQ.Workflows
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Workflows/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Workflows/)  
 
 A library that extends HouseofCat.RabbitMQ functionality by providing robust Workflow support.  
 
@@ -181,6 +181,25 @@ A library that focuses on Reflection hackery.
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serilization.svg)](https://www.nuget.org/packages/HouseofCat.Serilization/)  
 
 A library that focuses on making it easier to deal with Serilization.  
+
+
+## HouseofCat.Serilization.Json.Newtonsoft
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serilization.Json.Newtonsoft.svg)](https://www.nuget.org/packages/HouseofCat.Serilization.Json.Newtonsoft/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serilization.Json.Newtonsoft.svg)](https://www.nuget.org/packages/HouseofCat.Serilization.Json.Newtonsoft/)  
+
+A library that focuses on making it easier to deal with Newtonsoft Json Serilization.  
+
+## HouseofCat.Serilization.Json.Utf8Json
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serilization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serilization.Json.Utf8Json/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serilization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serilization.Json.Utf8Json/)  
+
+A library that focuses on making it easier to deal with Utf8Json Json Serilization.  
+
+## HouseofCat.Serilization.MessagePack
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serilization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serilization.MessagePack/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serilization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serilization.MessagePack/)  
+
+A library that focuses on making it easier to deal with MessagePack Serilization.  
 
 
 ## HouseofCat.Sockets
