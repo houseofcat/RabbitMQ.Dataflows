@@ -180,26 +180,26 @@ A library that focuses on Reflection hackery.
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.svg)](https://www.nuget.org/packages/HouseofCat.Serialization/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.svg)](https://www.nuget.org/packages/HouseofCat.Serialization/)  
 
-A library that focuses on making it easier to deal with Serilization.  
+A library that focuses on making it easier to deal with Serialization.  
 
 
 ## HouseofCat.Serilization.Json.Newtonsoft
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.Json.Newtonsoft.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Newtonsoft/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.Json.Newtonsoft.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Newtonsoft/)  
 
-A library that focuses on making it easier to deal with Newtonsoft Json Serilization.  
+A library that focuses on making it easier to deal with Newtonsoft Json Serialization.  
 
 ## HouseofCat.Serilization.Json.Utf8Json
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Utf8Json/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Utf8Json/)  
 
-A library that focuses on making it easier to deal with Utf8Json Json Serilization.  
+A library that focuses on making it easier to deal with Utf8Json Json Serialization.  
 
 ## HouseofCat.Serilization.MessagePack
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.MessagePack/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.MessagePack/)  
 
-A library that focuses on making it easier to deal with MessagePack Serilization.  
+A library that focuses on making it easier to deal with MessagePack Serialization.  
 
 
 ## HouseofCat.Sockets
