@@ -137,6 +137,7 @@ namespace HouseofCat.RabbitMQ
                             .Completion
                             .ConfigureAwait(false);
 
+                        // Wait for Publishing To Finish.
                         while (!_publishingTask.IsCompleted)
                         {
                             await Task.Delay(10).ConfigureAwait(false);
@@ -225,10 +226,14 @@ namespace HouseofCat.RabbitMQ
         // Super simple version to bake in requeueing of all failed to publish messages.
         private async ValueTask ProcessReceiptAsync(PublishReceipt receipt)
         {
-            if (receipt.IsError && receipt.OriginalLetter != null)
+            if (receipt.IsError && receipt.OriginalLetter != null && AutoPublisherStarted)
             {
                 _logger.LogWarning($"Failed publish for letter ({receipt.OriginalLetter.LetterId}). Retrying with AutoPublishing...");
-                await QueueLetterAsync(receipt.OriginalLetter);
+
+                try
+                { await QueueLetterAsync(receipt.OriginalLetter); }
+                catch (Exception ex) /* No-op */
+                { _logger.LogDebug("Error ({0}) occurred on retry, most likely because retry during shutdown.", ex.Message); }
             }
             else if (receipt.IsError)
             {
