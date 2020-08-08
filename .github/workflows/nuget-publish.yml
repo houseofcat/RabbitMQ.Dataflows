@@ -37,11 +37,13 @@ jobs:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Compression
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Compression/HouseofCat.Compression.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Compression.Builtin
       uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Compression.Builtin/HouseofCat.Compression.Builtin.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
@@ -243,11 +245,9 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Workflows/HouseofCat.Workflows.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
     - name: Publish HouseofCat.Workflows.Pipelines
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Workflows.Pipelines/HouseofCat.Workflows.Pipelines.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          INCLUDE_SYMBOLS: true
