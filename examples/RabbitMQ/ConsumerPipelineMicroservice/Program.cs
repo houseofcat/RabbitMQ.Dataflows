@@ -136,28 +136,29 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
             pipeline.AddAsyncStep<WorkState, WorkState>(AckMessageAsync);
 
             pipeline
-                .Finalize(async (state) =>
-                {
-                    if (Program.LogOutcome)
+                .Finalize(
+                    async (state) =>
                     {
-                        if (state.AllStepsSuccess)
-                        { _logger.LogInformation($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - Id: {state.Message?.MessageId} - Finished route successfully."); }
-                        else
-                        { _logger.LogInformation($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - Id: {state.Message?.MessageId} - Finished route unsuccesfully."); }
-                    }
-
-                    // Lastly mark the excution pipeline finished for this message.
-                    state.ReceivedData?.Complete(); // This impacts wait to completion step in the Pipeline.
-
-                    if (Program.AwaitShutdown)
-                    {
-                        Interlocked.Increment(ref _currentMessageCount);
-                        if (_currentMessageCount == _targetCount - 1)
+                        if (Program.LogOutcome)
                         {
-                            await _consumerPipeline.StopAsync().ConfigureAwait(false);
+                            if (state.AllStepsSuccess)
+                            { _logger.LogInformation($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - Id: {state.Message?.MessageId} - Finished route successfully."); }
+                            else
+                            { _logger.LogInformation($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - Id: {state.Message?.MessageId} - Finished route unsuccesfully."); }
                         }
-                    }
-                });
+
+                        // Lastly mark the excution pipeline finished for this message.
+                        state.ReceivedData?.Complete(); // This impacts wait to completion step in the Pipeline.
+
+                        if (Program.AwaitShutdown)
+                        {
+                            Interlocked.Increment(ref _currentMessageCount);
+                            if (_currentMessageCount == _targetCount - 1)
+                            {
+                                await _consumerPipeline.StopAsync().ConfigureAwait(false);
+                            }
+                        }
+                    });
 
             return pipeline;
         }

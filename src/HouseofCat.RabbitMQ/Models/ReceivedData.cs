@@ -15,10 +15,18 @@ namespace HouseofCat.RabbitMQ
     {
         bool Ackable { get; }
         IModel Channel { get; set; }
+
         string ContentType { get; }
-        byte[] Data { get; }
+        bool Encrypted { get; }
+        string EncryptionType { get; }
+        DateTime EncryptedDateTime { get; }
+        bool Compressed { get; }
+        string CompressionType { get; }
+
+        byte[] Data { get; set; }
         ulong DeliveryTag { get; }
         Letter Letter { get; }
+
         IBasicProperties Properties { get; }
 
         bool AckMessage();
@@ -29,7 +37,6 @@ namespace HouseofCat.RabbitMQ
         Task<TResult> GetTypeFromJsonAsync<TResult>(bool decrypt = false, bool decompress = false, JsonSerializerOptions jsonSerializerOptions = null);
         Task<IEnumerable<TResult>> GetTypesFromJsonAsync<TResult>(bool decrypt = false, bool decompress = false, JsonSerializerOptions jsonSerializerOptions = null);
         bool NackMessage(bool requeue);
-        void ReadHeaders();
         bool RejectMessage(bool requeue);
     }
 
@@ -39,16 +46,20 @@ namespace HouseofCat.RabbitMQ
         public bool Ackable { get; }
         public IModel Channel { get; set; }
         public ulong DeliveryTag { get; }
-        public byte[] Data { get; private set; }
+        public byte[] Data { get; set; }
         public Letter Letter { get; private set; }
+
+        // Headers
         public string ContentType { get; private set; }
+        public bool Encrypted { get; private set; }
+        public string EncryptionType { get; private set; }
+        public DateTime EncryptedDateTime { get; private set; }
+        public bool Compressed { get; private set; }
+        public string CompressionType { get; private set; }
 
-        private TaskCompletionSource<bool> CompletionSource { get; } = new TaskCompletionSource<bool>();
-
+        private TaskCompletionSource<bool> _completionSource = new TaskCompletionSource<bool>();
+        private bool _disposedValue;
         private readonly ReadOnlyMemory<byte> _hashKey;
-        private bool _decrypted;
-        private bool _decompressed;
-        private bool disposedValue;
 
         public ReceivedData(
             IModel channel,
@@ -82,11 +93,26 @@ namespace HouseofCat.RabbitMQ
             ReadHeaders();
         }
 
-        public void ReadHeaders()
+        private void ReadHeaders()
         {
             if (Properties?.Headers != null && Properties.Headers.ContainsKey(Constants.HeaderForObjectType))
             {
                 ContentType = Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForObjectType]);
+
+                if (Properties.Headers.ContainsKey(Constants.HeaderForEncrypted))
+                { Encrypted = bool.Parse(Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForEncrypted])); }
+
+                if (Properties.Headers.ContainsKey(Constants.HeaderForEncryption))
+                { EncryptionType = Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForEncryption]); }
+
+                if (Properties.Headers.ContainsKey(Constants.HeaderForEncryptDate))
+                { EncryptedDateTime = DateTime.Parse(Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForEncryptDate])); }
+
+                if (Properties.Headers.ContainsKey(Constants.HeaderForCompressed))
+                { Compressed = bool.Parse(Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForCompressed])); }
+
+                if (Properties.Headers.ContainsKey(Constants.HeaderForCompression))
+                { CompressionType = Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForCompression]); }
             }
             else
             {
@@ -281,64 +307,64 @@ namespace HouseofCat.RabbitMQ
             if (Letter == null)
             { Letter = JsonSerializer.Deserialize<Letter>(Data); }
 
-            if (!_decrypted && Letter.LetterMetadata.Encrypted && _hashKey.Length > 0)
+            if (Encrypted && Letter.LetterMetadata.Encrypted && _hashKey.Length > 0)
             {
                 Letter.Body = AesEncrypt.Aes256Decrypt(Letter.Body, _hashKey);
                 Letter.LetterMetadata.Encrypted = false;
-                _decrypted = true;
+                Encrypted = false;
             }
 
-            if (!_decompressed && Letter.LetterMetadata.Compressed)
+            if (Compressed && Letter.LetterMetadata.Compressed)
             {
                 Letter.Body = await Gzip
                     .DecompressAsync(Letter.Body)
                     .ConfigureAwait(false);
 
                 Letter.LetterMetadata.Compressed = false;
-                _decompressed = true;
+                Compressed = false;
             }
         }
 
         public async Task DecomcryptDataAsync(bool decrypt = false, bool decompress = false)
         {
-            if (!_decrypted && decrypt && _hashKey.Length > 0)
+            if (Encrypted && decrypt && _hashKey.Length > 0)
             {
                 Data = AesEncrypt.Aes256Decrypt(Data, _hashKey);
-                _decrypted = true;
+                Encrypted = false;
             }
 
-            if (!_decompressed && decompress)
+            if (Compressed && decompress)
             {
                 Data = await Gzip
                     .DecompressAsync(Data)
                     .ConfigureAwait(false);
-                _decompressed = true;
+                Compressed = false;
             }
         }
 
         /// <summary>
         /// A way to indicate this message is fully finished with.
         /// </summary>
-        public void Complete() => CompletionSource.SetResult(true);
+        public void Complete() => _completionSource.SetResult(true);
 
         /// <summary>
         /// A way to await the message until it is marked complete.
         /// </summary>
-        public Task<bool> Completion() => CompletionSource.Task;
+        public Task<bool> Completion() => _completionSource.Task;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
-                    CompletionSource.Task.Dispose();
+                    _completionSource.Task.Dispose();
                 }
 
                 if (Channel != null) { Channel = null; }
                 if (Letter != null) { Letter = null; }
 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
 

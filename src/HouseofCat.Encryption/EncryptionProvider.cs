@@ -5,28 +5,30 @@ using static HouseofCat.Encryption.Enums;
 
 namespace HouseofCat.Encryption
 {
-    public class ArgonAesEncryptionProvider : IEncryptionProvider
+    public class EncryptionProvider : IEncryptionProvider
     {
-        private byte[] _argonHashKey;
+        private byte[] _hashKey;
         private EncryptionOptions _options;
+        private EncryptionMethod _method;
 
-        public ArgonAesEncryptionProvider(string passphrase, string salt, EncryptionOptions options = null)
+        public EncryptionProvider(string passphrase, string salt, EncryptionMethod method, EncryptionOptions options = null)
         {
             Guard.AgainstNull(passphrase, nameof(passphrase));
             Guard.AgainstNull(salt, nameof(salt));
 
+            _method = method;
             _options = options;
-            _argonHashKey = ArgonHash.GetHashKeyAsync(passphrase, salt, Encryption.Constants.Aes256.KeySize, _options?.HashOptions).GetAwaiter().GetResult();
+            _hashKey = ArgonHash.GetHashKeyAsync(passphrase, salt, Encryption.Constants.Aes256.KeySize, _options?.HashOptions).GetAwaiter().GetResult();
         }
 
-        public byte[] Decrypt(ReadOnlyMemory<byte> data, EncryptionMethod method)
+        public byte[] Decrypt(ReadOnlyMemory<byte> data)
         {
-            return EncryptionHelper.Encrypt(data, method, _argonHashKey, _options);
+            return EncryptionHelper.Encrypt(data, _method, _hashKey, _options);
         }
 
-        public byte[] Encrypt(ReadOnlyMemory<byte> data, EncryptionMethod method)
+        public byte[] Encrypt(ReadOnlyMemory<byte> data)
         {
-            return EncryptionHelper.Decrypt(data, method, _argonHashKey, _options);
+            return EncryptionHelper.Decrypt(data, _method, _hashKey, _options);
         }
     }
 }

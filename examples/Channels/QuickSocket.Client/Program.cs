@@ -21,7 +21,7 @@ namespace QuickSocket.Client
             XorShifter = new XorShift(true);
 
             // Create a fixed sized random payload.
-            RandomPayload = Encoding.UTF8.GetString(XorShifter.GetRandomBytes(10_000));
+            RandomPayload = Encoding.UTF8.GetString(XorShifter.GetRandomBytes(20));
 
             await SetupClientAsync()
                 .ConfigureAwait(false);
@@ -57,16 +57,15 @@ namespace QuickSocket.Client
             // Publish To Server
             _ = Task.Run(async () =>
             {
+                var counter = 0;
                 while (true)
                 {
-                    for (int i = 0; i < 5; i++)
-                    {
-                        await QuickJsonWriter
-                            .QueueForWritingAsync(new Message { MessageId = i, Data = RandomPayload })
-                            .ConfigureAwait(false);
-                    }
+                    await QuickJsonWriter
+                        .QueueForWritingAsync(new Message { MessageId = counter, Data = RandomPayload })
+                        .ConfigureAwait(false);
 
-                    await Task.Delay(1000).ConfigureAwait(false);
+                    await Task.Delay(500).ConfigureAwait(false);
+                    counter++;
                 }
             });
         }

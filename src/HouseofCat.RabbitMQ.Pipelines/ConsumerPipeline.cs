@@ -61,9 +61,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
                     _completionSource = new TaskCompletionSource<bool>();
 
                     await Consumer
-                        .StartConsumerAsync(
-                            ConsumerOptions.AutoAck.Value,
-                            ConsumerOptions.UseTransientChannels.Value)
+                        .StartConsumerAsync()
                         .ConfigureAwait(false);
 
                     if (Consumer.Started)

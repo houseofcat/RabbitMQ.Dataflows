@@ -159,11 +159,41 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Services.Twilio/HouseofCat.RabbitMQ.Services.Twilio.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.RabbitMQ.Worfklows
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Worfklows/HouseofCat.RabbitMQ.Worfklows.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Reflection
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Reflection/HouseofCat.Reflection.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Serialization
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Serialization/HouseofCat.Serialization.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Serialization.Json.Newtonsoft
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Serialization.Json.Newtonsoft/HouseofCat.Serialization.Json.Newtonsoft.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Serialization.Json.Utf8Json
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Serialization.Json.Utf8Json/HouseofCat.Serialization.Json.Utf8Json.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Serialization.MessagePack
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Serialization.MessagePack/HouseofCat.Serialization.MessagePack.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Sockets
       uses: brandedoutcast/publish-nuget@v2.5.2

@@ -53,7 +53,7 @@ namespace HouseofCat.RabbitMQ.Tests
         {
             await topologer.CreateQueueAsync("TestConsumerQueue").ConfigureAwait(false);
             var con = new Consumer(channelPool, "TestMessageConsumer");
-            await con.StartConsumerAsync(true, true).ConfigureAwait(false);
+            await con.StartConsumerAsync().ConfigureAwait(false);
         }
 
         [Fact]
@@ -62,7 +62,7 @@ namespace HouseofCat.RabbitMQ.Tests
             await topologer.CreateQueueAsync("TestConsumerQueue").ConfigureAwait(false);
             var con = new Consumer(channelPool, "TestMessageConsumer");
 
-            await con.StartConsumerAsync(true, true).ConfigureAwait(false);
+            await con.StartConsumerAsync().ConfigureAwait(false);
             await con.StopConsumerAsync().ConfigureAwait(false);
         }
 
@@ -73,7 +73,7 @@ namespace HouseofCat.RabbitMQ.Tests
 
             for (int i = 0; i < 100; i++)
             {
-                await consumer.StartConsumerAsync(true, true).ConfigureAwait(false);
+                await consumer.StartConsumerAsync().ConfigureAwait(false);
                 await consumer.StopConsumerAsync().ConfigureAwait(false);
             }
         }

@@ -27,7 +27,7 @@ namespace HouseofCat.RabbitMQ
         ChannelReader<TFromQueue> GetConsumerBuffer();
         ValueTask<TFromQueue> ReadAsync();
         Task<IEnumerable<TFromQueue>> ReadUntilEmptyAsync();
-        Task StartConsumerAsync(bool autoAck = false, bool useTransientChannel = true);
+        Task StartConsumerAsync();
         Task StopConsumerAsync(bool immediate = false);
         IAsyncEnumerable<TFromQueue> StreamOutUntilClosedAsync();
         IAsyncEnumerable<TFromQueue> StreamOutUntilEmptyAsync();
@@ -77,7 +77,7 @@ namespace HouseofCat.RabbitMQ
             ConsumerOptions = consumerOptions;
         }
 
-        public async Task StartConsumerAsync(bool autoAck = false, bool useTransientChannel = true)
+        public async Task StartConsumerAsync()
         {
             await _conLock
                 .WaitAsync()
@@ -209,6 +209,7 @@ namespace HouseofCat.RabbitMQ
             _logger.LogInformation(
                 LogMessages.Consumers.StartedConsumer,
                 ConsumerOptions.ConsumerName);
+
             return true;
         }
 

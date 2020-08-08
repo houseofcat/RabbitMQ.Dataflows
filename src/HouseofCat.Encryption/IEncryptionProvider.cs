@@ -6,7 +6,7 @@ namespace HouseofCat.Encryption
 {
     public interface IEncryptionProvider
     {
-        byte[] Decrypt(ReadOnlyMemory<byte> data, EncryptionMethod method);
-        byte[] Encrypt(ReadOnlyMemory<byte> data, EncryptionMethod method);
+        byte[] Decrypt(ReadOnlyMemory<byte> data);
+        byte[] Encrypt(ReadOnlyMemory<byte> data);
     }
 }
