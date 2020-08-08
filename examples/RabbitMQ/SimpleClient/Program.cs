@@ -50,7 +50,7 @@ namespace Examples.RabbitMQ.SimpleClient
             // Start Consumer
             var consumer = rabbitService.GetConsumer("ConsumerFromConfig");
             await consumer
-                .StartConsumerAsync(false, true)
+                .StartConsumerAsync()
                 .ConfigureAwait(false);
 
             // Get Message From Consumer
@@ -99,7 +99,7 @@ namespace Examples.RabbitMQ.SimpleClient
             // Start Consumer
             var consumer = rabbitService.GetConsumer("ConsumerFromConfig");
             await consumer
-                .StartConsumerAsync(false, true)
+                .StartConsumerAsync()
                 .ConfigureAwait(false);
 
             //_ = Task.Run(() => consumer.ExecutionEngineAsync(ConsumerWorkerAsync));
@@ -135,7 +135,7 @@ namespace Examples.RabbitMQ.SimpleClient
             // Start Consumer As An Execution Engine
             var consumer = rabbitService.GetConsumer("ConsumerFromConfig");
             await consumer
-                .StartConsumerAsync(false, true)
+                .StartConsumerAsync()
                 .ConfigureAwait(false);
 
             //_ = Task.Run(() => consumer.ParallelExecutionEngineAsync(ConsumerWorkerAsync, 7));
@@ -171,7 +171,7 @@ namespace Examples.RabbitMQ.SimpleClient
             // Start Consumer As An Execution Engine
             var consumer = rabbitService.GetConsumer("ConsumerFromConfig");
             await consumer
-                .StartConsumerAsync(false, true)
+                .StartConsumerAsync()
                 .ConfigureAwait(false);
 
             _ = Task.Run(() => consumer.DataflowExecutionEngineAsync(ConsumerWorkerAsync, 7));

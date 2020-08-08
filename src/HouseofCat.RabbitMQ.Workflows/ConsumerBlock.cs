@@ -1,5 +1,4 @@
 ﻿using HouseofCat.Logger;
-using HouseofCat.RabbitMQ;
 using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Logging;
 using System;
@@ -64,10 +63,15 @@ namespace HouseofCat.RabbitMQ.Workflows
             throw new NotImplementedException();
         }
 
-        public async Task StartConsumerAsync()
+        public async Task StartConsumingAsync()
         {
             await _consumer.StartConsumerAsync();
             await Task.Run(() => StreamToBufferAsync());
+        }
+
+        public async Task StopConsumingAsync()
+        {
+            await _consumer.StopConsumerAsync();
         }
 
         // TODO: And TaskCompletionSource w/ Token
@@ -76,18 +80,18 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             try
             {
-                await foreach(var message in _consumer.GetConsumerBuffer().ReadAllAsync(token).ConfigureAwait(false))
+                await foreach (var message in _consumer.GetConsumerBuffer().ReadAllAsync(token).ConfigureAwait(false))
                 {
                     await _bufferBlock.SendAsync(message);
                 }
             }
             catch (OperationCanceledException)
             {
-
+                _logger.LogWarning("Consumer task was cancelled. Disregard if this was manually invoked.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                _logger.LogError(ex, "Reading consumer buffer through an exception.");
             }
         }
     }

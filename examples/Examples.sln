@@ -58,6 +58,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickSocket.Client", "Chann
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickSocket.Server", "Channels\QuickSocket.Server\QuickSocket.Server.csproj", "{6B077376-985B-4AA9-A3E4-9D005FAC5E82}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerWorkflow", "RabbitMQ\ConsumerWorkflow\ConsumerWorkflow.csproj", "{71F4A3C4-7FD8-43B4-80B4-EB679E7D2F23}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -148,6 +150,10 @@ Global
 		{6B077376-985B-4AA9-A3E4-9D005FAC5E82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B077376-985B-4AA9-A3E4-9D005FAC5E82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B077376-985B-4AA9-A3E4-9D005FAC5E82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71F4A3C4-7FD8-43B4-80B4-EB679E7D2F23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71F4A3C4-7FD8-43B4-80B4-EB679E7D2F23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71F4A3C4-7FD8-43B4-80B4-EB679E7D2F23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71F4A3C4-7FD8-43B4-80B4-EB679E7D2F23}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -174,6 +180,7 @@ Global
 		{8D0C7165-87BC-42E1-B010-DEFFBE350059} = {2AB15392-A5ED-4F45-B319-A5D3F9CBD09A}
 		{7D4D2BA9-47B0-436B-A456-08D7A6D7E64B} = {83456CB6-1C5D-4C04-B2B9-44EA03C69D86}
 		{6B077376-985B-4AA9-A3E4-9D005FAC5E82} = {83456CB6-1C5D-4C04-B2B9-44EA03C69D86}
+		{71F4A3C4-7FD8-43B4-80B4-EB679E7D2F23} = {7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8DA80AD7-3877-43F5-B810-54A65AC0C8D2}

@@ -215,7 +215,7 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
             var errorCount = 0ul;
 
             await consumer
-                .StartConsumerAsync(false, true)
+                .StartConsumerAsync()
                 .ConfigureAwait(false);
 
             var sw = Stopwatch.StartNew();

@@ -1,11 +1,15 @@
 ﻿using HouseofCat.RabbitMQ.Pipelines;
+using HouseofCat.RabbitMQ.Services;
+using HouseofCat.Serialization;
 using System;
+using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using static HouseofCat.Compression.Enums;
 using static HouseofCat.Encryption.Enums;
+using static HouseofCat.Reflection.Generics;
 
 namespace HouseofCat.RabbitMQ.Workflows
 {
@@ -21,13 +25,25 @@ namespace HouseofCat.RabbitMQ.Workflows
             return new TransformBlock<TState, TState>(action, options);
         }
 
-        public static TransformBlock<ReceivedData, TState> GetStateTransformBlock<TState>(Func<ReceivedData, TState> action, ExecutionDataflowBlockOptions options) where TState : class, IWorkState, new()
+        public static TState BuildState<TState, TOut>(ReceivedData data, ISerializationProvider provider) where TState : class, IWorkState, new()
+        {
+            var state = New<TState>.Instance.Invoke();
+            state.ReceivedData = data;
+            state.Data = new Dictionary<string, object>
+            {
+                { "Item", provider.Deserialize<TOut>(data.Data) },
+            };
+
+            return state;
+        }
+
+        public static TransformBlock<ReceivedData, TState> GetBuildStateBlock<TState, TOut>(ISerializationProvider provider, ExecutionDataflowBlockOptions options) where TState : class, IWorkState, new()
         {
             return new TransformBlock<ReceivedData, TState>(
                 (data) =>
                 {
                     try
-                    { return action(data); }
+                    { return BuildState<TState, TOut>(data, provider); }
                     catch
                     { return null; }
                 }, options);
@@ -139,6 +155,26 @@ namespace HouseofCat.RabbitMQ.Workflows
                 }, options);
         }
 
+        public static TransformBlock<TState, TState> GetWrappedPublishTransformBlock<TState>(IRabbitService service, ExecutionDataflowBlockOptions options) where TState : class, IWorkState, new()
+        {
+            return new TransformBlock<TState, TState>(
+                async (state) =>
+                {
+                    try
+                    {
+                        await service.Publisher.PublishAsync(state.SendLetter, true, true);
+                        state.SendLetterSent = true;
+                        return state;
+                    }
+                    catch (Exception ex)
+                    {
+                        state.IsFaulted = true;
+                        state.EDI = ExceptionDispatchInfo.Capture(ex);
+                        return state;
+                    }
+                }, options);
+        }
+
         public static ActionBlock<TState> GetWrappedActionBlock<TState>(Action<TState> action, ExecutionDataflowBlockOptions options)
         {
             return new ActionBlock<TState>(
@@ -152,6 +188,18 @@ namespace HouseofCat.RabbitMQ.Workflows
         }
 
         public static ActionBlock<TState> GetWrappedActionBlock<TState>(Func<TState, TState> action, ExecutionDataflowBlockOptions options)
+        {
+            return new ActionBlock<TState>(
+                (state) =>
+                {
+                    try
+                    { action(state); }
+                    catch
+                    { }
+                }, options);
+        }
+
+        public static ActionBlock<TState> GetWrappedActionBlock<TState>(Func<TState, Task> action, ExecutionDataflowBlockOptions options)
         {
             return new ActionBlock<TState>(
                 (state) =>
