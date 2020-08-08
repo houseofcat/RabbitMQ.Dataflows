@@ -148,13 +148,6 @@ A library that focuses on cloning the official Pivotal/VMWare RabbitMQ DotNetCli
 A library that extends HouseofCat.RabbitMQ functionality by providing simplified TPL Dataflow usage called Pipelines.  
 
 
-## HouseofCat.RabbitMQ.Workflows
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Workflows/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Workflows/)  
-
-A library that extends HouseofCat.RabbitMQ functionality by providing robust Workflow support.  
-
-
 ## HouseofCat.RabbitMQ.Services
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
@@ -167,6 +160,13 @@ A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.Rabb
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Twilio/)  
 
 A library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio with the HouseofCat.RabbitMQ library.  
+
+
+## HouseofCat.RabbitMQ.Workflows
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Workflows/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Workflows/)  
+
+A library that extends HouseofCat.RabbitMQ functionality by providing robust Workflow support.  
 
 
 ## HouseofCat.Reflection

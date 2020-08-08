@@ -161,11 +161,11 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Services.Twilio/HouseofCat.RabbitMQ.Services.Twilio.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-    - name: Publish HouseofCat.RabbitMQ.Worfklows
+    - name: Publish HouseofCat.RabbitMQ.Workflows
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
-          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Worfklows/HouseofCat.RabbitMQ.Worfklows.csproj
+          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Workflows/HouseofCat.RabbitMQ.Workflows.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Reflection
       uses: brandedoutcast/publish-nuget@v2.5.2
