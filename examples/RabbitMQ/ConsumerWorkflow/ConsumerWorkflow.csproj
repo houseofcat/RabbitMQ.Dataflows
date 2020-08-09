@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\..\src\HouseofCat.Hashing\HouseofCat.Hashing.csproj" />
     <ProjectReference Include="..\..\..\src\HouseofCat.Hashing.Argon\HouseofCat.Hashing.Argon.csproj" />
     <ProjectReference Include="..\..\..\src\HouseofCat.Compression\HouseofCat.Compression.csproj" />
+    <ProjectReference Include="..\..\..\src\HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj" />
     <ProjectReference Include="..\..\..\src\HouseofCat.Serialization.Json.Utf8Json\HouseofCat.Serialization.Json.Utf8Json.csproj" />
     <ProjectReference Include="..\..\..\src\HouseofCat.RabbitMQ.Workflows\HouseofCat.RabbitMQ.Workflows.csproj" />
     <ProjectReference Include="..\..\..\src\HouseofCat.RabbitMQ.Pipelines\HouseofCat.RabbitMQ.Pipelines.csproj" />

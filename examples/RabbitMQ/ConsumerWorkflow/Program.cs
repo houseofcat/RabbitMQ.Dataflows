@@ -11,7 +11,6 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Utf8Json.Resolvers;
 
 namespace Examples.RabbitMQ.ConsumerWorkflow
 {
@@ -48,13 +47,6 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
             await SetupAsync().ConfigureAwait(false);
 
             await Console.Out.WriteLineAsync("Setting up Workflow...").ConfigureAwait(false);
-
-            _hashingProvider = new Argon2IDHasher();
-            var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
-
-            _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
-            _compressionProvider = new GzipProvider();
-            _serializationProvider = new Utf8JsonProvider(StandardResolver.Default);
 
             _workflow = new ConsumerWorkflow<WorkState>(_rabbitService, "MyConsumerWorkflow", "ConsumerFromConfig", consumerCount: ConsumerCount)
                 .WithSerilizationProvider(_serializationProvider)
@@ -101,8 +93,15 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         private static async Task SetupAsync()
         {
             var letterTemplate = new Letter("", "TestRabbitServiceQueue", null, new LetterMetadata());
-            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(Program.LogLevel));
+            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel));
             _logger = loggerFactory.CreateLogger<ConsumerWorkflow<WorkState>>();
+
+            _hashingProvider = new Argon2IDHasher();
+            var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
+
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
+            _compressionProvider = new LZ4PickleProvider();
+            _serializationProvider = new Utf8JsonProvider();
 
             _rabbitService = new RabbitService(
                 "Config.json",

@@ -28,7 +28,7 @@
     "BehaviorWhenFull": 0,
     "AutoPublisherSleepInterval": 0,
     "CreatePublishReceipts": true,
-    "Compress": false,
+    "Compress": true,
     "Encrypt": false
   },
   "GlobalConsumerOptions": {

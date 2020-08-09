@@ -86,7 +86,7 @@ namespace HouseofCat.RabbitMQ
             _logger = LogHelper.GetLogger<Publisher>();
             _serializationProvider = serializationProvider;
 
-            if (Options.PublisherOptions.Encrypt && encryptionProvider != null)
+            if (Options.PublisherOptions.Encrypt && encryptionProvider == null)
             {
                 _encrypt = false;
                 _logger.LogWarning("Encryption disabled, encryptionProvider provided was null.");
@@ -97,7 +97,7 @@ namespace HouseofCat.RabbitMQ
                 _encryptionProvider = encryptionProvider;
             }
 
-            if (Options.PublisherOptions.Compress && compressionProvider != null)
+            if (Options.PublisherOptions.Compress && compressionProvider == null)
             {
                 _compress = false;
                 _logger.LogWarning("Compression disabled, compressionProvider provided was null.");

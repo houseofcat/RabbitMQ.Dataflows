@@ -124,7 +124,7 @@ namespace HouseofCat.RabbitMQ.Services
                 healthCheckInterval: TimeSpan.FromSeconds(10),
                 pipelineName: "Text.Message.Pipline");
 
-            pipeline.AddAsyncStep<ReceivedData, TwilioWorkState>(DeserializeStepAsync);
+            pipeline.AddStep<ReceivedData, TwilioWorkState>(DeserializeStep);
             pipeline.AddAsyncStep<TwilioWorkState, TwilioWorkState>(ProcessMessageStepAsync);
             pipeline.AddStep<TwilioWorkState, TwilioWorkState>(AckMessage);
 
@@ -144,7 +144,7 @@ namespace HouseofCat.RabbitMQ.Services
             return pipeline;
         }
 
-        private async Task<TwilioWorkState> DeserializeStepAsync(IReceivedData receivedData)
+        private TwilioWorkState DeserializeStep(IReceivedData receivedData)
         {
             var state = new TwilioWorkState
             {

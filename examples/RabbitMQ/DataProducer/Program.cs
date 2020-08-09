@@ -35,7 +35,7 @@ namespace Examples.RabbitMQ.DataProducer
             await Console.Out.WriteLineAsync("Making messages!").ConfigureAwait(false);
             await MakeDataAsync().ConfigureAwait(false);
 
-            await Console.Out.WriteLineAsync("Finished publshing!").ConfigureAwait(false);
+            await Console.Out.WriteLineAsync("Finished queueing messages... wait here for queue to fill!").ConfigureAwait(false);
             Console.ReadKey(); // checking for memory leak after publishing (snapshots)
 
             await Console.Out.WriteLineAsync("Shutting down...").ConfigureAwait(false);
@@ -53,8 +53,8 @@ namespace Examples.RabbitMQ.DataProducer
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
             _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
-            _compressionProvider = new GzipProvider();
-            _serializationProvider = new Utf8JsonProvider(StandardResolver.Default);
+            _compressionProvider = new LZ4PickleProvider();
+            _serializationProvider = new Utf8JsonProvider();
 
             _rabbitService = new RabbitService(
                 "Config.json",
