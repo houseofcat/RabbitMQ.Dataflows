@@ -13,7 +13,7 @@ using Twilio.Rest.Api.V2010.Account;
 
 namespace HouseofCat.RabbitMQ.Services
 {
-    public class TestMessageService : BackgroundService
+    public class TextMessageService : BackgroundService
     {
         private readonly IConfiguration _config;
         private readonly string _consumerName;
@@ -21,7 +21,7 @@ namespace HouseofCat.RabbitMQ.Services
         private readonly string _account;
         private readonly string _token;
         private readonly IRabbitService _rabbitService;
-        private readonly ILogger<TestMessageService> _logger;
+        private readonly ILogger<TextMessageService> _logger;
         private readonly ISerializationProvider _serializationProvider;
         private readonly ConsumerOptions _options;
 
@@ -29,15 +29,21 @@ namespace HouseofCat.RabbitMQ.Services
         private string _errorQueue;
         private Task RunningTask;
 
-        public TestMessageService(
-            ILogger<TestMessageService> logger,
+        public TextMessageService(
             IConfiguration config,
             IRabbitService rabbitService,
-            ISerializationProvider serializationProvider)
+            ISerializationProvider serializationProvider,
+            ILogger<TextMessageService> logger = null)
         {
+            Guard.AgainstNull(config, nameof(config));
+            Guard.AgainstNull(rabbitService, nameof(rabbitService));
+            Guard.AgainstNull(rabbitService, nameof(rabbitService));
+            Guard.AgainstNull(serializationProvider, nameof(serializationProvider));
+
             _logger = logger;
             _config = config;
             _rabbitService = rabbitService;
+            _serializationProvider = serializationProvider;
 
             _consumerName = _config.GetSection("HouseofCat:NotificationService:ConsumerName").Get<string>();
             _options = _rabbitService.Options.GetConsumerOptions(_consumerName);
@@ -84,18 +90,18 @@ namespace HouseofCat.RabbitMQ.Services
                     if (response.Status == MessageResource.StatusEnum.Accepted)
                     { return true; }
                     else if (response.ErrorCode != 200 || response.ErrorCode != 201)
-                    { _logger.LogError("Twilio API Error: {0}", response.ErrorMessage); }
+                    { _logger?.LogError("Twilio API Error: {0}", response.ErrorMessage); }
                 }
                 else
                 {
-                    _logger.LogWarning("Details missing from text message. Skipped...");
+                    _logger?.LogWarning("Details missing from text message. Skipped...");
                     return true;
                 }
             }
             catch (Exception ex)
             {
                 var stacky = ex.PrettifyStackTraceWithParameters(message, to, from);
-                _logger.LogError("Exception! Error: {0}\r\nStacktrace: {1}", ex.Message, stacky.ToJsonString());
+                _logger?.LogError("Exception! Error: {0}\r\nStacktrace: {1}", ex.Message, stacky.ToJsonString());
             }
 
             return false;
@@ -106,7 +112,7 @@ namespace HouseofCat.RabbitMQ.Services
         {
             try
             {
-                _logger.LogInformation($"Starting {nameof(TestMessageService)}...");
+                _logger?.LogInformation($"Starting {nameof(TestMessageService)}...");
 
                 _consumerPipeline = _rabbitService.CreateConsumerPipeline<TwilioWorkState>(_consumerName, BuildPipeline);
                 _errorQueue = _options.ErrorQueueName;
@@ -133,9 +139,9 @@ namespace HouseofCat.RabbitMQ.Services
                     (state) =>
                     {
                         if (state.AllStepsSuccess)
-                        { _logger.LogDebug($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - Finished route successfully."); }
+                        { _logger?.LogDebug($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - Finished route successfully."); }
                         else
-                        { _logger.LogWarning($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - Finished route unsuccesfully."); }
+                        { _logger?.LogWarning($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - Finished route unsuccesfully."); }
 
                         // Lastly mark the excution pipeline finished for this message.
                         state.ReceivedData?.Complete(); // This impacts wait to completion step in the WorkFlowEngine.
@@ -192,10 +198,10 @@ namespace HouseofCat.RabbitMQ.Services
                     .ConfigureAwait(false);
 
                 if (failed)
-                { _logger.LogError($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - This failed to deserialize and publish to ErrorQueue!"); }
+                { _logger?.LogError($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - This failed to deserialize and publish to ErrorQueue!"); }
                 else
                 {
-                    _logger.LogError($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - This failed to deserialize. Published to ErrorQueue ({_errorQueue})!");
+                    _logger?.LogError($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - This failed to deserialize. Published to ErrorQueue ({_errorQueue})!");
 
                     // So we ack the message
                     state.ProcessStepSuccess = true;
