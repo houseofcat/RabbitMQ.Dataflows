@@ -22,7 +22,7 @@ namespace HouseofCat.IntegrationTests
         }
 
         [Fact]
-        public async Task Aes256_GCM_SymmetricKey()
+        public async Task Aes256_GCM_BouncyCastle()
         {
             var hashKey = await _hashingProvider
                 .GetHashKeyAsync(Passphrase, Salt, 32)
@@ -44,7 +44,7 @@ namespace HouseofCat.IntegrationTests
         }
 
         [Fact]
-        public async Task Aes192_GCM_SymmetricKey()
+        public async Task Aes192_GCM_BouncyCastle()
         {
             var hashKey = await _hashingProvider
                 .GetHashKeyAsync(Passphrase, Salt, 24)
@@ -66,7 +66,7 @@ namespace HouseofCat.IntegrationTests
         }
 
         [Fact]
-        public async Task Aes128_GCM_SymmetricKey()
+        public async Task Aes128_GCM_BouncyCastle()
         {
             var hashKey = await _hashingProvider
                 .GetHashKeyAsync(Passphrase, Salt, 16)
