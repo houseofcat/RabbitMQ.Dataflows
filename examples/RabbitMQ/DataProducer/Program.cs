@@ -6,9 +6,7 @@ using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Text.Json;
 using System.Threading.Tasks;
-using Utf8Json.Resolvers;
 
 namespace Examples.RabbitMQ.DataProducer
 {
@@ -76,7 +74,7 @@ namespace Examples.RabbitMQ.DataProducer
             for (var i = 0L; i < GlobalCount; i++)
             {
                 var letter = letterTemplate.Clone();
-                letter.Body = JsonSerializer.SerializeToUtf8Bytes(new Message { StringMessage = $"Sensitive ReceivedLetter {i}", MessageId = i });
+                letter.Body = _serializationProvider.Serialize(new Message { StringMessage = $"Sensitive ReceivedLetter {i}", MessageId = i });
                 letter.LetterId = (ulong)i;
                 await _rabbitService
                     .Publisher

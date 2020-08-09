@@ -33,6 +33,8 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         public static int MaxDoP = 64;
         public static Random Rand = new Random();
 
+        private static ILogger<ConsumerWorkflow<WorkState>> _logger;
+        private static IRabbitService _rabbitService;
         private static ISerializationProvider _serializationProvider;
         private static IHashingProvider _hashingProvider;
         private static ICompressionProvider _compressionProvider;
@@ -86,9 +88,6 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
             await Console.Out.WriteLineAsync("\r\nAll finished cleanup! Press any key to exit...").ConfigureAwait(false);
             Console.ReadKey(); // checking for memory leak (snapshots)
         }
-
-        private static ILogger<ConsumerWorkflow<WorkState>> _logger;
-        private static IRabbitService _rabbitService;
 
         private static async Task SetupAsync()
         {

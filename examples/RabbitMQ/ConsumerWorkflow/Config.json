@@ -29,7 +29,7 @@
     "AutoPublisherSleepInterval": 0,
     "CreatePublishReceipts": true,
     "Compress": true,
-    "Encrypt": false
+    "Encrypt": true
   },
   "GlobalConsumerOptions": {
     "AggressiveSettings": {

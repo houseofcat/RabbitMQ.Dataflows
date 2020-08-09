@@ -13,6 +13,8 @@ namespace HouseofCat.Hashing
         private readonly int _memorySize;
         private readonly int _iterations;
 
+        public string Type { get; } = "ARGON2ID";
+
         public Argon2IDHasher(ArgonHashOptions options = null)
         {
             _options = options;

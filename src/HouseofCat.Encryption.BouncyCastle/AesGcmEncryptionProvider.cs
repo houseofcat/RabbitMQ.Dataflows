@@ -17,7 +17,9 @@ namespace HouseofCat.Encryption
         private int _macBitSize;
         private int _nonceSize;
 
-        public AesGcmEncryptionProvider(byte[] key, AesEncryptionOptions options = null)
+        public string Type { get; private set; }
+
+        public AesGcmEncryptionProvider(byte[] key, string hashType, AesEncryptionOptions options = null)
         {
             if (!Constants.Aes.ValidKeySizes.Contains(key.Length)) throw new ArgumentException("Keysize is an invalid length.");
 
@@ -25,6 +27,15 @@ namespace HouseofCat.Encryption
             _keyParameter = new KeyParameter(key);
             _macBitSize = _options?.MacBitSize ?? Constants.Aes.MacBitSize;
             _nonceSize = _options?.NonceSize ?? Constants.Aes.NonceSize;
+
+            switch (key.Length)
+            {
+                case 16: Type = "AES128"; break;
+                case 24: Type = "AES192"; break;
+                case 32: Type = "AES256"; break;
+            }
+
+            if (!string.IsNullOrWhiteSpace(hashType)) { Type = $"{hashType}-{Type}"; }
         }
 
         public byte[] Encrypt(ReadOnlyMemory<byte> data)
