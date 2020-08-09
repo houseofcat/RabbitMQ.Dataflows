@@ -49,7 +49,7 @@ namespace HouseofCat.RabbitMQ.Tests
             var state = new WorkState();
             try
             {
-                var decodedLetter = data.GetTypeFromJsonAsync<Letter>();
+                //var decodedLetter = data.GetTypeFromJsonAsync<Letter>();
             }
             catch
             { state.DeserializeStepSuccess = false; }

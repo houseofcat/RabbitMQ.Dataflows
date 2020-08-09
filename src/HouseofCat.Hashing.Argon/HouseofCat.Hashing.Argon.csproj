@@ -10,6 +10,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Hashing\HouseofCat.Hashing.csproj" />
+    <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
   </ItemGroup>
 
 </Project>

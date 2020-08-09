@@ -151,16 +151,17 @@ namespace HouseofCat.RabbitMQ.Services
 
             try
             {
-                state.TextMessage = state.ReceivedData.ContentType switch
-                {
-                    Constants.HeaderValueForLetter => await receivedData
-                        .GetTypeFromJsonAsync<TextMessage>()
-                        .ConfigureAwait(false),
+                //TODO: FIX TWILIO
+                //state.TextMessage = state.ReceivedData.ContentType switch
+                //{
+                //    Constants.HeaderValueForLetter => await receivedData
+                //        .GetTypeFromJsonAsync<TextMessage>()
+                //        .ConfigureAwait(false),
 
-                    _ => await receivedData
-                        .GetTypeFromJsonAsync<TextMessage>(decrypt: false, decompress: false)
-                        .ConfigureAwait(false),
-                };
+                //    _ => await receivedData
+                //        .GetTypeFromJsonAsync<TextMessage>(decrypt: false, decompress: false)
+                //        .ConfigureAwait(false),
+                //};
 
                 if (state.ReceivedData.Data.Length > 0 && (state.TextMessage != null || state.ReceivedData.Letter != null))
                 { state.DeserializeStepSuccess = true; }

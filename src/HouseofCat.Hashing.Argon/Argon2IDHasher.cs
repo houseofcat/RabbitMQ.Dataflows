@@ -1,4 +1,5 @@
-﻿using Konscious.Security.Cryptography;
+﻿using HouseofCat.Utilities.Errors;
+using Konscious.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,20 +30,9 @@ namespace HouseofCat.Hashing
         /// <param name="size"></param>
         public async Task<byte[]> GetHashKeyAsync(string passphrase, string salt, int size)
         {
-            using var argon2 = GetArgon2id(Encoding.UTF8.GetBytes(passphrase), Encoding.UTF8.GetBytes(salt));
+            Guard.AgainstNull(passphrase, nameof(passphrase));
 
-            return await argon2.GetBytesAsync(size).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Create a Hash byte array using Argon2id.
-        /// </summary>
-        /// <param name="passphrase"></param>
-        /// <param name="salt"></param>
-        /// <param name="size"></param>
-        public async Task<byte[]> GetHashKeyAsync(string passphrase, byte[] salt, int size)
-        {
-            using var argon2 = GetArgon2id(Encoding.UTF8.GetBytes(passphrase), salt);
+            using var argon2 = GetArgon2id(Encoding.UTF8.GetBytes(passphrase), Encoding.UTF8.GetBytes(salt ?? string.Empty));
 
             return await argon2.GetBytesAsync(size).ConfigureAwait(false);
         }
@@ -55,6 +45,7 @@ namespace HouseofCat.Hashing
         /// <param name="size"></param>
         public async Task<byte[]> GetHashKeyAsync(byte[] passphrase, byte[] salt, int size)
         {
+            Guard.AgainstNullOrEmpty(passphrase, nameof(passphrase));
             using var argon2 = GetArgon2id(passphrase, salt);
 
             return await argon2.GetBytesAsync(size).ConfigureAwait(false);

@@ -233,7 +233,7 @@ namespace HouseofCat.RabbitMQ.Workflows
 
             for (int i = 0; i < ConsumerCount; i++)
             {
-                var consumer = new Consumer(_rabbitService.ChannelPool, ConsumerName, null);
+                var consumer = new Consumer(_rabbitService.ChannelPool, ConsumerName);
                 _consumerBlocks.Add(new ConsumerBlock<ReceivedData>(consumer));
                 _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
             }

@@ -12,7 +12,6 @@ namespace HouseofCat.Encryption
     {
         private readonly Random _random = new Random();
         private readonly AesEncryptionOptions _options;
-        private readonly byte[] _key;
 
         private KeyParameter _keyParameter;
         private int _macBitSize;
@@ -20,11 +19,10 @@ namespace HouseofCat.Encryption
 
         public AesSymmetricEncryptionProvider(byte[] key, AesEncryptionOptions options = null)
         {
-            if (!Constants.Aes.ValidKeySizes.Contains(_key.Length)) throw new ArgumentException("Keysize is an invalid length.");
+            if (!Constants.Aes.ValidKeySizes.Contains(key.Length)) throw new ArgumentException("Keysize is an invalid length.");
 
             _options = options;
-            _key = key;
-            _keyParameter = new KeyParameter(_key);
+            _keyParameter = new KeyParameter(key);
             _macBitSize = _options?.MacBitSize ?? Constants.Aes.MacBitSize;
             _nonceSize = _options?.NonceSize ?? Constants.Aes.NonceSize;
         }
@@ -34,9 +32,10 @@ namespace HouseofCat.Encryption
             var nonce = new byte[_nonceSize];
             _random.NextBytes(nonce);
 
-            var cipher = GetGcmBlockCipher(nonce);
+            var cipher = GetGcmBlockCipher(true, nonce);
 
-            var cipherText = new byte[cipher.GetOutputSize(data.Length)];
+            var cipherLength = cipher.GetOutputSize(data.Length);
+            var cipherText = new byte[cipherLength];
             cipher.DoFinal(cipherText, cipher.ProcessBytes(data.ToArray(), 0, data.Length, cipherText, 0));
 
             using var cs = new MemoryStream();
@@ -55,7 +54,7 @@ namespace HouseofCat.Encryption
             using var cipherReader = new BinaryReader(cipherStream);
 
             var nonce = cipherReader.ReadBytes(_nonceSize);
-            var cipher = GetGcmBlockCipher(nonce);
+            var cipher = GetGcmBlockCipher(false, nonce);
 
             var cipherText = cipherReader.ReadBytes(encryptedData.Length - nonce.Length);
             var plainText = new byte[cipher.GetOutputSize(cipherText.Length)];
@@ -68,12 +67,12 @@ namespace HouseofCat.Encryption
             return plainText;
         }
 
-        private GcmBlockCipher GetGcmBlockCipher(byte[] nonce)
+        private GcmBlockCipher GetGcmBlockCipher(bool forEncryption, byte[] nonce)
         {
             var cipher = new GcmBlockCipher(new AesEngine());
             var parameters = new AeadParameters(_keyParameter, _macBitSize, nonce);
 
-            cipher.Init(false, parameters);
+            cipher.Init(forEncryption, parameters);
 
             return cipher;
         }
