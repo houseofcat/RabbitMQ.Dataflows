@@ -41,12 +41,6 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Compression/HouseofCat.Compression.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-    - name: Publish HouseofCat.Compression.Builtin
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          PROJECT_FILE_PATH: src/HouseofCat.Compression.Builtin/HouseofCat.Compression.Builtin.csproj
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Compression.LZ4
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -83,6 +77,12 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Encryption/HouseofCat.Encryption.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Encryption.BouncyCastle
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Encryption.BouncyCastle/HouseofCat.Encryption.BouncyCastle.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Extensions
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -118,6 +118,18 @@ jobs:
       continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Gremlins.SqlServer/HouseofCat.Gremlins.SqlServer.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Hashing
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Hashing/HouseofCat.Hashing.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Hashing.Argon
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Hashing.Argon/HouseofCat.Hashing.Argon.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Logger
       uses: brandedoutcast/publish-nuget@v2.5.2
