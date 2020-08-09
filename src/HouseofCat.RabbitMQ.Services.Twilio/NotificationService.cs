@@ -1,11 +1,11 @@
 using HouseofCat.RabbitMQ.Pipelines;
+using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Workflows.Pipelines;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Twilio;
@@ -22,6 +22,7 @@ namespace HouseofCat.RabbitMQ.Services
         private readonly string _token;
         private readonly IRabbitService _rabbitService;
         private readonly ILogger<TestMessageService> _logger;
+        private readonly ISerializationProvider _serializationProvider;
         private readonly ConsumerOptions _options;
 
         private IConsumerPipeline<TwilioWorkState> _consumerPipeline;
@@ -31,7 +32,8 @@ namespace HouseofCat.RabbitMQ.Services
         public TestMessageService(
             ILogger<TestMessageService> logger,
             IConfiguration config,
-            IRabbitService rabbitService)
+            IRabbitService rabbitService,
+            ISerializationProvider serializationProvider)
         {
             _logger = logger;
             _config = config;
@@ -151,17 +153,15 @@ namespace HouseofCat.RabbitMQ.Services
 
             try
             {
-                //TODO: FIX TWILIO
-                //state.TextMessage = state.ReceivedData.ContentType switch
-                //{
-                //    Constants.HeaderValueForLetter => await receivedData
-                //        .GetTypeFromJsonAsync<TextMessage>()
-                //        .ConfigureAwait(false),
+                state.TextMessage = state.ReceivedData.ContentType switch
+                {
+                    Constants.HeaderValueForLetter =>
+                        _serializationProvider
+                        .Deserialize<TextMessage>(state.ReceivedData.Letter.Body),
 
-                //    _ => await receivedData
-                //        .GetTypeFromJsonAsync<TextMessage>(decrypt: false, decompress: false)
-                //        .ConfigureAwait(false),
-                //};
+                    _ => _serializationProvider
+                        .Deserialize<TextMessage>(state.ReceivedData.Data)
+                };
 
                 if (state.ReceivedData.Data.Length > 0 && (state.TextMessage != null || state.ReceivedData.Letter != null))
                 { state.DeserializeStepSuccess = true; }

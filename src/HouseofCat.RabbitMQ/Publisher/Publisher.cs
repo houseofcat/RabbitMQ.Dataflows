@@ -64,8 +64,8 @@ namespace HouseofCat.RabbitMQ
         public Publisher(
             Options options,
             ISerializationProvider serializationProvider,
-            IEncryptionProvider encryptionProvider,
-            ICompressionProvider compressionProvider)
+            IEncryptionProvider encryptionProvider = null,
+            ICompressionProvider compressionProvider = null)
             : this(
                   new ChannelPool(options),
                   serializationProvider,
@@ -76,8 +76,8 @@ namespace HouseofCat.RabbitMQ
         public Publisher(
             IChannelPool channelPool,
             ISerializationProvider serializationProvider,
-            IEncryptionProvider encryptionProvider,
-            ICompressionProvider compressionProvider)
+            IEncryptionProvider encryptionProvider = null,
+            ICompressionProvider compressionProvider = null)
         {
             Guard.AgainstNull(channelPool, nameof(channelPool));
             Guard.AgainstNull(serializationProvider, nameof(serializationProvider));

@@ -4,6 +4,7 @@ using HouseofCat.Logger;
 using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
+using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.File;
 using HouseofCat.Workflows.Pipelines;
 using Microsoft.Extensions.Logging;
@@ -68,8 +69,8 @@ namespace HouseofCat.RabbitMQ.Services
         public RabbitService(
             string fileNamePath,
             ISerializationProvider serializationProvider,
-            IEncryptionProvider encryptionProvider,
-            ICompressionProvider compressionProvider,
+            IEncryptionProvider encryptionProvider = null,
+            ICompressionProvider compressionProvider = null,
             ILoggerFactory loggerFactory = null, Func<PublishReceipt, ValueTask> processReceiptAsync = null)
             : this(
                   JsonFileReader
@@ -86,19 +87,21 @@ namespace HouseofCat.RabbitMQ.Services
         public RabbitService(
             Options options,
             ISerializationProvider serializationProvider,
-            IEncryptionProvider encryptionProvider,
-            ICompressionProvider compressionProvider,
+            IEncryptionProvider encryptionProvider = null,
+            ICompressionProvider compressionProvider = null,
             ILoggerFactory loggerFactory = null,
             Func<PublishReceipt, ValueTask> processReceiptAsync = null)
         {
+            Guard.AgainstNull(options, nameof(options));
+            Guard.AgainstNull(serializationProvider, nameof(serializationProvider));
             LogHelper.LoggerFactory = loggerFactory;
 
             Options = options;
             ChannelPool = new ChannelPool(Options);
 
-            SerializationProvider = SerializationProvider;
-            EncryptionProvider = EncryptionProvider;
-            CompressionProvider = CompressionProvider;
+            SerializationProvider = serializationProvider;
+            EncryptionProvider = encryptionProvider;
+            CompressionProvider = compressionProvider;
 
             Publisher = new Publisher(ChannelPool, SerializationProvider, EncryptionProvider, CompressionProvider);
             Topologer = new Topologer(ChannelPool);
