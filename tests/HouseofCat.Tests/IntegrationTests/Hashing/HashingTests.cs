@@ -4,16 +4,16 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace HouseofCat.RabbitMQ.Tests
+namespace HouseofCat.IntegrationTests
 {
-    public class HashTests
+    public class HashingTests
     {
         private readonly ITestOutputHelper _output;
         private readonly IHashingProvider _provider;
         private const string _passphrase = "SuperNintendoHadTheBestZelda";
         private const string _salt = "SegaGenesisIsTheBestConsole";
 
-        public HashTests(ITestOutputHelper output)
+        public HashingTests(ITestOutputHelper output)
         {
             _output = output;
             _provider = new Argon2IDHasher();

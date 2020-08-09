@@ -1,12 +1,7 @@
-using HouseofCat.Compression.Builtin;
-using HouseofCat.Encryption;
-using HouseofCat.Utilities;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ

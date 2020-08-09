@@ -1,13 +1,11 @@
-using HouseofCat.Compression.Builtin;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace HouseofCat.RabbitMQ.Tests
+namespace HouseofCat.IntegrationTests
 {
     public class EncryptionTests
     {
@@ -15,6 +13,7 @@ namespace HouseofCat.RabbitMQ.Tests
         private readonly IHashingProvider _hashingProvider;
         private const string Passphrase = "SuperNintendoHadTheBestZelda";
         private const string Salt = "SegaGenesisIsTheBestConsole";
+        private static byte[] _data = new byte[] { 0xFF, 0x00, 0xAA, 0xFF, 0x00, 0x00, 0xFF, 0xAA, 0x00, 0xFF, 0x00, 0xFF };
 
         public EncryptionTests(ITestOutputHelper output)
         {
@@ -23,10 +22,8 @@ namespace HouseofCat.RabbitMQ.Tests
         }
 
         [Fact]
-        public async Task Aes256_SymmetricKey()
+        public async Task Aes256_GCM_SymmetricKey()
         {
-            var data = new byte[] { 0xFF, 0x00, 0xAA, 0xFF, 0x00, 0x00, 0xFF, 0xAA, 0x00, 0xFF, 0x00, 0xFF };
-
             var hashKey = await _hashingProvider
                 .GetHashKeyAsync(Passphrase, Salt, 32)
                 .ConfigureAwait(false);
@@ -34,23 +31,21 @@ namespace HouseofCat.RabbitMQ.Tests
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesSymmetricEncryptionProvider(hashKey);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
 
-            var encryptedData = encryptionProvider.Encrypt(data);
+            var encryptedData = encryptionProvider.Encrypt(_data);
             _output.WriteLine($"Encrypted: {Encoding.UTF8.GetString(encryptedData)}");
 
             var decryptedData = encryptionProvider.Decrypt(encryptedData);
-            _output.WriteLine($"Data: {Encoding.UTF8.GetString(data)}");
+            _output.WriteLine($"Data: {Encoding.UTF8.GetString(_data)}");
             _output.WriteLine($"Decrypted: {Encoding.UTF8.GetString(decryptedData)}");
 
-            Assert.Equal(data, decryptedData);
+            Assert.Equal(_data, decryptedData);
         }
 
         [Fact]
-        public async Task Aes192_SymmetricKey()
+        public async Task Aes192_GCM_SymmetricKey()
         {
-            var data = new byte[] { 0xFF, 0x00, 0xAA, 0xFF, 0x00, 0x00, 0xFF, 0xAA, 0x00, 0xFF, 0x00, 0xFF };
-
             var hashKey = await _hashingProvider
                 .GetHashKeyAsync(Passphrase, Salt, 24)
                 .ConfigureAwait(false);
@@ -58,23 +53,21 @@ namespace HouseofCat.RabbitMQ.Tests
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesSymmetricEncryptionProvider(hashKey);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
 
-            var encryptedData = encryptionProvider.Encrypt(data);
+            var encryptedData = encryptionProvider.Encrypt(_data);
             _output.WriteLine($"Encrypted: {Encoding.UTF8.GetString(encryptedData)}");
 
             var decryptedData = encryptionProvider.Decrypt(encryptedData);
-            _output.WriteLine($"Data: {Encoding.UTF8.GetString(data)}");
+            _output.WriteLine($"Data: {Encoding.UTF8.GetString(_data)}");
             _output.WriteLine($"Decrypted: {Encoding.UTF8.GetString(decryptedData)}");
 
-            Assert.Equal(data, decryptedData);
+            Assert.Equal(_data, decryptedData);
         }
 
         [Fact]
-        public async Task Aes128_SymmetricKey()
+        public async Task Aes128_GCM_SymmetricKey()
         {
-            var data = new byte[] { 0xFF, 0x00, 0xAA, 0xFF, 0x00, 0x00, 0xFF, 0xAA, 0x00, 0xFF, 0x00, 0xFF };
-
             var hashKey = await _hashingProvider
                 .GetHashKeyAsync(Passphrase, Salt, 16)
                 .ConfigureAwait(false);
@@ -82,16 +75,16 @@ namespace HouseofCat.RabbitMQ.Tests
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesSymmetricEncryptionProvider(hashKey);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
 
-            var encryptedData = encryptionProvider.Encrypt(data);
+            var encryptedData = encryptionProvider.Encrypt(_data);
             _output.WriteLine($"Encrypted: {Encoding.UTF8.GetString(encryptedData)}");
 
             var decryptedData = encryptionProvider.Decrypt(encryptedData);
-            _output.WriteLine($"Data: {Encoding.UTF8.GetString(data)}");
+            _output.WriteLine($"Data: {Encoding.UTF8.GetString(_data)}");
             _output.WriteLine($"Decrypted: {Encoding.UTF8.GetString(decryptedData)}");
 
-            Assert.Equal(data, decryptedData);
+            Assert.Equal(_data, decryptedData);
         }
     }
 }

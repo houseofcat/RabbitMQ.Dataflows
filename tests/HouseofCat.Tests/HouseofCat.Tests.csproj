@@ -25,19 +25,22 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.Encryption.BouncyCastle\HouseofCat.Encryption.BouncyCastle.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ.Pipelines\HouseofCat.RabbitMQ.Pipelines.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ.Services\HouseofCat.RabbitMQ.Services.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Config.json">
+    <None Update="IntegrationTests\RabbitMQ\Config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="TestPartialTopologyConfig.json">
+    <None Update="IntegrationTests\RabbitMQ\TestPartialTopologyConfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="TestTopologyConfig.json">
+    <None Update="IntegrationTests\RabbitMQ\TestTopologyConfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

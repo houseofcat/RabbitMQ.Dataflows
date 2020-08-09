@@ -6,7 +6,7 @@
 //using Xunit;
 //using Xunit.Abstractions;
 
-//namespace HouseofCat.RabbitMQ.Tests
+//namespace HouseofCat.IntegrationTests.RabbitMQ
 //{
 //    public class PublisherConsumerTests
 //    {

@@ -7,7 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
-    <ProjectReference Include="..\HouseofCat.Encryption.AES\HouseofCat.Encryption.Aes.csproj" />
+    <ProjectReference Include="..\HouseofCat.Encryption.BouncyCastle\HouseofCat.Encryption.BouncyCastle.csproj" />
     <ProjectReference Include="..\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
     <ProjectReference Include="..\HouseofCat.Hashing.Argon\HouseofCat.Hashing.Argon.csproj" />
     <ProjectReference Include="..\HouseofCat.Hashing\HouseofCat.Hashing.csproj" />

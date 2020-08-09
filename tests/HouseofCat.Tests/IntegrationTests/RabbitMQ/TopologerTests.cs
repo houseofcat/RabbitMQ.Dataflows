@@ -5,7 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace HouseofCat.RabbitMQ.Tests
+namespace HouseofCat.IntegrationTests.RabbitMQ
 {
     public class TopologerTests
     {

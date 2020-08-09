@@ -1,9 +1,9 @@
 using HouseofCat.Utilities.Random;
 using Xunit;
 
-namespace HouseofCat.RabbitMQ.Tests
+namespace HouseofCat.IntegrationTests
 {
-    public class UtilsTests
+    public class UtilitiesTests
     {
         [Fact]
         public void CreateRandomBytes()

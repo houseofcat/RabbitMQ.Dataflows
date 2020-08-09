@@ -8,7 +8,7 @@ using System.Runtime.Intrinsics.X86;
 
 namespace HouseofCat.Encryption
 {
-    public class AesSymmetricEncryptionProvider : IEncryptionProvider
+    public class AesGcmEncryptionProvider : IEncryptionProvider
     {
         private readonly Random _random = new Random();
         private readonly AesEncryptionOptions _options;
@@ -17,7 +17,7 @@ namespace HouseofCat.Encryption
         private int _macBitSize;
         private int _nonceSize;
 
-        public AesSymmetricEncryptionProvider(byte[] key, AesEncryptionOptions options = null)
+        public AesGcmEncryptionProvider(byte[] key, AesEncryptionOptions options = null)
         {
             if (!Constants.Aes.ValidKeySizes.Contains(key.Length)) throw new ArgumentException("Keysize is an invalid length.");
 
