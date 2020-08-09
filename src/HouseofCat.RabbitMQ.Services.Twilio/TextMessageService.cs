@@ -112,7 +112,7 @@ namespace HouseofCat.RabbitMQ.Services
         {
             try
             {
-                _logger?.LogInformation($"Starting {nameof(TestMessageService)}...");
+                _logger?.LogInformation($"Starting {nameof(TextMessageService)}...");
 
                 _consumerPipeline = _rabbitService.CreateConsumerPipeline<TwilioWorkState>(_consumerName, BuildPipeline);
                 _errorQueue = _options.ErrorQueueName;
