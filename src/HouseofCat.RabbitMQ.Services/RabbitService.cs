@@ -1,6 +1,6 @@
 using HouseofCat.Compression.Builtin;
 using HouseofCat.Encryption;
-using HouseofCat.Encryption.Hash;
+using HouseofCat.Hashing;
 using HouseofCat.Logger;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.RabbitMQ.Pipelines;
@@ -15,6 +15,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using HouseofCat.Compression;
 
 namespace HouseofCat.RabbitMQ.Services
 {
@@ -54,7 +55,6 @@ namespace HouseofCat.RabbitMQ.Services
 
     public class RabbitService : IRabbitService, IDisposable
     {
-        private byte[] _hashKey { get; }
         private readonly SemaphoreSlim _serviceLock = new SemaphoreSlim(1, 1);
         private bool _disposedValue;
 
@@ -62,6 +62,8 @@ namespace HouseofCat.RabbitMQ.Services
         public IChannelPool ChannelPool { get; }
         public IPublisher Publisher { get; }
         public ITopologer Topologer { get; }
+        public IEncryptionProvider EncryptionProvider { get; }
+        public ICompressionProvider CompressionProvider { get; }
 
         public ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<ReceivedData>>();
         private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerOptions { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
@@ -74,14 +76,14 @@ namespace HouseofCat.RabbitMQ.Services
         /// <param name="salt"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="processReceiptAsync"></param>
-        public RabbitService(string fileNamePath, string passphrase, string salt, ILoggerFactory loggerFactory = null, Func<PublishReceipt, ValueTask> processReceiptAsync = null)
+        public RabbitService(string fileNamePath, IEncryptionProvider encryptionProvider, ICompressionProvider compressionProvider, ILoggerFactory loggerFactory = null, Func<PublishReceipt, ValueTask> processReceiptAsync = null)
             : this(
                   JsonFileReader
                     .ReadFileAsync<Options>(fileNamePath)
                     .GetAwaiter()
                     .GetResult(),
-                  passphrase,
-                  salt,
+                  encryptionProvider,
+                  compressionProvider,
                   loggerFactory,
                   processReceiptAsync)
         { }
@@ -94,21 +96,17 @@ namespace HouseofCat.RabbitMQ.Services
         /// <param name="salt"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="processReceiptAsync"></param>
-        public RabbitService(Options options, string passphrase, string salt, ILoggerFactory loggerFactory = null, Func<PublishReceipt, ValueTask> processReceiptAsync = null)
+        public RabbitService(Options options, IEncryptionProvider encryptionProvider, ICompressionProvider compressionProvider, ILoggerFactory loggerFactory = null, Func<PublishReceipt, ValueTask> processReceiptAsync = null)
         {
             LogHelper.LoggerFactory = loggerFactory;
 
             Options = options;
             ChannelPool = new ChannelPool(Options);
 
-            if (!string.IsNullOrWhiteSpace(passphrase))
-            {
-                _hashKey = ArgonHash
-                    .GetHashKeyAsync(passphrase, salt, Constants.EncryptionKeySize)
-                    .GetAwaiter().GetResult();
-            }
+            EncryptionProvider = EncryptionProvider;
+            CompressionProvider = CompressionProvider;
 
-            Publisher = new Publisher(ChannelPool, _hashKey);
+            Publisher = new Publisher(ChannelPool, EncryptionProvider, CompressionProvider);
             Topologer = new Topologer(ChannelPool);
 
             Options.ApplyGlobalConsumerOptions();
@@ -164,7 +162,7 @@ namespace HouseofCat.RabbitMQ.Services
                 {
                     ConsumerPipelineNameToConsumerOptions.TryAdd(consumerSetting.Value.ConsumerPipelineOptions.ConsumerPipelineName, consumerSetting.Value);
                 }
-                Consumers.TryAdd(consumerSetting.Value.ConsumerName, new Consumer(ChannelPool, consumerSetting.Value, _hashKey));
+                Consumers.TryAdd(consumerSetting.Value.ConsumerName, new Consumer(ChannelPool, consumerSetting.Value));
             }
         }
 
@@ -172,7 +170,6 @@ namespace HouseofCat.RabbitMQ.Services
         {
             foreach (var consumer in Consumers)
             {
-                consumer.Value.HashKey = _hashKey;
                 if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.QueueName))
                 {
                     await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.QueueName).ConfigureAwait(false);
@@ -263,47 +260,30 @@ namespace HouseofCat.RabbitMQ.Services
             Encrypt(letter);
         }
 
+        // Returns Success
         public bool Encrypt(Letter letter)
         {
-            if (letter.LetterMetadata.Encrypted || (_hashKey == null && _hashKey.Length == 0))
-            { return false; } // Don't double encrypt.
-
-            try
+            if (!letter.LetterMetadata.Encrypted)
             {
-                letter.Body = AesEncrypt.Aes256Encrypt(letter.Body, _hashKey);
+                letter.Body = EncryptionProvider.Encrypt(letter.Body);
                 letter.LetterMetadata.Encrypted = true;
-                letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypted] = true;
-                letter.LetterMetadata.CustomFields[Constants.HeaderForEncryption] = Constants.HeaderValueForArgonAesEncrypt;
-                letter.LetterMetadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
+                return true;
             }
-            catch { return false; }
 
-            return true;
+            return false;
         }
 
         // Returns Success
         public bool Decrypt(Letter letter)
         {
-            if (!letter.LetterMetadata.Encrypted || (_hashKey == null && _hashKey.Length == 0))
-            { return false; } // Don't decrypt without it being encrypted.
-
-            try
+            if (letter.LetterMetadata.Encrypted)
             {
-                letter.Body = AesEncrypt.Aes256Decrypt(letter.Body, _hashKey);
+                letter.Body = EncryptionProvider.Decrypt(letter.Body);
                 letter.LetterMetadata.Encrypted = false;
-
-                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForEncrypted))
-                { letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncrypted); }
-
-                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForEncryption))
-                { letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncryption); }
-
-                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForEncryptDate))
-                { letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncryptDate); }
+                return true;
             }
-            catch { return false; }
 
-            return true;
+            return false;
         }
 
         // Returns Success
@@ -314,14 +294,20 @@ namespace HouseofCat.RabbitMQ.Services
 
             if (!letter.LetterMetadata.Compressed)
             {
-                try
+                letter.Body = await CompressionProvider.CompressAsync(letter.Body);
+                letter.LetterMetadata.Compressed = true;
+                letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = true;
+                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForCompressed))
                 {
-                    letter.Body = await Gzip.CompressAsync(letter.Body).ConfigureAwait(false);
-                    letter.LetterMetadata.Compressed = true;
-                    letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = true;
-                    letter.LetterMetadata.CustomFields[Constants.HeaderForCompression] = Constants.HeaderValueForGzipCompress;
+                    letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForCompressed);
                 }
-                catch { return false; }
+
+                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForCompression))
+                {
+                    letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForCompression);
+                }
+
+                return true;
             }
 
             return true;
@@ -337,7 +323,7 @@ namespace HouseofCat.RabbitMQ.Services
             {
                 try
                 {
-                    letter.Body = await Gzip.DecompressAsync(letter.Body).ConfigureAwait(false);
+                    letter.Body = await CompressionProvider.DecompressAsync(letter.Body);
                     letter.LetterMetadata.Compressed = false;
 
                     if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForCompressed))

@@ -1,16 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
   <PropertyGroup>
-    <Version>1.0.2</Version>
-    <AssemblyVersion>1.0.2</AssemblyVersion>
-    <FileVersion>1.0.2</FileVersion>
+    <Version>1.0.3</Version>
+    <AssemblyVersion>1.0.3</AssemblyVersion>
+    <FileVersion>1.0.3</FileVersion>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="BouncyCastle.NetCore" Version="1.8.6" />
-    <PackageReference Include="Konscious.Security.Cryptography.Argon2" Version="1.2.1" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
-  </ItemGroup>
 
 </Project>

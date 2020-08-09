@@ -31,11 +31,8 @@ namespace HouseofCat.RabbitMQ
 
         bool AckMessage();
         void Complete();
-        Task<bool> Completion();
-        Task<ReadOnlyMemory<byte>> GetBodyAsync(bool decrypt = false, bool decompress = false);
-        Task<string> GetBodyAsUtf8StringAsync(bool decrypt = false, bool decompress = false);
-        Task<TResult> GetTypeFromJsonAsync<TResult>(bool decrypt = false, bool decompress = false, JsonSerializerOptions jsonSerializerOptions = null);
-        Task<IEnumerable<TResult>> GetTypesFromJsonAsync<TResult>(bool decrypt = false, bool decompress = false, JsonSerializerOptions jsonSerializerOptions = null);
+        Task<bool> Completion { get; }
+
         bool NackMessage(bool requeue);
         bool RejectMessage(bool requeue);
     }
@@ -58,21 +55,20 @@ namespace HouseofCat.RabbitMQ
         public string CompressionType { get; private set; }
 
         private TaskCompletionSource<bool> _completionSource = new TaskCompletionSource<bool>();
+        public Task<bool> Completion => _completionSource.Task;
+
         private bool _disposedValue;
-        private readonly ReadOnlyMemory<byte> _hashKey;
 
         public ReceivedData(
             IModel channel,
             BasicGetResult result,
-            bool ackable,
-            ReadOnlyMemory<byte> hashKey)
+            bool ackable)
         {
             Ackable = ackable;
             Channel = channel;
             DeliveryTag = result.DeliveryTag;
             Properties = result.BasicProperties;
             Data = result.Body.ToArray();
-            _hashKey = hashKey;
 
             ReadHeaders();
         }
@@ -80,15 +76,13 @@ namespace HouseofCat.RabbitMQ
         public ReceivedData(
             IModel channel,
             BasicDeliverEventArgs args,
-            bool ackable,
-            ReadOnlyMemory<byte> hashKey)
+            bool ackable)
         {
             Ackable = ackable;
             Channel = channel;
             DeliveryTag = args.DeliveryTag;
             Properties = args.BasicProperties;
             Data = args.Body.ToArray();
-            _hashKey = hashKey;
 
             ReadHeaders();
         }
@@ -181,176 +175,10 @@ namespace HouseofCat.RabbitMQ
         }
 
         /// <summary>
-        /// Use this method to retrieve the internal buffer as byte[]. Decomcrypts only apply to non-Letter data.
-        /// <para>Combine this with AMQP header X-CR-OBJECTTYPE to get message wrapper payloads.</para>
-        /// <para>Header Example: ("X-CR-OBJECTTYPE", "LETTER")</para>
-        /// <para>Header Example: ("X-CR-OBJECTTYPE", "MESSAGE")</para>
-        /// <em>Note: Always decomrypts Letter bodies to get type regardless of parameters.</em>
-        /// </summary>
-        public async Task<ReadOnlyMemory<byte>> GetBodyAsync(bool decrypt = false, bool decompress = false)
-        {
-            switch (ContentType)
-            {
-                case Constants.HeaderValueForLetter:
-
-                    await CreateLetterFromDataAsync().ConfigureAwait(false);
-
-                    return Letter.Body;
-
-                case Constants.HeaderValueForMessage:
-                default:
-
-                    await DecomcryptDataAsync(decrypt, decompress).ConfigureAwait(false);
-
-                    return Data;
-            }
-        }
-
-        /// <summary>
-        /// Use this method to retrieve the internal buffer as string. Decomcrypts only apply to non-Letter data.
-        /// <para>Combine this with AMQP header X-CR-OBJECTTYPE to get message wrapper payloads.</para>
-        /// <para>Header Example: ("X-CR-OBJECTTYPE", "LETTER")</para>
-        /// <para>Header Example: ("X-CR-OBJECTTYPE", "MESSAGE")</para>
-        /// <em>Note: Always decomrypts Letter bodies to get type regardless of parameters.</em>
-        /// </summary>
-        public async Task<string> GetBodyAsUtf8StringAsync(bool decrypt = false, bool decompress = false)
-        {
-            switch (ContentType)
-            {
-                case Constants.HeaderValueForLetter:
-
-                    await CreateLetterFromDataAsync().ConfigureAwait(false);
-
-                    return Encoding.UTF8.GetString(Letter.Body);
-
-                case Constants.HeaderValueForMessage:
-                default:
-
-                    await DecomcryptDataAsync(decrypt, decompress).ConfigureAwait(false);
-
-                    return Encoding.UTF8.GetString(Data);
-            }
-        }
-
-        /// <summary>
-        /// Use this method to attempt to deserialize into your type based on internal buffer. Decomcrypts only apply to non-Letter data.
-        /// <para>Combine this with AMQP header X-CR-OBJECTTYPE to get message wrapper payloads.</para>
-        /// <para>Header Example: ("X-CR-OBJECTTYPE", "LETTER")</para>
-        /// <para>Header Example: ("X-CR-OBJECTTYPE", "MESSAGE")</para>
-        /// <em>Note: Always decomcrypts Letter bodies to get type regardless of parameters.</em>
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="decrypt"></param>
-        /// <param name="decompress"></param>
-        /// <param name="jsonSerializerOptions"></param>
-        public async Task<TResult> GetTypeFromJsonAsync<TResult>(bool decrypt = false, bool decompress = false, JsonSerializerOptions jsonSerializerOptions = null)
-        {
-            switch (ContentType)
-            {
-                case Constants.HeaderValueForLetter:
-
-                    await CreateLetterFromDataAsync().ConfigureAwait(false);
-
-                    return JsonSerializer.Deserialize<TResult>(Letter.Body.AsSpan(), jsonSerializerOptions);
-
-                case Constants.HeaderValueForMessage:
-                default:
-
-                    if (Bytes.IsJson(Data))
-                    {
-                        await DecomcryptDataAsync(decrypt, decompress).ConfigureAwait(false);
-
-                        return JsonSerializer.Deserialize<TResult>(Data.AsSpan(), jsonSerializerOptions);
-                    }
-                    else
-                    { return default; }
-            }
-        }
-
-        /// <summary>
-        /// Use this method to attempt to deserialize into your types based on internal buffer. Decomcrypts only apply to non-Letter data.
-        /// <para>Combine this with AMQP header X-CR-OBJECTTYPE to get message wrapper payloads.</para>
-        /// <para>Header Example: ("X-CR-OBJECTTYPE", "LETTER")</para>
-        /// <para>Header Example: ("X-CR-OBJECTTYPE", "MESSAGE")</para>
-        /// <em>Note: Always decomcrypts Letter bodies to get type regardless of parameters.</em>
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="decrypt"></param>
-        /// <param name="decompress"></param>
-        /// <param name="jsonSerializerOptions"></param>
-        public async Task<IEnumerable<TResult>> GetTypesFromJsonAsync<TResult>(bool decrypt = false, bool decompress = false, JsonSerializerOptions jsonSerializerOptions = null)
-        {
-            switch (ContentType)
-            {
-                case Constants.HeaderValueForLetter:
-
-                    await CreateLetterFromDataAsync().ConfigureAwait(false);
-
-                    return JsonSerializer.Deserialize<List<TResult>>(Letter.Body.AsSpan(), jsonSerializerOptions);
-
-                case Constants.HeaderValueForMessage:
-                default:
-
-                    if (Bytes.IsJsonArray(Data))
-                    {
-                        await DecomcryptDataAsync(decrypt, decompress).ConfigureAwait(false);
-
-                        return JsonSerializer.Deserialize<List<TResult>>(Data, jsonSerializerOptions);
-                    }
-                    else
-                    { return default(List<TResult>); }
-            }
-        }
-
-        public async Task CreateLetterFromDataAsync()
-        {
-            if (Letter == null)
-            { Letter = JsonSerializer.Deserialize<Letter>(Data); }
-
-            if (Encrypted && Letter.LetterMetadata.Encrypted && _hashKey.Length > 0)
-            {
-                Letter.Body = AesEncrypt.Aes256Decrypt(Letter.Body, _hashKey);
-                Letter.LetterMetadata.Encrypted = false;
-                Encrypted = false;
-            }
-
-            if (Compressed && Letter.LetterMetadata.Compressed)
-            {
-                Letter.Body = await Gzip
-                    .DecompressAsync(Letter.Body)
-                    .ConfigureAwait(false);
-
-                Letter.LetterMetadata.Compressed = false;
-                Compressed = false;
-            }
-        }
-
-        public async Task DecomcryptDataAsync(bool decrypt = false, bool decompress = false)
-        {
-            if (Encrypted && decrypt && _hashKey.Length > 0)
-            {
-                Data = AesEncrypt.Aes256Decrypt(Data, _hashKey);
-                Encrypted = false;
-            }
-
-            if (Compressed && decompress)
-            {
-                Data = await Gzip
-                    .DecompressAsync(Data)
-                    .ConfigureAwait(false);
-                Compressed = false;
-            }
-        }
-
-        /// <summary>
         /// A way to indicate this message is fully finished with.
         /// </summary>
         public void Complete() => _completionSource.SetResult(true);
 
-        /// <summary>
-        /// A way to await the message until it is marked complete.
-        /// </summary>
-        public Task<bool> Completion() => _completionSource.Task;
 
         protected virtual void Dispose(bool disposing)
         {

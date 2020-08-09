@@ -8,7 +8,12 @@ namespace HouseofCat.Encryption
     {
         public enum EncryptionMethod
         {
-            AES256_ARGON2ID
+            AES256
+        }
+
+        public enum HashingMethod
+        {
+            ARGON2ID
         }
     }
 }

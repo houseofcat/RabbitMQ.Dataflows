@@ -20,8 +20,6 @@ namespace HouseofCat.RabbitMQ
         ConsumerOptions ConsumerOptions { get; }
         bool Started { get; }
 
-        ReadOnlyMemory<byte> HashKey { get; set; }
-
         Task DataflowExecutionEngineAsync(Func<TFromQueue, Task<bool>> workBodyAsync, int maxDoP = 4, bool ensureOrdered = true, CancellationToken token = default);
 
         ChannelReader<TFromQueue> GetConsumerBuffer();
@@ -49,23 +47,20 @@ namespace HouseofCat.RabbitMQ
         public IChannelPool ChannelPool { get; }
         public bool Started { get; private set; }
 
-        public ReadOnlyMemory<byte> HashKey { get; set; }
-
-        public Consumer(Options options, string consumerName, byte[] hashKey = null)
-            : this(new ChannelPool(options), consumerName, hashKey)
+        public Consumer(Options options, string consumerName)
+            : this(new ChannelPool(options), consumerName)
         { }
 
-        public Consumer(IChannelPool channelPool, string consumerName, byte[] hashKey = null)
+        public Consumer(IChannelPool channelPool, string consumerName)
             : this(
                   channelPool,
-                  channelPool.Options.GetConsumerOptions(consumerName),
-                  hashKey)
+                  channelPool.Options.GetConsumerOptions(consumerName))
         {
             Guard.AgainstNull(channelPool, nameof(channelPool));
             Guard.AgainstNullOrEmpty(consumerName, nameof(consumerName));
         }
 
-        public Consumer(IChannelPool channelPool, ConsumerOptions consumerOptions, byte[] hashKey = null)
+        public Consumer(IChannelPool channelPool, ConsumerOptions consumerOptions)
         {
             Guard.AgainstNull(channelPool, nameof(channelPool));
             Guard.AgainstNull(consumerOptions, nameof(consumerOptions));
@@ -73,7 +68,6 @@ namespace HouseofCat.RabbitMQ
             _logger = LogHelper.GetLogger<Consumer>();
             Options = channelPool.Options;
             ChannelPool = channelPool;
-            HashKey = hashKey;
             ConsumerOptions = consumerOptions;
         }
 
@@ -276,7 +270,7 @@ namespace HouseofCat.RabbitMQ
 
         private async void ReceiveHandler(object _, BasicDeliverEventArgs bdea)
         {
-            var rabbitMessage = new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false), HashKey);
+            var rabbitMessage = new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false));
 
             _logger.LogDebug(
                 LogMessages.Consumers.ConsumerMessageReceived,
@@ -315,7 +309,7 @@ namespace HouseofCat.RabbitMQ
 
         private async Task ReceiveHandlerAsync(object o, BasicDeliverEventArgs bdea)
         {
-            var rabbitMessage = new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false), HashKey);
+            var rabbitMessage = new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false));
 
             _logger.LogDebug(
                 LogMessages.Consumers.ConsumerAsyncMessageReceived,

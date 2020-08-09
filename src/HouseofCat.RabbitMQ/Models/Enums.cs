@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel;
 
 namespace HouseofCat.RabbitMQ
@@ -189,23 +188,6 @@ namespace HouseofCat.RabbitMQ
             /// </summary>
             [Description("charset=utf-32")]
             Utf32,
-        }
-    }
-
-    public static class EnumExtensions
-    {
-        /// <summary>
-        /// Extension method of getting the Description value to string.
-        /// </summary>
-        /// <param name="value"></param>
-        public static string Description(this Enum value)
-        {
-            var field = value.GetType().GetField(value.ToString());
-            var attributes = field.GetCustomAttributes(typeof(DescriptionAttribute), false);
-
-            return attributes.Length > 0
-                ? ((DescriptionAttribute)attributes[0]).Description
-                : "Description Not Found";
         }
     }
 }

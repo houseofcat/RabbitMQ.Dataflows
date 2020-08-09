@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Compression.Builtin\HouseofCat.Compression.Builtin.csproj" />
+    <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
     <ProjectReference Include="..\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
     <ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
     <ProjectReference Include="..\HouseofCat.RabbitMQ.Client\HouseofCat.RabbitMQ.Client.csproj" />

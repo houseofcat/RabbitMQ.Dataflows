@@ -150,7 +150,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
                             receivedData.DeliveryTag);
 
                         await receivedData
-                            .Completion()
+                            .Completion
                             .ConfigureAwait(false);
 
                         _logger.LogTrace(
@@ -210,7 +210,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
                                 receivedData.DeliveryTag);
 
                             await receivedData
-                                .Completion()
+                                .Completion
                                 .ConfigureAwait(false);
 
                             _logger.LogTrace(

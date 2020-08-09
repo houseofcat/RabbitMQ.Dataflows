@@ -1,4 +1,4 @@
-using HouseofCat.Compression.Builtin;
+using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.Logger;
 using HouseofCat.RabbitMQ.Pools;
@@ -44,6 +44,8 @@ namespace HouseofCat.RabbitMQ
         private readonly ILogger<Publisher> _logger;
         private readonly IChannelPool _channelPool;
         private readonly SemaphoreSlim _pubLock = new SemaphoreSlim(1, 1);
+        private readonly IEncryptionProvider _encryptionProvider;
+        private readonly ICompressionProvider _compressionProvider;
         private readonly bool _withHeaders;
         private readonly bool _compress;
         private readonly bool _encrypt;
@@ -53,30 +55,40 @@ namespace HouseofCat.RabbitMQ
         private Channel<Letter> _letterQueue;
         private Channel<PublishReceipt> _receiptBuffer;
 
-        private readonly ReadOnlyMemory<byte> _hashKey;
         private Task _publishingTask;
         private Task _processReceiptsAsync;
         private bool _disposedValue;
 
-        public Publisher(Options options, ReadOnlyMemory<byte> hashKey) : this(new ChannelPool(options), hashKey)
+        public Publisher(Options options, IEncryptionProvider encryptionProvider, ICompressionProvider compressionProvider) : this(new ChannelPool(options), encryptionProvider, compressionProvider)
         { }
 
-        public Publisher(IChannelPool channelPool, ReadOnlyMemory<byte> hashKey)
+        public Publisher(IChannelPool channelPool, IEncryptionProvider encryptionProvider, ICompressionProvider compressionProvider)
         {
             Guard.AgainstNull(channelPool, nameof(channelPool));
 
             Options = channelPool.Options;
             _logger = LogHelper.GetLogger<Publisher>();
 
-            if (Options.PublisherOptions.Encrypt && hashKey.Length != Constants.EncryptionKeySize)
+            if (Options.PublisherOptions.Encrypt && encryptionProvider != null)
             {
                 _encrypt = false;
-                _logger.LogWarning("Encryption disabled, invalid hash key length ({0}) provided. Expected key length of {1}.", hashKey.Length, Constants.EncryptionKeySize);
+                _logger.LogWarning("Encryption disabled, encryptionProvider provided was null.");
             }
             else if (Options.PublisherOptions.Encrypt)
             {
                 _encrypt = true;
-                _hashKey = hashKey;
+                _encryptionProvider = encryptionProvider;
+            }
+
+            if (Options.PublisherOptions.Compress && compressionProvider != null)
+            {
+                _compress = false;
+                _logger.LogWarning("Compression disabled, compressionProvider provided was null.");
+            }
+            else if (Options.PublisherOptions.Encrypt)
+            {
+                _compress = true;
+                _compressionProvider = compressionProvider;
             }
 
             _channelPool = channelPool;
@@ -89,7 +101,6 @@ namespace HouseofCat.RabbitMQ
 
             _withHeaders = Options.PublisherOptions.WithHeaders;
             _createPublishReceipts = Options.PublisherOptions.CreatePublishReceipts;
-            _compress = Options.PublisherOptions.Compress;
             _waitForConfirmation = TimeSpan.FromMilliseconds(Options.PublisherOptions.WaitForConfirmationTimeoutInMilliseconds);
         }
 
@@ -191,7 +202,7 @@ namespace HouseofCat.RabbitMQ
 
                     if (_compress)
                     {
-                        letter.Body = await Gzip.CompressAsync(letter.Body).ConfigureAwait(false);
+                        letter.Body = await _compressionProvider.CompressAsync(letter.Body).ConfigureAwait(false);
                         letter.LetterMetadata.Compressed = _compress;
                         letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = _compress;
                         letter.LetterMetadata.CustomFields[Constants.HeaderForCompression] = Constants.HeaderValueForGzipCompress;
@@ -199,7 +210,7 @@ namespace HouseofCat.RabbitMQ
 
                     if (_encrypt)
                     {
-                        letter.Body = AesEncrypt.Aes256Encrypt(letter.Body, _hashKey);
+                        letter.Body = _encryptionProvider.Encrypt(letter.Body);
                         letter.LetterMetadata.Encrypted = _encrypt;
                         letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypted] = _encrypt;
                         letter.LetterMetadata.CustomFields[Constants.HeaderForEncryption] = Constants.HeaderValueForArgonAesEncrypt;

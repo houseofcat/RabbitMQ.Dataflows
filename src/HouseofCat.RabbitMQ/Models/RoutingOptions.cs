@@ -1,3 +1,4 @@
+using HouseofCat.Extensions;
 using System.ComponentModel.DataAnnotations;
 
 namespace HouseofCat.RabbitMQ

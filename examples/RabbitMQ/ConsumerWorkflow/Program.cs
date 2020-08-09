@@ -22,6 +22,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         public static LogLevel LogLevel = LogLevel.Information;
         public static int ConsumerCount = 3;
         public static long GlobalCount = 100_000;
+        public static long ActionCount = 5;
         public static long CurrentCount;
         public static bool EnsureOrdered = true; // use with simulate IO delay to determine if ensuring order is causing delays
         public static bool SimulateIODelay = false;
@@ -74,11 +75,11 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
             await Console.Out.WriteLineAsync($"SimulateIODelay: {SimulateIODelay}, MinIODelay: {MinIODelay}ms, MaxIODelay: {MaxIODelay}ms").ConfigureAwait(false);
             await Console.Out.WriteLineAsync($"AwaitShutdown: {AwaitShutdown}, LogOutcome: {LogOutcome}").ConfigureAwait(false);
             await Console.Out.WriteLineAsync($"UseStreamPipeline: {UseStreamPipeline}").ConfigureAwait(false);
-            await Console.Out.WriteLineAsync($"Finished processing {GlobalCount} messages (Steps: {GlobalCount * 4}) in {Stopwatch.ElapsedMilliseconds} milliseconds.").ConfigureAwait(false);
+            await Console.Out.WriteLineAsync($"Finished processing {GlobalCount} messages (Steps: {GlobalCount * ActionCount}) in {Stopwatch.ElapsedMilliseconds} milliseconds.").ConfigureAwait(false);
 
             var rate = GlobalCount / (Stopwatch.ElapsedMilliseconds / 1.0) * 1000.0;
             await Console.Out.WriteLineAsync($"Rate: {rate} msg/s.").ConfigureAwait(false);
-            await Console.Out.WriteLineAsync($"Rate: {rate * 5} actions/s.").ConfigureAwait(false);
+            await Console.Out.WriteLineAsync($"Rate: {rate * ActionCount} actions/s.").ConfigureAwait(false);
             await Console.Out.WriteLineAsync("\r\nClient Finished! Press any key to start the shutdown!").ConfigureAwait(false);
             Console.ReadKey(); // checking for memory leak (snapshots)
 
