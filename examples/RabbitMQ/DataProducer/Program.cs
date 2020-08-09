@@ -1,14 +1,23 @@
-﻿using HouseofCat.RabbitMQ;
+﻿using HouseofCat.Compression;
+using HouseofCat.Encryption;
+using HouseofCat.Hashing;
+using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Services;
+using HouseofCat.Serialization;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Utf8Json.Resolvers;
 
 namespace Examples.RabbitMQ.DataProducer
 {
     public static class Program
     {
+        private static ISerializationProvider _serializationProvider;
+        private static IHashingProvider _hashingProvider;
+        private static ICompressionProvider _compressionProvider;
+        private static IEncryptionProvider _encryptionProvider;
         private static IRabbitService _rabbitService;
 
         public static long GlobalCount = 100_000;
@@ -38,12 +47,20 @@ namespace Examples.RabbitMQ.DataProducer
 
         private static async Task SetupAsync()
         {
-            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(Program.LogLevel));
+            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel));
+
+            _hashingProvider = new Argon2IDHasher();
+            var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
+
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
+            _compressionProvider = new GzipProvider();
+            _serializationProvider = new Utf8JsonProvider(StandardResolver.Default);
 
             _rabbitService = new RabbitService(
                 "Config.json",
-                "passwordforencryption",
-                "saltforencryption",
+                _serializationProvider,
+                _encryptionProvider,
+                _compressionProvider,
                 loggerFactory);
 
             await _rabbitService

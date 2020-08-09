@@ -1,27 +1,41 @@
-﻿using HouseofCat.RabbitMQ;
+﻿using HouseofCat.Compression;
+using HouseofCat.Encryption;
+using HouseofCat.Hashing;
+using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Services;
+using HouseofCat.Serialization;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Utf8Json.Resolvers;
 
 namespace Examples.RabbitMQ.SimpleClient
 {
     public static class Program
     {
-        public class TestMessage
-        {
-            public string Message { get; set; }
-        }
+        private static ISerializationProvider _serializationProvider;
+        private static IHashingProvider _hashingProvider;
+        private static ICompressionProvider _compressionProvider;
+        private static IEncryptionProvider _encryptionProvider;
+        private static IRabbitService _rabbitService;
 
         public static async Task Main()
         {
+            _hashingProvider = new Argon2IDHasher();
+            var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
+
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
+            _compressionProvider = new GzipProvider();
+            _serializationProvider = new Utf8JsonProvider(StandardResolver.Default);
+
+            _rabbitService = new RabbitService(
+                "Config.json",
+                _serializationProvider,
+                _encryptionProvider,
+                _compressionProvider,
+                null);
+
             await RunSimpleClientWithEncryptionAsync()
-                .ConfigureAwait(false);
-
-            await RunExecutionEngineAsync()
-                .ConfigureAwait(false);
-
-            await RunParallelExecutionEngineAsync()
                 .ConfigureAwait(false);
 
             await RunDataExecutionEngineAsync()
@@ -35,20 +49,18 @@ namespace Examples.RabbitMQ.SimpleClient
             var sentMessage = new TestMessage { Message = "Sensitive Message" };
             var letter = new Letter("", "TestRabbitServiceQueue", JsonSerializer.SerializeToUtf8Bytes(sentMessage), new LetterMetadata());
 
-            var rabbitService = new RabbitService("Config.json", "passwordforencryption", "saltforencryption");
-
-            await rabbitService
+            await _rabbitService
                 .Topologer
                 .CreateQueueAsync("TestRabbitServiceQueue")
                 .ConfigureAwait(false);
 
             // Queue the letter for delivery by the library.
-            await rabbitService
+            await _rabbitService
                 .Publisher
                 .QueueLetterAsync(letter);
 
             // Start Consumer
-            var consumer = rabbitService.GetConsumer("ConsumerFromConfig");
+            var consumer = _rabbitService.GetConsumer("ConsumerFromConfig");
             await consumer
                 .StartConsumerAsync()
                 .ConfigureAwait(false);
@@ -69,7 +81,7 @@ namespace Examples.RabbitMQ.SimpleClient
             { receivedLetter.AckMessage(); }
 
             // Cleanup the queue
-            await rabbitService
+            await _rabbitService
                 .Topologer
                 .DeleteQueueAsync("TestRabbitServiceQueue")
                 .ConfigureAwait(false);
@@ -77,70 +89,9 @@ namespace Examples.RabbitMQ.SimpleClient
             await Console.In.ReadLineAsync().ConfigureAwait(false);
         }
 
-        private static async Task RunExecutionEngineAsync()
+        public class TestMessage
         {
-            await Console.Out.WriteLineAsync("Starting SimpleClient w/ Encryption As An ExecutionEngine...").ConfigureAwait(false);
-
-            var sentMessage = new TestMessage { Message = "Sensitive Message" };
-            var letter = new Letter("", "TestRabbitServiceQueue", JsonSerializer.SerializeToUtf8Bytes(sentMessage), new LetterMetadata());
-
-            var rabbitService = new RabbitService("Config.json", "passwordforencryption", "saltforencryption");
-
-            await rabbitService
-                .Topologer
-                .CreateQueueAsync("TestRabbitServiceQueue")
-                .ConfigureAwait(false);
-
-            // Queue the letter for delivery by the library.
-            await rabbitService
-                .Publisher
-                .QueueLetterAsync(letter);
-
-            // Start Consumer
-            var consumer = rabbitService.GetConsumer("ConsumerFromConfig");
-            await consumer
-                .StartConsumerAsync()
-                .ConfigureAwait(false);
-
-            //_ = Task.Run(() => consumer.ExecutionEngineAsync(ConsumerWorkerAsync));
-
-            await Console.In.ReadLineAsync().ConfigureAwait(false);
-        }
-
-        private static async Task RunParallelExecutionEngineAsync()
-        {
-            await Console.Out.WriteLineAsync("Starting SimpleClient w/ Encryption As An ParallelExecutionEngine...").ConfigureAwait(false);
-
-            var letterTemplate = new Letter("", "TestRabbitServiceQueue", null, new LetterMetadata());
-            var rabbitService = new RabbitService("Config.json", "passwordforencryption", "saltforencryption");
-
-            await rabbitService
-                .Topologer
-                .CreateQueueAsync("TestRabbitServiceQueue")
-                .ConfigureAwait(false);
-
-            // Produce Messages
-            for (ulong i = 0; i < 100; i++)
-            {
-                var letter = letterTemplate.Clone();
-                letter.LetterId = i;
-                var sentMessage = new TestMessage { Message = "Sensitive Message" };
-                sentMessage.Message += $" {i}";
-                letter.Body = JsonSerializer.SerializeToUtf8Bytes(sentMessage);
-                await rabbitService
-                    .Publisher
-                    .QueueLetterAsync(letter);
-            }
-
-            // Start Consumer As An Execution Engine
-            var consumer = rabbitService.GetConsumer("ConsumerFromConfig");
-            await consumer
-                .StartConsumerAsync()
-                .ConfigureAwait(false);
-
-            //_ = Task.Run(() => consumer.ParallelExecutionEngineAsync(ConsumerWorkerAsync, 7));
-
-            await Console.In.ReadLineAsync().ConfigureAwait(false);
+            public string Message { get; set; }
         }
 
         private static async Task RunDataExecutionEngineAsync()
@@ -148,9 +99,8 @@ namespace Examples.RabbitMQ.SimpleClient
             await Console.Out.WriteLineAsync("Starting SimpleClient w/ Encryption As An DataExecutionEngine...").ConfigureAwait(false);
 
             var letterTemplate = new Letter("", "TestRabbitServiceQueue", null, new LetterMetadata());
-            var rabbitService = new RabbitService("Config.json", "passwordforencryption", "saltforencryption");
 
-            await rabbitService
+            await _rabbitService
                 .Topologer
                 .CreateQueueAsync("TestRabbitServiceQueue")
                 .ConfigureAwait(false);
@@ -163,13 +113,13 @@ namespace Examples.RabbitMQ.SimpleClient
                 var sentMessage = new TestMessage { Message = "Sensitive Message" };
                 sentMessage.Message += $" {i}";
                 letter.Body = JsonSerializer.SerializeToUtf8Bytes(sentMessage);
-                await rabbitService
+                await _rabbitService
                     .Publisher
                     .QueueLetterAsync(letter);
             }
 
             // Start Consumer As An Execution Engine
-            var consumer = rabbitService.GetConsumer("ConsumerFromConfig");
+            var consumer = _rabbitService.GetConsumer("ConsumerFromConfig");
             await consumer
                 .StartConsumerAsync()
                 .ConfigureAwait(false);

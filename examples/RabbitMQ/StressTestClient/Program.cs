@@ -1,16 +1,26 @@
-﻿using HouseofCat.Logger;
+﻿using HouseofCat.Compression;
+using HouseofCat.Encryption;
+using HouseofCat.Hashing;
+using HouseofCat.Logger;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Serialization;
 using HouseofCat.Utilities.File;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Utf8Json.Resolvers;
 
 namespace Examples.RabbitMQ.StressAndStabilityConsole
 {
     public static class Program
     {
+        private static ISerializationProvider _serializationProvider;
+        private static IHashingProvider _hashingProvider;
+        private static ICompressionProvider _compressionProvider;
+        private static IEncryptionProvider _encryptionProvider;
+
         private static Options options;
         private static ChannelPool channelPool;
         private static Topologer topologer;
@@ -31,6 +41,13 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
 
         public static async Task Main()
         {
+            _hashingProvider = new Argon2IDHasher();
+            var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
+
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
+            _compressionProvider = new GzipProvider();
+            _serializationProvider = new Utf8JsonProvider(StandardResolver.Default);
+
             LogHelper.LoggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
             await Console.Out.WriteLineAsync("CookedRabbit.Core StressTest v1.00").ConfigureAwait(false);
             await Console.Out.WriteLineAsync("- StressTest setting everything up...").ConfigureAwait(false);
@@ -75,10 +92,29 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
 
             topologer = new Topologer(channelPool);
 
-            apub1 = new Publisher(channelPool, new byte[] { });
-            apub2 = new Publisher(channelPool, new byte[] { });
-            apub3 = new Publisher(channelPool, new byte[] { });
-            apub4 = new Publisher(channelPool, new byte[] { });
+            apub1 = new Publisher(
+                channelPool,
+                _serializationProvider,
+                _encryptionProvider,
+                _compressionProvider);
+
+            apub2 = new Publisher(
+                channelPool,
+                _serializationProvider,
+                _encryptionProvider,
+                _compressionProvider);
+
+            apub3 = new Publisher(
+                channelPool,
+                _serializationProvider,
+                _encryptionProvider,
+                _compressionProvider);
+
+            apub4 = new Publisher(
+                channelPool,
+                _serializationProvider,
+                _encryptionProvider,
+                _compressionProvider);
 
             await Console.Out.WriteLineAsync("- Creating stress test queues!").ConfigureAwait(false);
 

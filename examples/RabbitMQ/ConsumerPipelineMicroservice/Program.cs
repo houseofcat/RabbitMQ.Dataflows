@@ -8,6 +8,12 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using HouseofCat.Serialization;
+using HouseofCat.Hashing;
+using HouseofCat.Compression;
+using HouseofCat.Encryption;
+using Utf8Json.Resolvers;
+using System.Text;
 
 namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
 {
@@ -60,6 +66,11 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
 
     public class ConsumerPipelineMicroservice
     {
+        private ISerializationProvider _serializationProvider;
+        private IHashingProvider _hashingProvider;
+        private ICompressionProvider _compressionProvider;
+        private IEncryptionProvider _encryptionProvider;
+
         private IRabbitService _rabbitService;
         private ILogger<ConsumerPipelineMicroservice> _logger;
         private IConsumerPipeline<WorkState> _consumerPipeline;
@@ -95,13 +106,21 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
 
         private async Task<RabbitService> SetupAsync()
         {
+            _hashingProvider = new Argon2IDHasher();
+            var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
+
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
+            _compressionProvider = new GzipProvider();
+            _serializationProvider = new Utf8JsonProvider(StandardResolver.Default);
+
             var letterTemplate = new Letter("", "TestRabbitServiceQueue", null, new LetterMetadata());
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(Program.LogLevel));
             _logger = loggerFactory.CreateLogger<ConsumerPipelineMicroservice>();
             var rabbitService = new RabbitService(
                 "Config.json",
-                "passwordforencryption",
-                "saltforencryption",
+                _serializationProvider,
+                _encryptionProvider,
+                _compressionProvider,
                 loggerFactory);
 
             await rabbitService
@@ -190,13 +209,12 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
             {
                 state.Message = state.ReceivedData.ContentType switch
                 {
-                    HouseofCat.RabbitMQ.Constants.HeaderValueForLetter => await receivedData
-                        .GetTypeFromJsonAsync<Message>()
-                        .ConfigureAwait(false),
+                    HouseofCat.RabbitMQ.Constants.HeaderValueForLetter =>
+                        _serializationProvider
+                        .Deserialize<Message>(state.ReceivedData.Letter.Body),
 
-                    _ => await receivedData
-                        .GetTypeFromJsonAsync<Message>(decrypt: false, decompress: false)
-                        .ConfigureAwait(false),
+                    _ => _serializationProvider
+                        .Deserialize<Message>(state.ReceivedData.Data),
                 };
 
                 if (state.ReceivedData.Data.Length > 0 && (state.Message != null || state.ReceivedData.Letter != null))
@@ -236,7 +254,7 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
                 var stringBody = string.Empty;
 
                 try
-                { stringBody = await state.ReceivedData.GetBodyAsUtf8StringAsync().ConfigureAwait(false); }
+                { stringBody = Encoding.UTF8.GetString(state.ReceivedData.Data); }
                 catch (Exception ex) { _logger.LogError(ex, "What?!"); }
 
                 if (failed)

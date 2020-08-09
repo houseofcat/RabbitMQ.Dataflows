@@ -1,5 +1,6 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Encryption;
+using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.RabbitMQ.Workflows;
@@ -7,11 +8,10 @@ using HouseofCat.Serialization;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Utf8Json.Resolvers;
-using static HouseofCat.Compression.Enums;
-using static HouseofCat.Encryption.Enums;
 
 namespace Examples.RabbitMQ.ConsumerWorkflow
 {
@@ -34,6 +34,11 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         public static int MaxDoP = 64;
         public static Random Rand = new Random();
 
+        private static ISerializationProvider _serializationProvider;
+        private static IHashingProvider _hashingProvider;
+        private static ICompressionProvider _compressionProvider;
+        private static IEncryptionProvider _encryptionProvider;
+
         public static async Task Main()
         {
             await Console.Out.WriteLineAsync("Run a ConsumerWorkflow demo... press any key to continue!").ConfigureAwait(false);
@@ -44,14 +49,17 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
 
             await Console.Out.WriteLineAsync("Setting up Workflow...").ConfigureAwait(false);
 
-            var jsonProvider = new Utf8JsonProvider(StandardResolver.Default);
-            var encryptionProvider = new EncryptionProvider("passwordforencryption", "saltforencryption", EncryptionMethod.AES256_ARGON2ID);
-            var compressionProvider = new CompressionProvider(CompressionMethod.Gzip);
+            _hashingProvider = new Argon2IDHasher();
+            var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
+
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
+            _compressionProvider = new GzipProvider();
+            _serializationProvider = new Utf8JsonProvider(StandardResolver.Default);
 
             _workflow = new ConsumerWorkflow<WorkState>(_rabbitService, "MyConsumerWorkflow", "ConsumerFromConfig", consumerCount: ConsumerCount)
-                .WithSerilizationProvider(jsonProvider)
-                .WithEncryptionProvider(encryptionProvider)
-                .WithCompressionProvider(compressionProvider)
+                .WithSerilizationProvider(_serializationProvider)
+                .WithEncryptionProvider(_encryptionProvider)
+                .WithCompressionProvider(_compressionProvider)
                 .WithBuildState<Message>()
                 .WithDecryptionStep()
                 .WithDecompressionStep()
@@ -98,8 +106,9 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
 
             _rabbitService = new RabbitService(
                 "Config.json",
-                "passwordforencryption",
-                "saltforencryption",
+                _serializationProvider,
+                _encryptionProvider,
+                _compressionProvider,
                 loggerFactory);
 
             await _rabbitService
@@ -191,7 +200,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
             var stringBody = string.Empty;
 
             try
-            { stringBody = await state.ReceivedData.GetBodyAsUtf8StringAsync().ConfigureAwait(false); }
+            { stringBody = Encoding.UTF8.GetString(state.ReceivedData.Data); }
             catch (Exception ex) { _logger.LogError(ex, "What?!"); }
 
             if (failed)
