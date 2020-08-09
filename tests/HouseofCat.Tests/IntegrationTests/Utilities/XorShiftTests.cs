@@ -1,9 +1,9 @@
 using HouseofCat.Utilities.Random;
 using Xunit;
 
-namespace HouseofCat.IntegrationTests
+namespace HouseofCat.Tests.IntegrationTests
 {
-    public class UtilitiesTests
+    public class XorShiftTests
     {
         [Fact]
         public void CreateRandomBytes()

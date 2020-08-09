@@ -3,17 +3,16 @@ using HouseofCat.Workflows.Pipelines;
 using System;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace HouseofCat.IntegrationTests.RabbitMQ
+namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
 {
-    public class Pipeline_AddStep_Tests
+    public class PipelineTests : IClassFixture<RabbitFixture>
     {
-        private readonly ITestOutputHelper _output;
+        private readonly RabbitFixture _fixture;
 
-        public Pipeline_AddStep_Tests(ITestOutputHelper output)
+        public PipelineTests(RabbitFixture fixture)
         {
-            _output = output;
+            _fixture = fixture;
         }
 
         [Fact]
@@ -32,9 +31,9 @@ namespace HouseofCat.IntegrationTests.RabbitMQ
                 .Finalize((state) =>
                 {
                     if (state.AllStepsSuccess)
-                    { _output.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - LetterId: {state.LetterId} - Finished route successful."); }
+                    { _fixture.Output.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - LetterId: {state.LetterId} - Finished route successful."); }
                     else
-                    { _output.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - LetterId: {state.LetterId} - Finished route unsuccesfully."); }
+                    { _fixture.Output.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - LetterId: {state.LetterId} - Finished route unsuccesfully."); }
 
                     // Lastly mark the excution pipeline finished for this message.
                     state.ReceivedData.Complete(); // This impacts wait to completion step in the WorkFlowEngine.
@@ -44,12 +43,20 @@ namespace HouseofCat.IntegrationTests.RabbitMQ
             Assert.Equal(pipeline.StepCount, 5);
         }
 
-        private static WorkState DeserializeStep(ReceivedData data)
+        private WorkState DeserializeStep(ReceivedData data)
         {
             var state = new WorkState();
             try
             {
-                //var decodedLetter = data.GetTypeFromJsonAsync<Letter>();
+                var decodedLetter = state.Message = state.ReceivedData.ContentType switch
+                {
+                    Constants.HeaderValueForLetter =>
+                        _fixture.SerializationProvider
+                        .Deserialize<Message>(state.ReceivedData.Letter.Body),
+
+                    _ => _fixture.SerializationProvider
+                        .Deserialize<Message>(state.ReceivedData.Data)
+                };
             }
             catch
             { state.DeserializeStepSuccess = false; }
@@ -57,7 +64,7 @@ namespace HouseofCat.IntegrationTests.RabbitMQ
             return state;
         }
 
-        private static async Task<WorkState> ProcessStepAsync(WorkState state)
+        private async Task<WorkState> ProcessStepAsync(WorkState state)
         {
             await Console
                 .Out
@@ -81,21 +88,24 @@ namespace HouseofCat.IntegrationTests.RabbitMQ
         {
             await Task.Yield();
 
-            _output
+            _fixture
+                .Output
                 .WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - LetterId: {state.LetterId} - Process Step Success? {state.ProcessStepSuccess}");
 
             if (state.ProcessStepSuccess)
             {
-                _output
-                    .WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - LetterId: {state.LetterId} - Acking message...");
+                _fixture
+                    .Output
+                        .WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - LetterId: {state.LetterId} - Acking message...");
 
                 if (state.ReceivedData.AckMessage())
                 { state.AcknowledgeStepSuccess = true; }
             }
             else
             {
-                _output
-                    .WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - LetterId: {state.LetterId} - Nacking message...");
+                _fixture
+                    .Output
+                        .WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - LetterId: {state.LetterId} - Nacking message...");
 
                 if (state.ReceivedData.NackMessage(true))
                 { state.AcknowledgeStepSuccess = true; }
@@ -106,7 +116,8 @@ namespace HouseofCat.IntegrationTests.RabbitMQ
 
         private WorkState LogStep(WorkState state)
         {
-            _output
+            _fixture
+                .Output
                 .WriteLine(
                     $"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - Logging - LetterId: {state.LetterId} - All Steps Success? {state.AllStepsSuccess}");
 

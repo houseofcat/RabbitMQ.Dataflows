@@ -3,6 +3,7 @@ using HouseofCat.Encryption;
 using HouseofCat.Logger;
 using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Serialization;
 using HouseofCat.Utilities.File;
 using HouseofCat.Workflows.Pipelines;
 using Microsoft.Extensions.Logging;
@@ -10,7 +11,6 @@ using RabbitMQ.Client;
 using System;
 using System.Collections.Concurrent;
 using System.Globalization;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,22 +20,20 @@ namespace HouseofCat.RabbitMQ.Services
     {
         IPublisher Publisher { get; }
         IChannelPool ChannelPool { get; }
-        Options Options { get; }
-        ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; }
         ITopologer Topologer { get; }
+        Options Options { get; }
+
+        ISerializationProvider SerializationProvider { get; }
+        IEncryptionProvider EncryptionProvider { get; }
+        ICompressionProvider CompressionProvider { get; }
+
+        ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; }
 
         Task ComcryptAsync(Letter letter);
         Task<bool> CompressAsync(Letter letter);
         IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, int batchSize, bool? ensureOrdered, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : IWorkState;
         IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, IPipeline<ReceivedData, TOut> pipeline) where TOut : IWorkState;
 
-        /// <summary>
-        /// Use this CreateConsumerPipeline function when using the new ConsumerOption config that includes ConsumerPipeline settings.
-        /// </summary>
-        /// <typeparam name="TOut"></typeparam>
-        /// <param name="consumerName"></param>
-        /// <param name="pipelineBuilder"></param>
-        /// <returns></returns>
         IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : IWorkState;
 
         Task DecomcryptAsync(Letter letter);
@@ -59,51 +57,50 @@ namespace HouseofCat.RabbitMQ.Services
         public IChannelPool ChannelPool { get; }
         public IPublisher Publisher { get; }
         public ITopologer Topologer { get; }
+
+        public ISerializationProvider SerializationProvider { get; }
         public IEncryptionProvider EncryptionProvider { get; }
         public ICompressionProvider CompressionProvider { get; }
 
         public ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<ReceivedData>>();
         private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerOptions { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
 
-        /// <summary>
-        /// Reads config from a provided file name path. Builds out a RabbitService with instantiated dependencies based on config settings.
-        /// </summary>
-        /// <param name="fileNamePath"></param>
-        /// <param name="passphrase"></param>
-        /// <param name="salt"></param>
-        /// <param name="loggerFactory"></param>
-        /// <param name="processReceiptAsync"></param>
-        public RabbitService(string fileNamePath, IEncryptionProvider encryptionProvider, ICompressionProvider compressionProvider, ILoggerFactory loggerFactory = null, Func<PublishReceipt, ValueTask> processReceiptAsync = null)
+        public RabbitService(
+            string fileNamePath,
+            ISerializationProvider serializationProvider,
+            IEncryptionProvider encryptionProvider,
+            ICompressionProvider compressionProvider,
+            ILoggerFactory loggerFactory = null, Func<PublishReceipt, ValueTask> processReceiptAsync = null)
             : this(
                   JsonFileReader
                     .ReadFileAsync<Options>(fileNamePath)
                     .GetAwaiter()
                     .GetResult(),
+                  serializationProvider,
                   encryptionProvider,
                   compressionProvider,
                   loggerFactory,
                   processReceiptAsync)
         { }
 
-        /// <summary>
-        /// Builds out a RabbitService with instantiated dependencies based on config settings.
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="passphrase"></param>
-        /// <param name="salt"></param>
-        /// <param name="loggerFactory"></param>
-        /// <param name="processReceiptAsync"></param>
-        public RabbitService(Options options, IEncryptionProvider encryptionProvider, ICompressionProvider compressionProvider, ILoggerFactory loggerFactory = null, Func<PublishReceipt, ValueTask> processReceiptAsync = null)
+        public RabbitService(
+            Options options,
+            ISerializationProvider serializationProvider,
+            IEncryptionProvider encryptionProvider,
+            ICompressionProvider compressionProvider,
+            ILoggerFactory loggerFactory = null,
+            Func<PublishReceipt, ValueTask> processReceiptAsync = null)
         {
             LogHelper.LoggerFactory = loggerFactory;
 
             Options = options;
             ChannelPool = new ChannelPool(Options);
 
+            SerializationProvider = SerializationProvider;
             EncryptionProvider = EncryptionProvider;
             CompressionProvider = CompressionProvider;
 
-            Publisher = new Publisher(ChannelPool, EncryptionProvider, CompressionProvider);
+            Publisher = new Publisher(ChannelPool, SerializationProvider, EncryptionProvider, CompressionProvider);
             Topologer = new Topologer(ChannelPool);
 
             Options.ApplyGlobalConsumerOptions();
@@ -197,13 +194,6 @@ namespace HouseofCat.RabbitMQ.Services
             return new ConsumerPipeline<TOut>(consumer, pipeline);
         }
 
-        /// <summary>
-        /// Use this CreateConsumerPipeline function when using the new ConsumerOption config that includes ConsumerPipeline settings.
-        /// </summary>
-        /// <typeparam name="TOut"></typeparam>
-        /// <param name="consumerName"></param>
-        /// <param name="pipelineBuilder"></param>
-        /// <returns></returns>
         public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
             string consumerName,
             Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder)
@@ -339,11 +329,6 @@ namespace HouseofCat.RabbitMQ.Services
             return true;
         }
 
-        /// <summary>
-        /// Simple retrieve message (byte[]) from queue. Null if nothing was available or on error.
-        /// <para>AutoAcks message.</para>
-        /// </summary>
-        /// <param name="queueName"></param>
         public async Task<ReadOnlyMemory<byte>?> GetAsync(string queueName)
         {
             IChannelHost chanHost;
@@ -408,7 +393,7 @@ namespace HouseofCat.RabbitMQ.Services
                     .ConfigureAwait(false);
             }
 
-            return result != null ? JsonSerializer.Deserialize<T>(result.Body.Span) : default;
+            return result != null ? SerializationProvider.Deserialize<T>(result.Body) : default;
         }
 
         protected virtual void Dispose(bool disposing)

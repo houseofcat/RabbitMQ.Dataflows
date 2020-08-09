@@ -1,129 +1,130 @@
-//using HouseofCat.RabbitMQ;
-//using HouseofCat.RabbitMQ.Pools;
-//using HouseofCat.Utilities.File;
-//using System.Diagnostics;
-//using System.Threading.Tasks;
-//using Xunit;
-//using Xunit.Abstractions;
+using HouseofCat.Compression;
+using HouseofCat.Encryption;
+using HouseofCat.Hashing;
+using HouseofCat.RabbitMQ;
+using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Serialization;
+using HouseofCat.Utilities.File;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
 
-//namespace HouseofCat.IntegrationTests.RabbitMQ
-//{
-//    public class PublisherConsumerTests
-//    {
-//        private readonly ITestOutputHelper output;
-//        private readonly Options options;
-//        private readonly Topologer topologer;
-//        private readonly Publisher publisher;
-//        private readonly Consumer consumer;
+namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
+{
+    public class PublisherConsumerTests : IClassFixture<RabbitFixture>
+    {
+        private readonly RabbitFixture _fixture;
+        public Consumer Consumer;
+        public Publisher Publisher;
 
-//        public PublisherConsumerTests(ITestOutputHelper output)
-//        {
-//            this.output = output;
-//            options = JsonFileReader.ReadFileAsync<Options>("TestConfig.json").GetAwaiter().GetResult();
+        public PublisherConsumerTests(RabbitFixture fixture)
+        {
+            _fixture = fixture;
+            Consumer = new Consumer(_fixture.ChannelPool, "TestAutoPublisherConsumerName");
+            Publisher = new Publisher(
+                _fixture.ChannelPool,
+                _fixture.SerializationProvider,
+                _fixture.EncryptionProvider,
+                _fixture.CompressionProvider);
+        }
 
-//            var channelPool = new ChannelPool(options);
-//            topologer = new Topologer(channelPool);
+        [Fact]
+        public async Task PublishAndConsume()
+        {
+            await _fixture.Topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
+            await Publisher.StartAutoPublishAsync().ConfigureAwait(false);
 
-//            publisher = new Publisher(channelPool, new byte[] { });
-//            consumer = new Consumer(channelPool, "TestAutoPublisherConsumerName");
-//        }
+            const ulong count = 10000;
 
-//        [Fact]
-//        public async Task PublishAndConsume()
-//        {
-//            await topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
-//            await publisher.StartAutoPublishAsync().ConfigureAwait(false);
+            var processReceiptsTask = ProcessReceiptsAsync(Publisher, count);
+            var publishLettersTask = PublishLettersAsync(Publisher, count);
+            var consumeMessagesTask = ConsumeMessagesAsync(Consumer, count);
 
-//            const ulong count = 10000;
+            while (!publishLettersTask.IsCompleted)
+            { await Task.Delay(1).ConfigureAwait(false); }
 
-//            var processReceiptsTask = ProcessReceiptsAsync(publisher, count);
-//            var publishLettersTask = PublishLettersAsync(publisher, count);
-//            var consumeMessagesTask = ConsumeMessagesAsync(consumer, count);
+            while (!processReceiptsTask.IsCompleted)
+            { await Task.Delay(1).ConfigureAwait(false); }
 
-//            while (!publishLettersTask.IsCompleted)
-//            { await Task.Delay(1).ConfigureAwait(false); }
+            await _fixture.Publisher.StopAutoPublishAsync().ConfigureAwait(false);
 
-//            while (!processReceiptsTask.IsCompleted)
-//            { await Task.Delay(1).ConfigureAwait(false); }
+            while (!consumeMessagesTask.IsCompleted)
+            { await Task.Delay(1).ConfigureAwait(false); }
 
-//            await publisher.StopAutoPublishAsync().ConfigureAwait(false);
+            Assert.True(publishLettersTask.IsCompletedSuccessfully);
+            Assert.True(processReceiptsTask.IsCompletedSuccessfully);
+            Assert.True(consumeMessagesTask.IsCompletedSuccessfully);
+            Assert.False(processReceiptsTask.Result);
+            Assert.False(consumeMessagesTask.Result);
 
-//            while (!consumeMessagesTask.IsCompleted)
-//            { await Task.Delay(1).ConfigureAwait(false); }
+            await _fixture.Topologer.DeleteQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
+        }
 
-//            Assert.True(publishLettersTask.IsCompletedSuccessfully);
-//            Assert.True(processReceiptsTask.IsCompletedSuccessfully);
-//            Assert.True(consumeMessagesTask.IsCompletedSuccessfully);
-//            Assert.False(processReceiptsTask.Result);
-//            Assert.False(consumeMessagesTask.Result);
+        private async Task PublishLettersAsync(Publisher apub, ulong count)
+        {
+            var sw = Stopwatch.StartNew();
+            for (ulong i = 0; i < count; i++)
+            {
+                var letter = RandomData.CreateSimpleRandomLetter("TestAutoPublisherConsumerQueue");
+                letter.LetterId = i;
 
-//            await topologer.DeleteQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
-//        }
+                await apub.QueueLetterAsync(letter).ConfigureAwait(false);
+            }
+            sw.Stop();
 
-//        private async Task PublishLettersAsync(Publisher apub, ulong count)
-//        {
-//            var sw = Stopwatch.StartNew();
-//            for (ulong i = 0; i < count; i++)
-//            {
-//                var letter = RandomData.CreateSimpleRandomLetter("TestAutoPublisherConsumerQueue");
-//                letter.LetterId = i;
+            _fixture.Output.WriteLine($"Finished queueing all letters in {sw.ElapsedMilliseconds} ms.");
+        }
 
-//                await apub.QueueLetterAsync(letter).ConfigureAwait(false);
-//            }
-//            sw.Stop();
+        private async Task<bool> ProcessReceiptsAsync(Publisher apub, ulong count)
+        {
+            await Task.Yield();
 
-//            output.WriteLine($"Finished queueing all letters in {sw.ElapsedMilliseconds} ms.");
-//        }
+            var buffer = apub.GetReceiptBufferReader();
+            var receiptCount = 0ul;
+            var error = false;
 
-//        private async Task<bool> ProcessReceiptsAsync(Publisher apub, ulong count)
-//        {
-//            await Task.Yield();
+            var sw = Stopwatch.StartNew();
+            while (receiptCount < count)
+            {
+                if (buffer.TryRead(out var receipt))
+                {
+                    receiptCount++;
+                    if (receipt.IsError)
+                    { error = true; break; }
+                }
+            }
+            sw.Stop();
 
-//            var buffer = apub.GetReceiptBufferReader();
-//            var receiptCount = 0ul;
-//            var error = false;
+            _fixture.Output.WriteLine($"Finished getting receipts.\r\nReceiptCount: {receiptCount} in {sw.ElapsedMilliseconds} ms.\r\nErrorStatus: {error}");
 
-//            var sw = Stopwatch.StartNew();
-//            while (receiptCount < count)
-//            {
-//                if (buffer.TryRead(out var receipt))
-//                {
-//                    receiptCount++;
-//                    if (receipt.IsError)
-//                    { error = true; break; }
-//                }
-//            }
-//            sw.Stop();
+            return error;
+        }
 
-//            output.WriteLine($"Finished getting receipts.\r\nReceiptCount: {receiptCount} in {sw.ElapsedMilliseconds} ms.\r\nErrorStatus: {error}");
+        private async Task<bool> ConsumeMessagesAsync(Consumer consumer, ulong count)
+        {
+            var messageCount = 0ul;
+            var error = false;
 
-//            return error;
-//        }
+            await consumer
+                .StartConsumerAsync()
+                .ConfigureAwait(false);
 
-//        private async Task<bool> ConsumeMessagesAsync(Consumer consumer, ulong count)
-//        {
-//            var messageCount = 0ul;
-//            var error = false;
+            var sw = Stopwatch.StartNew();
+            while (messageCount < count)
+            {
+                try
+                {
+                    var message = await consumer.ReadAsync().ConfigureAwait(false);
+                    messageCount++;
+                }
+                catch
+                { error = true; break; }
+            }
+            sw.Stop();
 
-//            await consumer
-//                .StartConsumerAsync()
-//                .ConfigureAwait(false);
-
-//            var sw = Stopwatch.StartNew();
-//            while (messageCount < count)
-//            {
-//                try
-//                {
-//                    var message = await consumer.ReadAsync().ConfigureAwait(false);
-//                    messageCount++;
-//                }
-//                catch
-//                { error = true; break; }
-//            }
-//            sw.Stop();
-
-//            output.WriteLine($"Finished consuming messages.\r\nMessageCount: {messageCount} in {sw.ElapsedMilliseconds} ms.\r\nErrorStatus: {error}");
-//            return error;
-//        }
-//    }
-//}
+            _fixture.Output.WriteLine($"Finished consuming messages.\r\nMessageCount: {messageCount} in {sw.ElapsedMilliseconds} ms.\r\nErrorStatus: {error}");
+            return error;
+        }
+    }
+}

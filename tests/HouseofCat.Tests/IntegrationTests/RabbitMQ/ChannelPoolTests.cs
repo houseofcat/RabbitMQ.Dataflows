@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace HouseofCat.IntegrationTests.RabbitMQ
+namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
 {
-    public class ChannelPoolTests
+    public class ChannelPoolTests : IClassFixture<RabbitFixture>
     {
-        private readonly ITestOutputHelper output;
+        private readonly RabbitFixture _fixture;
 
-        public ChannelPoolTests(ITestOutputHelper output)
+        public ChannelPoolTests(RabbitFixture fixture)
         {
-            this.output = output;
+            _fixture = fixture;
         }
 
         [Fact]
@@ -84,7 +84,7 @@ namespace HouseofCat.IntegrationTests.RabbitMQ
             }
 
             sw.Stop();
-            output.WriteLine($"OverLoop Iteration Time: {sw.ElapsedMilliseconds} ms");
+            _fixture.Output.WriteLine($"OverLoop Iteration Time: {sw.ElapsedMilliseconds} ms");
 
             Assert.True(successCount == 2 * loopCount);
         }

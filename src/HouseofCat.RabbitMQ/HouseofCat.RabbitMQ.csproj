@@ -13,6 +13,7 @@
     <ProjectReference Include="..\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
     <ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
     <ProjectReference Include="..\HouseofCat.RabbitMQ.Client\HouseofCat.RabbitMQ.Client.csproj" />
+    <ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
     <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
     <ProjectReference Include="..\HouseofCat.Workflows\HouseofCat.Workflows.csproj" />
   </ItemGroup>

@@ -5,10 +5,17 @@ using System;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace HouseofCat.IntegrationTests.RabbitMQ
+namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
 {
     public class TopologerTests
     {
+        private readonly RabbitFixture _fixture;
+
+        public TopologerTests(RabbitFixture fixture)
+        {
+            _fixture = fixture;
+        }
+
         [Fact]
         public void CreateTopologer()
         {

@@ -1,34 +1,42 @@
+using HouseofCat.Compression;
+using HouseofCat.Encryption;
+using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ.Services;
+using HouseofCat.Serialization;
+using HouseofCat.Tests.IntegrationTests.RabbitMQ;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace HouseofCat.IntegrationTests.RabbitMQ
+namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
 {
-    //public class RabbitServiceTests
-    //{
-    //    //private readonly ITestOutputHelper output;
-    //    private readonly RabbitService rabbitService;
+    public class RabbitServiceTests : IClassFixture<RabbitFixture>
+    {
+        private readonly RabbitFixture _fixture;
 
-    //    public RabbitServiceTests(ITestOutputHelper output)
-    //    {
-    //        rabbitService = new RabbitService("TestConfig.json", "passwordforencryption", "saltforencryption");
-    //    }
+        public RabbitServiceTests(RabbitFixture fixture)
+        {
+            _fixture = fixture;
+        }
 
-    //    [Fact]
-    //    public async Task ProductionBug_CantFindConsumer_WhenStartingMessageConsumers()
-    //    {
-    //        var rabbitService = new RabbitService("TestConfig.json", "passwordforencryption", "saltforencryption");
+        [Fact]
+        public async Task BuildRabbitService_AndTopology()
+        {
+            var rabbitService = new RabbitService(
+                "TestConfig.json",
+                _fixture.SerializationProvider,
+                _fixture.EncryptionProvider,
+                _fixture.CompressionProvider);
 
-    //        await rabbitService
-    //            .Topologer
-    //            .CreateTopologyFromFileAsync("TestTopologyConfig.json")
-    //            .ConfigureAwait(false);
+            await rabbitService
+                .Topologer
+                .CreateTopologyFromFileAsync("TestTopologyConfig.json")
+                .ConfigureAwait(false);
 
-    //        var consumer = rabbitService.GetConsumer("TestMessageConsumer");
-    //        await consumer
-    //            .StartConsumerAsync()
-    //            .ConfigureAwait(false);
-    //    }
-    //}
+            var consumer = rabbitService.GetConsumer("TestMessageConsumer");
+            await consumer
+                .StartConsumerAsync()
+                .ConfigureAwait(false);
+        }
+    }
 }

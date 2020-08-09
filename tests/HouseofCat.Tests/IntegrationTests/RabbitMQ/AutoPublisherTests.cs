@@ -1,52 +1,29 @@
-using HouseofCat.Compression;
-using HouseofCat.Encryption;
-using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace HouseofCat.IntegrationTests.RabbitMQ
+namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
 {
-    public class Integration_Publisher_AutoPublisher_Tests
+    public class AutoPublisherTests : IClassFixture<RabbitFixture>
     {
-        private readonly Options options;
-        private readonly ITestOutputHelper output;
-        private readonly IChannelPool channelPool;
-        private readonly Topologer topologer;
-        private readonly IHashingProvider _hashingProvider;
-        private readonly IEncryptionProvider _encryptionProvider;
-        private readonly ICompressionProvider _compressionProvider;
+        private readonly RabbitFixture _fixture;
 
-        private const string _passphrase = "SuperNintendoHadTheBestZelda";
-        private const string _salt = "SegaGenesisIsTheBestConsole";
-        private readonly byte[] _hashKey;
-
-        public Integration_Publisher_AutoPublisher_Tests(ITestOutputHelper output)
+        public AutoPublisherTests(RabbitFixture fixture)
         {
-            this.output = output;
-            options = new Options();
-            options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
-            options.PublisherOptions = new PublisherOptions();
-            options.PublisherOptions.CreatePublishReceipts = true;
-
-            channelPool = new ChannelPool(options);
-            topologer = new Topologer(channelPool);
-
-            _compressionProvider = new GzipProvider();
-            _hashingProvider = new Argon2IDHasher();
-            _hashKey = _hashingProvider.GetHashKeyAsync(_passphrase, _salt, 32).GetAwaiter().GetResult();
-
-            _encryptionProvider = new AesGcmEncryptionProvider(_hashKey);
+            _fixture = fixture;
         }
 
         [Fact]
         public void CreateAutoPublisher()
         {
-            var pub = new Publisher(channelPool, _encryptionProvider, _compressionProvider);
+            var pub = new Publisher(
+                _fixture.ChannelPool,
+                _fixture.SerializationProvider,
+                _fixture.EncryptionProvider,
+                _fixture.CompressionProvider);
 
             Assert.NotNull(pub);
         }
@@ -54,7 +31,12 @@ namespace HouseofCat.IntegrationTests.RabbitMQ
         [Fact]
         public async Task CreateAutoPublisherAndStart()
         {
-            var pub = new Publisher(channelPool, _encryptionProvider, _compressionProvider);
+            var pub = new Publisher(
+                _fixture.ChannelPool,
+                _fixture.SerializationProvider,
+                _fixture.EncryptionProvider,
+                _fixture.CompressionProvider);
+
             await pub.StartAutoPublishAsync().ConfigureAwait(false);
 
             Assert.NotNull(pub);
@@ -63,7 +45,11 @@ namespace HouseofCat.IntegrationTests.RabbitMQ
         [Fact]
         public async Task CreateAutoPublisherAndPublish()
         {
-            var pub = new Publisher(channelPool, _encryptionProvider, _compressionProvider);
+            var pub = new Publisher(
+                _fixture.ChannelPool,
+                _fixture.SerializationProvider,
+                _fixture.EncryptionProvider,
+                _fixture.CompressionProvider);
 
             var letter = RandomData.CreateSimpleRandomLetter("AutoPublisherTestQueue");
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await pub.QueueLetterAsync(letter));
@@ -72,21 +58,24 @@ namespace HouseofCat.IntegrationTests.RabbitMQ
         [Fact]
         public void CreateAutoPublisherByOptions()
         {
-            var options = new Options();
-            options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            var pub = new Publisher(
+                _fixture.Options,
+                _fixture.SerializationProvider,
+                _fixture.EncryptionProvider,
+                _fixture.CompressionProvider);
 
-            var apub = new Publisher(channelPool, _encryptionProvider, _compressionProvider);
-
-            Assert.NotNull(apub);
+            Assert.NotNull(pub);
         }
 
         [Fact]
         public async Task CreateAutoPublisherByConfigAndStart()
         {
-            var options = new Options();
-            options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            var pub = new Publisher(
+                _fixture.Options,
+                _fixture.SerializationProvider,
+                _fixture.EncryptionProvider,
+                _fixture.CompressionProvider);
 
-            var pub = new Publisher(channelPool, _encryptionProvider, _compressionProvider);
             await pub.StartAutoPublishAsync().ConfigureAwait(false);
 
             Assert.NotNull(pub);
@@ -95,10 +84,12 @@ namespace HouseofCat.IntegrationTests.RabbitMQ
         [Fact]
         public async Task CreateAutoPublisherByConfigAndPublish()
         {
-            var options = new Options();
-            options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            var pub = new Publisher(
+                _fixture.Options,
+                _fixture.SerializationProvider,
+                _fixture.EncryptionProvider,
+                _fixture.CompressionProvider);
 
-            var pub = new Publisher(channelPool, _encryptionProvider, _compressionProvider);
             await pub.StartAutoPublishAsync().ConfigureAwait(false);
 
             var letter = RandomData.CreateSimpleRandomLetter("AutoPublisherTestQueue");
@@ -108,10 +99,12 @@ namespace HouseofCat.IntegrationTests.RabbitMQ
         [Fact]
         public async Task CreateAutoPublisherByConfigQueueAndConcurrentPublish()
         {
-            var options = new Options();
-            options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            var pub = new Publisher(
+                _fixture.Options,
+                _fixture.SerializationProvider,
+                _fixture.EncryptionProvider,
+                _fixture.CompressionProvider);
 
-            var pub = new Publisher(channelPool, _encryptionProvider, _compressionProvider);
             await pub.StartAutoPublishAsync().ConfigureAwait(false);
             var finished = false;
             const ulong count = 10000;
@@ -137,7 +130,12 @@ namespace HouseofCat.IntegrationTests.RabbitMQ
         [Fact]
         public async Task CreateAutoPublisherQueueConcurrentPublishAndProcessReceipts()
         {
-            var pub = new Publisher(channelPool, _encryptionProvider, _compressionProvider);
+            var pub = new Publisher(
+                _fixture.Options,
+                _fixture.SerializationProvider,
+                _fixture.EncryptionProvider,
+                _fixture.CompressionProvider);
+
             await pub.StartAutoPublishAsync().ConfigureAwait(false);
             const ulong count = 10000;
 
@@ -168,7 +166,7 @@ namespace HouseofCat.IntegrationTests.RabbitMQ
             }
             sw.Stop();
 
-            output.WriteLine($"Finished queueing all letters in {sw.ElapsedMilliseconds} ms.");
+            _fixture.Output.WriteLine($"Finished queueing all letters in {sw.ElapsedMilliseconds} ms.");
         }
 
         private async Task<bool> ProcessReceiptsAsync(Publisher pub, ulong count)
@@ -193,7 +191,7 @@ namespace HouseofCat.IntegrationTests.RabbitMQ
 
             await pub.StopAutoPublishAsync().ConfigureAwait(false);
 
-            output.WriteLine($"Finished getting receipts on all published letters in {sw.ElapsedMilliseconds} ms.");
+            _fixture.Output.WriteLine($"Finished getting receipts on all published letters in {sw.ElapsedMilliseconds} ms.");
 
             return error;
         }
