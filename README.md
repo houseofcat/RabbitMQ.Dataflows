@@ -1,10 +1,48 @@
-# Tesseract / HouseofCat.Library
+# Tesseract - The Library
 
-A library for All The Things!
+A library of NetCore tools to help quickly get rapid and well performant development going in micro/macroservices.  
 
-My eclectic collection of things I have created over the years to make re-usable parts to simplify development.  
+Prototypes you could send to production!  
 
-You will find library usage examples in the `examples` folder. Also can find generic NetCore how-tos and tutorials located in there. The code quality will improve over time, it comes from different stages of my career (and life events or time constraints) sometimes and I just need to go back and make some adjustments but I need to see what needs work. I am sharing where any pain points are should you adopt the code yourself, you can see how to make it better - or even better, submit a PR to help out keeping this A rated!
+## Why Make A Tesseract Powered Workflow  
+These are all available today, out of the box with RabbitMQ. The goal is to continue enabling features with other Queue-based providers. NoSql/DocumentDB data crawlers are also future slated.  
+
+### RabbitMQ Queueing Allows 
+* Async Processing    
+* Retriability  
+* Chaos Engineering  
+* Connection/Channel Durability provided by HouseofCat.RabbitMQ.  
+
+### Baked-Ins
+* Supports ILogger&lt;T&gt;  
+* Concurrency/Parallelism - baked in from the ground up.  
+* Predetermine WorkState/WorkObject simplifies development and integration.  
+* Has built in Json (3 flavors) and MessagePack serialization providers.
+* Allow transparent encryption/decryption steps.  
+* Allow compression/decompression steps to reduce trip time over the wire.  
+* Async Error Handling with Predicate Triggers and actionable callback.  
+
+### Interchangeable Parts  
+* Allows you to replace serialization provider with HouseofCat Provider wrappers.  
+* Allows you to replace encryption provider with HouseofCat Provider wrappers.  
+* Allows you to replace compression provider with HouseofCat Provider wrappers.   
+* All using Interfaces to allow you to implement your own flavor and providers.  
+
+### Business Logic
+* All steps process in the order provided allowing you to still control order of execution.  
+* All automatically subscribed to Async Error handling by WorkState.IsFaulted flag.  
+
+### Testing
+* All built-in steps will have integration tests removing concerns from end-user developer.  
+* Future case will include much more complex abstract UnitTesting as time allows.  
+* The developer should only need to unit test their functional business code.  
+
+## Non-Technical Benefits
+
+The benefits of a dataflow pattern extend beyond fancy Tensorflows or high throughput GCP Dataflow for mass computation. At the service level, it helps mentally organize your code into manageable blocks. You can still write monolithic functions, but you would be sabotaging yourself and scarificing concurrency and parallelism. By forcing design into small functional steps, you write better cleaner code. You write code that is easier to UnitTest and less prone to bugs. The orchestration of the function calls are implicit, working out deserialization or post processing/egress is baked in and out of sight out of mind. Concurrency, parallelism, all baked into a "it just works" package.
+
+## Help
+You will find library usage examples in the `examples` folder. You also can find generic NetCore how-tos and tutorials located in there. The code quality of the entire library will improve over time. Codacy allows me to review code and openly share any pain points so submit a PR to help out keeping this an A rated library!
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9dbb20a30ada48caae4b92a83628f45e)](https://app.codacy.com/manual/cat_3/Library?utm_source=github.com&utm_medium=referral&utm_content=houseofcat/Library&utm_campaign=Badge_Grade_Dashboard)  
 
