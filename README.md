@@ -10,7 +10,7 @@ Here are some features ready to use today.
 *Note: These are all available today, out of the box with RabbitMQ.  
 The goal is to continue enabling features with other Queue-based providers. NoSql/DocumentDB data crawlers are also future slated.   
 
-### RabbitMQ Queueing Allows 
+### Queueing Backing Allows 
 * Async Processing    
 * Retriability  
 * Chaos Engineering  
