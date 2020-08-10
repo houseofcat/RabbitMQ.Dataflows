@@ -1,47 +1,52 @@
-# Tesseract - The Library
+# TESSERACT
 
-A library of `NetCore` tools to help rapidly develop well performant micro/macroservices.  
+![TesseractLogo](https://github.com/houseofcat/Tesseract/blob/master/TesseractLogo.svg)
+
+A library of `NetCore` tools to help rapidly develop well performant micro/macroservices. 
 
 Prototypes you could send to production!  
 
 ## Why Make A Tesseract Powered Workflow  
-Here are some features ready to with RabbitMQ today, tomorrow - the world!
 
-### Queueing Backing Allows 
+`Workflows` have concurrency, compression, and encryption all as first class citizens. This paradigm allows developers to just focus on the important stuff - getting work done. We pay attention to the extra dimensions so you don't have to!
+
+Here are some features ready with RabbitMQ today, tomorrow - the world!
+
+### Queueing
 * Async Processing    
 * Retriability  
 * Chaos Engineering  
-* Connection/Channel Durability provided by `HouseofCat.RabbitMQ`.  
+* Connection/Channel Durability provided by `HouseofCat.RabbitMQ` formerly `CookedRabbit.Core`.  
 
 ### Built-Ins
 * Supports `ILogger<T>`  
 * Concurrency/Parallelism - baked in from the ground up.  
-* Predetermine `WorkState`/WorkObject simplifies development and integration.  
-* Has built in `Json` (3 flavors) and `MessagePack` serialization providers.
+* Contracted `WorkState`/WorkObject simplifies development and integration.  
+* Has `Json` (3 flavors) and `MessagePack` serialization providers.
 * Allow transparent encryption/decryption steps.  
 * Allow compression/decompression steps to reduce trip time over the wire.  
-* Async Error Handling with Predicate triggers and actionable callback.  
+* Async Error Handling with Predicate triggers and an actionable callback.  
 
-### Interchangeable Parts  
+### Interchangeability
 * Allows you to replace serialization provider with `HouseofCat` Provider wrappers.  
 * Allows you to replace encryption provider with `HouseofCat` Provider wrappers.  
 * Allows you to replace compression provider with `HouseofCat` Provider wrappers.   
-* All using Interfaces to allow you to implement your own flavor and providers or dependency inject.  
+* Constructed to fully support Inversion of Control.  
 
 ### Business Logic
 * All steps process in the order provided allowing you to still control order of execution.  
 * All automatically subscribed to Async Error handling by `WorkState.IsFaulted` flag.  
 
 ### Testing
-* All built-in steps will have integration tests removing concerns from end-user developer.  
+* All built-in steps will have integration tests that should remove concerns from end-user developer.   
 * Future case will include much more complex abstract UnitTesting as time allows.  
 * The developer should only need to unit test their functional business code.  
 
 ## Implicit Benefits
 
-The benefits of a dataflow pattern extend beyond fancy machine learning and Tensorflows or high throughput GCP Dataflow for mass computation. When brought to the service level, it helps mentally organize your code into manageable blocks. You can still write monolithic functions, but you would be hamstringing yourself and scarificing concurrency and parallelism. By designing code into small functional steps, you always write better, cleaner, code. That very same code is easier to UnitTest. The orchestration of the function calls are the order they are added allowing you extend the original functionality infinitely. You don't have to write deserialization or post-processing encryption/compression as they all baked in. Designing from the ground up with concurrency and parallelism, you stay nimble and fast - able to scale up internally, before horizontally, or vertically, saving costs. All without needing code to change or be redesigned.
+The benefits of a dataflow pattern extend beyond fancy machine learning and Tensorflows or high throughput GCP Dataflow for mass computation. When brought to the service level, it helps organize your code into more manageable blocks. You can still write monolithic functions, but you would be hamstringing yourself and scarificing concurrency and parallelism. By designing code into small functional steps, you always write better, cleaner, code reduced with cyclomatic complexity. That very same code is easier to UnitTest. The orchestration of the function calls are the order they are added allowing you extend the original functionality infinitely. You don't have to write deserialization or post-processing encryption/compression as they all baked in. Designing from the ground up with concurrency and parallelism, you stay nimble and fast - able to scale up internally, before horizontally and vertically, saving costs. All without needing code changed or refactored.
 
-Lastly, after everything is said and done, all your business code is re-usable. Should you decide to abandon this workflow (:worried:) for a different mechanism, engine, or what not, all of your code will happily port to whatever other project / flow you are working with and so will all your testing. All an all, it seems very much like a win win.
+Lastly, after everything is said and done, all your business code is re-usable. Should you decide to abandon this workflow (:worried:) for a different mechanism, engine, or what not, all of your code will happily port to whatever other project / flow you are working with and so will all your testing making it a win win.
 
 ## Help
 You will find library usage examples in the `examples` folder. You also can find generic NetCore how-tos and tutorials located in there. The code quality of the entire library will improve over time. Codacy allows me to review code and openly share any pain points so submit a PR to help keep this an A rated library!
@@ -188,6 +193,10 @@ A library that focuses on making it easier to deal with systems networking.
 
 A library that focuses on RabbitMQ connection and channel management to create fault tolerant Publishers and Consumers.  
 
+Formerly [CookedRabbit.Core](https://github.com/houseofcat/RabbitMQ.Core/tree/master/CookedRabbit.Core)  
+[![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.svg)](https://www.nuget.org/packages/CookedRabbit.Core/)    
+[![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Core.svg)](https://www.nuget.org/packages/CookedRabbit.Core/)   
+
 
 ## HouseofCat.RabbitMQ.Client
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Client.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Client/)  
@@ -195,6 +204,9 @@ A library that focuses on RabbitMQ connection and channel management to create f
 
 A library that focuses on cloning the official Pivotal/VMWare RabbitMQ DotNetClient but ported to pure NetCore 3.1/5.x with small code enhancements.  
 
+Formerly [RabbitMQ.Core](https://github.com/houseofcat/RabbitMQ.Core)  
+[![NuGet](https://img.shields.io/nuget/dt/RabbitMQ.Core.Client.svg)](https://www.nuget.org/packages/RabbitMQ.Core.Client/)   
+[![NuGet](https://img.shields.io/nuget/v/RabbitMQ.Core.Client.svg)](https://www.nuget.org/packages/RabbitMQ.Core.Client/)  
 
 ## HouseofCat.RabbitMQ.Pipelines
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
@@ -244,11 +256,13 @@ A library that focuses on making it easier to deal with Serialization.
 
 A library that focuses on making it easier to deal with Newtonsoft Json Serialization.  
 
+
 ## HouseofCat.Serilization.Json.Utf8Json
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Utf8Json/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Utf8Json/)  
 
 A library that focuses on making it easier to deal with Utf8Json Json Serialization.  
+
 
 ## HouseofCat.Serilization.MessagePack
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.MessagePack/)  
