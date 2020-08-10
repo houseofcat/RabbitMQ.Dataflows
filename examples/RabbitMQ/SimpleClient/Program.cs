@@ -24,7 +24,7 @@ namespace Examples.RabbitMQ.SimpleClient
             _hashingProvider = new Argon2IDHasher();
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
-            _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
             _compressionProvider = new GzipProvider();
             _serializationProvider = new Utf8JsonProvider(StandardResolver.Default);
 

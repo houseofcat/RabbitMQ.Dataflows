@@ -7,6 +7,8 @@ namespace HouseofCat.Compression
 {
     public class BrotliProvider : ICompressionProvider
     {
+        public string Type { get; } = "BROTLI";
+
         public byte[] Compress(ReadOnlyMemory<byte> data)
         {
             using var compressedStream = new MemoryStream();

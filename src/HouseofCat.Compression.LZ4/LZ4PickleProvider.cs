@@ -8,6 +8,8 @@ namespace HouseofCat.Compression
 {
     public class LZ4PickleProvider : ICompressionProvider
     {
+        public string Type { get; } = "LZ4";
+
         private readonly LZ4Level _level;
 
         public LZ4PickleProvider(LZ4Level? level = null)

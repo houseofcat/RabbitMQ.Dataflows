@@ -1,19 +1,19 @@
-﻿using HouseofCat.RabbitMQ;
-using HouseofCat.RabbitMQ.Services;
+﻿using HouseofCat.Compression;
+using HouseofCat.Encryption;
+using HouseofCat.Hashing;
+using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pipelines;
+using HouseofCat.RabbitMQ.Services;
+using HouseofCat.Serialization;
 using HouseofCat.Workflows.Pipelines;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using HouseofCat.Serialization;
-using HouseofCat.Hashing;
-using HouseofCat.Compression;
-using HouseofCat.Encryption;
 using Utf8Json.Resolvers;
-using System.Text;
 
 namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
 {
@@ -109,7 +109,7 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
             _hashingProvider = new Argon2IDHasher();
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
-            _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
             _compressionProvider = new GzipProvider();
             _serializationProvider = new Utf8JsonProvider(StandardResolver.Default);
 
@@ -150,7 +150,7 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
                 pipelineName: "ConsumerPipelineExample",
                 ensureOrdered);
 
-            pipeline.AddAsyncStep<ReceivedData, WorkState>(DeserializeStepAsync);
+            pipeline.AddStep<ReceivedData, WorkState>(DeserializeStep);
             pipeline.AddAsyncStep<WorkState, WorkState>(ProcessStepAsync);
             pipeline.AddAsyncStep<WorkState, WorkState>(AckMessageAsync);
 
@@ -198,7 +198,7 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
             public bool AllStepsSuccess => DeserializeStepSuccess && ProcessStepSuccess && AcknowledgeStepSuccess;
         }
 
-        private async Task<WorkState> DeserializeStepAsync(IReceivedData receivedData)
+        private WorkState DeserializeStep(IReceivedData receivedData)
         {
             var state = new WorkState
             {

@@ -6,6 +6,7 @@ using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.File;
+using HouseofCat.Utilities.Time;
 using HouseofCat.Workflows.Pipelines;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -257,6 +258,10 @@ namespace HouseofCat.RabbitMQ.Services
             {
                 letter.Body = EncryptionProvider.Encrypt(letter.Body);
                 letter.LetterMetadata.Encrypted = true;
+                letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypted] = true;
+                letter.LetterMetadata.CustomFields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
+                letter.LetterMetadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
+
                 return true;
             }
 
@@ -270,6 +275,18 @@ namespace HouseofCat.RabbitMQ.Services
             {
                 letter.Body = EncryptionProvider.Decrypt(letter.Body);
                 letter.LetterMetadata.Encrypted = false;
+                letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypted] = false;
+
+                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForEncryption))
+                {
+                    letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncryption);
+                }
+
+                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForEncryptDate))
+                {
+                    letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncryptDate);
+                }
+
                 return true;
             }
 
@@ -287,15 +304,7 @@ namespace HouseofCat.RabbitMQ.Services
                 letter.Body = await CompressionProvider.CompressAsync(letter.Body);
                 letter.LetterMetadata.Compressed = true;
                 letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = true;
-                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForCompressed))
-                {
-                    letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForCompressed);
-                }
-
-                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForCompression))
-                {
-                    letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForCompression);
-                }
+                letter.LetterMetadata.CustomFields[Constants.HeaderForCompression] = CompressionProvider.Type;
 
                 return true;
             }
@@ -315,11 +324,7 @@ namespace HouseofCat.RabbitMQ.Services
                 {
                     letter.Body = await CompressionProvider.DecompressAsync(letter.Body);
                     letter.LetterMetadata.Compressed = false;
-
-                    if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForCompressed))
-                    {
-                        letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForCompressed);
-                    }
+                    letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = false;
 
                     if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForCompression))
                     {

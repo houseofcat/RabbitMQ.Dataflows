@@ -1,4 +1,5 @@
-﻿using K4os.Compression.LZ4.Streams;
+﻿using K4os.Compression.LZ4;
+using K4os.Compression.LZ4.Streams;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -7,6 +8,8 @@ namespace HouseofCat.Compression
 {
     public class LZ4StreamProvider : ICompressionProvider
     {
+        public string Type { get; } = "LZ4STREAM";
+
         private readonly LZ4EncoderSettings _encoderSettings;
         private readonly LZ4DecoderSettings _decoderSettings;
 
@@ -14,7 +17,7 @@ namespace HouseofCat.Compression
         {
             _encoderSettings = encoderSettings ?? new LZ4EncoderSettings
             {
-                CompressionLevel = K4os.Compression.LZ4.LZ4Level.L00_FAST,
+                CompressionLevel = LZ4Level.L00_FAST,
             };
 
             _decoderSettings = decoderSettings ?? new LZ4DecoderSettings();

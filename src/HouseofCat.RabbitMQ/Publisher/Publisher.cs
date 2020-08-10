@@ -220,10 +220,10 @@ namespace HouseofCat.RabbitMQ
 
                     if (_compress)
                     {
-                        letter.Body = await _compressionProvider.CompressAsync(letter.Body).ConfigureAwait(false);
+                        letter.Body = _compressionProvider.Compress(letter.Body);
                         letter.LetterMetadata.Compressed = _compress;
                         letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = _compress;
-                        letter.LetterMetadata.CustomFields[Constants.HeaderForCompression] = Constants.HeaderValueForGzipCompress;
+                        letter.LetterMetadata.CustomFields[Constants.HeaderForCompression] = _compressionProvider.Type;
                     }
 
                     if (_encrypt)
@@ -231,7 +231,7 @@ namespace HouseofCat.RabbitMQ
                         letter.Body = _encryptionProvider.Encrypt(letter.Body);
                         letter.LetterMetadata.Encrypted = _encrypt;
                         letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypted] = _encrypt;
-                        letter.LetterMetadata.CustomFields[Constants.HeaderForEncryption] = Constants.HeaderValueForArgonAesEncrypt;
+                        letter.LetterMetadata.CustomFields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
                         letter.LetterMetadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
                     }
 

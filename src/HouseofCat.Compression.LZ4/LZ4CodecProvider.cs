@@ -6,6 +6,8 @@ namespace HouseofCat.Compression
 {
     public class LZ4CodecProvider : ICodecProvider
     {
+        public string Type { get; } = "LZ4CODEC";
+
         private readonly LZ4Level _level;
 
         public LZ4CodecProvider(LZ4Level? level = null)

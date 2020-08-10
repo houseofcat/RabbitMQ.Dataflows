@@ -7,6 +7,8 @@ namespace HouseofCat.Compression
 {
     public class DeflateProvider : ICompressionProvider
     {
+        public string Type { get; } = "DEFLATE";
+
         public byte[] Compress(ReadOnlyMemory<byte> data)
         {
             using var compressedStream = new MemoryStream();

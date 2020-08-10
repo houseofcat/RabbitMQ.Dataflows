@@ -7,6 +7,8 @@ namespace HouseofCat.Compression
 {
     public class GzipProvider : ICompressionProvider
     {
+        public string Type { get; } = "GZIP";
+
         public byte[] Compress(ReadOnlyMemory<byte> data)
         {
             using var compressedStream = new MemoryStream();

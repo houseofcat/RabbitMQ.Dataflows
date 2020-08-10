@@ -50,7 +50,7 @@ namespace Examples.RabbitMQ.DataProducer
             _hashingProvider = new Argon2IDHasher();
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
-            _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
             _compressionProvider = new LZ4PickleProvider();
             _serializationProvider = new Utf8JsonProvider();
 
@@ -78,7 +78,7 @@ namespace Examples.RabbitMQ.DataProducer
                 letter.LetterId = (ulong)i;
                 await _rabbitService
                     .Publisher
-                    .PublishAsync(letter, true, true)
+                    .QueueLetterAsync(letter)
                     .ConfigureAwait(false);
             }
         }

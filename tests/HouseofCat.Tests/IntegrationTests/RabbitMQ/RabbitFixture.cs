@@ -38,7 +38,7 @@ namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
             CompressionProvider = new GzipProvider();
             HashingProvider = new Argon2IDHasher();
             HashKey = HashingProvider.GetHashKeyAsync(Passphrase, Salt, 32).GetAwaiter().GetResult();
-            EncryptionProvider = new AesGcmEncryptionProvider(HashKey);
+            EncryptionProvider = new AesGcmEncryptionProvider(HashKey, HashingProvider.Type);
             SerializationProvider = new Utf8JsonProvider();
 
             Options = JsonFileReader.ReadFileAsync<Options>("Config.json").GetAwaiter().GetResult();

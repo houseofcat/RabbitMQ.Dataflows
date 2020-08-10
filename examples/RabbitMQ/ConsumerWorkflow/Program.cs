@@ -19,9 +19,9 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         public static ConsumerWorkflow<WorkState> _workflow;
         public static Stopwatch Stopwatch;
         public static LogLevel LogLevel = LogLevel.Information;
-        public static int ConsumerCount = 3;
+        public static int ConsumerCount = 5;
         public static long GlobalCount = 100_000;
-        public static long ActionCount = 5;
+        public static long ActionCount = 8;
         public static long CurrentCount;
         public static bool EnsureOrdered = true; // use with simulate IO delay to determine if ensuring order is causing delays
         public static bool SimulateIODelay = false;
@@ -98,7 +98,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
             _hashingProvider = new Argon2IDHasher();
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
-            _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
             _compressionProvider = new LZ4PickleProvider();
             _serializationProvider = new Utf8JsonProvider();
 

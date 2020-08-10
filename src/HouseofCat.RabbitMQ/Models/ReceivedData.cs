@@ -20,7 +20,7 @@ namespace HouseofCat.RabbitMQ
 
         byte[] Data { get; set; }
         ulong DeliveryTag { get; }
-        Letter Letter { get; }
+        Letter Letter { get; set; }
 
         IBasicProperties Properties { get; }
 
@@ -39,7 +39,7 @@ namespace HouseofCat.RabbitMQ
         public IModel Channel { get; set; }
         public ulong DeliveryTag { get; }
         public byte[] Data { get; set; }
-        public Letter Letter { get; private set; }
+        public Letter Letter { get; set; }
 
         // Headers
         public string ContentType { get; private set; }
@@ -89,7 +89,7 @@ namespace HouseofCat.RabbitMQ
                 ContentType = Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForObjectType]);
 
                 if (Properties.Headers.ContainsKey(Constants.HeaderForEncrypted))
-                { Encrypted = bool.Parse(Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForEncrypted])); }
+                { Encrypted = (bool)Properties.Headers[Constants.HeaderForEncrypted]; }
 
                 if (Properties.Headers.ContainsKey(Constants.HeaderForEncryption))
                 { EncryptionType = Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForEncryption]); }
@@ -98,7 +98,7 @@ namespace HouseofCat.RabbitMQ
                 { EncryptedDateTime = DateTime.Parse(Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForEncryptDate])); }
 
                 if (Properties.Headers.ContainsKey(Constants.HeaderForCompressed))
-                { Compressed = bool.Parse(Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForCompressed])); }
+                { Compressed = (bool)Properties.Headers[Constants.HeaderForCompressed]; }
 
                 if (Properties.Headers.ContainsKey(Constants.HeaderForCompression))
                 { CompressionType = Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForCompression]); }

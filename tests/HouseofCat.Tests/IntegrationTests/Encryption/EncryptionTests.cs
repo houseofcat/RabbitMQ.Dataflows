@@ -31,7 +31,7 @@ namespace HouseofCat.Tests.IntegrationTests
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
 
             var encryptedData = encryptionProvider.Encrypt(_data);
             _output.WriteLine($"Encrypted: {Encoding.UTF8.GetString(encryptedData)}");
@@ -53,7 +53,7 @@ namespace HouseofCat.Tests.IntegrationTests
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
 
             var encryptedData = encryptionProvider.Encrypt(_data);
             _output.WriteLine($"Encrypted: {Encoding.UTF8.GetString(encryptedData)}");
@@ -75,7 +75,7 @@ namespace HouseofCat.Tests.IntegrationTests
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
 
             var encryptedData = encryptionProvider.Encrypt(_data);
             _output.WriteLine($"Encrypted: {Encoding.UTF8.GetString(encryptedData)}");
