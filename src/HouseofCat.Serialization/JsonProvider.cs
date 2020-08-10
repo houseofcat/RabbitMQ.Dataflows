@@ -47,7 +47,7 @@ namespace HouseofCat.Serialization
 
         public async Task<TOut> DeserializeAsync<TOut>(Stream utf8Json)
         {
-            return await JsonSerializer.DeserializeAsync<TOut>(utf8Json);
+            return await JsonSerializer.DeserializeAsync<TOut>(utf8Json).ConfigureAwait(false);
         }
     }
 }

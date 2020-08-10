@@ -129,7 +129,7 @@ namespace HouseofCat.Utilities.File
                 QueueParallelTreeTraverse(path, searchPattern, (f) => { bag.Add(f); });
 
                 return bag.ToList();
-            });
+            }).ConfigureAwait(false);
 
             return t;
         }
@@ -145,7 +145,7 @@ namespace HouseofCat.Utilities.File
                 ConcurrentParallelTreeTraverse(path, searchPattern, (f) => { bag.Add(f); });
 
                 return bag.ToList();
-            });
+            }).ConfigureAwait(false);
 
             return t;
         }
@@ -161,7 +161,7 @@ namespace HouseofCat.Utilities.File
                 StackParallelTreeTraverse(path, searchPattern, (f) => { bag.Add(f); });
 
                 return bag.ToList();
-            });
+            }).ConfigureAwait(false);
 
             return t;
         }
@@ -367,12 +367,12 @@ namespace HouseofCat.Utilities.File
             string path,
             string searchPattern)
         {
-            return await GetFileNamesAsync(path, searchPattern);
+            return await GetFileNamesAsync(path, searchPattern).ConfigureAwait(false);
         }
 
         public static async Task<IEnumerable<string>> EnumerateFilesWithTasksTreesConcurrentAndParallelAsync(string path, string searchPattern)
         {
-            return await ConcurrentTaskTreeTraverseInParallelAsync(path, searchPattern);
+            return await ConcurrentTaskTreeTraverseInParallelAsync(path, searchPattern).ConfigureAwait(false);
         }
 
         public static async Task<IEnumerable<string>> TreeTraverseAsync(string root,
@@ -394,7 +394,7 @@ namespace HouseofCat.Utilities.File
                 }
             }
 
-            await Task.WhenAll(taskBag);
+            await Task.WhenAll(taskBag).ConfigureAwait(false);
 
             return fileNameBags.AsParallel().SelectMany(f => f);
         }
@@ -422,7 +422,7 @@ namespace HouseofCat.Utilities.File
                         {
                             await GetDirectoryQueuesAsync(dir, directoryQueue).ConfigureAwait(false);
                             taskBag.Add(GetFileNamesAsync(dir, searchPattern, fileNameBags));
-                        });
+                        }).ConfigureAwait(false);
                 }
             }
 
@@ -445,7 +445,7 @@ namespace HouseofCat.Utilities.File
                 catch (DirectoryNotFoundException) { }
 
                 foreach (var dir in subDirs) { directories.Enqueue(dir); };
-            });
+            }).ConfigureAwait(false);
         }
 
         private static async Task GetDirectoryQueuesAsync(
@@ -465,7 +465,7 @@ namespace HouseofCat.Utilities.File
                 foreach (var dir in subDirs) { dirs.Enqueue(dir); };
 
                 directoryQueue.Enqueue(dirs);
-            });
+            }).ConfigureAwait(false);
         }
 
         private static async Task<IEnumerable<string>> GetFileNamesAsync(
@@ -498,7 +498,7 @@ namespace HouseofCat.Utilities.File
                 }
 
                 return fileNames;
-            });
+            }).ConfigureAwait(false);
 
             return t;
         }
@@ -534,7 +534,7 @@ namespace HouseofCat.Utilities.File
                 }
 
                 fileNameBags.Add(fileNames);
-            });
+            }).ConfigureAwait(false);
         }
 
         private static async Task GetDirectoriesInParallelAsync(
@@ -551,7 +551,7 @@ namespace HouseofCat.Utilities.File
                 catch (DirectoryNotFoundException) { }
 
                 Parallel.ForEach(subDirs, dir => { directories.Enqueue(dir); });
-            });
+            }).ConfigureAwait(false);
         }
 
         private static async Task GetFileNamesInParallelAsync(
@@ -584,7 +584,7 @@ namespace HouseofCat.Utilities.File
                 }
 
                 return fileNames.ToList();
-            });
+            }).ConfigureAwait(false);
         }
 
         #endregion

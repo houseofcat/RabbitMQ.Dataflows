@@ -12,12 +12,12 @@ namespace HouseofCat.Gremlins
 
         public static async Task ThrowsSystemExceptionAsync()
         {
-            await ExceptionHelpers.ThrowsRandomSystemExceptionAsync();
+            await ExceptionHelpers.ThrowsRandomSystemExceptionAsync().ConfigureAwait(false);
         }
 
         public static async Task ThrowsNetworkExceptionAsync()
         {
-            await ExceptionHelpers.ThrowsRandomNetworkExceptionAsync();
+            await ExceptionHelpers.ThrowsRandomNetworkExceptionAsync().ConfigureAwait(false);
         }
 
 
@@ -25,8 +25,8 @@ namespace HouseofCat.Gremlins
         {
             switch (_random.Next(1, 2))
             {
-                case 1: await ExceptionHelpers.ThrowsRandomSystemExceptionAsync(); break;
-                case 2: await ExceptionHelpers.ThrowsRandomNetworkExceptionAsync(); break;
+                case 1: await ExceptionHelpers.ThrowsRandomSystemExceptionAsync().ConfigureAwait(false); break;
+                case 2: await ExceptionHelpers.ThrowsRandomNetworkExceptionAsync().ConfigureAwait(false); break;
                 default: break;
             }
         }
@@ -43,9 +43,9 @@ namespace HouseofCat.Gremlins
         {
             switch (input)
             {
-                case int userInput: await HandleIntAsync(userInput, target); break;
-                case long userInput: await HandleLongAsync(userInput, target); break;
-                case string userInput: await HandleStringAsync(userInput, target); break;
+                case int userInput: await HandleIntAsync(userInput, target).ConfigureAwait(false); break;
+                case long userInput: await HandleLongAsync(userInput, target).ConfigureAwait(false); break;
+                case string userInput: await HandleStringAsync(userInput, target).ConfigureAwait(false); break;
                 default: break;
             }
         }
@@ -54,9 +54,9 @@ namespace HouseofCat.Gremlins
         {
             switch (input)
             {
-                case int userInput: await RemoveIntAsync(userInput); break;
-                case long userInput: await RemoveLongAsync(userInput); break;
-                case string userInput: await RemoveStringAsync(userInput); break;
+                case int userInput: await RemoveIntAsync(userInput).ConfigureAwait(false); break;
+                case long userInput: await RemoveLongAsync(userInput).ConfigureAwait(false); break;
+                case string userInput: await RemoveStringAsync(userInput).ConfigureAwait(false); break;
                 default: break;
             }
         }
@@ -65,7 +65,7 @@ namespace HouseofCat.Gremlins
 
         private static async Task HandleIntAsync(int input, ExceptionTarget target = null, bool allowContextualCleanup = false)
         {
-            var exTarget = await GetOrAddIntCachedExecptionTargetAsync(input, target);
+            var exTarget = await GetOrAddIntCachedExecptionTargetAsync(input, target).ConfigureAwait(false);
 
             if (exTarget.FailureCount < exTarget.FailureCountMax)
             {
@@ -77,7 +77,7 @@ namespace HouseofCat.Gremlins
                     || (!exTarget.AllowConsecutiveFailure && !exTarget.LastIterationFailed))
                 {
                     // Will We Throw Exception?
-                    throwException = await ShouldWeThrowExceptionAsync(input);
+                    throwException = await ShouldWeThrowExceptionAsync(input).ConfigureAwait(false);
 
                     if (throwException) // The Math Gods Say Yes!
                     {
@@ -93,7 +93,7 @@ namespace HouseofCat.Gremlins
                 // Update Cache
                 _intExceptionCache[input] = exTarget;
 
-                if (throwException) { await ThrowsRandomExceptionAsync(); }
+                if (throwException) { await ThrowsRandomExceptionAsync().ConfigureAwait(false); }
             }
             else if (allowContextualCleanup) // We are finished with this input! Allows it come back in!
             { _intExceptionCache.TryRemove(input, out ExceptionTarget outTarget); }
@@ -101,7 +101,7 @@ namespace HouseofCat.Gremlins
 
         private static async Task HandleLongAsync(long input, ExceptionTarget target = null, bool allowContextualCleanup = false)
         {
-            var exTarget = await GetOrAddLongCachedExecptionTargetAsync(input, target);
+            var exTarget = await GetOrAddLongCachedExecptionTargetAsync(input, target).ConfigureAwait(false);
 
             if (exTarget.FailureCount < exTarget.FailureCountMax)
             {
@@ -113,7 +113,7 @@ namespace HouseofCat.Gremlins
                     || (!exTarget.AllowConsecutiveFailure && !exTarget.LastIterationFailed))
                 {
                     // Will We Throw Exception?
-                    throwException = await ShouldWeThrowExceptionAsync(input);
+                    throwException = await ShouldWeThrowExceptionAsync(input).ConfigureAwait(false);
 
                     if (throwException) // The Math Gods Say Yes!
                     {
@@ -129,7 +129,7 @@ namespace HouseofCat.Gremlins
                 // Update Cache
                 _longExceptionCache[input] = exTarget;
 
-                if (throwException) { await ThrowsRandomExceptionAsync(); }
+                if (throwException) { await ThrowsRandomExceptionAsync().ConfigureAwait(false); }
             }
             else if (allowContextualCleanup) // We are finished with this input! Allows it come back in!
             { _longExceptionCache.TryRemove(input, out ExceptionTarget outTarget); }
@@ -138,7 +138,7 @@ namespace HouseofCat.Gremlins
 
         private static async Task HandleStringAsync(string input, ExceptionTarget target = null, bool allowContextualCleanup = false)
         {
-            var exTarget = await GetOrAddStringCachedExecptionTargetAsync(input, target);
+            var exTarget = await GetOrAddStringCachedExecptionTargetAsync(input, target).ConfigureAwait(false);
 
             if (exTarget.FailureCount < exTarget.FailureCountMax)
             {
@@ -150,7 +150,7 @@ namespace HouseofCat.Gremlins
                     || (!exTarget.AllowConsecutiveFailure && !exTarget.LastIterationFailed))
                 {
                     // Will We Throw Exception?
-                    throwException = await ShouldWeThrowExceptionAsync(input);
+                    throwException = await ShouldWeThrowExceptionAsync(input).ConfigureAwait(false);
 
                     if (throwException) // The Math Gods Say Yes!
                     {
@@ -166,7 +166,7 @@ namespace HouseofCat.Gremlins
                 // Update Cache
                 _stringExceptionCache[input] = exTarget;
 
-                if (throwException) { await ThrowsRandomExceptionAsync(); }
+                if (throwException) { await ThrowsRandomExceptionAsync().ConfigureAwait(false); }
             }
             else if (allowContextualCleanup) // We are finished with this input! Allows it come back in!
             { _stringExceptionCache.TryRemove(input, out ExceptionTarget outTarget); }

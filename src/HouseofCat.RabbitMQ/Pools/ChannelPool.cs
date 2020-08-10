@@ -225,7 +225,7 @@ namespace HouseofCat.RabbitMQ.Pools
                 catch
                 {
                     _logger.LogTrace(LogMessages.ChannelPools.CreateChannelFailedConnection, channelId);
-                    await ReturnConnectionWithOptionalSleep(connHost, channelId, Options.PoolOptions.SleepOnErrorInterval);
+                    await ReturnConnectionWithOptionalSleep(connHost, channelId, Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
                     continue;
                 }
 
@@ -233,7 +233,7 @@ namespace HouseofCat.RabbitMQ.Pools
                 try
                 {
                     chanHost = new ChannelHost(channelId, connHost, ackable);
-                    await ReturnConnectionWithOptionalSleep(connHost, channelId, 0);
+                    await ReturnConnectionWithOptionalSleep(connHost, channelId, 0).ConfigureAwait(false);
                     _flaggedChannels[chanHost.ChannelId] = false;
                     _logger.LogDebug(LogMessages.ChannelPools.CreateChannelSuccess, channelId);
 
@@ -242,7 +242,7 @@ namespace HouseofCat.RabbitMQ.Pools
                 catch
                 {
                     _logger.LogTrace(LogMessages.ChannelPools.CreateChannelFailedConstruction, channelId);
-                    await ReturnConnectionWithOptionalSleep(connHost, channelId, Options.PoolOptions.SleepOnErrorInterval);
+                    await ReturnConnectionWithOptionalSleep(connHost, channelId, Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
                 }
             }
         }

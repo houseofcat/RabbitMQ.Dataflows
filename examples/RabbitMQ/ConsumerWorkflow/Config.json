@@ -96,7 +96,7 @@
   "ConsumerOptions": {
     "ConsumerFromConfig": {
       "Enabled": true,
-      "GlobalSettings": "ModerateSettings",
+      "GlobalSettings": "LightSettings",
       "ConsumerName": "ConsumerFromConfig",
       "QueueName": "TestRabbitServiceQueue"
     }

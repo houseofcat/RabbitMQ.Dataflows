@@ -29,7 +29,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         private ISerializationProvider _serializationProvider;
 
         // Main Flow - PreProcessing
-        private List<ConsumerBlock<ReceivedData>> _consumerBlocks; // Doubles as a BufferBlock.
+        private readonly List<ConsumerBlock<ReceivedData>> _consumerBlocks; // Doubles as a BufferBlock.
         private BufferBlock<ReceivedData> _inputBuffer;
         private TransformBlock<ReceivedData, TState> _buildStateBlock;
         private TransformBlock<TState, TState> _decryptBlock;
@@ -37,7 +37,7 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         // Main Flow - Supplied Steps
         private BufferBlock<TState> _readyBuffer;
-        private List<TransformBlock<TState, TState>> _suppliedTransforms = new List<TransformBlock<TState, TState>>();
+        private readonly List<TransformBlock<TState, TState>> _suppliedTransforms = new List<TransformBlock<TState, TState>>();
 
         // Main Flow - PostProcessing
         private BufferBlock<TState> _postProcessingBuffer;
@@ -339,7 +339,7 @@ namespace HouseofCat.RabbitMQ.Workflows
 
             foreach (var consumerBlock in _consumerBlocks)
             {
-                await consumerBlock.StartConsumingAsync();
+                await consumerBlock.StartConsumingAsync().ConfigureAwait(false);
             }
         }
 
@@ -348,7 +348,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             // Signal stop consuming and completion.
             foreach (var consumerBlock in _consumerBlocks)
             {
-                await consumerBlock.StopConsumingAsync();
+                await consumerBlock.StopConsumingAsync().ConfigureAwait(false);
                 consumerBlock.Complete(); // Set complete at the top level.
             }
         }

@@ -30,7 +30,7 @@
 
     <!-- Analyze -->
     <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
-    <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
+    <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(IsWindows)'=='true'">

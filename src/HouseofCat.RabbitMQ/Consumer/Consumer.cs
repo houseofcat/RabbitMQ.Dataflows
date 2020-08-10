@@ -94,7 +94,7 @@ namespace HouseofCat.RabbitMQ
                     do
                     {
                         _logger.LogTrace(LogMessages.Consumers.StartingConsumerLoop, ConsumerOptions.ConsumerName);
-                        success = await StartConsumingAsync();
+                        success = await StartConsumingAsync().ConfigureAwait(false);
                     }
                     while (!success);
 
@@ -176,8 +176,8 @@ namespace HouseofCat.RabbitMQ
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Exception creating internal RabbitMQ consumer. Retrying...");
-                    await Task.Delay(1000);
-                    await _chanHost.MakeChannelAsync();
+                    await Task.Delay(1000).ConfigureAwait(false);
+                    await _chanHost.MakeChannelAsync().ConfigureAwait(false);
                     return false;
                 }
             }
@@ -208,8 +208,8 @@ namespace HouseofCat.RabbitMQ
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Exception creating internal RabbitMQ consumer. Retrying...");
-                    await Task.Delay(1000);
-                    await _chanHost.MakeChannelAsync();
+                    await Task.Delay(1000).ConfigureAwait(false);
+                    await _chanHost.MakeChannelAsync().ConfigureAwait(false);
                     return false;
                 }
             }
@@ -341,7 +341,7 @@ namespace HouseofCat.RabbitMQ
                 bool success;
                 do
                 {
-                    success = await _chanHost.MakeChannelAsync();
+                    success = await _chanHost.MakeChannelAsync().ConfigureAwait(false);
 
                     if (success)
                     {
@@ -350,7 +350,7 @@ namespace HouseofCat.RabbitMQ
                             ConsumerOptions.ConsumerName,
                             e.ReplyText);
 
-                        success = await StartConsumingAsync();
+                        success = await StartConsumingAsync().ConfigureAwait(false);
                     }
                 }
                 while (!_shutdown && !success);

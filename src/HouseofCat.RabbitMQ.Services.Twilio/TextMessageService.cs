@@ -66,7 +66,7 @@ namespace HouseofCat.RabbitMQ.Services
                     RunningTask = ProcessMessagesAsync();
                 }
 
-                await Task.Delay(1000);
+                await Task.Delay(1000).ConfigureAwait(false);
             }
 
             await _rabbitService.ShutdownAsync(false);
@@ -85,7 +85,7 @@ namespace HouseofCat.RabbitMQ.Services
                         body: message,
                         from: new Twilio.Types.PhoneNumber(from),
                         to: new Twilio.Types.PhoneNumber(to)
-                    );
+                    ).ConfigureAwait(false);
 
                     if (response.Status == MessageResource.StatusEnum.Accepted)
                     { return true; }
@@ -117,7 +117,7 @@ namespace HouseofCat.RabbitMQ.Services
                 _consumerPipeline = _rabbitService.CreateConsumerPipeline<TwilioWorkState>(_consumerName, BuildPipeline);
                 _errorQueue = _options.ErrorQueueName;
 
-                await _consumerPipeline.StartAsync(false);
+                await _consumerPipeline.StartAsync(false).ConfigureAwait(false);
             }
             catch { }
         }
@@ -185,7 +185,7 @@ namespace HouseofCat.RabbitMQ.Services
                 await SendMessageAsync(
                     state.TextMessage.Message,
                     state.TextMessage.ToNumber,
-                    state.TextMessage.FromNumber);
+                    state.TextMessage.FromNumber).ConfigureAwait(false);
 
                 state.ProcessStepSuccess = true;
             }

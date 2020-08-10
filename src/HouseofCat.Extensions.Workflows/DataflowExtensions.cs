@@ -23,25 +23,25 @@ namespace HouseofCat.Extensions.Workflows
         public static async Task CompleteAsync<T>(this ISourceBlock<T> source, ITargetBlock<T> targetBlock)
         {
             source.Complete();
-            await Task.WhenAll(source.Completion, targetBlock.Completion);
+            await Task.WhenAll(source.Completion, targetBlock.Completion).ConfigureAwait(false);
         }
 
         public static async Task CompleteAsync<T>(this ISourceBlock<T> source, IEnumerable<ITargetBlock<T>> targetBlocks)
         {
             source.Complete();
-            await Task.WhenAll(targetBlocks.Select(tb => tb.Completion));
+            await Task.WhenAll(targetBlocks.Select(tb => tb.Completion)).ConfigureAwait(false);
         }
 
         public static async Task CompleteAfterTargetFinishAsync<T>(this ISourceBlock<T> source, ITargetBlock<T> targetBlock)
         {
-            await targetBlock.Completion.ContinueWith(_ => source.Complete());
-            await source.Completion;
+            await targetBlock.Completion.ContinueWith(_ => source.Complete()).ConfigureAwait(false);
+            await source.Completion.ConfigureAwait(false);
         }
 
         public static async Task CompleteAfterTargetsFinishAsync<T>(this ISourceBlock<T> source, IEnumerable<ITargetBlock<T>> targetBlocks)
         {
-            await Task.WhenAll(targetBlocks.Select(tb => tb.Completion)).ContinueWith(_ => source.Complete());
-            await source.Completion;
+            await Task.WhenAll(targetBlocks.Select(tb => tb.Completion)).ContinueWith(_ => source.Complete()).ConfigureAwait(false);
+            await source.Completion.ConfigureAwait(false);
         }
 
         public static IPropagatorBlock<TIn, TIn> CreateFilterBlock<TIn>(Predicate<TIn> predicate)

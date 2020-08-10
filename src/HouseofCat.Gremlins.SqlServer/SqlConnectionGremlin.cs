@@ -49,7 +49,7 @@ namespace HouseofCat.Gremlins
         {
             for (int i = 0; i < connectionsToCreate; i++)
             {
-                await AddOpenConnectionAsync(connectionString);
+                await AddOpenConnectionAsync(connectionString).ConfigureAwait(false);
             }
         }
 
@@ -88,7 +88,7 @@ namespace HouseofCat.Gremlins
         {
             for (int i = 0; i < connectionsToClose; i++)
             {
-                await CloseOpenConnectionAsync();
+                await CloseOpenConnectionAsync().ConfigureAwait(false);
             }
         }
 
