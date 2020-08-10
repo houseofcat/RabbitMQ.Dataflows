@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Utf8Json;
+using Utf8Json.Resolvers;
 
 namespace HouseofCat.Serialization
 {
@@ -10,9 +11,9 @@ namespace HouseofCat.Serialization
     {
         private readonly IJsonFormatterResolver _resolver;
 
-        public Utf8JsonProvider(IJsonFormatterResolver resolver)
+        public Utf8JsonProvider(IJsonFormatterResolver resolver = null)
         {
-            _resolver = resolver;
+            _resolver = resolver ?? StandardResolver.Default;
         }
 
         public byte[] Serialize<TIn>(TIn input)

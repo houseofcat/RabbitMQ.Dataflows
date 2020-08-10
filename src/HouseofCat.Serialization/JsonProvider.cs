@@ -10,7 +10,7 @@ namespace HouseofCat.Serialization
     {
         private JsonSerializerOptions _options;
 
-        public JsonProvider(JsonSerializerOptions options)
+        public JsonProvider(JsonSerializerOptions options = null)
         {
             _options = options;
         }

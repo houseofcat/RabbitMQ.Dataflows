@@ -1,9 +1,10 @@
-using HouseofCat.Compression.Builtin;
+using HouseofCat.Compression;
 using HouseofCat.Encryption;
-using HouseofCat.Encryption.Hash;
 using HouseofCat.Logger;
-using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.RabbitMQ.Pipelines;
+using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Serialization;
+using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.File;
 using HouseofCat.Utilities.Time;
 using HouseofCat.Workflows.Pipelines;
@@ -12,7 +13,6 @@ using RabbitMQ.Client;
 using System;
 using System.Collections.Concurrent;
 using System.Globalization;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,22 +22,20 @@ namespace HouseofCat.RabbitMQ.Services
     {
         IPublisher Publisher { get; }
         IChannelPool ChannelPool { get; }
-        Options Options { get; }
-        ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; }
         ITopologer Topologer { get; }
+        Options Options { get; }
+
+        ISerializationProvider SerializationProvider { get; }
+        IEncryptionProvider EncryptionProvider { get; }
+        ICompressionProvider CompressionProvider { get; }
+
+        ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; }
 
         Task ComcryptAsync(Letter letter);
         Task<bool> CompressAsync(Letter letter);
         IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, int batchSize, bool? ensureOrdered, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : IWorkState;
         IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, IPipeline<ReceivedData, TOut> pipeline) where TOut : IWorkState;
 
-        /// <summary>
-        /// Use this CreateConsumerPipeline function when using the new ConsumerOption config that includes ConsumerPipeline settings.
-        /// </summary>
-        /// <typeparam name="TOut"></typeparam>
-        /// <param name="consumerName"></param>
-        /// <param name="pipelineBuilder"></param>
-        /// <returns></returns>
         IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : IWorkState;
 
         Task DecomcryptAsync(Letter letter);
@@ -54,7 +52,6 @@ namespace HouseofCat.RabbitMQ.Services
 
     public class RabbitService : IRabbitService, IDisposable
     {
-        private byte[] _hashKey { get; }
         private readonly SemaphoreSlim _serviceLock = new SemaphoreSlim(1, 1);
         private bool _disposedValue;
 
@@ -63,75 +60,64 @@ namespace HouseofCat.RabbitMQ.Services
         public IPublisher Publisher { get; }
         public ITopologer Topologer { get; }
 
+        public ISerializationProvider SerializationProvider { get; }
+        public IEncryptionProvider EncryptionProvider { get; }
+        public ICompressionProvider CompressionProvider { get; }
+
         public ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<ReceivedData>>();
         private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerOptions { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
 
-        /// <summary>
-        /// Reads config from a provided file name path. Builds out a RabbitService with instantiated dependencies based on config settings.
-        /// </summary>
-        /// <param name="fileNamePath"></param>
-        /// <param name="passphrase"></param>
-        /// <param name="salt"></param>
-        /// <param name="loggerFactory"></param>
-        /// <param name="processReceiptAsync"></param>
-        public RabbitService(string fileNamePath, string passphrase, string salt, ILoggerFactory loggerFactory = null, Func<PublishReceipt, ValueTask> processReceiptAsync = null)
+        public RabbitService(
+            string fileNamePath,
+            ISerializationProvider serializationProvider,
+            IEncryptionProvider encryptionProvider = null,
+            ICompressionProvider compressionProvider = null,
+            ILoggerFactory loggerFactory = null, Func<PublishReceipt, ValueTask> processReceiptAsync = null)
             : this(
                   JsonFileReader
                     .ReadFileAsync<Options>(fileNamePath)
                     .GetAwaiter()
                     .GetResult(),
-                  passphrase,
-                  salt,
+                  serializationProvider,
+                  encryptionProvider,
+                  compressionProvider,
                   loggerFactory,
                   processReceiptAsync)
         { }
 
-        /// <summary>
-        /// Builds out a RabbitService with instantiated dependencies based on config settings.
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="passphrase"></param>
-        /// <param name="salt"></param>
-        /// <param name="loggerFactory"></param>
-        /// <param name="processReceiptAsync"></param>
-        public RabbitService(Options options, string passphrase, string salt, ILoggerFactory loggerFactory = null, Func<PublishReceipt, ValueTask> processReceiptAsync = null)
+        public RabbitService(
+            Options options,
+            ISerializationProvider serializationProvider,
+            IEncryptionProvider encryptionProvider = null,
+            ICompressionProvider compressionProvider = null,
+            ILoggerFactory loggerFactory = null,
+            Func<PublishReceipt, ValueTask> processReceiptAsync = null)
         {
+            Guard.AgainstNull(options, nameof(options));
+            Guard.AgainstNull(serializationProvider, nameof(serializationProvider));
             LogHelper.LoggerFactory = loggerFactory;
 
             Options = options;
             ChannelPool = new ChannelPool(Options);
 
-            if (!string.IsNullOrWhiteSpace(passphrase))
-            {
-                _hashKey = ArgonHash
-                    .GetHashKeyAsync(passphrase, salt, Constants.EncryptionKeySize)
-                    .GetAwaiter().GetResult();
-            }
+            SerializationProvider = serializationProvider;
+            EncryptionProvider = encryptionProvider;
+            CompressionProvider = compressionProvider;
 
-            Publisher = new Publisher(ChannelPool, _hashKey);
+            Publisher = new Publisher(ChannelPool, SerializationProvider, EncryptionProvider, CompressionProvider);
             Topologer = new Topologer(ChannelPool);
 
             Options.ApplyGlobalConsumerOptions();
             BuildConsumers();
 
-            StartAsync(processReceiptAsync).GetAwaiter().GetResult();
-        }
+            Publisher
+                .StartAutoPublishAsync(processReceiptAsync)
+                .GetAwaiter()
+                .GetResult();
 
-        private async Task StartAsync(Func<PublishReceipt, ValueTask> processReceiptAsync)
-        {
-            await _serviceLock.WaitAsync().ConfigureAwait(false);
-
-            try
-            {
-                await Publisher
-                    .StartAutoPublishAsync(processReceiptAsync)
-                    .ConfigureAwait(false);
-
-                await BuildConsumerTopology()
-                    .ConfigureAwait(false);
-            }
-            finally
-            { _serviceLock.Release(); }
+            BuildConsumerTopology()
+                .GetAwaiter()
+                .GetResult();
         }
 
         public async ValueTask ShutdownAsync(bool immediately)
@@ -174,7 +160,7 @@ namespace HouseofCat.RabbitMQ.Services
                 {
                     ConsumerPipelineNameToConsumerOptions.TryAdd(consumerSetting.Value.ConsumerPipelineOptions.ConsumerPipelineName, consumerSetting.Value);
                 }
-                Consumers.TryAdd(consumerSetting.Value.ConsumerName, new Consumer(ChannelPool, consumerSetting.Value, _hashKey));
+                Consumers.TryAdd(consumerSetting.Value.ConsumerName, new Consumer(ChannelPool, consumerSetting.Value));
             }
         }
 
@@ -182,7 +168,6 @@ namespace HouseofCat.RabbitMQ.Services
         {
             foreach (var consumer in Consumers)
             {
-                consumer.Value.HashKey = _hashKey;
                 if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.QueueName))
                 {
                     await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.QueueName).ConfigureAwait(false);
@@ -213,13 +198,6 @@ namespace HouseofCat.RabbitMQ.Services
             return new ConsumerPipeline<TOut>(consumer, pipeline);
         }
 
-        /// <summary>
-        /// Use this CreateConsumerPipeline function when using the new ConsumerOption config that includes ConsumerPipeline settings.
-        /// </summary>
-        /// <typeparam name="TOut"></typeparam>
-        /// <param name="consumerName"></param>
-        /// <param name="pipelineBuilder"></param>
-        /// <returns></returns>
         public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
             string consumerName,
             Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder)
@@ -273,47 +251,46 @@ namespace HouseofCat.RabbitMQ.Services
             Encrypt(letter);
         }
 
+        // Returns Success
         public bool Encrypt(Letter letter)
         {
-            if (letter.LetterMetadata.Encrypted || (_hashKey == null && _hashKey.Length == 0))
-            { return false; } // Don't double encrypt.
-
-            try
+            if (!letter.LetterMetadata.Encrypted)
             {
-                letter.Body = AesEncrypt.Aes256Encrypt(letter.Body, _hashKey);
+                letter.Body = EncryptionProvider.Encrypt(letter.Body);
                 letter.LetterMetadata.Encrypted = true;
                 letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypted] = true;
-                letter.LetterMetadata.CustomFields[Constants.HeaderForEncryption] = Constants.HeaderValueForArgonAesEncrypt;
+                letter.LetterMetadata.CustomFields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
                 letter.LetterMetadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
-            }
-            catch { return false; }
 
-            return true;
+                return true;
+            }
+
+            return false;
         }
 
         // Returns Success
         public bool Decrypt(Letter letter)
         {
-            if (!letter.LetterMetadata.Encrypted || (_hashKey == null && _hashKey.Length == 0))
-            { return false; } // Don't decrypt without it being encrypted.
-
-            try
+            if (letter.LetterMetadata.Encrypted)
             {
-                letter.Body = AesEncrypt.Aes256Decrypt(letter.Body, _hashKey);
+                letter.Body = EncryptionProvider.Decrypt(letter.Body);
                 letter.LetterMetadata.Encrypted = false;
-
-                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForEncrypted))
-                { letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncrypted); }
+                letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypted] = false;
 
                 if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForEncryption))
-                { letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncryption); }
+                {
+                    letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncryption);
+                }
 
                 if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForEncryptDate))
-                { letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncryptDate); }
-            }
-            catch { return false; }
+                {
+                    letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncryptDate);
+                }
 
-            return true;
+                return true;
+            }
+
+            return false;
         }
 
         // Returns Success
@@ -324,14 +301,12 @@ namespace HouseofCat.RabbitMQ.Services
 
             if (!letter.LetterMetadata.Compressed)
             {
-                try
-                {
-                    letter.Body = await Gzip.CompressAsync(letter.Body).ConfigureAwait(false);
-                    letter.LetterMetadata.Compressed = true;
-                    letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = true;
-                    letter.LetterMetadata.CustomFields[Constants.HeaderForCompression] = Constants.HeaderValueForGzipCompress;
-                }
-                catch { return false; }
+                letter.Body = await CompressionProvider.CompressAsync(letter.Body);
+                letter.LetterMetadata.Compressed = true;
+                letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = true;
+                letter.LetterMetadata.CustomFields[Constants.HeaderForCompression] = CompressionProvider.Type;
+
+                return true;
             }
 
             return true;
@@ -347,13 +322,9 @@ namespace HouseofCat.RabbitMQ.Services
             {
                 try
                 {
-                    letter.Body = await Gzip.DecompressAsync(letter.Body).ConfigureAwait(false);
+                    letter.Body = await CompressionProvider.DecompressAsync(letter.Body);
                     letter.LetterMetadata.Compressed = false;
-
-                    if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForCompressed))
-                    {
-                        letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForCompressed);
-                    }
+                    letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = false;
 
                     if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForCompression))
                     {
@@ -366,11 +337,6 @@ namespace HouseofCat.RabbitMQ.Services
             return true;
         }
 
-        /// <summary>
-        /// Simple retrieve message (byte[]) from queue. Null if nothing was available or on error.
-        /// <para>AutoAcks message.</para>
-        /// </summary>
-        /// <param name="queueName"></param>
         public async Task<ReadOnlyMemory<byte>?> GetAsync(string queueName)
         {
             IChannelHost chanHost;
@@ -435,7 +401,7 @@ namespace HouseofCat.RabbitMQ.Services
                     .ConfigureAwait(false);
             }
 
-            return result != null ? JsonSerializer.Deserialize<T>(result.Body.Span) : default;
+            return result != null ? SerializationProvider.Deserialize<T>(result.Body) : default;
         }
 
         protected virtual void Dispose(bool disposing)

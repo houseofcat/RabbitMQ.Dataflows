@@ -10,7 +10,7 @@ namespace HouseofCat.Serialization
     {
         private readonly MessagePackSerializerOptions _options;
 
-        public MessagePackProvider(MessagePackSerializerOptions options)
+        public MessagePackProvider(MessagePackSerializerOptions options = null)
         {
             _options = options;
         }

@@ -1,13 +1,19 @@
-﻿using HouseofCat.RabbitMQ;
-using HouseofCat.RabbitMQ.Services;
+﻿using HouseofCat.Compression;
+using HouseofCat.Encryption;
+using HouseofCat.Hashing;
+using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pipelines;
+using HouseofCat.RabbitMQ.Services;
+using HouseofCat.Serialization;
 using HouseofCat.Workflows.Pipelines;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Utf8Json.Resolvers;
 
 namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
 {
@@ -60,6 +66,11 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
 
     public class ConsumerPipelineMicroservice
     {
+        private ISerializationProvider _serializationProvider;
+        private IHashingProvider _hashingProvider;
+        private ICompressionProvider _compressionProvider;
+        private IEncryptionProvider _encryptionProvider;
+
         private IRabbitService _rabbitService;
         private ILogger<ConsumerPipelineMicroservice> _logger;
         private IConsumerPipeline<WorkState> _consumerPipeline;
@@ -95,13 +106,21 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
 
         private async Task<RabbitService> SetupAsync()
         {
+            _hashingProvider = new Argon2IDHasher();
+            var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
+
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            _compressionProvider = new GzipProvider();
+            _serializationProvider = new Utf8JsonProvider(StandardResolver.Default);
+
             var letterTemplate = new Letter("", "TestRabbitServiceQueue", null, new LetterMetadata());
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(Program.LogLevel));
             _logger = loggerFactory.CreateLogger<ConsumerPipelineMicroservice>();
             var rabbitService = new RabbitService(
                 "Config.json",
-                "passwordforencryption",
-                "saltforencryption",
+                _serializationProvider,
+                _encryptionProvider,
+                _compressionProvider,
                 loggerFactory);
 
             await rabbitService
@@ -131,7 +150,7 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
                 pipelineName: "ConsumerPipelineExample",
                 ensureOrdered);
 
-            pipeline.AddAsyncStep<ReceivedData, WorkState>(DeserializeStepAsync);
+            pipeline.AddStep<ReceivedData, WorkState>(DeserializeStep);
             pipeline.AddAsyncStep<WorkState, WorkState>(ProcessStepAsync);
             pipeline.AddAsyncStep<WorkState, WorkState>(AckMessageAsync);
 
@@ -179,7 +198,7 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
             public bool AllStepsSuccess => DeserializeStepSuccess && ProcessStepSuccess && AcknowledgeStepSuccess;
         }
 
-        private async Task<WorkState> DeserializeStepAsync(IReceivedData receivedData)
+        private WorkState DeserializeStep(IReceivedData receivedData)
         {
             var state = new WorkState
             {
@@ -190,13 +209,12 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
             {
                 state.Message = state.ReceivedData.ContentType switch
                 {
-                    HouseofCat.RabbitMQ.Constants.HeaderValueForLetter => await receivedData
-                        .GetTypeFromJsonAsync<Message>()
-                        .ConfigureAwait(false),
+                    HouseofCat.RabbitMQ.Constants.HeaderValueForLetter =>
+                        _serializationProvider
+                        .Deserialize<Message>(state.ReceivedData.Letter.Body),
 
-                    _ => await receivedData
-                        .GetTypeFromJsonAsync<Message>(decrypt: false, decompress: false)
-                        .ConfigureAwait(false),
+                    _ => _serializationProvider
+                        .Deserialize<Message>(state.ReceivedData.Data),
                 };
 
                 if (state.ReceivedData.Data.Length > 0 && (state.Message != null || state.ReceivedData.Letter != null))
@@ -236,7 +254,7 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
                 var stringBody = string.Empty;
 
                 try
-                { stringBody = await state.ReceivedData.GetBodyAsUtf8StringAsync().ConfigureAwait(false); }
+                { stringBody = Encoding.UTF8.GetString(state.ReceivedData.Data); }
                 catch (Exception ex) { _logger.LogError(ex, "What?!"); }
 
                 if (failed)

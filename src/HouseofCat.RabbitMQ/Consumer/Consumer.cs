@@ -20,8 +20,6 @@ namespace HouseofCat.RabbitMQ
         ConsumerOptions ConsumerOptions { get; }
         bool Started { get; }
 
-        ReadOnlyMemory<byte> HashKey { get; set; }
-
         Task DataflowExecutionEngineAsync(Func<TFromQueue, Task<bool>> workBodyAsync, int maxDoP = 4, bool ensureOrdered = true, CancellationToken token = default);
 
         ChannelReader<TFromQueue> GetConsumerBuffer();
@@ -49,23 +47,20 @@ namespace HouseofCat.RabbitMQ
         public IChannelPool ChannelPool { get; }
         public bool Started { get; private set; }
 
-        public ReadOnlyMemory<byte> HashKey { get; set; }
-
-        public Consumer(Options options, string consumerName, byte[] hashKey = null)
-            : this(new ChannelPool(options), consumerName, hashKey)
+        public Consumer(Options options, string consumerName)
+            : this(new ChannelPool(options), consumerName)
         { }
 
-        public Consumer(IChannelPool channelPool, string consumerName, byte[] hashKey = null)
+        public Consumer(IChannelPool channelPool, string consumerName)
             : this(
                   channelPool,
-                  channelPool.Options.GetConsumerOptions(consumerName),
-                  hashKey)
+                  channelPool.Options.GetConsumerOptions(consumerName))
         {
             Guard.AgainstNull(channelPool, nameof(channelPool));
             Guard.AgainstNullOrEmpty(consumerName, nameof(consumerName));
         }
 
-        public Consumer(IChannelPool channelPool, ConsumerOptions consumerOptions, byte[] hashKey = null)
+        public Consumer(IChannelPool channelPool, ConsumerOptions consumerOptions)
         {
             Guard.AgainstNull(channelPool, nameof(channelPool));
             Guard.AgainstNull(consumerOptions, nameof(consumerOptions));
@@ -73,7 +68,6 @@ namespace HouseofCat.RabbitMQ
             _logger = LogHelper.GetLogger<Consumer>();
             Options = channelPool.Options;
             ChannelPool = channelPool;
-            HashKey = hashKey;
             ConsumerOptions = consumerOptions;
         }
 
@@ -87,26 +81,20 @@ namespace HouseofCat.RabbitMQ
             {
                 if (!Started && ConsumerOptions.Enabled)
                 {
+                    await SetChannelHostAsync().ConfigureAwait(false);
                     _shutdown = false;
                     _dataBuffer = Channel.CreateBounded<ReceivedData>(
-                    new BoundedChannelOptions(ConsumerOptions.BatchSize.Value)
-                    {
-                        FullMode = ConsumerOptions.BehaviorWhenFull.Value
-                    });
+                        new BoundedChannelOptions(ConsumerOptions.BatchSize.Value)
+                        {
+                            FullMode = ConsumerOptions.BehaviorWhenFull.Value
+                        });
 
-                    await _dataBuffer
-                        .Writer
-                        .WaitToWriteAsync()
-                        .ConfigureAwait(false);
-
-                    await SetChannelHostAsync()
-                        .ConfigureAwait(false);
-
+                    await Task.Yield();
                     bool success;
                     do
                     {
                         _logger.LogTrace(LogMessages.Consumers.StartingConsumerLoop, ConsumerOptions.ConsumerName);
-                        success = StartConsuming();
+                        success = await StartConsumingAsync();
                     }
                     while (!success);
 
@@ -152,7 +140,7 @@ namespace HouseofCat.RabbitMQ
             finally { _conLock.Release(); }
         }
 
-        private bool StartConsuming()
+        private async Task<bool> StartConsumingAsync()
         {
             if (_shutdown)
             { return false; }
@@ -169,41 +157,61 @@ namespace HouseofCat.RabbitMQ
                     _asyncConsumer.Shutdown -= ConsumerShutdownAsync;
                 }
 
-                _asyncConsumer = CreateAsyncConsumer();
-                if (_asyncConsumer == null) { return false; }
+                try
+                {
+                    _asyncConsumer = CreateAsyncConsumer();
+                    if (_asyncConsumer == null) { return false; }
 
-                _chanHost
-                    .GetChannel()
-                    .BasicConsume(
-                        ConsumerOptions.QueueName,
-                        ConsumerOptions.AutoAck ?? false,
-                        ConsumerOptions.ConsumerName,
-                        ConsumerOptions.NoLocal ?? false,
-                        ConsumerOptions.Exclusive ?? false,
-                        null,
-                        _asyncConsumer);
+                    _chanHost
+                        .GetChannel()
+                        .BasicConsume(
+                            ConsumerOptions.QueueName,
+                            ConsumerOptions.AutoAck ?? false,
+                            ConsumerOptions.ConsumerName,
+                            ConsumerOptions.NoLocal ?? false,
+                            ConsumerOptions.Exclusive ?? false,
+                            null,
+                            _asyncConsumer);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Exception creating internal RabbitMQ consumer. Retrying...");
+                    await Task.Delay(1000);
+                    await _chanHost.MakeChannelAsync();
+                    return false;
+                }
             }
             else
             {
-                if (_asyncConsumer != null)
+                if (_consumer != null)
                 {
                     _consumer.Received -= ReceiveHandler;
                     _consumer.Shutdown -= ConsumerShutdown;
                 }
 
-                _consumer = CreateConsumer();
-                if (_consumer == null) { return false; }
+                try
+                {
+                    _consumer = CreateConsumer();
+                    if (_consumer == null) { return false; }
 
-                _chanHost
-                    .GetChannel()
-                    .BasicConsume(
-                        ConsumerOptions.QueueName,
-                        ConsumerOptions.AutoAck ?? false,
-                        ConsumerOptions.ConsumerName,
-                        ConsumerOptions.NoLocal ?? false,
-                        ConsumerOptions.Exclusive ?? false,
-                        null,
-                        _consumer);
+                    _chanHost
+                        .GetChannel()
+                        .BasicConsume(
+                            ConsumerOptions.QueueName,
+                            ConsumerOptions.AutoAck ?? false,
+                            ConsumerOptions.ConsumerName,
+                            ConsumerOptions.NoLocal ?? false,
+                            ConsumerOptions.Exclusive ?? false,
+                            null,
+                            _consumer);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Exception creating internal RabbitMQ consumer. Retrying...");
+                    await Task.Delay(1000);
+                    await _chanHost.MakeChannelAsync();
+                    return false;
+                }
             }
 
             _logger.LogInformation(
@@ -251,22 +259,18 @@ namespace HouseofCat.RabbitMQ
         {
             EventingBasicConsumer consumer = null;
 
-            try
-            {
-                _chanHost.GetChannel().BasicQos(0, ConsumerOptions.BatchSize.Value, false);
-                consumer = new EventingBasicConsumer(_chanHost.GetChannel());
+            _chanHost.GetChannel().BasicQos(0, ConsumerOptions.BatchSize.Value, false);
+            consumer = new EventingBasicConsumer(_chanHost.GetChannel());
 
-                consumer.Received += ReceiveHandler;
-                consumer.Shutdown += ConsumerShutdown;
-            }
-            catch { }
+            consumer.Received += ReceiveHandler;
+            consumer.Shutdown += ConsumerShutdown;
 
             return consumer;
         }
 
         private async void ReceiveHandler(object _, BasicDeliverEventArgs bdea)
         {
-            var rabbitMessage = new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false), HashKey);
+            var rabbitMessage = new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false));
 
             _logger.LogDebug(
                 LogMessages.Consumers.ConsumerMessageReceived,
@@ -294,22 +298,18 @@ namespace HouseofCat.RabbitMQ
         {
             AsyncEventingBasicConsumer consumer = null;
 
-            try
-            {
-                _chanHost.GetChannel().BasicQos(0, ConsumerOptions.BatchSize.Value, false);
-                consumer = new AsyncEventingBasicConsumer(_chanHost.GetChannel());
+            _chanHost.GetChannel().BasicQos(0, ConsumerOptions.BatchSize.Value, false);
+            consumer = new AsyncEventingBasicConsumer(_chanHost.GetChannel());
 
-                consumer.Received += ReceiveHandlerAsync;
-                consumer.Shutdown += ConsumerShutdownAsync;
-            }
-            catch { }
+            consumer.Received += ReceiveHandlerAsync;
+            consumer.Shutdown += ConsumerShutdownAsync;
 
             return consumer;
         }
 
         private async Task ReceiveHandlerAsync(object o, BasicDeliverEventArgs bdea)
         {
-            var rabbitMessage = new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false), HashKey);
+            var rabbitMessage = new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false));
 
             _logger.LogDebug(
                 LogMessages.Consumers.ConsumerAsyncMessageReceived,
@@ -341,14 +341,17 @@ namespace HouseofCat.RabbitMQ
                 bool success;
                 do
                 {
-                    await _chanHost.MakeChannelAsync();
+                    success = await _chanHost.MakeChannelAsync();
 
-                    _logger.LogWarning(
-                        LogMessages.Consumers.ConsumerShutdownEvent,
-                        ConsumerOptions.ConsumerName,
-                        e.ReplyText);
+                    if (success)
+                    {
+                        _logger.LogWarning(
+                            LogMessages.Consumers.ConsumerShutdownEvent,
+                            ConsumerOptions.ConsumerName,
+                            e.ReplyText);
 
-                    success = StartConsuming();
+                        success = await StartConsumingAsync();
+                    }
                 }
                 while (!_shutdown && !success);
             }

@@ -2,12 +2,15 @@
   <Import Project="..\..\common.props" />
   <PropertyGroup>
     <RootNamespace>HouseofCat.Compression</RootNamespace>
-    <Version>1.0.1</Version>
-    <AssemblyVersion>1.0.1</AssemblyVersion>
-    <FileVersion>1.0.1</FileVersion>
+    <Version>1.0.2</Version>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
+    <FileVersion>1.0.2</FileVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="K4os.Compression.LZ4.Streams" Version="1.1.11" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
   </ItemGroup>
 
 </Project>

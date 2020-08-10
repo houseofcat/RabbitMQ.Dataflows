@@ -2,17 +2,18 @@
   <Import Project="..\..\common.props" />
 
   <PropertyGroup>
-    <Version>1.0.2</Version>
-    <AssemblyVersion>1.0.2</AssemblyVersion>
-    <FileVersion>1.0.2</FileVersion>
+    <Version>1.0.3</Version>
+    <AssemblyVersion>1.0.3</AssemblyVersion>
+    <FileVersion>1.0.3</FileVersion>
     <PackageTags>C# RabbitMQ Cooked Rabbit CookedRabbit NetCore HouseofCat</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Compression.Builtin\HouseofCat.Compression.Builtin.csproj" />
+    <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
     <ProjectReference Include="..\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
     <ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
     <ProjectReference Include="..\HouseofCat.RabbitMQ.Client\HouseofCat.RabbitMQ.Client.csproj" />
+    <ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
     <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
     <ProjectReference Include="..\HouseofCat.Workflows\HouseofCat.Workflows.csproj" />
   </ItemGroup>

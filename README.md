@@ -29,13 +29,6 @@ A library that has a collection of algorithms as I have time to learn and play w
 A library that has a collection of builtin and 3rd party copmression providers.  
 
 
-## HouseofCat.Compression.Builtin
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Compression.Builtin.svg)](https://www.nuget.org/packages/HouseofCat.Compression.Builtin/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Compression.Builtin.svg)](https://www.nuget.org/packages/HouseofCat.Compression.Builtin/)  
-
-A library that focuses on implementing the builtin compression providers.  
-
-
 ## HouseofCat.Compression.LZ4
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Compression.LZ4.svg)](https://www.nuget.org/packages/HouseofCat.Compression.LZ4/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Compression.LZ4.svg)](https://www.nuget.org/packages/HouseofCat.Compression.LZ4/)  
@@ -68,7 +61,14 @@ A library that provides a standard Microsoft.Data.SqlClient implementation.
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Encryption.svg)](https://www.nuget.org/packages/HouseofCat.Encryption/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Encryption.svg)](https://www.nuget.org/packages/HouseofCat.Encryption/)  
 
-A library that provides encryption and hasing providers.  
+A library that provides encryption contracts.  
+
+
+## HouseofCat.Encryption.BouncyCastle
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Encryption.BouncyCastle.svg)](https://www.nuget.org/packages/HouseofCat.Encryption.BouncyCastle/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Encryption.BouncyCastle.svg)](https://www.nuget.org/packages/HouseofCat.Encryption.BouncyCastle/)  
+
+A library that provides encryption from the BouncyCastle provider.  
 
 
 ## HouseofCat.Extensions
@@ -113,6 +113,20 @@ A library that focuses on Chaos Engineering. Currently targets Windows OS.
 A library that focuses on Chaos Engineering with SqlServer. Currently targets System.Data.SqlClient.  
 
 
+## HouseofCat.Hashing
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Hashing.svg)](https://www.nuget.org/packages/HouseofCat.Hashing/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Hashing.svg)](https://www.nuget.org/packages/HouseofCat.Hashing/)  
+
+A library that focuses on implementing hashing.  
+
+
+## HouseofCat.Hashing.Argon
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Hashing.Argon.svg)](https://www.nuget.org/packages/HouseofCat.Hashing.Argon/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Hashing.Argon.svg)](https://www.nuget.org/packages/HouseofCat.Hashing.Argon/)  
+
+A library that focuses on implementing Argon hashing.  
+
+
 ## HouseofCat.Logger
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Logger.svg)](https://www.nuget.org/packages/HouseofCat.Logger/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Logger.svg)](https://www.nuget.org/packages/HouseofCat.Logger/)  
@@ -148,13 +162,6 @@ A library that focuses on cloning the official Pivotal/VMWare RabbitMQ DotNetCli
 A library that extends HouseofCat.RabbitMQ functionality by providing simplified TPL Dataflow usage called Pipelines.  
 
 
-## HouseofCat.RabbitMQ.Workflows
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Workflows/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Workflows/)  
-
-A library that extends HouseofCat.RabbitMQ functionality by providing robust Workflow support.  
-
-
 ## HouseofCat.RabbitMQ.Services
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
@@ -169,6 +176,13 @@ A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.Rabb
 A library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio with the HouseofCat.RabbitMQ library.  
 
 
+## HouseofCat.RabbitMQ.Workflows
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Workflows/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Workflows/)  
+
+A library that extends HouseofCat.RabbitMQ functionality by providing robust Workflow support.  
+
+
 ## HouseofCat.Reflection
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Reflection.svg)](https://www.nuget.org/packages/HouseofCat.Reflection/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Reflection.svg)](https://www.nuget.org/packages/HouseofCat.Reflection/)  
@@ -177,29 +191,29 @@ A library that focuses on Reflection hackery.
 
 
 ## HouseofCat.Serilization
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serilization.svg)](https://www.nuget.org/packages/HouseofCat.Serilization/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serilization.svg)](https://www.nuget.org/packages/HouseofCat.Serilization/)  
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.svg)](https://www.nuget.org/packages/HouseofCat.Serialization/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.svg)](https://www.nuget.org/packages/HouseofCat.Serialization/)  
 
-A library that focuses on making it easier to deal with Serilization.  
+A library that focuses on making it easier to deal with Serialization.  
 
 
 ## HouseofCat.Serilization.Json.Newtonsoft
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serilization.Json.Newtonsoft.svg)](https://www.nuget.org/packages/HouseofCat.Serilization.Json.Newtonsoft/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serilization.Json.Newtonsoft.svg)](https://www.nuget.org/packages/HouseofCat.Serilization.Json.Newtonsoft/)  
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.Json.Newtonsoft.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Newtonsoft/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.Json.Newtonsoft.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Newtonsoft/)  
 
-A library that focuses on making it easier to deal with Newtonsoft Json Serilization.  
+A library that focuses on making it easier to deal with Newtonsoft Json Serialization.  
 
 ## HouseofCat.Serilization.Json.Utf8Json
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serilization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serilization.Json.Utf8Json/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serilization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serilization.Json.Utf8Json/)  
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Utf8Json/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Utf8Json/)  
 
-A library that focuses on making it easier to deal with Utf8Json Json Serilization.  
+A library that focuses on making it easier to deal with Utf8Json Json Serialization.  
 
 ## HouseofCat.Serilization.MessagePack
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serilization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serilization.MessagePack/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serilization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serilization.MessagePack/)  
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.MessagePack/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.MessagePack/)  
 
-A library that focuses on making it easier to deal with MessagePack Serilization.  
+A library that focuses on making it easier to deal with MessagePack Serialization.  
 
 
 ## HouseofCat.Sockets

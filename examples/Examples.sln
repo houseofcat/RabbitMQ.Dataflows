@@ -64,6 +64,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ArrayPool", "ArrayPool", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArrayPoolChannel", "ArrayPool\ArrayPoolChannel\ArrayPoolChannel.csproj", "{41ABA723-C6A0-43A2-9588-83494D1C5801}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataProducer", "RabbitMQ\DataProducer\DataProducer.csproj", "{CF6A7DAA-6F49-466B-B7E5-59129B91F651}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -162,6 +164,10 @@ Global
 		{41ABA723-C6A0-43A2-9588-83494D1C5801}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{41ABA723-C6A0-43A2-9588-83494D1C5801}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{41ABA723-C6A0-43A2-9588-83494D1C5801}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF6A7DAA-6F49-466B-B7E5-59129B91F651}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF6A7DAA-6F49-466B-B7E5-59129B91F651}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF6A7DAA-6F49-466B-B7E5-59129B91F651}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF6A7DAA-6F49-466B-B7E5-59129B91F651}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -190,6 +196,7 @@ Global
 		{6B077376-985B-4AA9-A3E4-9D005FAC5E82} = {83456CB6-1C5D-4C04-B2B9-44EA03C69D86}
 		{71F4A3C4-7FD8-43B4-80B4-EB679E7D2F23} = {7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}
 		{41ABA723-C6A0-43A2-9588-83494D1C5801} = {EBB3DF28-CA88-4BAC-A061-5F670BBDE272}
+		{CF6A7DAA-6F49-466B-B7E5-59129B91F651} = {7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8DA80AD7-3877-43F5-B810-54A65AC0C8D2}

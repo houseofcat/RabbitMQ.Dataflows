@@ -1,5 +1,6 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Encryption;
+using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.RabbitMQ.Workflows;
@@ -7,12 +8,9 @@ using HouseofCat.Serialization;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
-using System.Text.Json;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Utf8Json.Resolvers;
-using static HouseofCat.Compression.Enums;
-using static HouseofCat.Encryption.Enums;
 
 namespace Examples.RabbitMQ.ConsumerWorkflow
 {
@@ -21,10 +19,11 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         public static ConsumerWorkflow<WorkState> _workflow;
         public static Stopwatch Stopwatch;
         public static LogLevel LogLevel = LogLevel.Information;
-        public static int ConsumerCount = 2;
+        public static int ConsumerCount = 5;
         public static long GlobalCount = 100_000;
+        public static long ActionCount = 8;
         public static long CurrentCount;
-        public static bool EnsureOrdered = false; // use with simulate IO delay to determine if ensuring order is causing delays
+        public static bool EnsureOrdered = true; // use with simulate IO delay to determine if ensuring order is causing delays
         public static bool SimulateIODelay = false;
         public static int MinIODelay = 40;
         public static int MaxIODelay = 60;
@@ -34,25 +33,31 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         public static int MaxDoP = 64;
         public static Random Rand = new Random();
 
+        private static ILogger<ConsumerWorkflow<WorkState>> _logger;
+        private static IRabbitService _rabbitService;
+        private static ISerializationProvider _serializationProvider;
+        private static IHashingProvider _hashingProvider;
+        private static ICompressionProvider _compressionProvider;
+        private static IEncryptionProvider _encryptionProvider;
+
         public static async Task Main()
         {
             await Console.Out.WriteLineAsync("Run a ConsumerWorkflow demo... press any key to continue!").ConfigureAwait(false);
             Console.ReadKey(); // memory snapshot baseline
 
-            // Create RabbitService and stage the messages in the queue
-            await Console.Out.WriteLineAsync($"Publishing {GlobalCount} messages!").ConfigureAwait(false);
+            // Create RabbitService
             await SetupAsync().ConfigureAwait(false);
 
-            await Console.Out.WriteLineAsync("Setting up workflow messages...").ConfigureAwait(false);
+            await Console.Out.WriteLineAsync("Setting up Workflow...").ConfigureAwait(false);
 
-            var jsonProvider = new Utf8JsonProvider(StandardResolver.Default);
-            var encryptionProvider = new EncryptionProvider("passwordforencryption", "saltforencryption", EncryptionMethod.AES256_ARGON2ID);
-            var compressionProvider = new CompressionProvider(CompressionMethod.Gzip);
-
-            _workflow = new ConsumerWorkflow<WorkState>(_rabbitService, "MyConsumerWorkflow", "ConsumerFromConfig", consumerCount: ConsumerCount)
-                .WithSerilizationProvider(jsonProvider)
-                .WithEncryptionProvider(encryptionProvider)
-                .WithCompressionProvider(compressionProvider)
+            _workflow = new ConsumerWorkflow<WorkState>(
+                rabbitService: _rabbitService,
+                consumerWorkflowName: "MyConsumerWorkflow",
+                consumerName: "ConsumerFromConfig",
+                consumerCount: ConsumerCount)
+                .WithSerilizationProvider(_serializationProvider)
+                .WithEncryptionProvider(_encryptionProvider)
+                .WithCompressionProvider(_compressionProvider)
                 .WithBuildState<Message>()
                 .WithDecryptionStep()
                 .WithDecompressionStep()
@@ -62,22 +67,25 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
                 .WithErrorHandling(ErrorHandlingAsync, 1000)
                 .WithFinalization(FinalizationAsync);
 
-            await Console.Out.WriteLineAsync("Starting consumers...").ConfigureAwait(false);
-            Stopwatch = Stopwatch.StartNew();
+            await Console.Out.WriteLineAsync("Starting Workflow...").ConfigureAwait(false);
             await _workflow
                 .StartAsync()
                 .ConfigureAwait(false);
+
+            Stopwatch = Stopwatch.StartNew();
+            await Console.Out.WriteLineAsync("Waiting for all messages to stop processing and shutdown...").ConfigureAwait(false);
+            await _workflow.Completion.ConfigureAwait(false);
 
             await Console.Out.WriteLineAsync("\r\nStatistics!").ConfigureAwait(false);
             await Console.Out.WriteLineAsync($"MaxDoP: {MaxDoP}, Ensure Ordered: {EnsureOrdered}").ConfigureAwait(false);
             await Console.Out.WriteLineAsync($"SimulateIODelay: {SimulateIODelay}, MinIODelay: {MinIODelay}ms, MaxIODelay: {MaxIODelay}ms").ConfigureAwait(false);
             await Console.Out.WriteLineAsync($"AwaitShutdown: {AwaitShutdown}, LogOutcome: {LogOutcome}").ConfigureAwait(false);
             await Console.Out.WriteLineAsync($"UseStreamPipeline: {UseStreamPipeline}").ConfigureAwait(false);
-            await Console.Out.WriteLineAsync($"Finished processing {GlobalCount} messages (Steps: {GlobalCount * 4}) in {Stopwatch.ElapsedMilliseconds} milliseconds.").ConfigureAwait(false);
+            await Console.Out.WriteLineAsync($"Finished processing {GlobalCount} messages (Steps: {GlobalCount * ActionCount}) in {Stopwatch.ElapsedMilliseconds} milliseconds.").ConfigureAwait(false);
 
             var rate = GlobalCount / (Stopwatch.ElapsedMilliseconds / 1.0) * 1000.0;
             await Console.Out.WriteLineAsync($"Rate: {rate} msg/s.").ConfigureAwait(false);
-            await Console.Out.WriteLineAsync($"Rate: {rate * 5} actions/s.").ConfigureAwait(false);
+            await Console.Out.WriteLineAsync($"Rate: {rate * ActionCount} actions/s.").ConfigureAwait(false);
             await Console.Out.WriteLineAsync("\r\nClient Finished! Press any key to start the shutdown!").ConfigureAwait(false);
             Console.ReadKey(); // checking for memory leak (snapshots)
 
@@ -85,36 +93,30 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
             Console.ReadKey(); // checking for memory leak (snapshots)
         }
 
-        private static ILogger<ConsumerWorkflow<WorkState>> _logger;
-        private static IRabbitService _rabbitService;
-
         private static async Task SetupAsync()
         {
             var letterTemplate = new Letter("", "TestRabbitServiceQueue", null, new LetterMetadata());
-            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(Program.LogLevel));
+            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel));
             _logger = loggerFactory.CreateLogger<ConsumerWorkflow<WorkState>>();
+
+            _hashingProvider = new Argon2IDHasher();
+            var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
+
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            _compressionProvider = new LZ4PickleProvider();
+            _serializationProvider = new Utf8JsonProvider();
 
             _rabbitService = new RabbitService(
                 "Config.json",
-                "passwordforencryption",
-                "saltforencryption",
+                _serializationProvider,
+                _encryptionProvider,
+                _compressionProvider,
                 loggerFactory);
 
             await _rabbitService
                 .Topologer
                 .CreateQueueAsync("TestRabbitServiceQueue")
                 .ConfigureAwait(false);
-
-            for (var i = 0L; i < GlobalCount; i++)
-            {
-                var letter = letterTemplate.Clone();
-                letter.Body = JsonSerializer.SerializeToUtf8Bytes(new Message { StringMessage = $"Sensitive ReceivedLetter {i}", MessageId = i });
-                letter.LetterId = (ulong)i;
-                await _rabbitService
-                    .Publisher
-                    .PublishAsync(letter, true, true)
-                    .ConfigureAwait(false);
-            }
         }
 
         public class Message
@@ -200,7 +202,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
             var stringBody = string.Empty;
 
             try
-            { stringBody = await state.ReceivedData.GetBodyAsUtf8StringAsync().ConfigureAwait(false); }
+            { stringBody = Encoding.UTF8.GetString(state.ReceivedData.Data); }
             catch (Exception ex) { _logger.LogError(ex, "What?!"); }
 
             if (failed)

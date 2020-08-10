@@ -1,7 +1,8 @@
-using HouseofCat.Compression.Builtin;
+using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.Logger;
 using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.Time;
 using Microsoft.Extensions.Logging;
@@ -9,7 +10,6 @@ using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -44,6 +44,10 @@ namespace HouseofCat.RabbitMQ
         private readonly ILogger<Publisher> _logger;
         private readonly IChannelPool _channelPool;
         private readonly SemaphoreSlim _pubLock = new SemaphoreSlim(1, 1);
+
+        private readonly ISerializationProvider _serializationProvider;
+        private readonly IEncryptionProvider _encryptionProvider;
+        private readonly ICompressionProvider _compressionProvider;
         private readonly bool _withHeaders;
         private readonly bool _compress;
         private readonly bool _encrypt;
@@ -53,35 +57,60 @@ namespace HouseofCat.RabbitMQ
         private Channel<Letter> _letterQueue;
         private Channel<PublishReceipt> _receiptBuffer;
 
-        private readonly ReadOnlyMemory<byte> _hashKey;
         private Task _publishingTask;
         private Task _processReceiptsAsync;
         private bool _disposedValue;
 
-        public Publisher(Options options, ReadOnlyMemory<byte> hashKey) : this(new ChannelPool(options), hashKey)
+        public Publisher(
+            Options options,
+            ISerializationProvider serializationProvider,
+            IEncryptionProvider encryptionProvider = null,
+            ICompressionProvider compressionProvider = null)
+            : this(
+                  new ChannelPool(options),
+                  serializationProvider,
+                  encryptionProvider,
+                  compressionProvider)
         { }
 
-        public Publisher(IChannelPool channelPool, ReadOnlyMemory<byte> hashKey)
+        public Publisher(
+            IChannelPool channelPool,
+            ISerializationProvider serializationProvider,
+            IEncryptionProvider encryptionProvider = null,
+            ICompressionProvider compressionProvider = null)
         {
             Guard.AgainstNull(channelPool, nameof(channelPool));
+            Guard.AgainstNull(serializationProvider, nameof(serializationProvider));
 
             Options = channelPool.Options;
             _logger = LogHelper.GetLogger<Publisher>();
+            _serializationProvider = serializationProvider;
 
-            if (Options.PublisherOptions.Encrypt && hashKey.Length != Constants.EncryptionKeySize)
+            if (Options.PublisherOptions.Encrypt && encryptionProvider == null)
             {
                 _encrypt = false;
-                _logger.LogWarning("Encryption disabled, invalid hash key length ({0}) provided. Expected key length of {1}.", hashKey.Length, Constants.EncryptionKeySize);
+                _logger.LogWarning("Encryption disabled, encryptionProvider provided was null.");
             }
             else if (Options.PublisherOptions.Encrypt)
             {
                 _encrypt = true;
-                _hashKey = hashKey;
+                _encryptionProvider = encryptionProvider;
+            }
+
+            if (Options.PublisherOptions.Compress && compressionProvider == null)
+            {
+                _compress = false;
+                _logger.LogWarning("Compression disabled, compressionProvider provided was null.");
+            }
+            else if (Options.PublisherOptions.Encrypt)
+            {
+                _compress = true;
+                _compressionProvider = compressionProvider;
             }
 
             _channelPool = channelPool;
-            _receiptBuffer = Channel.CreateUnbounded<PublishReceipt>(
-                new UnboundedChannelOptions
+            _receiptBuffer = Channel.CreateBounded<PublishReceipt>(
+                new BoundedChannelOptions(1024)
                 {
                     SingleWriter = false,
                     SingleReader = true,
@@ -89,8 +118,8 @@ namespace HouseofCat.RabbitMQ
 
             _withHeaders = Options.PublisherOptions.WithHeaders;
             _createPublishReceipts = Options.PublisherOptions.CreatePublishReceipts;
-            _compress = Options.PublisherOptions.Compress;
             _waitForConfirmation = TimeSpan.FromMilliseconds(Options.PublisherOptions.WaitForConfirmationTimeoutInMilliseconds);
+
         }
 
         public async Task StartAutoPublishAsync(Func<PublishReceipt, ValueTask> processReceiptAsync = null)
@@ -105,14 +134,14 @@ namespace HouseofCat.RabbitMQ
                         FullMode = Options.PublisherOptions.BehaviorWhenFull
                     });
 
-                _publishingTask = Task.Run(() => ProcessDeliveriesAsync(_letterQueue.Reader).ConfigureAwait(false));
+                _publishingTask = ProcessLettersAsync(_letterQueue.Reader);
 
                 if (processReceiptAsync == null)
                 { processReceiptAsync = ProcessReceiptAsync; }
 
                 if (_processReceiptsAsync == null)
                 {
-                    _processReceiptsAsync = Task.Run(() => ProcessReceiptsAsync(processReceiptAsync));
+                    _processReceiptsAsync = ProcessReceiptsAsync(processReceiptAsync);
                 }
 
                 AutoPublisherStarted = true;
@@ -137,6 +166,7 @@ namespace HouseofCat.RabbitMQ
                             .Completion
                             .ConfigureAwait(false);
 
+                        // Wait for Publishing To Finish.
                         while (!_publishingTask.IsCompleted)
                         {
                             await Task.Delay(10).ConfigureAwait(false);
@@ -178,8 +208,9 @@ namespace HouseofCat.RabbitMQ
                 .ConfigureAwait(false);
         }
 
-        private async Task ProcessDeliveriesAsync(ChannelReader<Letter> channelReader)
+        private async Task ProcessLettersAsync(ChannelReader<Letter> channelReader)
         {
+            await Task.Yield();
             while (await channelReader.WaitToReadAsync().ConfigureAwait(false))
             {
                 while (channelReader.TryRead(out var letter))
@@ -189,18 +220,18 @@ namespace HouseofCat.RabbitMQ
 
                     if (_compress)
                     {
-                        letter.Body = await Gzip.CompressAsync(letter.Body).ConfigureAwait(false);
+                        letter.Body = _compressionProvider.Compress(letter.Body);
                         letter.LetterMetadata.Compressed = _compress;
                         letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = _compress;
-                        letter.LetterMetadata.CustomFields[Constants.HeaderForCompression] = Constants.HeaderValueForGzipCompress;
+                        letter.LetterMetadata.CustomFields[Constants.HeaderForCompression] = _compressionProvider.Type;
                     }
 
                     if (_encrypt)
                     {
-                        letter.Body = AesEncrypt.Aes256Encrypt(letter.Body, _hashKey);
+                        letter.Body = _encryptionProvider.Encrypt(letter.Body);
                         letter.LetterMetadata.Encrypted = _encrypt;
                         letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypted] = _encrypt;
-                        letter.LetterMetadata.CustomFields[Constants.HeaderForEncryption] = Constants.HeaderValueForArgonAesEncrypt;
+                        letter.LetterMetadata.CustomFields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
                         letter.LetterMetadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
                     }
 
@@ -214,6 +245,7 @@ namespace HouseofCat.RabbitMQ
 
         private async Task ProcessReceiptsAsync(Func<PublishReceipt, ValueTask> processReceiptAsync)
         {
+            await Task.Yield();
             await foreach (var receipt in _receiptBuffer.Reader.ReadAllAsync())
             {
                 await processReceiptAsync(receipt).ConfigureAwait(false);
@@ -223,10 +255,14 @@ namespace HouseofCat.RabbitMQ
         // Super simple version to bake in requeueing of all failed to publish messages.
         private async ValueTask ProcessReceiptAsync(PublishReceipt receipt)
         {
-            if (receipt.IsError && receipt.OriginalLetter != null)
+            if (receipt.IsError && receipt.OriginalLetter != null && AutoPublisherStarted)
             {
                 _logger.LogWarning($"Failed publish for letter ({receipt.OriginalLetter.LetterId}). Retrying with AutoPublishing...");
-                await QueueLetterAsync(receipt.OriginalLetter);
+
+                try
+                { await QueueLetterAsync(receipt.OriginalLetter); }
+                catch (Exception ex) /* No-op */
+                { _logger.LogDebug("Error ({0}) occurred on retry, most likely because retry during shutdown.", ex.Message); }
             }
             else if (receipt.IsError)
             {
@@ -449,7 +485,7 @@ namespace HouseofCat.RabbitMQ
                     letter.Envelope.RoutingKey,
                     letter.Envelope.RoutingOptions?.Mandatory ?? false,
                     BuildProperties(letter, chanHost, withHeaders),
-                    JsonSerializer.SerializeToUtf8Bytes(letter));
+                    _serializationProvider.Serialize(letter));
             }
             catch (Exception ex)
             {
@@ -498,7 +534,7 @@ namespace HouseofCat.RabbitMQ
                     letter.Envelope.RoutingKey,
                     letter.Envelope.RoutingOptions?.Mandatory ?? false,
                     BuildProperties(letter, chanHost, withHeaders),
-                    JsonSerializer.SerializeToUtf8Bytes(letter));
+                    _serializationProvider.Serialize(letter));
 
                 chanHost.GetChannel().WaitForConfirmsOrDie(_waitForConfirmation);
             }
@@ -547,7 +583,7 @@ namespace HouseofCat.RabbitMQ
                         letters[i].Envelope.RoutingKey,
                         letters[i].Envelope.RoutingOptions.Mandatory,
                         BuildProperties(letters[i], chanHost, withHeaders),
-                        JsonSerializer.SerializeToUtf8Bytes(letters[i]));
+                        _serializationProvider.Serialize(letters[i]));
                 }
                 catch (Exception ex)
                 {
@@ -595,7 +631,7 @@ namespace HouseofCat.RabbitMQ
                             letters[i].Envelope.RoutingKey,
                             letters[i].Envelope.RoutingOptions.Mandatory,
                             BuildProperties(letters[i], chanHost, withHeaders),
-                            JsonSerializer.SerializeToUtf8Bytes(letters[i]).AsMemory());
+                            _serializationProvider.Serialize(letters[i]).AsMemory());
 
                         if (createReceipt)
                         {

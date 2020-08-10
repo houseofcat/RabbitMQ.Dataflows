@@ -53,6 +53,7 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         // Used for Simplifying Dependency
         private ISourceBlock<TState> _currentBlock;
+        public Task Completion { get; private set; }
 
         public ConsumerWorkflow(
             IRabbitService rabbitService,
@@ -130,7 +131,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _decryptBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_encryptionProvider.Decrypt, executionOptions, false, x => x.ReceivedData.Encrypted);
+            _decryptBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_encryptionProvider.Decrypt, _serializationProvider, executionOptions, false, x => x.ReceivedData.Encrypted);
             return this;
         }
 
@@ -138,7 +139,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _decompressBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_compressProvider.DecompressAsync, executionOptions, false, x => x.ReceivedData.Compressed);
+            _decompressBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_compressProvider.Decompress, _serializationProvider, executionOptions, false, x => x.ReceivedData.Compressed);
             return this;
         }
 
@@ -182,7 +183,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _compressBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_compressProvider.CompressAsync, executionOptions, true, x => !x.ReceivedData.Compressed);
+            _compressBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_compressProvider.CompressAsync, null, executionOptions, true, x => !x.ReceivedData.Compressed);
             return this;
         }
 
@@ -190,7 +191,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _encryptBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_encryptionProvider.Encrypt, executionOptions, true, x => !x.ReceivedData.Encrypted);
+            _encryptBlock = BlockBuilders.GetByteManipulationTransformBlock<TState>(_encryptionProvider.Encrypt, null, executionOptions, true, x => !x.ReceivedData.Encrypted);
             return this;
         }
 
@@ -232,7 +233,7 @@ namespace HouseofCat.RabbitMQ.Workflows
 
             for (int i = 0; i < ConsumerCount; i++)
             {
-                var consumer = new Consumer(_rabbitService.ChannelPool, ConsumerName, null);
+                var consumer = new Consumer(_rabbitService.ChannelPool, ConsumerName);
                 _consumerBlocks.Add(new ConsumerBlock<ReceivedData>(consumer));
                 _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
             }
@@ -246,7 +247,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             LinkPostProcessing(overrideOptions);
 
             _errorBuffer.LinkTo(_errorAction, overrideOptions ?? _linkStepOptions);
-            _currentBlock = null;
+            Completion = _currentBlock.Completion;
         }
 
         private void LinkPreProcessing(DataflowLinkOptions overrideOptions = null)
@@ -348,13 +349,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             foreach (var consumerBlock in _consumerBlocks)
             {
                 await consumerBlock.StopConsumingAsync();
-                consumerBlock.Complete();
-            }
-
-            // Wati for all the work to be processed on each consumer.
-            foreach (var consumerBlock in _consumerBlocks)
-            {
-                await consumerBlock.Completion;
+                consumerBlock.Complete(); // Set complete at the top level.
             }
         }
     }

@@ -1,12 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
   <PropertyGroup>
-    <Version>1.0.3</Version>
-    <AssemblyVersion>1.0.3</AssemblyVersion>
-    <FileVersion>1.0.3</FileVersion>
+    <Version>1.0.4</Version>
+    <AssemblyVersion>1.0.4</AssemblyVersion>
+    <FileVersion>1.0.4</FileVersion>
   </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Compression.Builtin\HouseofCat.Compression.Builtin.csproj" />
-    <ProjectReference Include="..\HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj" />
-  </ItemGroup>
 </Project>

@@ -94,10 +94,28 @@
     }
   },
   "ConsumerOptions": {
-    "ConsumerFromConfig": {
+    "Consumer1": {
       "Enabled": true,
-      "GlobalSettings": "AggressiveSettings",
-      "ConsumerName": "ConsumerFromConfig",
+      "GlobalSettings": "ModerateSettings",
+      "ConsumerName": "Consumer1",
+      "QueueName": "TestRabbitServiceQueue"
+    },
+    "Consumer2": {
+      "Enabled": true,
+      "GlobalSettings": "ModerateSettings",
+      "ConsumerName": "Consumer2",
+      "QueueName": "TestRabbitServiceQueue"
+    },
+    "Consumer3": {
+      "Enabled": true,
+      "GlobalSettings": "ModerateSettings",
+      "ConsumerName": "Consumer3",
+      "QueueName": "TestRabbitServiceQueue"
+    },
+    "Consumer4": {
+      "Enabled": true,
+      "GlobalSettings": "ModerateSettings",
+      "ConsumerName": "Consumer4",
       "QueueName": "TestRabbitServiceQueue"
     }
   }

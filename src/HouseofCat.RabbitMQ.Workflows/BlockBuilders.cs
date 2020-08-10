@@ -3,12 +3,9 @@ using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
 using System;
 using System.Collections.Generic;
-using System.Net.NetworkInformation;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using static HouseofCat.Compression.Enums;
-using static HouseofCat.Encryption.Enums;
 using static HouseofCat.Reflection.Generics;
 
 namespace HouseofCat.RabbitMQ.Workflows
@@ -61,7 +58,12 @@ namespace HouseofCat.RabbitMQ.Workflows
                 }, options);
         }
 
-        public static TransformBlock<TState, TState> GetByteManipulationTransformBlock<TState>(Func<ReadOnlyMemory<byte>, byte[]> action, ExecutionDataflowBlockOptions options, bool outbound, Predicate<TState> predicate) where TState : class, IWorkState, new()
+        public static TransformBlock<TState, TState> GetByteManipulationTransformBlock<TState>(
+            Func<ReadOnlyMemory<byte>, byte[]> action,
+            ISerializationProvider serializationProvider,
+            ExecutionDataflowBlockOptions options,
+            bool outbound,
+            Predicate<TState> predicate) where TState : class, IWorkState, new()
         {
             return new TransformBlock<TState, TState>(
                 (state) =>
@@ -77,7 +79,15 @@ namespace HouseofCat.RabbitMQ.Workflows
                         }
                         else if (predicate(state))
                         {
-                            state.ReceivedData.Data = action(state.ReceivedData.Data);
+                            if (state.ReceivedData.ContentType == Constants.HeaderValueForLetter)
+                            {
+                                if (state.ReceivedData.Letter == null)
+                                { state.ReceivedData.Letter = serializationProvider.Deserialize<Letter>(state.ReceivedData.Data); }
+
+                                state.ReceivedData.Letter.Body = action(state.ReceivedData.Letter.Body);
+                            }
+                            else
+                            { state.ReceivedData.Data = action(state.ReceivedData.Data); }
                         }
                         return state;
                     }
@@ -90,7 +100,7 @@ namespace HouseofCat.RabbitMQ.Workflows
                 }, options);
         }
 
-        public static TransformBlock<TState, TState> GetByteManipulationTransformBlock<TState>(Func<ReadOnlyMemory<byte>, Task<byte[]>> action, ExecutionDataflowBlockOptions options, bool outbound, Predicate<TState> predicate) where TState : class, IWorkState, new()
+        public static TransformBlock<TState, TState> GetByteManipulationTransformBlock<TState>(Func<ReadOnlyMemory<byte>, Task<byte[]>> action, ISerializationProvider serializationProvider, ExecutionDataflowBlockOptions options, bool outbound, Predicate<TState> predicate) where TState : class, IWorkState, new()
         {
             return new TransformBlock<TState, TState>(
                 async (state) =>
@@ -106,7 +116,15 @@ namespace HouseofCat.RabbitMQ.Workflows
                         }
                         else if (predicate(state))
                         {
-                            state.ReceivedData.Data = await action(state.ReceivedData.Data);
+                            if (state.ReceivedData.ContentType == Constants.HeaderValueForLetter)
+                            {
+                                if (state.ReceivedData.Letter == null)
+                                { state.ReceivedData.Letter = serializationProvider.Deserialize<Letter>(state.ReceivedData.Data); }
+
+                                state.ReceivedData.Letter.Body = await action(state.ReceivedData.Letter.Body);
+                            }
+                            else
+                            { state.ReceivedData.Data = await action(state.ReceivedData.Data); }
                         }
                         return state;
                     }

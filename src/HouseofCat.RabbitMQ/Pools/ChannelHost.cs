@@ -89,8 +89,9 @@ namespace HouseofCat.RabbitMQ.Pools
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError("Making a channel failed. Error: {0}", ex.Message);
                 _channel = null;
                 return false;
             }

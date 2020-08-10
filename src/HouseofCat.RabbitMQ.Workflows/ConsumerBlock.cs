@@ -66,16 +66,41 @@ namespace HouseofCat.RabbitMQ.Workflows
         public async Task StartConsumingAsync()
         {
             await _consumer.StartConsumerAsync();
-            await Task.Run(() => StreamToBufferAsync());
+            _cts = new CancellationTokenSource();
+            _bufferProcessor = PushToBufferAsync(_cts.Token);
         }
 
         public async Task StopConsumingAsync()
         {
             await _consumer.StopConsumerAsync();
+            _cts.Cancel();
         }
 
-        // TODO: And TaskCompletionSource w/ Token
-        // TODO: Store runner in Task;
+        private CancellationTokenSource _cts;
+        private Task _bufferProcessor;
+
+        // Fast
+        private async Task PushToBufferAsync(CancellationToken token = default)
+        {
+            try
+            {
+                while (await _consumer.GetConsumerBuffer().WaitToReadAsync(token))
+                {
+                    while (_consumer.GetConsumerBuffer().TryRead(out var message))
+                    {
+                        await _bufferBlock.SendAsync(message);
+                    }
+
+                    if (token.IsCancellationRequested) return;
+                }
+            }
+            catch (OperationCanceledException)
+            { _logger.LogDebug("Consumer task was cancelled. Disregard if this was manually invoked."); }
+            catch (Exception ex)
+            { _logger.LogError(ex, "Reading consumer buffer threw an exception."); }
+        }
+
+        // Slow
         private async Task StreamToBufferAsync(CancellationToken token = default)
         {
             try
@@ -87,12 +112,10 @@ namespace HouseofCat.RabbitMQ.Workflows
             }
             catch (OperationCanceledException)
             {
-                _logger.LogWarning("Consumer task was cancelled. Disregard if this was manually invoked.");
+                _logger.LogDebug("Consumer task was cancelled. Disregard if this was manually invoked.");
             }
             catch (Exception ex)
-            {
-                _logger.LogError(ex, "Reading consumer buffer through an exception.");
-            }
+            { _logger.LogError(ex, "Reading consumer buffer threw an exception."); }
         }
     }
 }
