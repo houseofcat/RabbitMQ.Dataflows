@@ -1,5 +1,7 @@
 # Tesseract - The Library
 
+![TesseractLogo](https://github.com/houseofcat/Tesseract/blob/master/TesseractLogo.svg)
+
 A library of `NetCore` tools to help rapidly develop well performant micro/macroservices.  
 
 Prototypes you could send to production!  
