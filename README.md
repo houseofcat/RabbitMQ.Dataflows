@@ -1,4 +1,4 @@
-# Tesseract - The Library
+# TESSERACT
 
 ![TesseractLogo](https://github.com/houseofcat/Tesseract/blob/master/TesseractLogo.svg)
 
