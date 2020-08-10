@@ -1,39 +1,39 @@
 # Tesseract - The Library
 
-A library of NetCore tools to help quickly get rapid and well performant development going in micro/macroservices.  
+A library of `NetCore` tools to help quickly get rapid and well performant development going in micro/macroservices.  
 
 Prototypes you could send to production!  
 
 ## Why Make A Tesseract Powered Workflow  
 Here are some features ready to use today.
 
-*Note: These are all available today, out of the box with RabbitMQ.  
-The goal is to continue enabling features with other Queue-based providers. NoSql/DocumentDB data crawlers are also future slated.   
+*Note: These are all available today, out of the box with `RabbitMQ`.  
+The goal is to continue enabling features with other Queue-based providers. `NoSql/DocumentDB` data crawlers are also future slated.   
 
 ### Queueing Backing Allows 
 * Async Processing    
 * Retriability  
 * Chaos Engineering  
-* Connection/Channel Durability provided by HouseofCat.RabbitMQ.  
+* Connection/Channel Durability provided by `HouseofCat.RabbitMQ`.  
 
 ### Built-Ins
-* Supports ILogger&lt;T&gt;  
+* Supports `ILogger<T>`  
 * Concurrency/Parallelism - baked in from the ground up.  
-* Predetermine WorkState/WorkObject simplifies development and integration.  
-* Has built in Json (3 flavors) and MessagePack serialization providers.
+* Predetermine `WorkState`/WorkObject simplifies development and integration.  
+* Has built in `Json` (3 flavors) and `MessagePack` serialization providers.
 * Allow transparent encryption/decryption steps.  
 * Allow compression/decompression steps to reduce trip time over the wire.  
-* Async Error Handling with Predicate Triggers and actionable callback.  
+* Async Error Handling with Predicate triggers and actionable callback.  
 
 ### Interchangeable Parts  
-* Allows you to replace serialization provider with HouseofCat Provider wrappers.  
-* Allows you to replace encryption provider with HouseofCat Provider wrappers.  
-* Allows you to replace compression provider with HouseofCat Provider wrappers.   
-* All using Interfaces to allow you to implement your own flavor and providers.  
+* Allows you to replace serialization provider with `HouseofCat` Provider wrappers.  
+* Allows you to replace encryption provider with `HouseofCat` Provider wrappers.  
+* Allows you to replace compression provider with `HouseofCat` Provider wrappers.   
+* All using Interfaces to allow you to implement your own flavor and providers or dependency inject.  
 
 ### Business Logic
 * All steps process in the order provided allowing you to still control order of execution.  
-* All automatically subscribed to Async Error handling by WorkState.IsFaulted flag.  
+* All automatically subscribed to Async Error handling by `WorkState.IsFaulted` flag.  
 
 ### Testing
 * All built-in steps will have integration tests removing concerns from end-user developer.  
