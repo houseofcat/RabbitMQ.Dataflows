@@ -193,6 +193,10 @@ A library that focuses on making it easier to deal with systems networking.
 
 A library that focuses on RabbitMQ connection and channel management to create fault tolerant Publishers and Consumers.  
 
+Formerly [CookedRabbit.Core](https://github.com/houseofcat/RabbitMQ.Core/tree/master/CookedRabbit.Core)  
+[![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.svg)](https://www.nuget.org/packages/CookedRabbit.Core/)    
+[![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Core.svg)](https://www.nuget.org/packages/CookedRabbit.Core/)   
+
 
 ## HouseofCat.RabbitMQ.Client
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Client.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Client/)  
@@ -200,6 +204,9 @@ A library that focuses on RabbitMQ connection and channel management to create f
 
 A library that focuses on cloning the official Pivotal/VMWare RabbitMQ DotNetClient but ported to pure NetCore 3.1/5.x with small code enhancements.  
 
+Formerly [RabbitMQ.Core](https://github.com/houseofcat/RabbitMQ.Core)  
+[![NuGet](https://img.shields.io/nuget/dt/RabbitMQ.Core.Client.svg)](https://www.nuget.org/packages/RabbitMQ.Core.Client/)   
+[![NuGet](https://img.shields.io/nuget/v/RabbitMQ.Core.Client.svg)](https://www.nuget.org/packages/RabbitMQ.Core.Client/)  
 
 ## HouseofCat.RabbitMQ.Pipelines
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
@@ -249,11 +256,13 @@ A library that focuses on making it easier to deal with Serialization.
 
 A library that focuses on making it easier to deal with Newtonsoft Json Serialization.  
 
+
 ## HouseofCat.Serilization.Json.Utf8Json
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Utf8Json/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Utf8Json/)  
 
 A library that focuses on making it easier to deal with Utf8Json Json Serialization.  
+
 
 ## HouseofCat.Serilization.MessagePack
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.MessagePack/)  
