@@ -48,14 +48,15 @@ Lastly, after everything is said and done, all your business code is re-usable. 
 ## Help
 You will find library usage examples in the `examples` folder. You also can find generic NetCore how-tos and tutorials located in there. The code quality of the entire library will improve over time. Codacy allows me to review code and openly share any pain points so submit a PR to help out keeping this an A rated library!
 
+Check out each project for a `README.md` to see if there are additional instructions/examples.
+
+## Status
+
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9dbb20a30ada48caae4b92a83628f45e)](https://app.codacy.com/manual/cat_3/Library?utm_source=github.com&utm_medium=referral&utm_content=houseofcat/Library&utm_campaign=Badge_Grade_Dashboard)  
 
 ![master-build](https://github.com/houseofcat/HouseofCat.Library/workflows/master-build/badge.svg)  
 
 [![Gitter](https://badges.gitter.im/Library/community.svg)](https://gitter.im/Library/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-
-## Description
-Check out each project for a `README.md` to see if there are additional instructions/examples.
 
 ## HouseofCat.Algorithms
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Algorithms.svg)](https://www.nuget.org/packages/HouseofCat.Algorithms/)  
