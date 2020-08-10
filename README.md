@@ -1,14 +1,11 @@
 # Tesseract - The Library
 
-A library of `NetCore` tools to help quickly get rapid and well performant development going in micro/macroservices.  
+A library of `NetCore` tools to help rapidly develop well performant micro/macroservices.  
 
 Prototypes you could send to production!  
 
 ## Why Make A Tesseract Powered Workflow  
-Here are some features ready to use today.
-
-*Note: These are all available today, out of the box with `RabbitMQ`.  
-The goal is to continue enabling features with other Queue-based providers. `NoSql/DocumentDB` data crawlers are also future slated.   
+Here are some features ready to with RabbitMQ today, tomorrow - the world!
 
 ### Queueing Backing Allows 
 * Async Processing    
@@ -40,16 +37,16 @@ The goal is to continue enabling features with other Queue-based providers. `NoS
 * Future case will include much more complex abstract UnitTesting as time allows.  
 * The developer should only need to unit test their functional business code.  
 
-## Non-Technical Benefits
+## Implicit Benefits
 
-The benefits of a dataflow pattern extend beyond fancy Tensorflows or high throughput GCP Dataflow for mass computation. At the service level, it helps mentally organize your code into manageable blocks. You can still write monolithic functions, but you would be hamstringing yourself and scarificing concurrency and parallelism. By designing code into small functional steps, you always write better, cleaner, code. That same code then is easier to UnitTest and less prone to bugs. The orchestration of the function calls are implicit, working out deserialization or post processing/egress is baked in and out of sight out of mind. Concurrency, parallelism, all baked into a "it just works" package.
+The benefits of a dataflow pattern extend beyond fancy machine learning and Tensorflows or high throughput GCP Dataflow for mass computation. When brought to the service level, it helps mentally organize your code into manageable blocks. You can still write monolithic functions, but you would be hamstringing yourself and scarificing concurrency and parallelism. By designing code into small functional steps, you always write better, cleaner, code. That very same code is easier to UnitTest. The orchestration of the function calls are the order they are added allowing you extend the original functionality infinitely. You don't have to write deserialization or post-processing encryption/compression as they all baked in. Designing from the ground up with concurrency and parallelism, you stay nimble and fast - able to scale up internally, before horizontally, or vertically, saving costs. All without needing code to change or be redesigned.
 
-Lastly, after everything is said and done, all your business code is re-usable. Should you decide to abandon this workflow (:worried:) for a different mechanim, engine, or what not, all of your code will happily port to whatever other project / flow you are working with and so will all your testing. All an all, it seems very much like a win win.
+Lastly, after everything is said and done, all your business code is re-usable. Should you decide to abandon this workflow (:worried:) for a different mechanism, engine, or what not, all of your code will happily port to whatever other project / flow you are working with and so will all your testing. All an all, it seems very much like a win win.
 
 ## Help
-You will find library usage examples in the `examples` folder. You also can find generic NetCore how-tos and tutorials located in there. The code quality of the entire library will improve over time. Codacy allows me to review code and openly share any pain points so submit a PR to help out keeping this an A rated library!
+You will find library usage examples in the `examples` folder. You also can find generic NetCore how-tos and tutorials located in there. The code quality of the entire library will improve over time. Codacy allows me to review code and openly share any pain points so submit a PR to help keep this an A rated library!
 
-Check out each project for a `README.md` to see if there are additional instructions/examples.
+Check out each project for additional `README.md`. They will provide additional instructions/examples.
 
 ## Status
 
