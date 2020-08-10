@@ -5,7 +5,9 @@ A library of NetCore tools to help quickly get rapid and well performant develop
 Prototypes you could send to production!  
 
 ## Why Make A Tesseract Powered Workflow  
-These are all available today, out of the box with RabbitMQ. The goal is to continue enabling features with other Queue-based providers. NoSql/DocumentDB data crawlers are also future slated.  
+Here are some features ready you can use today.
+
+*Note: These are all available today, out of the box with RabbitMQ. The goal is to continue enabling features with other Queue-based providers. NoSql/DocumentDB data crawlers are also future slated. *
 
 ### RabbitMQ Queueing Allows 
 * Async Processing    
@@ -13,7 +15,7 @@ These are all available today, out of the box with RabbitMQ. The goal is to cont
 * Chaos Engineering  
 * Connection/Channel Durability provided by HouseofCat.RabbitMQ.  
 
-### Baked-Ins
+### Built-Ins
 * Supports ILogger&lt;T&gt;  
 * Concurrency/Parallelism - baked in from the ground up.  
 * Predetermine WorkState/WorkObject simplifies development and integration.  
@@ -39,7 +41,9 @@ These are all available today, out of the box with RabbitMQ. The goal is to cont
 
 ## Non-Technical Benefits
 
-The benefits of a dataflow pattern extend beyond fancy Tensorflows or high throughput GCP Dataflow for mass computation. At the service level, it helps mentally organize your code into manageable blocks. You can still write monolithic functions, but you would be sabotaging yourself and scarificing concurrency and parallelism. By forcing design into small functional steps, you write better cleaner code. You write code that is easier to UnitTest and less prone to bugs. The orchestration of the function calls are implicit, working out deserialization or post processing/egress is baked in and out of sight out of mind. Concurrency, parallelism, all baked into a "it just works" package.
+The benefits of a dataflow pattern extend beyond fancy Tensorflows or high throughput GCP Dataflow for mass computation. At the service level, it helps mentally organize your code into manageable blocks. You can still write monolithic functions, but you would be hamstringing yourself and scarificing concurrency and parallelism. By designing code into small functional steps, you always write better, cleaner, code. That same code then is easier to UnitTest and less prone to bugs. The orchestration of the function calls are implicit, working out deserialization or post processing/egress is baked in and out of sight out of mind. Concurrency, parallelism, all baked into a "it just works" package.
+
+Lastly, after everything is said and done, all your business code is re-usable. Should you decide to abandon this workflow (:worried:) for a different mechanim, engine, or what not, all of your code will happily port to whatever other project / flow you are working with and so will all your testing. All an all, it seems very much like a win win.
 
 ## Help
 You will find library usage examples in the `examples` folder. You also can find generic NetCore how-tos and tutorials located in there. The code quality of the entire library will improve over time. Codacy allows me to review code and openly share any pain points so submit a PR to help out keeping this an A rated library!
