@@ -50,7 +50,11 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
 
             await Console.Out.WriteLineAsync("Setting up Workflow...").ConfigureAwait(false);
 
-            _workflow = new ConsumerWorkflow<WorkState>(_rabbitService, "MyConsumerWorkflow", "ConsumerFromConfig", consumerCount: ConsumerCount)
+            _workflow = new ConsumerWorkflow<WorkState>(
+                rabbitService: _rabbitService,
+                consumerWorkflowName: "MyConsumerWorkflow",
+                consumerName: "ConsumerFromConfig",
+                consumerCount: ConsumerCount)
                 .WithSerilizationProvider(_serializationProvider)
                 .WithEncryptionProvider(_encryptionProvider)
                 .WithCompressionProvider(_compressionProvider)
