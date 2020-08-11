@@ -59,7 +59,7 @@ Check out each project for additional `README.md`. They will provide additional 
 
 ![master-build](https://github.com/houseofcat/HouseofCat.Library/workflows/master-build/badge.svg)  
 
-[![Gitter](https://badges.gitter.im/Library/community.svg)](https://gitter.im/Library/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Gitter](https://badges.gitter.im/HoC-Tesseract/community.svg)](https://gitter.im/HoC-Tesseract/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ## HouseofCat.Algorithms
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Algorithms.svg)](https://www.nuget.org/packages/HouseofCat.Algorithms/)  
