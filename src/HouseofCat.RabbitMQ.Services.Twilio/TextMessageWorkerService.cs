@@ -13,7 +13,7 @@ using Twilio.Rest.Api.V2010.Account;
 
 namespace HouseofCat.RabbitMQ.Services
 {
-    public class TextMessageService : BackgroundService
+    public class TextMessageWorkerService : BackgroundService
     {
         private readonly IConfiguration _config;
         private readonly string _consumerName;
@@ -21,7 +21,7 @@ namespace HouseofCat.RabbitMQ.Services
         private readonly string _account;
         private readonly string _token;
         private readonly IRabbitService _rabbitService;
-        private readonly ILogger<TextMessageService> _logger;
+        private readonly ILogger<TextMessageWorkerService> _logger;
         private readonly ISerializationProvider _serializationProvider;
         private readonly ConsumerOptions _options;
 
@@ -29,11 +29,11 @@ namespace HouseofCat.RabbitMQ.Services
         private string _errorQueue;
         private Task RunningTask;
 
-        public TextMessageService(
+        public TextMessageWorkerService(
             IConfiguration config,
             IRabbitService rabbitService,
             ISerializationProvider serializationProvider,
-            ILogger<TextMessageService> logger = null)
+            ILogger<TextMessageWorkerService> logger = null)
         {
             Guard.AgainstNull(config, nameof(config));
             Guard.AgainstNull(rabbitService, nameof(rabbitService));
@@ -112,7 +112,7 @@ namespace HouseofCat.RabbitMQ.Services
         {
             try
             {
-                _logger?.LogInformation($"Starting {nameof(TextMessageService)}...");
+                _logger?.LogInformation($"Starting {nameof(TextMessageWorkerService)}...");
 
                 _consumerPipeline = _rabbitService.CreateConsumerPipeline<TwilioWorkState>(_consumerName, BuildPipeline);
                 _errorQueue = _options.ErrorQueueName;

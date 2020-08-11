@@ -2,6 +2,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ
@@ -87,6 +88,15 @@ namespace HouseofCat.RabbitMQ
             if (Properties?.Headers != null && Properties.Headers.ContainsKey(Constants.HeaderForObjectType))
             {
                 ContentType = Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForObjectType]);
+
+                // ADD SERIALIZER TO HEADER AND && JSON THIS ONE
+                if (ContentType == Constants.HeaderValueForLetter && Data?.Length > 0)
+                {
+                    // All Letter objects SHOULD deserialize with System.Text.Json, the inner Body maybe not.
+                    try
+                    { Letter = JsonSerializer.Deserialize<Letter>(Data); }
+                    catch { /* Swallow */}
+                }
 
                 if (Properties.Headers.ContainsKey(Constants.HeaderForEncrypted))
                 { Encrypted = (bool)Properties.Headers[Constants.HeaderForEncrypted]; }

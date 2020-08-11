@@ -92,6 +92,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Hashing.Argon", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Hashing", "src\HouseofCat.Hashing\HouseofCat.Hashing.csproj", "{75C192B0-BCEC-4BAF-97F7-0F08209557FE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.RabbitMQ.Services.Mailkit", "src\HouseofCat.RabbitMQ.Services.Mailkit\HouseofCat.RabbitMQ.Services.Mailkit.csproj", "{419F0005-0615-4594-B9F1-4ED84525CE7B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -250,6 +252,10 @@ Global
 		{75C192B0-BCEC-4BAF-97F7-0F08209557FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75C192B0-BCEC-4BAF-97F7-0F08209557FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{75C192B0-BCEC-4BAF-97F7-0F08209557FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{419F0005-0615-4594-B9F1-4ED84525CE7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{419F0005-0615-4594-B9F1-4ED84525CE7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{419F0005-0615-4594-B9F1-4ED84525CE7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{419F0005-0615-4594-B9F1-4ED84525CE7B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -293,6 +299,7 @@ Global
 		{CD31E498-F562-4E0C-8AAC-02D731879438} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 		{A48EE157-FC64-4866-8EBB-A31C141891CB} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 		{75C192B0-BCEC-4BAF-97F7-0F08209557FE} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
+		{419F0005-0615-4594-B9F1-4ED84525CE7B} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D7099845-267C-4232-8764-5DF25D6B2C79}
