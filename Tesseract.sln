@@ -16,10 +16,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4FCA30F5-D19B-4756-BC68-6BA7E668F786}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CEB4DD54-5D56-43D9-93DB-EB233068DD38}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Tests", "tests\HouseofCat.Tests\HouseofCat.Tests.csproj", "{665761E3-5B61-423D-9351-6DCC2E7CA8C4}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Utilities", "src\HouseofCat.Utilities\HouseofCat.Utilities.csproj", "{2BF50B4E-7EE9-4C51-80AA-68405D76F21A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Workflows", "src\HouseofCat.Workflows\HouseofCat.Workflows.csproj", "{E3D8F002-1DD4-4926-BD15-20B6115AA60C}"
@@ -102,10 +98,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{665761E3-5B61-423D-9351-6DCC2E7CA8C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{665761E3-5B61-423D-9351-6DCC2E7CA8C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{665761E3-5B61-423D-9351-6DCC2E7CA8C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{665761E3-5B61-423D-9351-6DCC2E7CA8C4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2BF50B4E-7EE9-4C51-80AA-68405D76F21A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2BF50B4E-7EE9-4C51-80AA-68405D76F21A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2BF50B4E-7EE9-4C51-80AA-68405D76F21A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -263,7 +255,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{665761E3-5B61-423D-9351-6DCC2E7CA8C4} = {CEB4DD54-5D56-43D9-93DB-EB233068DD38}
 		{2BF50B4E-7EE9-4C51-80AA-68405D76F21A} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 		{E3D8F002-1DD4-4926-BD15-20B6115AA60C} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 		{97C0674A-E7DC-4EF6-8E8C-1D06FE2FCAC2} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}

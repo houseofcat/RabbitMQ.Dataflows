@@ -19,7 +19,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         public static ConsumerWorkflow<WorkState> _workflow;
         public static Stopwatch Stopwatch;
         public static LogLevel LogLevel = LogLevel.Information;
-        public static int ConsumerCount = 5;
+        public static int ConsumerCount = 3;
         public static long GlobalCount = 100_000;
         public static long ActionCount = 8;
         public static long CurrentCount;
@@ -30,7 +30,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         public static bool AwaitShutdown = true;
         public static bool LogOutcome = false;
         public static bool UseStreamPipeline = false;
-        public static int MaxDoP = Environment.ProcessorCount;
+        public static int MaxDoP = Environment.ProcessorCount / 2;
         public static Random Rand = new Random();
 
         private static ILogger<ConsumerWorkflow<WorkState>> _logger;
@@ -73,7 +73,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
                 .ConfigureAwait(false);
 
             Stopwatch = Stopwatch.StartNew();
-            await Console.Out.WriteLineAsync("Waiting for all messages to stop processing and shutdown...").ConfigureAwait(false);
+            await Console.Out.WriteLineAsync("Waiting for workflow to be signaled complete...").ConfigureAwait(false);
             await _workflow.Completion.ConfigureAwait(false);
 
             await Console.Out.WriteLineAsync("\r\nStatistics!").ConfigureAwait(false);
