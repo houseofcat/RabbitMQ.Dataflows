@@ -9,7 +9,7 @@ Set up you appsettings.json
     "TextMessageWorkerService": {
       "ConsumerName": "Text.Message.Consumer",
       "MaxDoP": 4,
-      "From": "+YoPhoneNumber",
+      "From": "+0118-999-881-999-119-725-3",
       "Token": "TwilioToken",
       "Account": "TwilioAccount",
     }
