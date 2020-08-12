@@ -208,6 +208,7 @@ Formerly [RabbitMQ.Core](https://github.com/houseofcat/RabbitMQ.Core)
 [![NuGet](https://img.shields.io/nuget/dt/RabbitMQ.Core.Client.svg)](https://www.nuget.org/packages/RabbitMQ.Core.Client/)   
 [![NuGet](https://img.shields.io/nuget/v/RabbitMQ.Core.Client.svg)](https://www.nuget.org/packages/RabbitMQ.Core.Client/)  
 
+
 ## HouseofCat.RabbitMQ.Pipelines
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
@@ -219,14 +220,21 @@ A library that extends HouseofCat.RabbitMQ functionality by providing simplified
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
 
-A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.RabbitMQ library.  
+A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.RabbitMQ library.
+
+
+## HouseofCat.RabbitMQ.Services.Mailkit
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
+
+A library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (Email) with the HouseofCat.RabbitMQ library. 
 
 
 ## HouseofCat.RabbitMQ.Services.Twilio
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Twilio/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Twilio/)  
 
-A library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio with the HouseofCat.RabbitMQ library.  
+A library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio (SMS/TextMessages) with the HouseofCat.RabbitMQ library.  
 
 
 ## HouseofCat.RabbitMQ.Workflows
@@ -331,13 +339,7 @@ A library that focuses on Task Parallel Library and rapid Function execution.
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Workflows.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.Workflows.Pipelines/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Workflows.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.Workflows.Pipelines/)  
 
-A library that focuses on Task Parallel Library and rapid Function execution.  
-
-
-## HouseofCat.Workflows.Pipelines
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Workflows.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.Workflows.Pipelines/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Workflows.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.Workflows.Pipelines/)  
-
 A library that focuses on a narrow TPL implementation of mine called Pipelines.  
+
 
 # [HouseofCat.io](https://houseofcat.io)
