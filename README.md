@@ -327,9 +327,9 @@ A library that focuses on performing System.Management (Windows.Compatibility.Pa
 A library that focuses on Task Parallel Library and rapid Function execution.  
 
 
-## HouseofCat.Workflows
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Workflows/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Workflows/)  
+## HouseofCat.Workflows.Pipelines
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Workflows.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.Workflows.Pipelines/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Workflows.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.Workflows.Pipelines/)  
 
 A library that focuses on Task Parallel Library and rapid Function execution.  
 

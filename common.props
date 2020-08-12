@@ -16,7 +16,7 @@
     <Product>HouseofCat.io - The Library</Product>
     <PackageIcon>houseofcat.png</PackageIcon>
     <PackageTags>C# NetCore HouseofCat HouseofCat.io</PackageTags>
-    <PackageReleaseNotes>Simplification</PackageReleaseNotes>
+    <PackageReleaseNotes>Features, fixes, and dependency updates!</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/houseofcat/Library</PackageProjectUrl>
     <RepositoryUrl>https://github.com/houseofcat/Library</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
