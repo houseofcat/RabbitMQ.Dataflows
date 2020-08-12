@@ -113,13 +113,13 @@ namespace HouseofCat.RabbitMQ
                 new BoundedChannelOptions(1024)
                 {
                     SingleWriter = false,
-                    SingleReader = true,
+                    SingleReader = false,
+                    FullMode = BoundedChannelFullMode.DropOldest, // never block
                 });
 
             _withHeaders = Options.PublisherOptions.WithHeaders;
             _createPublishReceipts = Options.PublisherOptions.CreatePublishReceipts;
             _waitForConfirmation = TimeSpan.FromMilliseconds(Options.PublisherOptions.WaitForConfirmationTimeoutInMilliseconds);
-
         }
 
         public async Task StartAutoPublishAsync(Func<PublishReceipt, ValueTask> processReceiptAsync = null)
