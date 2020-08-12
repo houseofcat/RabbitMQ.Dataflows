@@ -19,18 +19,18 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         public static ConsumerWorkflow<WorkState> _workflow;
         public static Stopwatch Stopwatch;
         public static LogLevel LogLevel = LogLevel.Information;
-        public static int ConsumerCount = 5;
+        public static int ConsumerCount = 3;
         public static long GlobalCount = 100_000;
         public static long ActionCount = 8;
         public static long CurrentCount;
-        public static bool EnsureOrdered = true; // use with simulate IO delay to determine if ensuring order is causing delays
+        public static bool EnsureOrdered = false; // use with simulate IO delay to determine if ensuring order is causing delays
         public static bool SimulateIODelay = false;
         public static int MinIODelay = 40;
         public static int MaxIODelay = 60;
         public static bool AwaitShutdown = true;
         public static bool LogOutcome = false;
         public static bool UseStreamPipeline = false;
-        public static int MaxDoP = 64;
+        public static int MaxDoP = Environment.ProcessorCount / 2;
         public static Random Rand = new Random();
 
         private static ILogger<ConsumerWorkflow<WorkState>> _logger;
@@ -58,14 +58,14 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
                 .WithSerilizationProvider(_serializationProvider)
                 .WithEncryptionProvider(_encryptionProvider)
                 .WithCompressionProvider(_compressionProvider)
-                .WithBuildState<Message>()
-                .WithDecryptionStep()
-                .WithDecompressionStep()
-                .AddStep(RetrieveObjectFromState)
-                .AddStep(ProcessStepAsync)
-                .AddStep(AckMessageAsync)
-                .WithErrorHandling(ErrorHandlingAsync, 1000)
-                .WithFinalization(FinalizationAsync);
+                .WithBuildState<Message>(MaxDoP, false, 200)
+                .WithDecryptionStep(MaxDoP, false, 200)
+                .WithDecompressionStep(MaxDoP, false, 200)
+                .AddStep(RetrieveObjectFromState, MaxDoP, false, 200)
+                .AddStep(ProcessStepAsync, MaxDoP, false, 200)
+                .AddStep(AckMessage, MaxDoP, false, 200)
+                .WithErrorHandling(ErrorHandlingAsync, 200, MaxDoP, false)
+                .WithFinalization(FinalizationAsync, MaxDoP, false);
 
             await Console.Out.WriteLineAsync("Starting Workflow...").ConfigureAwait(false);
             await _workflow
@@ -73,7 +73,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
                 .ConfigureAwait(false);
 
             Stopwatch = Stopwatch.StartNew();
-            await Console.Out.WriteLineAsync("Waiting for all messages to stop processing and shutdown...").ConfigureAwait(false);
+            await Console.Out.WriteLineAsync("Waiting for workflow to be signaled complete...").ConfigureAwait(false);
             await _workflow.Completion.ConfigureAwait(false);
 
             await Console.Out.WriteLineAsync("\r\nStatistics!").ConfigureAwait(false);
@@ -148,8 +148,6 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
 
         private static async Task<WorkState> ProcessStepAsync(WorkState state)
         {
-            await Task.Yield();
-
             _logger.LogDebug($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - Id: {state.Message?.MessageId} - Deserialize Step Success? {state.DeserializeStepSuccess}");
 
             if (state.DeserializeStepSuccess)
@@ -168,10 +166,8 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
             return state;
         }
 
-        private static async Task<WorkState> AckMessageAsync(WorkState state)
+        private static WorkState AckMessage(WorkState state)
         {
-            await Task.Yield();
-
             _logger.LogDebug($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - Id: {state.Message?.MessageId} - Process Step Success? {state.ProcessStepSuccess}");
 
             if (state.ProcessStepSuccess)

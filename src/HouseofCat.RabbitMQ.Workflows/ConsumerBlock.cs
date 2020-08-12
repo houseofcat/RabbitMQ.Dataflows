@@ -65,14 +65,14 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         public async Task StartConsumingAsync()
         {
-            await _consumer.StartConsumerAsync();
+            await _consumer.StartConsumerAsync().ConfigureAwait(false);
             _cts = new CancellationTokenSource();
             _bufferProcessor = PushToBufferAsync(_cts.Token);
         }
 
         public async Task StopConsumingAsync()
         {
-            await _consumer.StopConsumerAsync();
+            await _consumer.StopConsumerAsync().ConfigureAwait(false);
             _cts.Cancel();
         }
 
@@ -84,11 +84,11 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             try
             {
-                while (await _consumer.GetConsumerBuffer().WaitToReadAsync(token))
+                while (await _consumer.GetConsumerBuffer().WaitToReadAsync(token).ConfigureAwait(false))
                 {
                     while (_consumer.GetConsumerBuffer().TryRead(out var message))
                     {
-                        await _bufferBlock.SendAsync(message);
+                        await _bufferBlock.SendAsync(message).ConfigureAwait(false);
                     }
 
                     if (token.IsCancellationRequested) return;
@@ -107,7 +107,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             {
                 await foreach (var message in _consumer.GetConsumerBuffer().ReadAllAsync(token).ConfigureAwait(false))
                 {
-                    await _bufferBlock.SendAsync(message);
+                    await _bufferBlock.SendAsync(message).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

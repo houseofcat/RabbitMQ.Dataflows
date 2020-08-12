@@ -301,7 +301,7 @@ namespace HouseofCat.RabbitMQ.Services
 
             if (!letter.LetterMetadata.Compressed)
             {
-                letter.Body = await CompressionProvider.CompressAsync(letter.Body);
+                letter.Body = await CompressionProvider.CompressAsync(letter.Body).ConfigureAwait(false);
                 letter.LetterMetadata.Compressed = true;
                 letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = true;
                 letter.LetterMetadata.CustomFields[Constants.HeaderForCompression] = CompressionProvider.Type;
@@ -322,7 +322,7 @@ namespace HouseofCat.RabbitMQ.Services
             {
                 try
                 {
-                    letter.Body = await CompressionProvider.DecompressAsync(letter.Body);
+                    letter.Body = await CompressionProvider.DecompressAsync(letter.Body).ConfigureAwait(false);
                     letter.LetterMetadata.Compressed = false;
                     letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = false;
 

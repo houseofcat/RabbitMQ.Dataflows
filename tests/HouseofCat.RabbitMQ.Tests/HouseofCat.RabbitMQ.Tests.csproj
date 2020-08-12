@@ -35,13 +35,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="IntegrationTests\RabbitMQ\Config.json">
+    <None Update="IntegrationTests\Config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="IntegrationTests\RabbitMQ\TestPartialTopologyConfig.json">
+    <None Update="IntegrationTests\TestPartialTopologyConfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="IntegrationTests\RabbitMQ\TestTopologyConfig.json">
+    <None Update="IntegrationTests\TestTopologyConfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

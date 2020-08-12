@@ -53,7 +53,7 @@ namespace HouseofCat.Windows
                         {
                             try
                             {
-                                await Task.Delay(interludeDelay);
+                                await Task.Delay(interludeDelay).ConfigureAwait(false);
 
                                 currentTimestamp = SW.ElapsedMicroseconds();
                                 var err = HouseofCat.Windows.NativeMethods.SendInput(
@@ -108,7 +108,7 @@ namespace HouseofCat.Windows
                                 currentTimestamp = SW.ElapsedMicroseconds();
                                 var millisecondsToSleep = (enumerator.Current.FrameTimestamp - currentTimestamp) / 1_000.0 - ThresholdAwaitTaskDelayInMilliseconds;
                                 if (millisecondsToSleep > SleepAccuracyAdjustmentInMicroseconds)
-                                { await Task.Delay((int)millisecondsToSleep); }
+                                { await Task.Delay((int)millisecondsToSleep).ConfigureAwait(false); }
 
                                 // NO-OP - Short Wait - High CPU
                                 while (SW.ElapsedMicroseconds() < enumerator.Current.FrameTimestamp - SleepAccuracyAdjustmentInMicroseconds) { }

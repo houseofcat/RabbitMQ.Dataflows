@@ -29,8 +29,8 @@ namespace HouseofCat.Gremlins
                 case 5: throw new WebException();
                 case 6: throw new TimeoutException();
                 case 7: throw new COMException();
-                case 8: await GenerateSqlExceptionAsync(49918); break;
-                case 9: await GenerateSqlExceptionAsync(_random.Next(0, _sqlErrorCount)); break;
+                case 8: await GenerateSqlExceptionAsync(49918).ConfigureAwait(false); break;
+                case 9: await GenerateSqlExceptionAsync(_random.Next(0, _sqlErrorCount)).ConfigureAwait(false); break;
                 default: break;
             }
         }

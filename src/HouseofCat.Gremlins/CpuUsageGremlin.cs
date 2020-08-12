@@ -41,7 +41,7 @@ namespace HouseofCat.Gremlins
         /// <param name="threadPriority"></param>
         public async Task UseAllCpuCoresAsync(ThreadPriority threadPriority = ThreadPriority.Lowest)
         {
-            await StartCpuCoreThreadsAsync(threadPriority);
+            await StartCpuCoreThreadsAsync(threadPriority).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace HouseofCat.Gremlins
         {
             if (CpuCoreThreadContainers == null)
             {
-                CpuCoreThreadContainers = await CreateCpuCoreThreadContainersAsync(threadPriority);
+                CpuCoreThreadContainers = await CreateCpuCoreThreadContainersAsync(threadPriority).ConfigureAwait(false);
             }
 
             for (int i = 0; i < CpuCoreThreadContainers.Length; i++)
@@ -106,7 +106,7 @@ namespace HouseofCat.Gremlins
         {
             if (CpuCoreThreadContainers != null)
             {
-                await StopCpuCoreThreadsAsync();
+                await StopCpuCoreThreadsAsync().ConfigureAwait(false);
 
                 for (int i = 0; i < CpuCoreThreadContainers.Length; i++)
                 {
@@ -167,16 +167,16 @@ namespace HouseofCat.Gremlins
             await Threading.SetThreadAffinity(NativeMethods.GetCurrentThread(),
                 threadContainer.CpuNumber,
                 threadContainer.CpuLogicalProcessorNumber,
-                threadContainer.LogicalProcessorsPerCpu);
+                threadContainer.LogicalProcessorsPerCpu).ConfigureAwait(false);
 
             if (Monitor.TryEnter(threadContainer.FuncLock))
             {
                 while (!threadContainer.TerminateSelf)
                 {
                     if (threadContainer.ThrottleTime > 0)
-                    { await AsyncWork(threadContainer.ThrottleTime); }
+                    { await AsyncWork(threadContainer.ThrottleTime).ConfigureAwait(false); }
                     else if (threadContainer.AsyncFuncWork != default)
-                    { await threadContainer.AsyncFuncWork(threadNumber); }
+                    { await threadContainer.AsyncFuncWork(threadNumber).ConfigureAwait(false); }
                 }
 
                 Monitor.Exit(threadContainer.FuncLock);
@@ -185,7 +185,7 @@ namespace HouseofCat.Gremlins
 
         private async Task AsyncWork(int throttleTime)
         {
-            await Task.Delay(throttleTime);
+            await Task.Delay(throttleTime).ConfigureAwait(false);
         }
 
         private bool disposedValue = false;
@@ -200,7 +200,7 @@ namespace HouseofCat.Gremlins
             {
                 if (disposing)
                 {
-                    await ResetGremlinAsync();
+                    await ResetGremlinAsync().ConfigureAwait(false);
                 }
 
                 disposedValue = true;

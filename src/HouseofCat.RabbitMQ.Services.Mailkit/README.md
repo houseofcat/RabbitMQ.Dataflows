@@ -1,23 +1,26 @@
-# HouseofCat.RabbitMQ.Services.Twilio
+# HouseofCat.RabbitMQ.Services.MailKit
 
-RabbitMQ -> SMS Text Message with Piplines.
+RabbitMQ -> EmailMessages with Piplines and Mailkit.
 
 Set up you appsettings.json
 
-```
+```json
   "HouseofCat": {
-    "TextMessageWorkerService": {
-      "ConsumerName": "Text.Message.Consumer",
-      "MaxDoP": 4,
-      "From": "+0118-999-881-999-119-725-3",
-      "Token": "TwilioToken",
-      "Account": "TwilioAccount",
+    "EmailService": {
+      "ConsumerName": "Email.Send.Consumer",
+	  "SmtpHost": "127.0.0.1",
+	  "SenderEmail": "you@houseofcat.io",
+	  "SenderName": "HouseofCat",
+	  "Account": "",
+	  "Password": "",
+	  "SmtpPort": 25, // 527
+	  "TlsEnabled": true
     }
   }
 ```
 
 And a separate RabbitMQ Config
-```
+```json
 {
   "FactoryOptions": {
     "Uri": "amqp://guest:guest@localhost:5672/",
@@ -37,7 +40,7 @@ And a separate RabbitMQ Config
     }
   },
   "PoolOptions": {
-    "ServiceName": "HoC.TextMessageWorkerService",
+    "ServiceName": "HoC.EmailService",
     "MaxConnections": 5,
     "MaxChannels": 25,
     "SleepOnErrorInterval": 1000
@@ -114,11 +117,11 @@ And a separate RabbitMQ Config
     }
   },
   "ConsumerOptions": {
-    "Send.TextMessage.Consumer": {
+    "Email.Send.Consumer": {
       "Enabled": true,
       "GlobalSettings": "LightSettings",
-      "ConsumerName": "Send.TextMessage.Consumer",
-      "QueueName": "Send.TextMessages"
+      "ConsumerName": "Email.Send.Consumer",
+      "QueueName": "Send.Email"
     }
   }
 }

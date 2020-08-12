@@ -52,7 +52,7 @@ namespace HouseofCat.RabbitMQ.Workflows
                 async (data) =>
                 {
                     try
-                    { return await action(data); }
+                    { return await action(data).ConfigureAwait(false); }
                     catch
                     { return null; }
                 }, options);
@@ -110,9 +110,9 @@ namespace HouseofCat.RabbitMQ.Workflows
                         if (outbound)
                         {
                             if (state.SendData?.Length > 0)
-                            { state.SendData = await action(state.SendData); }
+                            { state.SendData = await action(state.SendData).ConfigureAwait(false); }
                             else if (state.SendLetter.Body?.Length > 0)
-                            { state.SendLetter.Body = await action(state.SendLetter.Body); }
+                            { state.SendLetter.Body = await action(state.SendLetter.Body).ConfigureAwait(false); }
                         }
                         else if (predicate(state))
                         {
@@ -121,10 +121,10 @@ namespace HouseofCat.RabbitMQ.Workflows
                                 if (state.ReceivedData.Letter == null)
                                 { state.ReceivedData.Letter = serializationProvider.Deserialize<Letter>(state.ReceivedData.Data); }
 
-                                state.ReceivedData.Letter.Body = await action(state.ReceivedData.Letter.Body);
+                                state.ReceivedData.Letter.Body = await action(state.ReceivedData.Letter.Body).ConfigureAwait(false);
                             }
                             else
-                            { state.ReceivedData.Data = await action(state.ReceivedData.Data); }
+                            { state.ReceivedData.Data = await action(state.ReceivedData.Data).ConfigureAwait(false); }
                         }
                         return state;
                     }
@@ -162,7 +162,7 @@ namespace HouseofCat.RabbitMQ.Workflows
                 {
                     try
                     {
-                        return await action(state);
+                        return await action(state).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
@@ -180,7 +180,7 @@ namespace HouseofCat.RabbitMQ.Workflows
                 {
                     try
                     {
-                        await service.Publisher.PublishAsync(state.SendLetter, true, true);
+                        await service.Publisher.PublishAsync(state.SendLetter, true, true).ConfigureAwait(false);
                         state.SendLetterSent = true;
                         return state;
                     }

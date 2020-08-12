@@ -1,19 +1,65 @@
-# HouseofCat.Library
+# TESSERACT
 
-A library for All The Things!
+![TesseractLogo](https://github.com/houseofcat/Tesseract/blob/master/TesseractLogo.svg)
 
-My eclectic collection of things I have created over the years to make re-usable parts to simplify development.  
+A library of `NetCore` tools to help rapidly develop well performant micro/macroservices. 
 
-You will find library usage examples in the `examples` folder. Also can find generic NetCore how-tos and tutorials located in there. The code quality will improve over time, it comes from different stages of my career (and life events or time constraints) sometimes and I just need to go back and make some adjustments but I need to see what needs work. I am sharing where any pain points are should you adopt the code yourself, you can see how to make it better - or even better, submit a PR to help out keeping this A rated!
+Prototypes you could send to production!  
+
+## Why Make A Tesseract Powered Workflow  
+
+`Workflows` have concurrency, compression, and encryption all as first class citizens. This paradigm allows developers to just focus on the important stuff - getting work done. We pay attention to the extra dimensions so you don't have to!
+
+Here are some features ready with RabbitMQ today, tomorrow - the world!
+
+### Queueing
+* Async Processing    
+* Retriability  
+* Chaos Engineering  
+* Connection/Channel Durability provided by `HouseofCat.RabbitMQ` formerly `CookedRabbit.Core`.  
+
+### Built-Ins
+* Supports `ILogger<T>`  
+* Concurrency/Parallelism - baked in from the ground up.  
+* Contracted `WorkState`/WorkObject simplifies development and integration.  
+* Has `Json` (3 flavors) and `MessagePack` serialization providers.
+* Allow transparent encryption/decryption steps.  
+* Allow compression/decompression steps to reduce trip time over the wire.  
+* Async Error Handling with Predicate triggers and an actionable callback.  
+
+### Interchangeability
+* Allows you to replace serialization provider with `HouseofCat` Provider wrappers.  
+* Allows you to replace encryption provider with `HouseofCat` Provider wrappers.  
+* Allows you to replace compression provider with `HouseofCat` Provider wrappers.   
+* Constructed to fully support Inversion of Control.  
+
+### Business Logic
+* All steps process in the order provided allowing you to still control order of execution.  
+* All automatically subscribed to Async Error handling by `WorkState.IsFaulted` flag.  
+
+### Testing
+* All built-in steps will have integration tests that should remove concerns from end-user developer.   
+* Future case will include much more complex abstract UnitTesting as time allows.  
+* The developer should only need to unit test their functional business code.  
+
+## Implicit Benefits
+
+The benefits of a dataflow pattern extend beyond fancy machine learning and Tensorflows or high throughput GCP Dataflow for mass computation. When brought to the service level, it helps organize your code into more manageable blocks. You can still write monolithic functions, but you would be hamstringing yourself and scarificing concurrency and parallelism. By designing code into small functional steps, you always write better, cleaner, code reduced with cyclomatic complexity. That very same code is easier to UnitTest. The orchestration of the function calls are the order they are added allowing you extend the original functionality infinitely. You don't have to write deserialization or post-processing encryption/compression as they all baked in. Designing from the ground up with concurrency and parallelism, you stay nimble and fast - able to scale up internally, before horizontally and vertically, saving costs. All without needing code changed or refactored.
+
+Lastly, after everything is said and done, all your business code is re-usable. Should you decide to abandon this workflow (:worried:) for a different mechanism, engine, or what not, all of your code will happily port to whatever other project / flow you are working with and so will all your testing making it a win win.
+
+## Help
+You will find library usage examples in the `examples` folder. You also can find generic NetCore how-tos and tutorials located in there. The code quality of the entire library will improve over time. Codacy allows me to review code and openly share any pain points so submit a PR to help keep this an A rated library!
+
+Check out each project for additional `README.md`. They will provide additional instructions/examples.
+
+## Status
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9dbb20a30ada48caae4b92a83628f45e)](https://app.codacy.com/manual/cat_3/Library?utm_source=github.com&utm_medium=referral&utm_content=houseofcat/Library&utm_campaign=Badge_Grade_Dashboard)  
 
 ![master-build](https://github.com/houseofcat/HouseofCat.Library/workflows/master-build/badge.svg)  
 
-[![Gitter](https://badges.gitter.im/Library/community.svg)](https://gitter.im/Library/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-
-## Description
-Check out each project for a `README.md` to see if there are additional instructions/examples.
+[![Gitter](https://badges.gitter.im/HoC-Tesseract/community.svg)](https://gitter.im/HoC-Tesseract/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ## HouseofCat.Algorithms
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Algorithms.svg)](https://www.nuget.org/packages/HouseofCat.Algorithms/)  
@@ -147,6 +193,10 @@ A library that focuses on making it easier to deal with systems networking.
 
 A library that focuses on RabbitMQ connection and channel management to create fault tolerant Publishers and Consumers.  
 
+Formerly [CookedRabbit.Core](https://github.com/houseofcat/RabbitMQ.Core/tree/master/CookedRabbit.Core)  
+[![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.svg)](https://www.nuget.org/packages/CookedRabbit.Core/)    
+[![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Core.svg)](https://www.nuget.org/packages/CookedRabbit.Core/)   
+
 
 ## HouseofCat.RabbitMQ.Client
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Client.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Client/)  
@@ -154,6 +204,9 @@ A library that focuses on RabbitMQ connection and channel management to create f
 
 A library that focuses on cloning the official Pivotal/VMWare RabbitMQ DotNetClient but ported to pure NetCore 3.1/5.x with small code enhancements.  
 
+Formerly [RabbitMQ.Core](https://github.com/houseofcat/RabbitMQ.Core)  
+[![NuGet](https://img.shields.io/nuget/dt/RabbitMQ.Core.Client.svg)](https://www.nuget.org/packages/RabbitMQ.Core.Client/)   
+[![NuGet](https://img.shields.io/nuget/v/RabbitMQ.Core.Client.svg)](https://www.nuget.org/packages/RabbitMQ.Core.Client/)  
 
 ## HouseofCat.RabbitMQ.Pipelines
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
@@ -203,11 +256,13 @@ A library that focuses on making it easier to deal with Serialization.
 
 A library that focuses on making it easier to deal with Newtonsoft Json Serialization.  
 
+
 ## HouseofCat.Serilization.Json.Utf8Json
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Utf8Json/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Utf8Json/)  
 
 A library that focuses on making it easier to deal with Utf8Json Json Serialization.  
+
 
 ## HouseofCat.Serilization.MessagePack
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.MessagePack/)  
@@ -272,9 +327,9 @@ A library that focuses on performing System.Management (Windows.Compatibility.Pa
 A library that focuses on Task Parallel Library and rapid Function execution.  
 
 
-## HouseofCat.Workflows
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Workflows/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Workflows/)  
+## HouseofCat.Workflows.Pipelines
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Workflows.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.Workflows.Pipelines/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Workflows.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.Workflows.Pipelines/)  
 
 A library that focuses on Task Parallel Library and rapid Function execution.  
 

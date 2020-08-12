@@ -8,6 +8,7 @@
     <AssemblyName>HouseofCat.RabbitMQ.Client</AssemblyName>
     <RootNamespace>RabbitMQ.Client</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
   </PropertyGroup>
   <ItemGroup>
     <None Update="PIVOTAL_VMWARE_LICENSE">
