@@ -153,7 +153,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _suppliedTransforms.Add(BlockBuilders.GetWrappedTransformBlock<TState>(suppliedStep, executionOptions));
+            _suppliedTransforms.Add(BlockBuilders.GetWrappedTransformBlock(suppliedStep, executionOptions));
             return this;
         }
 
@@ -161,7 +161,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _suppliedTransforms.Add(BlockBuilders.GetWrappedTransformBlock<TState>(suppliedStep, executionOptions));
+            _suppliedTransforms.Add(BlockBuilders.GetWrappedTransformBlock(suppliedStep, executionOptions));
             return this;
         }
 
@@ -175,7 +175,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _createSendLetter = BlockBuilders.GetWrappedTransformBlock<TState>(createLetter, executionOptions);
+            _createSendLetter = BlockBuilders.GetWrappedTransformBlock(createLetter, executionOptions);
             return this;
         }
 
@@ -205,14 +205,14 @@ namespace HouseofCat.RabbitMQ.Workflows
         public ConsumerWorkflow<TState> WithFinalization(Action<TState> action, int? maxDoPOverride = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _finalization = BlockBuilders.GetWrappedActionBlock<TState>(action, executionOptions);
+            _finalization = BlockBuilders.GetWrappedActionBlock(action, executionOptions);
             return this;
         }
 
         public ConsumerWorkflow<TState> WithFinalization(Func<TState, Task> action, int? maxDoPOverride = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoPOverride, ensureOrdered, bufferSizeOverride);
-            _finalization = BlockBuilders.GetWrappedActionBlock<TState>(action, executionOptions);
+            _finalization = BlockBuilders.GetWrappedActionBlock(action, executionOptions);
             return this;
         }
 
