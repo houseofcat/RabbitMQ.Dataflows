@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
   <PropertyGroup>
     <Version>1.0.4</Version>
@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
+    <ProjectReference Include="..\HouseofCat.RabbitMQ.WorkState\HouseofCat.RabbitMQ.WorkState.csproj" />
     <ProjectReference Include="..\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
     <ProjectReference Include="..\HouseofCat.Workflows.Pipelines\HouseofCat.Workflows.Pipelines.csproj" />
   </ItemGroup>

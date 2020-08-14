@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 using System.Runtime.Serialization;
 
-namespace HouseofCat.RabbitMQ.Pipelines
+namespace HouseofCat.RabbitMQ.WorkState
 {
     public interface IRabbitWorkState : IWorkState
     {

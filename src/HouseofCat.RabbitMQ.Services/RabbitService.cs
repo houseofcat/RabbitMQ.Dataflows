@@ -3,6 +3,7 @@ using HouseofCat.Encryption;
 using HouseofCat.Logger;
 using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.RabbitMQ.WorkState;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.File;
@@ -33,10 +34,10 @@ namespace HouseofCat.RabbitMQ.Services
 
         Task ComcryptAsync(Letter letter);
         Task<bool> CompressAsync(Letter letter);
-        IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, int batchSize, bool? ensureOrdered, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : IRabbitWorkState;
-        IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, IPipeline<ReceivedData, TOut> pipeline) where TOut : IRabbitWorkState;
+        IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, int batchSize, bool? ensureOrdered, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
+        IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, IPipeline<ReceivedData, TOut> pipeline) where TOut : RabbitWorkState;
 
-        IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : IRabbitWorkState;
+        IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
 
         Task DecomcryptAsync(Letter letter);
         Task<bool> DecompressAsync(Letter letter);
@@ -190,7 +191,7 @@ namespace HouseofCat.RabbitMQ.Services
             int batchSize,
             bool? ensureOrdered,
             Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder)
-            where TOut : IRabbitWorkState
+            where TOut : RabbitWorkState
         {
             var consumer = GetConsumer(consumerName);
             var pipeline = pipelineBuilder.Invoke(batchSize, ensureOrdered);
@@ -201,7 +202,7 @@ namespace HouseofCat.RabbitMQ.Services
         public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
             string consumerName,
             Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder)
-            where TOut : IRabbitWorkState
+            where TOut : RabbitWorkState
         {
             var consumer = GetConsumer(consumerName);
             var pipeline = pipelineBuilder.Invoke(
@@ -214,7 +215,7 @@ namespace HouseofCat.RabbitMQ.Services
         public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
             string consumerName,
             IPipeline<ReceivedData, TOut> pipeline)
-            where TOut : IRabbitWorkState
+            where TOut : RabbitWorkState
         {
             var consumer = GetConsumer(consumerName);
 

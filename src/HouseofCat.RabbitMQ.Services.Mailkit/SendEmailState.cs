@@ -1,4 +1,4 @@
-﻿using HouseofCat.RabbitMQ.Pipelines;
+﻿using HouseofCat.RabbitMQ.WorkState;
 
 namespace HouseofCat.RabbitMQ.Services
 {

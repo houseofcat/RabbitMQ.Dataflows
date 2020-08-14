@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.6" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.6" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.0" />
+    <PackageReference Include="System.Runtime.Extensions" Version="4.3.1" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="1.3.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.Encryption.BouncyCastle\HouseofCat.Encryption.BouncyCastle.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ.Pipelines\HouseofCat.RabbitMQ.Pipelines.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ.Services\HouseofCat.RabbitMQ.Services.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.Serialization.Json.Newtonsoft\HouseofCat.Serialization.Json.Newtonsoft.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.Serialization.Json.Utf8Json\HouseofCat.Serialization.Json.Utf8Json.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.Serialization.MessagePack\HouseofCat.Serialization.MessagePack.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="IntegrationTests\Config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="IntegrationTests\TestPartialTopologyConfig.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="IntegrationTests\TestTopologyConfig.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

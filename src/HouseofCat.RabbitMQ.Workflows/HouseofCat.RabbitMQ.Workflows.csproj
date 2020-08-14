@@ -9,8 +9,8 @@
     <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
     <ProjectReference Include="..\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
     <ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
-    <ProjectReference Include="..\HouseofCat.RabbitMQ.Pipelines\HouseofCat.RabbitMQ.Pipelines.csproj" />
     <ProjectReference Include="..\HouseofCat.RabbitMQ.Services\HouseofCat.RabbitMQ.Services.csproj" />
+    <ProjectReference Include="..\HouseofCat.RabbitMQ.WorkState\HouseofCat.RabbitMQ.WorkState.csproj" />
     <ProjectReference Include="..\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
     <ProjectReference Include="..\HouseofCat.Reflection\HouseofCat.Reflection.csproj" />
     <ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />

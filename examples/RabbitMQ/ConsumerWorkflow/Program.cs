@@ -4,6 +4,7 @@ using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.RabbitMQ.Workflows;
+using HouseofCat.RabbitMQ.WorkState;
 using HouseofCat.Serialization;
 using Microsoft.Extensions.Logging;
 using System;
@@ -55,10 +56,10 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
                 consumerWorkflowName: "MyConsumerWorkflow",
                 consumerName: "ConsumerFromConfig",
                 consumerCount: ConsumerCount)
-                .WithSerilizationProvider(_serializationProvider)
-                .WithEncryptionProvider(_encryptionProvider)
-                .WithCompressionProvider(_compressionProvider)
-                .WithBuildState<Message>(MaxDoP, false, 200)
+                .SetSerilizationProvider(_serializationProvider)
+                .SetEncryptionProvider(_encryptionProvider)
+                .SetCompressionProvider(_compressionProvider)
+                .WithBuildState<Message>("Message", MaxDoP, false, 200)
                 .WithDecryptionStep(MaxDoP, false, 200)
                 .WithDecompressionStep(MaxDoP, false, 200)
                 .AddStep(RetrieveObjectFromState, MaxDoP, false, 200)
@@ -125,7 +126,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
             public string StringMessage { get; set; }
         }
 
-        public class WorkState : HouseofCat.RabbitMQ.Pipelines.WorkState
+        public class WorkState : RabbitWorkState
         {
             public Message Message { get; set; }
             public bool DeserializeStepSuccess => Message != null;

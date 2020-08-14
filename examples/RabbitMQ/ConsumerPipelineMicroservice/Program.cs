@@ -4,6 +4,7 @@ using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.RabbitMQ.Services;
+using HouseofCat.RabbitMQ.WorkState;
 using HouseofCat.Serialization;
 using HouseofCat.Workflows.Pipelines;
 using Microsoft.Extensions.Logging;
@@ -188,7 +189,7 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
             public string StringMessage { get; set; }
         }
 
-        public class WorkState : HouseofCat.RabbitMQ.Pipelines.WorkState
+        public class WorkState : RabbitWorkState
         {
             public Message Message { get; set; }
             public ulong LetterId { get; set; }
