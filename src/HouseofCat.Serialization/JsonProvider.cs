@@ -8,7 +8,7 @@ namespace HouseofCat.Serialization
 {
     public class JsonProvider : ISerializationProvider
     {
-        private JsonSerializerOptions _options;
+        private readonly JsonSerializerOptions _options;
 
         public JsonProvider(JsonSerializerOptions options = null)
         {

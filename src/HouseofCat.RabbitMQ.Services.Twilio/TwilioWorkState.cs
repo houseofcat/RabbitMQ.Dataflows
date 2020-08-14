@@ -2,7 +2,7 @@
 
 namespace HouseofCat.RabbitMQ.Services
 {
-    public class TwilioWorkState : WorkState
+    public class TwilioWorkState : RabbitWorkState
     {
         public TextMessage TextMessage { get; set; }
         public ulong LetterId { get; set; }

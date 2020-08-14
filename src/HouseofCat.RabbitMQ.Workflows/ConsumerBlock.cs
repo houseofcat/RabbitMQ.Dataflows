@@ -8,14 +8,17 @@ using System.Threading.Tasks.Dataflow;
 
 namespace HouseofCat.RabbitMQ.Workflows
 {
-    public class ConsumerBlock<TOut> : IPropagatorBlock<TOut, TOut>
+    public class ConsumerBlock<TOut> : ISourceBlock<TOut>
     {
-        public Task Completion { get; private set; }
+        public Task Completion { get; }
 
         private readonly ILogger<ConsumerBlock<TOut>> _logger;
         private readonly IConsumer<TOut> _consumer;
-        private ITargetBlock<TOut> _bufferBlock;
-        private ISourceBlock<TOut> _sourceBufferBlock;
+        private readonly ITargetBlock<TOut> _bufferBlock;
+        private readonly ISourceBlock<TOut> _sourceBufferBlock;
+
+        private CancellationTokenSource _cts;
+        private Task _bufferProcessor;
 
         public ConsumerBlock(IConsumer<TOut> consumer)
         {
@@ -26,6 +29,20 @@ namespace HouseofCat.RabbitMQ.Workflows
             _bufferBlock = new BufferBlock<TOut>();
             _sourceBufferBlock = (ISourceBlock<TOut>)_bufferBlock;
             Completion = _bufferBlock.Completion;
+        }
+
+        public async Task StartConsumingAsync()
+        {
+            await _consumer.StartConsumerAsync().ConfigureAwait(false);
+            _bufferProcessor = PushToBufferAsync(_cts.Token);
+            _cts = new CancellationTokenSource();
+        }
+
+        public async Task StopConsumingAsync()
+        {
+            await _consumer.StopConsumerAsync().ConfigureAwait(false);
+            await _bufferProcessor.ConfigureAwait(false);
+            _cts.Cancel();
         }
 
         public DataflowMessageStatus OfferMessage(DataflowMessageHeader messageHeader, TOut messageValue, ISourceBlock<TOut> source, bool consumeToAccept)
@@ -63,22 +80,6 @@ namespace HouseofCat.RabbitMQ.Workflows
             throw new NotImplementedException();
         }
 
-        public async Task StartConsumingAsync()
-        {
-            await _consumer.StartConsumerAsync().ConfigureAwait(false);
-            _cts = new CancellationTokenSource();
-            _bufferProcessor = PushToBufferAsync(_cts.Token);
-        }
-
-        public async Task StopConsumingAsync()
-        {
-            await _consumer.StopConsumerAsync().ConfigureAwait(false);
-            _cts.Cancel();
-        }
-
-        private CancellationTokenSource _cts;
-        private Task _bufferProcessor;
-
         // Fast
         private async Task PushToBufferAsync(CancellationToken token = default)
         {
@@ -100,7 +101,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             { _logger.LogError(ex, "Reading consumer buffer threw an exception."); }
         }
 
-        // Slow
+        // Slow - leave for testing purposes (CPU utilization is lower here).
         private async Task StreamToBufferAsync(CancellationToken token = default)
         {
             try
@@ -111,9 +112,7 @@ namespace HouseofCat.RabbitMQ.Workflows
                 }
             }
             catch (OperationCanceledException)
-            {
-                _logger.LogDebug("Consumer task was cancelled. Disregard if this was manually invoked.");
-            }
+            { _logger.LogDebug("Consumer task was cancelled. Disregard if this was manually invoked."); }
             catch (Exception ex)
             { _logger.LogError(ex, "Reading consumer buffer threw an exception."); }
         }

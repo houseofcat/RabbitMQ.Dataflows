@@ -8,15 +8,15 @@ namespace HouseofCat.Workflows
 {
     public class NoLossBroadcastBlock<T> : IPropagatorBlock<T, T>
     {
-        private Task _completion;
+        private readonly Task _completion;
 
         public Task Completion
         {
             get { return _completion; }
         }
 
-        private BroadcastBlock<T> _broadcastBlock;
-        private ITargetBlock<T> _targetBroadcastBlock; // reduces casting hits keeping a casted version cached
+        private readonly BroadcastBlock<T> _broadcastBlock;
+        private readonly ITargetBlock<T> _targetBroadcastBlock; // reduces casting hits keeping a casted version cached
 
         public NoLossBroadcastBlock(Func<T, T> cloningFunction)
         {

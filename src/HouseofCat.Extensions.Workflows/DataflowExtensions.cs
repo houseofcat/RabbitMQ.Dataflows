@@ -8,7 +8,7 @@ namespace HouseofCat.Extensions.Workflows
 {
     public static class DataflowExtensions
     {
-        private static DataflowLinkOptions _options = new DataflowLinkOptions { PropagateCompletion = true };
+        private static readonly DataflowLinkOptions _options = new DataflowLinkOptions { PropagateCompletion = true };
 
         public static IDisposable LinkWithCompletion<T>(this ISourceBlock<T> source, ITargetBlock<T> target)
         {
@@ -46,13 +46,15 @@ namespace HouseofCat.Extensions.Workflows
 
         public static IPropagatorBlock<TIn, TIn> CreateFilterBlock<TIn>(Predicate<TIn> predicate)
         {
-            var output = new BufferBlock<TIn>();
+            var outputBuffer = new BufferBlock<TIn>();
             var filterAction = new ActionBlock<TIn>(
                 async (input) =>
                 {
                     if (predicate(input))
                     {
-                        await output.SendAsync(input).ConfigureAwait(false);
+                        await outputBuffer
+                            .SendAsync(input)
+                            .ConfigureAwait(false);
                     }
                 });
 
@@ -62,13 +64,13 @@ namespace HouseofCat.Extensions.Workflows
                 {
                     if (task.IsFaulted)
                     {
-                        ((ITargetBlock<TIn>)output).Fault(task.Exception?.Flatten().InnerException);
+                        ((ITargetBlock<TIn>)outputBuffer).Fault(task.Exception?.Flatten().InnerException);
                     }
                     else
-                    { output.Complete(); }
+                    { outputBuffer.Complete(); }
                 });
 
-            return DataflowBlock.Encapsulate(filterAction, output);
+            return DataflowBlock.Encapsulate(filterAction, outputBuffer);
         }
     }
 }

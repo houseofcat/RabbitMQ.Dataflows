@@ -50,7 +50,7 @@ namespace HouseofCat.RabbitMQ
         public bool Compressed { get; private set; }
         public string CompressionType { get; private set; }
 
-        private TaskCompletionSource<bool> _completionSource = new TaskCompletionSource<bool>();
+        private readonly TaskCompletionSource<bool> _completionSource = new TaskCompletionSource<bool>();
         public Task<bool> Completion => _completionSource.Task;
 
         private bool _disposedValue;

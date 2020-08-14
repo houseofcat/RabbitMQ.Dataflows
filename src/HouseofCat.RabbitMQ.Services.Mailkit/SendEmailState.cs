@@ -2,7 +2,7 @@
 
 namespace HouseofCat.RabbitMQ.Services
 {
-    public class SendEmailState : WorkState
+    public class SendEmailState : RabbitWorkState
     {
         public SendEmail SendEmail { get; set; }
     }
