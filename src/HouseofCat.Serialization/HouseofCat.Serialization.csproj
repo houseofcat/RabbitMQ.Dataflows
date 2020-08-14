@@ -2,7 +2,7 @@
   <Import Project="..\..\common.props" />
   <PropertyGroup>
     <Version>1.0.1</Version>
-    <AssemblyVersion>1.0.01</AssemblyVersion>
+    <AssemblyVersion>1.0.1</AssemblyVersion>
     <FileVersion>1.0.1</FileVersion>
   </PropertyGroup>
 </Project>
