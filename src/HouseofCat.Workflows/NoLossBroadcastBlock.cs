@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
@@ -8,12 +6,7 @@ namespace HouseofCat.Workflows
 {
     public class NoLossBroadcastBlock<T> : IPropagatorBlock<T, T>
     {
-        private readonly Task _completion;
-
-        public Task Completion
-        {
-            get { return _completion; }
-        }
+        public Task Completion { get; }
 
         private readonly BroadcastBlock<T> _broadcastBlock;
         private readonly ITargetBlock<T> _targetBroadcastBlock; // reduces casting hits keeping a casted version cached
@@ -21,8 +14,8 @@ namespace HouseofCat.Workflows
         public NoLossBroadcastBlock(Func<T, T> cloningFunction)
         {
             _broadcastBlock = new BroadcastBlock<T>(cloningFunction);
-            _targetBroadcastBlock = (ITargetBlock<T>)_broadcastBlock;
-            _completion = _broadcastBlock.Completion;
+            _targetBroadcastBlock = _broadcastBlock;
+            Completion = _broadcastBlock.Completion;
         }
 
         public DataflowMessageStatus OfferMessage(DataflowMessageHeader messageHeader, T messageValue, ISourceBlock<T> source, bool consumeToAccept)
@@ -46,7 +39,7 @@ namespace HouseofCat.Workflows
             var dispose1 = _broadcastBlock.LinkTo(bufferBlock, linkOptions);
             var dispose2 = bufferBlock.LinkTo(target, linkOptions);
 
-            _completion.ContinueWith(_ => bufferBlock.Completion);
+            Completion.ContinueWith(_ => bufferBlock.Completion);
             return new MultiDispose(dispose1, dispose2);
         }
 

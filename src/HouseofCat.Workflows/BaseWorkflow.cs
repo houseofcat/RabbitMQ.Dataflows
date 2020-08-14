@@ -1,5 +1,6 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Encryption;
+using HouseofCat.Metrics;
 using HouseofCat.Serialization;
 using HouseofCat.Workflows;
 using System;
@@ -17,6 +18,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         protected ISerializationProvider _serializationProvider;
         protected IEncryptionProvider _encryptionProvider;
         protected ICompressionProvider _compressProvider;
+        protected IMetricsProvider _metricsProvider;
 
         protected ISourceBlock<TState> _currentBlock;
         public Task Completion { get; protected set; }
