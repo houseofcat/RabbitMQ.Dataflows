@@ -23,7 +23,7 @@ namespace HouseofCat.Utilities
                     {
                         try
                         {
-                            _disposables[i].Dispose();
+                            _disposables[i]?.Dispose();
                         }
                         catch { /* Swallow */ }
                     }

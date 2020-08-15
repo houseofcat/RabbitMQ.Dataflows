@@ -31,7 +31,9 @@ namespace ConsumerWorkflowMetrics
 
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
 
-            var metricsProvider = new PrometheusMetricsProvider();
+            var metricsProvider = new PrometheusMetricsProvider()
+                .AddDotNetRuntimeStats();
+
             var serializationProvider = new Utf8JsonProvider();
             var hashingProvider = new Argon2IDHasher();
             var hashKey = hashingProvider
@@ -50,13 +52,17 @@ namespace ConsumerWorkflowMetrics
                 loggerFactory);
 
             services.AddSingleton(
-                new ConsumerWorkflowService(
-                    loggerFactory,
-                    rabbitService,
-                    serializationProvider,
-                    compressionProvider,
-                    encryptionProvider,
-                    metricsProvider));
+                s =>
+                {
+                    return new ConsumerWorkflowService(
+                        s.GetRequiredService<IConfiguration>(),
+                        loggerFactory,
+                        rabbitService,
+                        serializationProvider,
+                        compressionProvider,
+                        encryptionProvider,
+                        metricsProvider);
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

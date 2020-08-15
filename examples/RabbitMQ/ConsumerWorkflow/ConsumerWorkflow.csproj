@@ -23,6 +23,8 @@
     <ProjectReference Include="..\..\..\src\HouseofCat.RabbitMQ.Workflows\HouseofCat.RabbitMQ.Workflows.csproj" />
     <ProjectReference Include="..\..\..\src\HouseofCat.RabbitMQ.Services\HouseofCat.RabbitMQ.Services.csproj" />
     <ProjectReference Include="..\..\..\src\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\..\src\HouseofCat.Metrics\HouseofCat.Metrics.csproj" />
+    <ProjectReference Include="..\..\..\src\HouseofCat.Metrics.Prometheus\HouseofCat.Metrics.Prometheus.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -132,19 +132,23 @@ namespace HouseofCat.RabbitMQ.Workflows
             {
                 _errorBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
                 var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
-                _errorAction = GetWrappedActionBlock(action, executionOptions);
+                _errorAction = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler");
             }
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithErrorHandling(Func<TState, Task> action, int boundedCapacity, int? maxDoP = null, bool? ensureOrdered = null)
+        public ConsumerWorkflow<TState> WithErrorHandling(
+            Func<TState, Task> action,
+            int boundedCapacity,
+            int? maxDoP = null,
+            bool? ensureOrdered = null)
         {
             Guard.AgainstNull(action, nameof(action));
             if (_errorBuffer == null)
             {
                 _errorBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
                 var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
-                _errorAction = GetWrappedActionBlock(action, executionOptions);
+                _errorAction = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler");
             }
             return this;
         }
@@ -158,23 +162,33 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> AddStep(Func<TState, TState> suppliedStep, int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> AddStep(
+            Func<TState, TState> suppliedStep,
+            string metricIdentifier,
+            int? maxDoP = null,
+            bool? ensureOrdered = null,
+            int? boundedCapacity = null)
         {
             Guard.AgainstNull(suppliedStep, nameof(suppliedStep));
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
-            _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-            _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions));
+            _metricsProvider.IncrementCounter($"{WorkflowName}_StepCount", true);
+            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+            _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions, metricIdentifier));
             return this;
         }
 
-        public ConsumerWorkflow<TState> AddStep(Func<TState, Task<TState>> suppliedStep, int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> AddStep(
+            Func<TState, Task<TState>> suppliedStep,
+            string metricIdentifier,
+            int? maxDoP = null,
+            bool? ensureOrdered = null,
+            int? boundedCapacity = null)
         {
             Guard.AgainstNull(suppliedStep, nameof(suppliedStep));
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
-            _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-            _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions));
+            _metricsProvider.IncrementCounter($"{WorkflowName}_StepCount", true);
+            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+            _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions, metricIdentifier));
             return this;
         }
 
@@ -187,132 +201,148 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithFinalization(Action<TState> action, int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> WithFinalization(
+            Action<TState> action,
+            int? maxDoP = null,
+            bool? ensureOrdered = null,
+            int? boundedCapacity = null)
         {
             Guard.AgainstNull(action, nameof(action));
             if (_finalization == null)
             {
-                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-                _finalization = GetWrappedActionBlock(action, executionOptions);
+                _metricsProvider.IncrementCounter($"{WorkflowName}_StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                _finalization = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_Finalization");
             }
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithFinalization(Func<TState, Task> action, int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> WithFinalization(
+            Func<TState, Task> action,
+            int? maxDoP = null,
+            bool? ensureOrdered = null,
+            int? boundedCapacity = null)
         {
             Guard.AgainstNull(action, nameof(action));
             if (_finalization == null)
             {
-                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-                _finalization = GetWrappedActionBlock(action, executionOptions);
+                _metricsProvider.IncrementCounter($"{WorkflowName}_StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                _finalization = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_Finalization");
             }
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithBuildState<TOut>(string key, int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> WithBuildState<TOut>(
+            string stateKey,
+            int? maxDoP = null,
+            bool? ensureOrdered = null,
+            int? boundedCapacity = null)
         {
             if (_buildStateBlock == null)
             {
-                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-                _buildStateBlock = GetBuildStateBlock<TOut>(_serializationProvider, key, executionOptions);
+                _metricsProvider.IncrementCounter($"{WorkflowName}_StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                _buildStateBlock = GetBuildStateBlock<TOut>(_serializationProvider, stateKey, executionOptions);
             }
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithDecryptionStep(int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> WithDecryptionStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             if (_decryptBlock == null)
             {
-                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
+                _metricsProvider.IncrementCounter($"{WorkflowName}_StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
 
                 _decryptBlock = GetByteManipulationTransformBlock(
                     _encryptionProvider.Decrypt,
                     executionOptions,
                     false,
                     x => x.ReceivedData.Encrypted,
-                    $"{WorkflowName}.Decrypt");
+                    $"{WorkflowName}_Decrypt");
             }
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithDecompressionStep(int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> WithDecompressionStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             if (_decompressBlock == null)
             {
-                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
+                _metricsProvider.IncrementCounter($"{WorkflowName}_StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
 
                 _decompressBlock = GetByteManipulationTransformBlock(
                     _compressProvider.Decompress,
                     executionOptions,
                     false,
                     x => x.ReceivedData.Compressed,
-                    $"{WorkflowName}.Decompress");
+                    $"{WorkflowName}_Decompress");
             }
 
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithCreateSendLetter(Func<TState, Task<TState>> createLetter, int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> WithCreateSendLetter(
+            Func<TState, Task<TState>> createLetter,
+            int? maxDoP = null,
+            bool? ensureOrdered = null,
+            int? boundedCapacity = null)
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             if (_createSendLetter == null)
             {
-                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-                _createSendLetter = GetWrappedTransformBlock(createLetter, executionOptions);
+                _metricsProvider.IncrementCounter($"{WorkflowName}_StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                _createSendLetter = GetWrappedTransformBlock(createLetter, executionOptions, $"{WorkflowName}_CreateSendLetter");
             }
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithCompression(int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> WithCompression(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             if (_compressBlock == null)
             {
-                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
+                _metricsProvider.IncrementCounter($"{WorkflowName}_StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
 
                 _compressBlock = GetByteManipulationTransformBlock(
                     _compressProvider.Compress,
                     executionOptions,
                     true,
                     x => !x.ReceivedData.Compressed,
-                    $"{WorkflowName}.Compress");
+                    $"{WorkflowName}_Compress");
             }
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithEncryption(int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> WithEncryption(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             if (_encryptBlock == null)
             {
-                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
+                _metricsProvider.IncrementCounter($"{WorkflowName}_StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
 
                 _encryptBlock = GetByteManipulationTransformBlock(
                     _encryptionProvider.Encrypt,
                     executionOptions,
                     true,
                     x => !x.ReceivedData.Encrypted,
-                    $"{WorkflowName}.Encrypt");
+                    $"{WorkflowName}_Encrypt");
             }
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithSendStep(int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
+        public ConsumerWorkflow<TState> WithSendStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
         {
-            _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
+            _metricsProvider.IncrementCounter($"{WorkflowName}_StepCount", true);
             if (_sendLetterBlock == null)
             {
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
                 _sendLetterBlock = GetWrappedPublishTransformBlock(_rabbitService, executionOptions);
             }
             return this;
@@ -424,7 +454,7 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         private TState BuildState<TOut>(ISerializationProvider provider, string key, ReceivedData data)
         {
-            _metricsProvider.IncrementGauge($"{WorkflowName}.StateBuild", true);
+            _metricsProvider.IncrementGauge($"{WorkflowName}_StateBuild", true);
 
             var state = New<TState>.Instance.Invoke();
             state.ReceivedData = data;
@@ -432,6 +462,8 @@ namespace HouseofCat.RabbitMQ.Workflows
             {
                 { key, provider.Deserialize<TOut>(data.Data) },
             };
+
+            _metricsProvider.DecrementGauge($"{WorkflowName}_StateBuild", true);
 
             return state;
         }
@@ -501,12 +533,15 @@ namespace HouseofCat.RabbitMQ.Workflows
             Func<ReadOnlyMemory<byte>, Task<byte[]>> action,
             ExecutionDataflowBlockOptions options,
             bool outbound,
-            Predicate<TState> predicate)
+            Predicate<TState> predicate,
+            string metricIdentifier)
         {
             async Task<TState> WrapActionAsync(TState state)
             {
                 try
                 {
+                    using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
+
                     if (outbound)
                     {
                         if (state.SendData?.Length > 0)
@@ -539,12 +574,16 @@ namespace HouseofCat.RabbitMQ.Workflows
             return new TransformBlock<TState, TState>(WrapActionAsync, options);
         }
 
-        public TransformBlock<TState, TState> GetWrappedPublishTransformBlock(IRabbitService service, ExecutionDataflowBlockOptions options)
+        public TransformBlock<TState, TState> GetWrappedPublishTransformBlock(
+            IRabbitService service,
+            ExecutionDataflowBlockOptions options)
         {
             async Task<TState> WrapPublishAsync(TState state)
             {
                 try
                 {
+                    using var multiDispose = _metricsProvider.MeasureAndTrack($"{WorkflowName}_Publish", true);
+
                     await service.Publisher.PublishAsync(state.SendLetter, true, true).ConfigureAwait(false);
                     state.SendLetterSent = true;
                     return state;

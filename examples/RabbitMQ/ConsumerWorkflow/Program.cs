@@ -1,6 +1,7 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
+using HouseofCat.Metrics;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.RabbitMQ.Workflows;
@@ -40,6 +41,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         private static IHashingProvider _hashingProvider;
         private static ICompressionProvider _compressionProvider;
         private static IEncryptionProvider _encryptionProvider;
+        private static IMetricsProvider _metricsProvider;
 
         public static async Task Main()
         {
@@ -51,20 +53,22 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
 
             await Console.Out.WriteLineAsync("Setting up Workflow...").ConfigureAwait(false);
 
+            var workflowName = "MyConsumerWorkflow";
             _workflow = new ConsumerWorkflow<WorkState>(
                 rabbitService: _rabbitService,
-                workflowName: "MyConsumerWorkflow",
+                workflowName: workflowName,
                 consumerName: "ConsumerFromConfig",
                 consumerCount: ConsumerCount)
                 .SetSerilizationProvider(_serializationProvider)
                 .SetEncryptionProvider(_encryptionProvider)
                 .SetCompressionProvider(_compressionProvider)
+                .SetMetricsProvider(_metricsProvider)
                 .WithBuildState<Message>("Message", MaxDoP, false, 200)
                 .WithDecryptionStep(MaxDoP, false, 200)
                 .WithDecompressionStep(MaxDoP, false, 200)
-                .AddStep(RetrieveObjectFromState, MaxDoP, false, 200)
-                .AddStep(ProcessStepAsync, MaxDoP, false, 200)
-                .AddStep(AckMessage, MaxDoP, false, 200)
+                .AddStep(RetrieveObjectFromState, $"{workflowName}.RetrieveObjectFromState", MaxDoP, EnsureOrdered, 200)
+                .AddStep(ProcessStepAsync, $"{workflowName}.ProcessStep", MaxDoP, EnsureOrdered, 200)
+                .AddStep(AckMessage, $"{workflowName}.AckMessage", MaxDoP, EnsureOrdered, 200)
                 .WithErrorHandling(ErrorHandlingAsync, 200, MaxDoP, false)
                 .WithFinalization(FinalizationAsync, MaxDoP, false);
 
@@ -103,6 +107,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
             _hashingProvider = new Argon2IDHasher();
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
+            _metricsProvider = new NullMetricsProvider();
             _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
             _compressionProvider = new LZ4PickleProvider();
             _serializationProvider = new Utf8JsonProvider();

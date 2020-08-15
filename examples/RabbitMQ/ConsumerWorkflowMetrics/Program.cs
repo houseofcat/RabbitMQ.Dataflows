@@ -17,10 +17,7 @@ namespace ConsumerWorkflowMetrics
             var workflowService = scope.ServiceProvider.GetRequiredService<ConsumerWorkflowService>();
 
             await workflowService
-                .BuildAndStartWorkflowAsync(
-                    workflowName: "ConsumerWorkflow",
-                    consumerName: "ConsumerFromConfig",
-                    consumerCount: 3)
+                .BuildAndStartWorkflowAsync()
                 .ConfigureAwait(false);
 
             await webStartAsync.ConfigureAwait(false);

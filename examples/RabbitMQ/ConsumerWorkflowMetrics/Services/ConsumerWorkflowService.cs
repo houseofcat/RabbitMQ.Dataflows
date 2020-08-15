@@ -5,10 +5,10 @@ using HouseofCat.Metrics;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.RabbitMQ.Workflows;
 using HouseofCat.Serialization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace ConsumerWorkflowMetrics.Services
@@ -17,6 +17,7 @@ namespace ConsumerWorkflowMetrics.Services
     {
         public Task Completion { get; protected set; }
         private ConsumerWorkflow<WorkState> _workflow;
+        private readonly IConfiguration _config;
         private readonly ILogger<ConsumerWorkflowService> _logger;
         private readonly IRabbitService _rabbitService;
         private readonly ISerializationProvider _serializationProvider;
@@ -24,21 +25,14 @@ namespace ConsumerWorkflowMetrics.Services
         private readonly IEncryptionProvider _encryptionProvider;
         private readonly IMetricsProvider _metricsProvider;
 
-        public int ConsumerCount = 3;
-        public long GlobalCount = 100_000;
-        public long ActionCount = 8;
-        public long CurrentCount;
-        public bool EnsureOrdered = false;
-        public bool SimulateIODelay = false;
-        public int MinIODelay = 40;
-        public int MaxIODelay = 60;
-        public bool AwaitShutdown = true;
-        public bool LogOutcome = false;
-        public bool UseStreamPipeline = false;
-        public int MaxDoP = Environment.ProcessorCount / 2;
-        public Random Rand = new Random();
+        private bool _simulateIODelay = false;
+        private int _minIODelay = 40;
+        private int _maxIODelay = 60;
+        private bool _logStepOutcomes = false;
+        private Random _rand = new Random();
 
         public ConsumerWorkflowService(
+            IConfiguration config,
             ILoggerFactory logger,
             IRabbitService rabbitService,
             ISerializationProvider serializationProvider,
@@ -46,6 +40,7 @@ namespace ConsumerWorkflowMetrics.Services
             IEncryptionProvider encryptionProvider,
             IMetricsProvider metricsProvider)
         {
+            _config = config;
             _logger = logger.CreateLogger<ConsumerWorkflowService>();
             _rabbitService = rabbitService;
             _serializationProvider = serializationProvider;
@@ -54,14 +49,21 @@ namespace ConsumerWorkflowMetrics.Services
             _metricsProvider = metricsProvider;
         }
 
-        public async Task BuildAndStartWorkflowAsync(
-            string workflowName,
-            string consumerName,
-            int consumerCount,
-            int maxDoP = 4,
-            bool ensureOrdered = false,
-            int capacity = 200)
+        public async Task BuildAndStartWorkflowAsync()
         {
+            var workflowName = _config.GetValue<string>("HouseofCat:ConsumerWorkflowService:WorkflowName");
+            var consumerName = _config.GetValue<string>("HouseofCat:ConsumerWorkflowService:ConsumerName");
+            var consumerCount = _config.GetValue<int>("HouseofCat:ConsumerWorkflowService:ConsumerCount");
+            var maxDoP = _config.GetValue<int>("HouseofCat:ConsumerWorkflowService:MaxDoP");
+            var ensureOrdered = _config.GetValue<bool>("HouseofCat:ConsumerWorkflowService:EnsureOrdered");
+            var capacity = _config.GetValue<int>("HouseofCat:ConsumerWorkflowService:Capacity");
+
+            _simulateIODelay = _config.GetValue<bool>("HouseofCat:ConsumerWorkflowService:SimulateIODelay");
+            _minIODelay = _config.GetValue<int>("HouseofCat:ConsumerWorkflowService:MinIODelay");
+            _maxIODelay = _config.GetValue<int>("HouseofCat:ConsumerWorkflowService:MaxIODelay");
+
+            _logStepOutcomes = _config.GetValue<bool>("HouseofCat:ConsumerWorkflowService:LogStepOutcomes");
+
             _workflow = new ConsumerWorkflow<WorkState>(
                 rabbitService: _rabbitService,
                 workflowName: workflowName,
@@ -74,25 +76,30 @@ namespace ConsumerWorkflowMetrics.Services
                 .WithBuildState<Message>("Message", maxDoP, ensureOrdered)
                 .WithDecryptionStep(maxDoP, ensureOrdered)
                 .WithDecompressionStep(maxDoP, ensureOrdered)
-                .AddStep(RetrieveObjectFromState, maxDoP, ensureOrdered)
-                .AddStep(ProcessStepAsync, maxDoP, ensureOrdered)
-                .AddStep(AckMessage, maxDoP, ensureOrdered)
+                .AddStep(RetrieveObjectFromState, $"{workflowName}_RetrieveObjectFromState", maxDoP, ensureOrdered)
+                .AddStep(ProcessStepAsync, $"{workflowName}_ProcessStep", maxDoP, ensureOrdered)
+                .AddStep(AckMessage, $"{workflowName}_AckMessage", maxDoP, ensureOrdered)
                 .WithErrorHandling(ErrorHandlingAsync, capacity, maxDoP, ensureOrdered)
-                .WithFinalization(FinalizationAsync, maxDoP, ensureOrdered);
+                .WithFinalization(Finalization, maxDoP, ensureOrdered);
 
             Completion = _workflow.Completion;
 
-            await _workflow.StartAsync();
+            await _workflow
+                .StartAsync()
+                .ConfigureAwait(false);
         }
 
         private static WorkState RetrieveObjectFromState(WorkState state)
         {
             try
             {
-                state.Message = (Message)state.Data["Item"];
-                state.Data.Remove("Item");
+                state.Message = (Message)state.Data["Message"]; // Must Match The BuildState Key Value
+                state.Data.Remove("Message");
             }
-            catch { }
+            catch
+            {
+                state.IsFaulted = true; // Mark this step a failure.
+            }
 
             return state;
         }
@@ -108,9 +115,9 @@ namespace ConsumerWorkflowMetrics.Services
                 state.ProcessStepSuccess = true;
 
                 // Simulate processing.
-                if (SimulateIODelay)
+                if (_simulateIODelay)
                 {
-                    await Task.Delay(Rand.Next(MinIODelay, MaxIODelay)).ConfigureAwait(false);
+                    await Task.Delay(_rand.Next(_minIODelay, _maxIODelay)).ConfigureAwait(false);
                 }
             }
 
@@ -150,7 +157,10 @@ namespace ConsumerWorkflowMetrics.Services
 
             try
             { stringBody = Encoding.UTF8.GetString(state.ReceivedData.Data); }
-            catch (Exception ex) { _logger.LogError(ex, "What?!"); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "What?!");
+            }
 
             if (failed)
             {
@@ -162,9 +172,9 @@ namespace ConsumerWorkflowMetrics.Services
             }
         }
 
-        private async Task FinalizationAsync(WorkState state)
+        private void Finalization(WorkState state)
         {
-            if (LogOutcome)
+            if (_logStepOutcomes)
             {
                 if (state.AllStepsSuccess)
                 { _logger.LogInformation($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} - Id: {state.Message?.MessageId} - Finished route successfully."); }
@@ -174,15 +184,6 @@ namespace ConsumerWorkflowMetrics.Services
 
             // Lastly mark the excution pipeline finished for this message.
             state.ReceivedData?.Complete(); // This impacts wait to completion step in the Pipeline.
-
-            if (AwaitShutdown)
-            {
-                Interlocked.Increment(ref CurrentCount);
-                if (CurrentCount == GlobalCount - 1)
-                {
-                    await _workflow.StopAsync().ConfigureAwait(false);
-                }
-            }
         }
     }
 }

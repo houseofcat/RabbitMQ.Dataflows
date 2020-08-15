@@ -33,16 +33,16 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         public async Task StartConsumingAsync()
         {
+            _cts = new CancellationTokenSource();
             await _consumer.StartConsumerAsync().ConfigureAwait(false);
             _bufferProcessor = PushToBufferAsync(_cts.Token);
-            _cts = new CancellationTokenSource();
         }
 
         public async Task StopConsumingAsync()
         {
             await _consumer.StopConsumerAsync().ConfigureAwait(false);
-            await _bufferProcessor.ConfigureAwait(false);
             _cts.Cancel();
+            await _bufferProcessor.ConfigureAwait(false);
         }
 
         public DataflowMessageStatus OfferMessage(DataflowMessageHeader messageHeader, TOut messageValue, ISourceBlock<TOut> source, bool consumeToAccept)

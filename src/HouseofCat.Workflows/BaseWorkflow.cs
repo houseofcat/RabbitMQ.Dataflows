@@ -43,22 +43,34 @@ namespace HouseofCat.RabbitMQ.Workflows
             return _executeStepOptions;
         }
 
-        public TransformBlock<TState, TState> GetTransformBlock(Func<TState, Task<TState>> action, ExecutionDataflowBlockOptions options)
+        public TransformBlock<TState, TState> GetTransformBlock(
+            Func<TState, Task<TState>> action,
+            ExecutionDataflowBlockOptions options,
+            string metricIdentifier)
         {
+            using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
             return new TransformBlock<TState, TState>(action, options);
         }
 
-        public TransformBlock<TState, TState> GetTransformBlock(Func<TState, TState> action, ExecutionDataflowBlockOptions options)
+        public TransformBlock<TState, TState> GetTransformBlock(
+            Func<TState, TState> action,
+            ExecutionDataflowBlockOptions options,
+            string metricIdentifier)
         {
+            using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
             return new TransformBlock<TState, TState>(action, options);
         }
 
-        public TransformBlock<TState, TState> GetWrappedTransformBlock(Func<TState, TState> action, ExecutionDataflowBlockOptions options)
+        public TransformBlock<TState, TState> GetWrappedTransformBlock(
+            Func<TState, TState> action,
+            ExecutionDataflowBlockOptions options,
+            string metricIdentifier)
         {
             TState WrapAction(TState state)
             {
                 try
                 {
+                    using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
                     return action(state);
                 }
                 catch (Exception ex)
@@ -72,12 +84,16 @@ namespace HouseofCat.RabbitMQ.Workflows
             return new TransformBlock<TState, TState>(WrapAction, options);
         }
 
-        public TransformBlock<TState, TState> GetWrappedTransformBlock(Func<TState, Task<TState>> action, ExecutionDataflowBlockOptions options)
+        public TransformBlock<TState, TState> GetWrappedTransformBlock(
+            Func<TState, Task<TState>> action,
+            ExecutionDataflowBlockOptions options,
+            string metricIdentifier)
         {
             async Task<TState> WrapActionAsync(TState state)
             {
                 try
                 {
+                    using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
                     return await action(state).ConfigureAwait(false);
                 }
                 catch (Exception ex)
@@ -91,10 +107,15 @@ namespace HouseofCat.RabbitMQ.Workflows
             return new TransformBlock<TState, TState>(WrapActionAsync, options);
         }
 
-        public ActionBlock<TState> GetWrappedActionBlock(Action<TState> action, ExecutionDataflowBlockOptions options)
+        public ActionBlock<TState> GetWrappedActionBlock(
+            Action<TState> action,
+            ExecutionDataflowBlockOptions options,
+            string metricIdentifier)
         {
             void WrapAction(TState state)
             {
+                using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
+
                 try
                 { action(state); }
                 catch
@@ -104,10 +125,15 @@ namespace HouseofCat.RabbitMQ.Workflows
             return new ActionBlock<TState>(WrapAction, options);
         }
 
-        public ActionBlock<TState> GetWrappedActionBlock(Func<TState, TState> action, ExecutionDataflowBlockOptions options)
+        public ActionBlock<TState> GetWrappedActionBlock(
+            Func<TState, TState> action,
+            ExecutionDataflowBlockOptions options,
+            string metricIdentifier)
         {
             void WrapAction(TState state)
             {
+                using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
+
                 try
                 { action(state); }
                 catch
@@ -117,10 +143,15 @@ namespace HouseofCat.RabbitMQ.Workflows
             return new ActionBlock<TState>(WrapAction, options);
         }
 
-        public ActionBlock<TState> GetWrappedActionBlock(Func<TState, Task> action, ExecutionDataflowBlockOptions options)
+        public ActionBlock<TState> GetWrappedActionBlock(
+            Func<TState, Task> action,
+            ExecutionDataflowBlockOptions options,
+            string metricIdentifier)
         {
             async Task WrapActionAsync(TState state)
             {
+                using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
+
                 try
                 { await action(state).ConfigureAwait(false); }
                 catch

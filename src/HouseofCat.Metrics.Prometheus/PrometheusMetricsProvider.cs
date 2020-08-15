@@ -3,6 +3,7 @@ using Prometheus;
 using Prometheus.DotNetRuntime;
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace HouseofCat.Metrics
@@ -35,7 +36,10 @@ namespace HouseofCat.Metrics
             _server.Start();
         }
 
-        public PrometheusMetricsProvider AddDotNetRuntimeStats(SampleEvery contentionSampleRate, SampleEvery jitSampleRate, SampleEvery threadScheduleSampleRate)
+        public PrometheusMetricsProvider AddDotNetRuntimeStats(
+            SampleEvery contentionSampleRate = SampleEvery.TenEvents,
+            SampleEvery jitSampleRate = SampleEvery.HundredEvents,
+            SampleEvery threadScheduleSampleRate = SampleEvery.OneEvent)
         {
             if (_collector == null)
             {
@@ -126,6 +130,7 @@ namespace HouseofCat.Metrics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ObserveValueFluctuation(string name, double value, bool create)
         {
+            name = $"{name}_Histogram";
             if (Histograms.ContainsKey(name))
             {
                 Histograms[name].Observe(value);
@@ -140,6 +145,7 @@ namespace HouseofCat.Metrics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ObserveValue(string name, double value, bool create)
         {
+            name = $"{name}_Summary";
             if (Summaries.ContainsKey(name))
             {
                 Summaries[name].Observe(value);
@@ -154,6 +160,7 @@ namespace HouseofCat.Metrics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void IncrementGauge(string name, bool create)
         {
+            name = $"{name}_Gauge";
             if (Gauges.ContainsKey(name))
             {
                 Gauges[name].Inc();
@@ -168,6 +175,7 @@ namespace HouseofCat.Metrics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void DecrementGauge(string name, bool create)
         {
+            name = $"{name}_Gauge";
             if (Gauges.ContainsKey(name))
             {
                 Gauges[name].Dec();
@@ -182,6 +190,7 @@ namespace HouseofCat.Metrics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void IncrementCounter(string name, bool create)
         {
+            name = $"{name}_Counter";
             if (Counters.ContainsKey(name))
             {
                 Counters[name].Inc();
@@ -204,9 +213,14 @@ namespace HouseofCat.Metrics
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException(Constants.HistogramNotExists);
 
-            if (!Histograms.ContainsKey(name) && create)
+            name = $"{name}_Histogram";
+            if (Histograms.ContainsKey(name))
             {
-                AddGauge(name, string.Empty);
+                return Histograms[name].NewTimer();
+            }
+            else if (create)
+            {
+                AddHistogram(name, string.Empty);
                 return Histograms[name].NewTimer();
             }
 
@@ -218,7 +232,12 @@ namespace HouseofCat.Metrics
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException(Constants.GaugeNotExists);
 
-            if (!Gauges.ContainsKey(name) && create)
+            name = $"{name}_Gauge";
+            if (Gauges.ContainsKey(name))
+            {
+                return Gauges[name].TrackInProgress();
+            }
+            else if (create)
             {
                 AddGauge(name, string.Empty);
                 return Gauges[name].TrackInProgress();
@@ -227,6 +246,7 @@ namespace HouseofCat.Metrics
             return null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public MultiDispose MeasureAndTrack(string name, bool create)
         {
             var measure = MeasureDuration(name, create);
