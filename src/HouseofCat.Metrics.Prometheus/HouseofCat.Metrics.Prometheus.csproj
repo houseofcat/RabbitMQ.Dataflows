@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Metrics\HouseofCat.Metrics.csproj" />
+    <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
   </ItemGroup>
 
 </Project>

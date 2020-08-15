@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Prometheus;
 
 namespace ConsumerWorkflowMetrics
 {
@@ -30,10 +31,13 @@ namespace ConsumerWorkflowMetrics
 
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
 
-            var metricsProvider = new PrometheusMetricsProvider("localhost", 5000, "/metrics");
+            var metricsProvider = new PrometheusMetricsProvider();
             var serializationProvider = new Utf8JsonProvider();
             var hashingProvider = new Argon2IDHasher();
-            var hashKey = hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).GetAwaiter().GetResult();
+            var hashKey = hashingProvider
+                .GetHashKeyAsync("passwordforencryption", "saltforencryption", 32)
+                .GetAwaiter()
+                .GetResult();
 
             var encryptionProvider = new AesGcmEncryptionProvider(hashKey, hashingProvider.Type);
             var compressionProvider = new LZ4PickleProvider();
@@ -64,12 +68,14 @@ namespace ConsumerWorkflowMetrics
             }
 
             app.UseRouting();
+            app.UseHttpMetrics();
 
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapMetrics();
             });
         }
     }

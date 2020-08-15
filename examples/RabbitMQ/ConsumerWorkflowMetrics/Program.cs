@@ -16,9 +16,14 @@ namespace ConsumerWorkflowMetrics
             using var scope = hostBuilder.Services.CreateScope();
             var workflowService = scope.ServiceProvider.GetRequiredService<ConsumerWorkflowService>();
 
-            await workflowService.BuildAndStartWorkflowAsync("ConsumerWorkflow", "ConsumerFromConfig", 3).ConfigureAwait(false);
+            await workflowService
+                .BuildAndStartWorkflowAsync(
+                    workflowName: "ConsumerWorkflow",
+                    consumerName: "ConsumerFromConfig",
+                    consumerCount: 3)
+                .ConfigureAwait(false);
 
-            await webStartAsync;
+            await webStartAsync.ConfigureAwait(false);
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

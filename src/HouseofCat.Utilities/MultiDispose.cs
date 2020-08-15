@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HouseofCat.Workflows
+namespace HouseofCat.Utilities
 {
     public class MultiDispose : IDisposable
     {
@@ -25,7 +25,7 @@ namespace HouseofCat.Workflows
                         {
                             _disposables[i].Dispose();
                         }
-                        catch { /* Swallow */}
+                        catch { /* Swallow */ }
                     }
                 }
 
@@ -35,7 +35,6 @@ namespace HouseofCat.Workflows
 
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }

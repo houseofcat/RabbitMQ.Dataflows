@@ -53,7 +53,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
 
             _workflow = new ConsumerWorkflow<WorkState>(
                 rabbitService: _rabbitService,
-                consumerWorkflowName: "MyConsumerWorkflow",
+                workflowName: "MyConsumerWorkflow",
                 consumerName: "ConsumerFromConfig",
                 consumerCount: ConsumerCount)
                 .SetSerilizationProvider(_serializationProvider)

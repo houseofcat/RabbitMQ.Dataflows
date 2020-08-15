@@ -54,25 +54,31 @@ namespace ConsumerWorkflowMetrics.Services
             _metricsProvider = metricsProvider;
         }
 
-        public async Task BuildAndStartWorkflowAsync(string workflowName, string consumerName, int consumerCount)
+        public async Task BuildAndStartWorkflowAsync(
+            string workflowName,
+            string consumerName,
+            int consumerCount,
+            int maxDoP = 4,
+            bool ensureOrdered = false,
+            int capacity = 200)
         {
             _workflow = new ConsumerWorkflow<WorkState>(
                 rabbitService: _rabbitService,
-                consumerWorkflowName: workflowName,
+                workflowName: workflowName,
                 consumerName: consumerName,
                 consumerCount: consumerCount)
                 .SetSerilizationProvider(_serializationProvider)
                 .SetEncryptionProvider(_encryptionProvider)
                 .SetCompressionProvider(_compressionProvider)
                 .SetMetricsProvider(_metricsProvider)
-                .WithBuildState<Message>("Message", MaxDoP, false, 200)
-                .WithDecryptionStep(MaxDoP, false, 200)
-                .WithDecompressionStep(MaxDoP, false, 200)
-                .AddStep(RetrieveObjectFromState, MaxDoP, false, 200)
-                .AddStep(ProcessStepAsync, MaxDoP, false, 200)
-                .AddStep(AckMessage, MaxDoP, false, 200)
-                .WithErrorHandling(ErrorHandlingAsync, 200, MaxDoP, false)
-                .WithFinalization(FinalizationAsync, MaxDoP, false);
+                .WithBuildState<Message>("Message", maxDoP, ensureOrdered)
+                .WithDecryptionStep(maxDoP, ensureOrdered)
+                .WithDecompressionStep(maxDoP, ensureOrdered)
+                .AddStep(RetrieveObjectFromState, maxDoP, ensureOrdered)
+                .AddStep(ProcessStepAsync, maxDoP, ensureOrdered)
+                .AddStep(AckMessage, maxDoP, ensureOrdered)
+                .WithErrorHandling(ErrorHandlingAsync, capacity, maxDoP, ensureOrdered)
+                .WithFinalization(FinalizationAsync, maxDoP, ensureOrdered);
 
             Completion = _workflow.Completion;
 

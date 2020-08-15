@@ -7,8 +7,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataflowBlocks", "DataflowB
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RabbitMQ", "RabbitMQ", "{7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Angora.PrototypeClient", "RabbitMQ\AngoraPrototypeClient\Angora.PrototypeClient.csproj", "{F3782772-E220-4CC7-9F4E-28F418FAB498}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerPipelineMicroservice", "RabbitMQ\ConsumerPipelineMicroservice\ConsumerPipelineMicroservice.csproj", "{20C70D17-BFC3-4FD6-AC63-94F8838FA0B9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleClient", "RabbitMQ\SimpleClient\SimpleClient.csproj", "{0F1B61A2-FC9E-466F-B199-31A696E37DAA}"
@@ -74,10 +72,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F3782772-E220-4CC7-9F4E-28F418FAB498}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F3782772-E220-4CC7-9F4E-28F418FAB498}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F3782772-E220-4CC7-9F4E-28F418FAB498}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F3782772-E220-4CC7-9F4E-28F418FAB498}.Release|Any CPU.Build.0 = Release|Any CPU
 		{20C70D17-BFC3-4FD6-AC63-94F8838FA0B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{20C70D17-BFC3-4FD6-AC63-94F8838FA0B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20C70D17-BFC3-4FD6-AC63-94F8838FA0B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -179,7 +173,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{F3782772-E220-4CC7-9F4E-28F418FAB498} = {7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}
 		{20C70D17-BFC3-4FD6-AC63-94F8838FA0B9} = {7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}
 		{0F1B61A2-FC9E-466F-B199-31A696E37DAA} = {7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}
 		{46D0EB76-9918-422A-8750-33261921EAD8} = {7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}

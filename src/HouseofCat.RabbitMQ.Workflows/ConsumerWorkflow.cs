@@ -18,13 +18,13 @@ namespace HouseofCat.RabbitMQ.Workflows
 {
     public class ConsumerWorkflow<TState> : BaseWorkflow<TState> where TState : class, IRabbitWorkState, new()
     {
-        public string ConsumerWorkflowName { get; }
-        public string ConsumerName { get; }
-        public int ConsumerCount;
+        public string WorkflowName { get; }
 
         private readonly ILogger<BaseWorkflow<TState>> _logger;
         private readonly IRabbitService _rabbitService;
         private readonly ConsumerOptions _consumerOptions;
+        private readonly string _consumerName;
+        private readonly int _consumerCount;
 
         // Main Flow - Ingestion
         private readonly List<ConsumerBlock<ReceivedData>> _consumerBlocks;
@@ -51,16 +51,16 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         public ConsumerWorkflow(
             IRabbitService rabbitService,
-            string consumerWorkflowName,
+            string workflowName,
             string consumerName,
             int consumerCount)
         {
             Guard.AgainstNull(rabbitService, nameof(rabbitService));
             Guard.AgainstNullOrEmpty(consumerName, nameof(consumerName));
 
-            ConsumerWorkflowName = consumerWorkflowName;
-            ConsumerCount = consumerCount;
-            ConsumerName = consumerName;
+            WorkflowName = workflowName;
+            _consumerCount = consumerCount;
+            _consumerName = consumerName;
 
             _logger = LogHelper.LoggerFactory.CreateLogger<ConsumerWorkflow<TState>>();
             _rabbitService = rabbitService;
@@ -75,6 +75,25 @@ namespace HouseofCat.RabbitMQ.Workflows
             };
 
             _consumerBlocks = new List<ConsumerBlock<ReceivedData>>();
+        }
+
+        public async Task StartAsync()
+        {
+            BuildLinkages();
+
+            foreach (var consumerBlock in _consumerBlocks)
+            {
+                await consumerBlock.StartConsumingAsync().ConfigureAwait(false);
+            }
+        }
+
+        public async Task StopAsync()
+        {
+            foreach (var consumerBlock in _consumerBlocks)
+            {
+                await consumerBlock.StopConsumingAsync().ConfigureAwait(false);
+                consumerBlock.Complete();
+            }
         }
 
         public ConsumerWorkflow<TState> SetSerilizationProvider(ISerializationProvider provider)
@@ -104,27 +123,38 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
+        #region Step Adders
+
         public ConsumerWorkflow<TState> WithErrorHandling(Action<TState> action, int boundedCapacity, int? maxDoP = null, bool? ensureOrdered = null)
         {
             Guard.AgainstNull(action, nameof(action));
-            _errorBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
-            _errorAction = GetWrappedActionBlock(action, executionOptions);
+            if (_errorBuffer == null)
+            {
+                _errorBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                _errorAction = GetWrappedActionBlock(action, executionOptions);
+            }
             return this;
         }
 
         public ConsumerWorkflow<TState> WithErrorHandling(Func<TState, Task> action, int boundedCapacity, int? maxDoP = null, bool? ensureOrdered = null)
         {
             Guard.AgainstNull(action, nameof(action));
-            _errorBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
-            _errorAction = GetWrappedActionBlock(action, executionOptions);
+            if (_errorBuffer == null)
+            {
+                _errorBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                _errorAction = GetWrappedActionBlock(action, executionOptions);
+            }
             return this;
         }
 
         public ConsumerWorkflow<TState> WithReadyToProcessBuffer(int boundedCapacity)
         {
-            _readyBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
+            if (_readyBuffer == null)
+            {
+                _readyBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
+            }
             return this;
         }
 
@@ -132,7 +162,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(suppliedStep, nameof(suppliedStep));
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
-            _metricsProvider.IncrementCounter("workflow-steps");
+            _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
             _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions));
             return this;
@@ -142,7 +172,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             Guard.AgainstNull(suppliedStep, nameof(suppliedStep));
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
-            _metricsProvider.IncrementCounter("workflow-steps");
+            _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
             _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions));
             return this;
@@ -150,88 +180,147 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         public ConsumerWorkflow<TState> WithPostProcessingBuffer(int boundedCapacity)
         {
-            _postProcessingBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
+            if (_postProcessingBuffer == null)
+            {
+                _postProcessingBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
+            }
             return this;
         }
 
         public ConsumerWorkflow<TState> WithFinalization(Action<TState> action, int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
             Guard.AgainstNull(action, nameof(action));
-            _metricsProvider.IncrementCounter("workflow-steps");
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-            _finalization = GetWrappedActionBlock(action, executionOptions);
+            if (_finalization == null)
+            {
+                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
+                _finalization = GetWrappedActionBlock(action, executionOptions);
+            }
             return this;
         }
 
         public ConsumerWorkflow<TState> WithFinalization(Func<TState, Task> action, int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
             Guard.AgainstNull(action, nameof(action));
-            _metricsProvider.IncrementCounter("workflow-steps");
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-            _finalization = GetWrappedActionBlock(action, executionOptions);
+            if (_finalization == null)
+            {
+                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
+                _finalization = GetWrappedActionBlock(action, executionOptions);
+            }
             return this;
         }
 
         public ConsumerWorkflow<TState> WithBuildState<TOut>(string key, int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
-            _metricsProvider.IncrementCounter("workflow-steps");
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-            _buildStateBlock = GetBuildStateBlock<TOut>(_serializationProvider, key, executionOptions);
+            if (_buildStateBlock == null)
+            {
+                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
+                _buildStateBlock = GetBuildStateBlock<TOut>(_serializationProvider, key, executionOptions);
+            }
             return this;
         }
 
         public ConsumerWorkflow<TState> WithDecryptionStep(int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
-            _metricsProvider.IncrementCounter("workflow-steps");
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-            _decryptBlock = GetByteManipulationTransformBlock(_encryptionProvider.Decrypt, _serializationProvider, executionOptions, false, x => x.ReceivedData.Encrypted);
+            if (_decryptBlock == null)
+            {
+                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
+
+                _decryptBlock = GetByteManipulationTransformBlock(
+                    _encryptionProvider.Decrypt,
+                    executionOptions,
+                    false,
+                    x => x.ReceivedData.Encrypted,
+                    $"{WorkflowName}.Decrypt");
+            }
             return this;
         }
 
         public ConsumerWorkflow<TState> WithDecompressionStep(int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
-            _metricsProvider.IncrementCounter("workflow-steps");
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-            _decompressBlock = GetByteManipulationTransformBlock(_compressProvider.Decompress, _serializationProvider, executionOptions, false, x => x.ReceivedData.Compressed);
+            if (_decompressBlock == null)
+            {
+                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
+
+                _decompressBlock = GetByteManipulationTransformBlock(
+                    _compressProvider.Decompress,
+                    executionOptions,
+                    false,
+                    x => x.ReceivedData.Compressed,
+                    $"{WorkflowName}.Decompress");
+            }
+
             return this;
         }
 
         public ConsumerWorkflow<TState> WithCreateSendLetter(Func<TState, Task<TState>> createLetter, int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
-            _metricsProvider.IncrementCounter("workflow-steps");
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-            _createSendLetter = GetWrappedTransformBlock(createLetter, executionOptions);
+            if (_createSendLetter == null)
+            {
+                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
+                _createSendLetter = GetWrappedTransformBlock(createLetter, executionOptions);
+            }
             return this;
         }
 
         public ConsumerWorkflow<TState> WithCompression(int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
-            _metricsProvider.IncrementCounter("workflow-steps");
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-            _compressBlock = GetByteManipulationTransformBlock(_compressProvider.CompressAsync, null, executionOptions, true, x => !x.ReceivedData.Compressed);
+            if (_compressBlock == null)
+            {
+                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
+
+                _compressBlock = GetByteManipulationTransformBlock(
+                    _compressProvider.Compress,
+                    executionOptions,
+                    true,
+                    x => !x.ReceivedData.Compressed,
+                    $"{WorkflowName}.Compress");
+            }
             return this;
         }
 
         public ConsumerWorkflow<TState> WithEncryption(int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
-            _metricsProvider.IncrementCounter("workflow-steps");
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-            _encryptBlock = GetByteManipulationTransformBlock(_encryptionProvider.Encrypt, null, executionOptions, true, x => !x.ReceivedData.Encrypted);
+            if (_encryptBlock == null)
+            {
+                _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
+
+                _encryptBlock = GetByteManipulationTransformBlock(
+                    _encryptionProvider.Encrypt,
+                    executionOptions,
+                    true,
+                    x => !x.ReceivedData.Encrypted,
+                    $"{WorkflowName}.Encrypt");
+            }
             return this;
         }
 
         public ConsumerWorkflow<TState> WithSendStep(int? maxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null)
         {
-            _metricsProvider.IncrementCounter("workflow-steps");
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
-            _sendLetterBlock = GetWrappedPublishTransformBlock(_rabbitService, executionOptions);
+            _metricsProvider.IncrementCounter($"{WorkflowName}.StepCount", true);
+            if (_sendLetterBlock == null)
+            {
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, bufferSizeOverride);
+                _sendLetterBlock = GetWrappedPublishTransformBlock(_rabbitService, executionOptions);
+            }
             return this;
         }
+
+        #endregion
+
+        #region Step Linking
 
         private void BuildLinkages(DataflowLinkOptions overrideOptions = null)
         {
@@ -248,9 +337,9 @@ namespace HouseofCat.RabbitMQ.Workflows
             if (_postProcessingBuffer == null)
             { _postProcessingBuffer = new BufferBlock<TState>(); }
 
-            for (int i = 0; i < ConsumerCount; i++)
+            for (int i = 0; i < _consumerCount; i++)
             {
-                var consumer = new Consumer(_rabbitService.ChannelPool, ConsumerName);
+                var consumer = new Consumer(_rabbitService.ChannelPool, _consumerName);
                 _consumerBlocks.Add(new ConsumerBlock<ReceivedData>(consumer));
                 _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
             }
@@ -329,28 +418,13 @@ namespace HouseofCat.RabbitMQ.Workflows
             SetCurrentSourceBlock(target);
         }
 
-        public async Task StartAsync()
-        {
-            BuildLinkages();
+        #endregion
 
-            foreach (var consumerBlock in _consumerBlocks)
-            {
-                await consumerBlock.StartConsumingAsync().ConfigureAwait(false);
-            }
-        }
-
-        public async Task StopAsync()
-        {
-            foreach (var consumerBlock in _consumerBlocks)
-            {
-                await consumerBlock.StopConsumingAsync().ConfigureAwait(false);
-                consumerBlock.Complete();
-            }
-        }
+        #region Step Wrappers
 
         private TState BuildState<TOut>(ISerializationProvider provider, string key, ReceivedData data)
         {
-            _metricsProvider.IncrementCounter("state-build");
+            _metricsProvider.IncrementGauge($"{WorkflowName}.StateBuild", true);
 
             var state = New<TState>.Instance.Invoke();
             state.ReceivedData = data;
@@ -380,15 +454,17 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         public TransformBlock<TState, TState> GetByteManipulationTransformBlock(
             Func<ReadOnlyMemory<byte>, byte[]> action,
-            ISerializationProvider serializationProvider,
             ExecutionDataflowBlockOptions options,
             bool outbound,
-            Predicate<TState> predicate)
+            Predicate<TState> predicate,
+            string metricIdentifier)
         {
             TState WrapAction(TState state)
             {
                 try
                 {
+                    using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
+
                     if (outbound)
                     {
                         if (state.SendData?.Length > 0)
@@ -401,7 +477,7 @@ namespace HouseofCat.RabbitMQ.Workflows
                         if (state.ReceivedData.ContentType == Constants.HeaderValueForLetter)
                         {
                             if (state.ReceivedData.Letter == null)
-                            { state.ReceivedData.Letter = serializationProvider.Deserialize<Letter>(state.ReceivedData.Data); }
+                            { state.ReceivedData.Letter = _serializationProvider.Deserialize<Letter>(state.ReceivedData.Data); }
 
                             state.ReceivedData.Letter.Body = action(state.ReceivedData.Letter.Body);
                         }
@@ -423,9 +499,9 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         public TransformBlock<TState, TState> GetByteManipulationTransformBlock(
             Func<ReadOnlyMemory<byte>, Task<byte[]>> action,
-            ISerializationProvider serializationProvider,
             ExecutionDataflowBlockOptions options,
-            bool outbound, Predicate<TState> predicate)
+            bool outbound,
+            Predicate<TState> predicate)
         {
             async Task<TState> WrapActionAsync(TState state)
             {
@@ -443,7 +519,7 @@ namespace HouseofCat.RabbitMQ.Workflows
                         if (state.ReceivedData.ContentType == Constants.HeaderValueForLetter)
                         {
                             if (state.ReceivedData.Letter == null)
-                            { state.ReceivedData.Letter = serializationProvider.Deserialize<Letter>(state.ReceivedData.Data); }
+                            { state.ReceivedData.Letter = _serializationProvider.Deserialize<Letter>(state.ReceivedData.Data); }
 
                             state.ReceivedData.Letter.Body = await action(state.ReceivedData.Letter.Body).ConfigureAwait(false);
                         }
@@ -483,5 +559,7 @@ namespace HouseofCat.RabbitMQ.Workflows
 
             return new TransformBlock<TState, TState>(WrapPublishAsync, options);
         }
+
+        #endregion
     }
 }

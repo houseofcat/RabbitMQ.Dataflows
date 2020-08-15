@@ -1,7 +1,9 @@
-﻿using Prometheus;
+﻿using HouseofCat.Utilities;
+using Prometheus;
 using Prometheus.DotNetRuntime;
 using System;
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 
 namespace HouseofCat.Metrics
 {
@@ -15,6 +17,11 @@ namespace HouseofCat.Metrics
         public ConcurrentDictionary<string, Gauge> Gauges { get; } = new ConcurrentDictionary<string, Gauge>();
         public ConcurrentDictionary<string, Histogram> Histograms { get; } = new ConcurrentDictionary<string, Histogram>();
         public ConcurrentDictionary<string, Summary> Summaries { get; } = new ConcurrentDictionary<string, Summary>();
+
+        /// <summary>
+        /// Use this constructor in AspNetCore setup (since AspNetCore Prometheus handles Server creation via middleware).
+        /// </summary>
+        public PrometheusMetricsProvider() { }
 
         public PrometheusMetricsProvider(int port, string url, CollectorRegistry registry = null, bool useHttps = false)
         {
@@ -95,60 +102,6 @@ namespace HouseofCat.Metrics
             return this;
         }
 
-        #region IMetricsProvider Implementation
-
-        public void ObserveValueFluctuation(string name, double value)
-        {
-            if (Histograms.ContainsKey(name))
-            {
-                Histograms[name].Observe(value);
-            }
-        }
-
-        public void ObserveValue(string name, double value)
-        {
-            if (Summaries.ContainsKey(name))
-            {
-                Summaries[name].Observe(value);
-            }
-        }
-
-        public void IncrementGauge(string name)
-        {
-            if (Gauges.ContainsKey(name))
-            {
-                Gauges[name].Inc();
-            }
-        }
-
-        public void DecrementGauge(string name)
-        {
-            if (Gauges.ContainsKey(name))
-            {
-                Gauges[name].Inc();
-            }
-        }
-
-        public void IncrementCounter(string name)
-        {
-            if (Counters.ContainsKey(name))
-            {
-                Counters[name].Inc();
-            }
-        }
-
-        public void DecrementCounter(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IDisposable MeasureDuration(string name)
-        {
-            if (!Histograms.ContainsKey(name)) throw new ArgumentException(Constants.CounterAlreadyExists);
-
-            return Histograms[name].NewTimer();
-        }
-
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -166,6 +119,120 @@ namespace HouseofCat.Metrics
         {
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        #region IMetricsProvider Implementation
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void ObserveValueFluctuation(string name, double value, bool create)
+        {
+            if (Histograms.ContainsKey(name))
+            {
+                Histograms[name].Observe(value);
+            }
+            else if (create)
+            {
+                AddHistogram(name, string.Empty);
+                Histograms[name].Observe(value);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void ObserveValue(string name, double value, bool create)
+        {
+            if (Summaries.ContainsKey(name))
+            {
+                Summaries[name].Observe(value);
+            }
+            else if (create)
+            {
+                AddSummary(name, string.Empty);
+                Summaries[name].Observe(value);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void IncrementGauge(string name, bool create)
+        {
+            if (Gauges.ContainsKey(name))
+            {
+                Gauges[name].Inc();
+            }
+            else if (create)
+            {
+                AddGauge(name, string.Empty);
+                Gauges[name].Inc();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void DecrementGauge(string name, bool create)
+        {
+            if (Gauges.ContainsKey(name))
+            {
+                Gauges[name].Dec();
+            }
+            else if (create)
+            {
+                AddGauge(name, string.Empty);
+                Gauges[name].Dec();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void IncrementCounter(string name, bool create)
+        {
+            if (Counters.ContainsKey(name))
+            {
+                Counters[name].Inc();
+            }
+            else if (create)
+            {
+                AddCounter(name, string.Empty);
+                Counters[name].Inc();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void DecrementCounter(string name, bool create)
+        {
+            throw new NotImplementedException();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IDisposable MeasureDuration(string name, bool create)
+        {
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException(Constants.HistogramNotExists);
+
+            if (!Histograms.ContainsKey(name) && create)
+            {
+                AddGauge(name, string.Empty);
+                return Histograms[name].NewTimer();
+            }
+
+            return null;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IDisposable TrackConcurrency(string name, bool create)
+        {
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException(Constants.GaugeNotExists);
+
+            if (!Gauges.ContainsKey(name) && create)
+            {
+                AddGauge(name, string.Empty);
+                return Gauges[name].TrackInProgress();
+            }
+
+            return null;
+        }
+
+        public MultiDispose MeasureAndTrack(string name, bool create)
+        {
+            var measure = MeasureDuration(name, create);
+            var track = TrackConcurrency(name, create);
+
+            return new MultiDispose(measure, track);
         }
 
         #endregion
