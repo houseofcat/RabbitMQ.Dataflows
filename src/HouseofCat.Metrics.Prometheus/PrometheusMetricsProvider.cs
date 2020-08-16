@@ -157,12 +157,26 @@ namespace HouseofCat.Metrics
             throw new NotImplementedException();
         }
 
+        private double[] _durationMicroBuckets = Histogram.ExponentialBuckets(0.000_001, 2, 10);
+        private double[] _durationMilliBuckets = Histogram.ExponentialBuckets(0.001, 2, 16);
+        public void SetDurationHistogramBucketSize(double[] microBuckets, double[] milliBuckets)
+        {
+            _durationMicroBuckets = microBuckets;
+            _durationMilliBuckets = milliBuckets;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IDisposable Duration(string name, string description = null)
+        public IDisposable Duration(string name, bool microScale = false, string description = null)
         {
             Guard.AgainstNull(name, nameof(name));
             name = $"{name}_Timer";
-            return GetOrAddHistogram(name, description).NewTimer();
+            return GetOrAddHistogram(
+                name,
+                description,
+                new HistogramConfiguration
+                {
+                    Buckets = microScale ? _durationMicroBuckets : _durationMilliBuckets
+                }).NewTimer();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -174,11 +188,11 @@ namespace HouseofCat.Metrics
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public MultiDispose TrackAndDuration(string name, string description = null)
+        public MultiDispose TrackAndDuration(string name, bool microScale = false, string description = null)
         {
-            var measure = Duration(name, description);
+            var duration = Duration(name, microScale, description);
             var track = Track(name, description);
-            return new MultiDispose(measure, track);
+            return new MultiDispose(duration, track);
         }
 
         #endregion

@@ -7,7 +7,6 @@ using App.Metrics.Timer;
 using HouseofCat.Utilities;
 using System;
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 
 namespace HouseofCat.Metrics
 {
@@ -60,7 +59,7 @@ namespace HouseofCat.Metrics
             throw new NotImplementedException();
         }
 
-        public IDisposable Duration(string name, string description = null)
+        public IDisposable Duration(string name, bool microScale = false, string description = null)
         {
             throw new NotImplementedException();
         }
@@ -70,7 +69,7 @@ namespace HouseofCat.Metrics
             throw new NotImplementedException();
         }
 
-        public MultiDispose TrackAndDuration(string name, string description = null)
+        public MultiDispose TrackAndDuration(string name, bool microScale = false, string description = null)
         {
             throw new NotImplementedException();
         }

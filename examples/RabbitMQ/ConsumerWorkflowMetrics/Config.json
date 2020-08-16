@@ -64,7 +64,7 @@
     },
     "LightSettings": {
       "ErrorSuffix": "Error",
-      "BatchSize": 16,
+      "BatchSize": 32,
       "BehaviorWhenFull": 0,
       "SleepOnIdleInterval": 10,
       "UseTransientChannels": true,
@@ -73,7 +73,7 @@
       "Exclusive": false,
       "GlobalConsumerPipelineOptions": {
         "WaitForCompletion": true,
-        "MaxDegreesOfParallelism": 8,
+        "MaxDegreesOfParallelism": 4,
         "EnsureOrdered": false
       }
     },

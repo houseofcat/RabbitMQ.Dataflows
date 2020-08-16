@@ -1,6 +1,5 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Encryption;
-using HouseofCat.Extensions;
 using HouseofCat.Logger;
 using HouseofCat.Metrics;
 using HouseofCat.RabbitMQ.Services;
@@ -10,7 +9,6 @@ using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -134,7 +132,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             {
                 _errorBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
                 var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
-                _errorAction = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler");
+                _errorAction = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler", false);
             }
             return this;
         }
@@ -150,7 +148,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             {
                 _errorBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
                 var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
-                _errorAction = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler");
+                _errorAction = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler", false);
             }
             return this;
         }
@@ -167,6 +165,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         public ConsumerWorkflow<TState> AddStep(
             Func<TState, TState> suppliedStep,
             string metricIdentifier,
+            bool metricMicroScale = false,
             string metricDescription = null,
             int? maxDoP = null,
             bool? ensureOrdered = null,
@@ -176,13 +175,14 @@ namespace HouseofCat.RabbitMQ.Workflows
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             _metricsProvider.IncrementCounter($"{WorkflowName}_Steps", metricDescription);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
-            _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions, metricIdentifier));
+            _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions, metricIdentifier, metricMicroScale));
             return this;
         }
 
         public ConsumerWorkflow<TState> AddStep(
             Func<TState, Task<TState>> suppliedStep,
             string metricIdentifier,
+            bool metricMicroScale = false,
             string metricDescription = null,
             int? maxDoP = null,
             bool? ensureOrdered = null,
@@ -192,7 +192,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             _metricsProvider.IncrementCounter($"{WorkflowName}_Steps", metricDescription);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
-            _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions, metricIdentifier));
+            _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions, metricIdentifier, metricMicroScale));
             return this;
         }
 
@@ -216,7 +216,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             {
                 _metricsProvider.IncrementCounter($"{WorkflowName}_Steps");
                 var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
-                _finalization = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_Finalization");
+                _finalization = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_Finalization", true);
             }
             return this;
         }
@@ -232,7 +232,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             {
                 _metricsProvider.IncrementCounter($"{WorkflowName}_Steps");
                 var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
-                _finalization = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_Finalization");
+                _finalization = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_Finalization", true);
             }
             return this;
         }
@@ -265,7 +265,8 @@ namespace HouseofCat.RabbitMQ.Workflows
                     executionOptions,
                     false,
                     x => x.ReceivedData.Encrypted,
-                    $"{WorkflowName}_Decrypt");
+                    $"{WorkflowName}_Decrypt",
+                    true);
             }
             return this;
         }
@@ -283,7 +284,8 @@ namespace HouseofCat.RabbitMQ.Workflows
                     executionOptions,
                     false,
                     x => x.ReceivedData.Compressed,
-                    $"{WorkflowName}_Decompress");
+                    $"{WorkflowName}_Decompress",
+                    true);
             }
 
             return this;
@@ -318,7 +320,8 @@ namespace HouseofCat.RabbitMQ.Workflows
                     executionOptions,
                     true,
                     x => !x.ReceivedData.Compressed,
-                    $"{WorkflowName}_Compress");
+                    $"{WorkflowName}_Compress",
+                    true);
             }
             return this;
         }
@@ -336,7 +339,8 @@ namespace HouseofCat.RabbitMQ.Workflows
                     executionOptions,
                     true,
                     x => !x.ReceivedData.Encrypted,
-                    $"{WorkflowName}_Encrypt");
+                    $"{WorkflowName}_Encrypt",
+                    true);
             }
             return this;
         }
@@ -475,20 +479,13 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             TState BuildStateWrap(ReceivedData data)
             {
-                var sw = Stopwatch.StartNew();
-
                 try
                 {
-                    using var multiDispose = _metricsProvider.TrackAndDuration(StateIdentifier);
+                    using var multiDispose = _metricsProvider.TrackAndDuration(StateIdentifier, true);
                     return BuildState<TOut>(provider, key, data);
                 }
                 catch
                 { return null; }
-                finally
-                {
-                    sw.Stop();
-                    _metricsProvider.ObserveValueFluctuation(StateIdentifier, sw.ElapsedMicroseconds());
-                }
             }
 
             return new TransformBlock<ReceivedData, TState>(BuildStateWrap, options);
@@ -500,15 +497,14 @@ namespace HouseofCat.RabbitMQ.Workflows
             bool outbound,
             Predicate<TState> predicate,
             string metricIdentifier,
+            bool metricMicroScale = false,
             string metricDescription = null)
         {
             TState WrapAction(TState state)
             {
-                var sw = Stopwatch.StartNew();
-
                 try
                 {
-                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricDescription);
+                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
 
                     if (outbound)
                     {
@@ -538,11 +534,6 @@ namespace HouseofCat.RabbitMQ.Workflows
                     state.EDI = ExceptionDispatchInfo.Capture(ex);
                     return state;
                 }
-                finally
-                {
-                    sw.Stop();
-                    _metricsProvider.ObserveValueFluctuation(metricIdentifier, sw.ElapsedMicroseconds(), metricDescription);
-                }
             }
 
             return new TransformBlock<TState, TState>(WrapAction, options);
@@ -554,15 +545,14 @@ namespace HouseofCat.RabbitMQ.Workflows
             bool outbound,
             Predicate<TState> predicate,
             string metricIdentifier,
+            bool metricMicroScale = false,
             string metricDescription = null)
         {
             async Task<TState> WrapActionAsync(TState state)
             {
-                var sw = Stopwatch.StartNew();
-
                 try
                 {
-                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricDescription);
+                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
 
                     if (outbound)
                     {
@@ -591,11 +581,6 @@ namespace HouseofCat.RabbitMQ.Workflows
                     state.EDI = ExceptionDispatchInfo.Capture(ex);
                     return state;
                 }
-                finally
-                {
-                    sw.Stop();
-                    _metricsProvider.ObserveValueFluctuation(metricIdentifier, sw.ElapsedMicroseconds(), metricDescription);
-                }
             }
 
             return new TransformBlock<TState, TState>(WrapActionAsync, options);
@@ -608,16 +593,13 @@ namespace HouseofCat.RabbitMQ.Workflows
         {
             async Task<TState> WrapPublishAsync(TState state)
             {
-                var sw = Stopwatch.StartNew();
-
                 try
                 {
-                    using var multiDispose = _metricsProvider.TrackAndDuration(PublishStepIdentifier);
+                    using var multiDispose = _metricsProvider.TrackAndDuration(PublishStepIdentifier, true);
 
                     await service.Publisher.PublishAsync(state.SendLetter, true, true).ConfigureAwait(false);
                     state.SendLetterSent = true;
 
-                    _metricsProvider.ObserveValueFluctuation(PublishStepIdentifier, sw.ElapsedMicroseconds());
                     return state;
                 }
                 catch (Exception ex)
@@ -625,11 +607,6 @@ namespace HouseofCat.RabbitMQ.Workflows
                     state.IsFaulted = true;
                     state.EDI = ExceptionDispatchInfo.Capture(ex);
                     return state;
-                }
-                finally
-                {
-                    sw.Stop();
-                    _metricsProvider.ObserveValueFluctuation(PublishStepIdentifier, sw.ElapsedMicroseconds());
                 }
             }
 

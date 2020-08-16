@@ -66,9 +66,9 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
                 .WithBuildState<Message>("Message", MaxDoP, false, 200)
                 .WithDecryptionStep(MaxDoP, false, 200)
                 .WithDecompressionStep(MaxDoP, false, 200)
-                .AddStep(RetrieveObjectFromState, $"{workflowName}_RetrieveObjectFromState", null, MaxDoP, EnsureOrdered, 200)
-                .AddStep(ProcessStepAsync, $"{workflowName}_ProcessStep", null, MaxDoP, EnsureOrdered, 200)
-                .AddStep(AckMessage, $"{workflowName}_AckMessage", null, MaxDoP, EnsureOrdered, 200)
+                .AddStep(RetrieveObjectFromState, $"{workflowName}_RetrieveObjectFromState", true, null, MaxDoP, EnsureOrdered, 200)
+                .AddStep(ProcessStepAsync, $"{workflowName}_ProcessStep", !SimulateIODelay, null, MaxDoP, EnsureOrdered, 200)
+                .AddStep(AckMessage, $"{workflowName}_AckMessage", true, null, MaxDoP, EnsureOrdered, 200)
                 .WithErrorHandling(ErrorHandlingAsync, 200, MaxDoP, false)
                 .WithFinalization(FinalizationAsync, MaxDoP, false);
 

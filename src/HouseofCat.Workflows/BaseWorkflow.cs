@@ -1,11 +1,9 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Encryption;
-using HouseofCat.Extensions;
 using HouseofCat.Metrics;
 using HouseofCat.Serialization;
 using HouseofCat.Workflows;
 using System;
-using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -63,14 +61,14 @@ namespace HouseofCat.RabbitMQ.Workflows
             Func<TState, TState> action,
             ExecutionDataflowBlockOptions options,
             string metricIdentifier,
+            bool metricMicroScale = false,
             string metricDescription = null)
         {
             TState WrapAction(TState state)
             {
-                var sw = Stopwatch.StartNew();
                 try
                 {
-                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricDescription);
+                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
                     return action(state);
                 }
                 catch (Exception ex)
@@ -78,11 +76,6 @@ namespace HouseofCat.RabbitMQ.Workflows
                     state.IsFaulted = true;
                     state.EDI = ExceptionDispatchInfo.Capture(ex);
                     return state;
-                }
-                finally
-                {
-                    sw.Stop();
-                    _metricsProvider.ObserveValueFluctuation(metricIdentifier, sw.ElapsedMicroseconds(), metricDescription);
                 }
             }
 
@@ -93,14 +86,14 @@ namespace HouseofCat.RabbitMQ.Workflows
             Func<TState, Task<TState>> action,
             ExecutionDataflowBlockOptions options,
             string metricIdentifier,
+            bool metricMicroScale = false,
             string metricDescription = null)
         {
             async Task<TState> WrapActionAsync(TState state)
             {
-                var sw = Stopwatch.StartNew();
                 try
                 {
-                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricDescription);
+                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
                     return await action(state).ConfigureAwait(false);
                 }
                 catch (Exception ex)
@@ -108,11 +101,6 @@ namespace HouseofCat.RabbitMQ.Workflows
                     state.IsFaulted = true;
                     state.EDI = ExceptionDispatchInfo.Capture(ex);
                     return state;
-                }
-                finally
-                {
-                    sw.Stop();
-                    _metricsProvider.ObserveValueFluctuation(metricIdentifier, sw.ElapsedMicroseconds(), metricDescription);
                 }
             }
 
@@ -123,24 +111,18 @@ namespace HouseofCat.RabbitMQ.Workflows
             Action<TState> action,
             ExecutionDataflowBlockOptions options,
             string metricIdentifier,
+            bool metricMicroScale = false,
             string metricDescription = null)
         {
             void WrapAction(TState state)
             {
-                var sw = Stopwatch.StartNew();
-
                 try
                 {
-                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricDescription);
+                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
                     action(state);
                 }
                 catch
                 { /* Actions are terminating block, so swallow (maybe log) */ }
-                finally
-                {
-                    sw.Stop();
-                    _metricsProvider.ObserveValueFluctuation(metricIdentifier, sw.ElapsedMicroseconds(), metricDescription);
-                }
             }
 
             return new ActionBlock<TState>(WrapAction, options);
@@ -150,24 +132,18 @@ namespace HouseofCat.RabbitMQ.Workflows
             Func<TState, TState> action,
             ExecutionDataflowBlockOptions options,
             string metricIdentifier,
+            bool metricMicroScale = false,
             string metricDescription = null)
         {
             void WrapAction(TState state)
             {
-                var sw = Stopwatch.StartNew();
-
                 try
                 {
-                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricDescription);
+                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
                     action(state);
                 }
                 catch
                 { /* Actions are terminating block, so swallow (maybe log) */ }
-                finally
-                {
-                    sw.Stop();
-                    _metricsProvider.ObserveValueFluctuation(metricIdentifier, sw.ElapsedMicroseconds(), metricDescription);
-                }
             }
 
             return new ActionBlock<TState>(WrapAction, options);
@@ -177,24 +153,18 @@ namespace HouseofCat.RabbitMQ.Workflows
             Func<TState, Task> action,
             ExecutionDataflowBlockOptions options,
             string metricIdentifier,
+            bool metricMicroScale = false,
             string metricDescription = null)
         {
             async Task WrapActionAsync(TState state)
             {
-                var sw = Stopwatch.StartNew();
-
                 try
                 {
-                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricDescription);
+                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
                     await action(state).ConfigureAwait(false);
                 }
                 catch
                 { /* Actions are terminating block, so swallow (maybe log) */ }
-                finally
-                {
-                    sw.Stop();
-                    _metricsProvider.ObserveValueFluctuation(metricIdentifier, sw.ElapsedMicroseconds(), metricDescription);
-                }
             }
 
             return new ActionBlock<TState>(WrapActionAsync, options);

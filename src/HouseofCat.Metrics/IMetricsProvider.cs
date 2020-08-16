@@ -11,8 +11,8 @@ namespace HouseofCat.Metrics
         void IncrementGauge(string name, string description = null);
         void ObserveValue(string name, double value, string description = null);
         void ObserveValueFluctuation(string name, double value, string description = null);
-        IDisposable Duration(string name, string description = null);
+        IDisposable Duration(string name, bool microScale = false, string description = null);
         IDisposable Track(string name, string description = null);
-        MultiDispose TrackAndDuration(string name, string description = null);
+        MultiDispose TrackAndDuration(string name, bool microScale = false, string description = null);
     }
 }
