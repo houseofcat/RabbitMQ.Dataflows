@@ -1,22 +1,18 @@
-using HouseofCat.Compression;
-using HouseofCat.Encryption;
-using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ.Services;
-using HouseofCat.Serialization;
-using HouseofCat.Tests.IntegrationTests.RabbitMQ;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
+namespace HouseofCat.RabbitMQ.IntegrationTests
 {
     public class RabbitServiceTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
 
-        public RabbitServiceTests(RabbitFixture fixture)
+        public RabbitServiceTests(RabbitFixture fixture, ITestOutputHelper output)
         {
             _fixture = fixture;
+            _fixture.Output = output;
         }
 
         [Fact]

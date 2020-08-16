@@ -76,9 +76,9 @@ namespace ConsumerWorkflowMetrics.Services
                 .WithBuildState<Message>("Message", maxDoP, ensureOrdered)
                 .WithDecryptionStep(maxDoP, ensureOrdered)
                 .WithDecompressionStep(maxDoP, ensureOrdered)
-                .AddStep(RetrieveObjectFromState, $"{workflowName}_RetrieveObjectFromState", maxDoP, ensureOrdered)
-                .AddStep(ProcessStepAsync, $"{workflowName}_ProcessStep", maxDoP, ensureOrdered)
-                .AddStep(AckMessage, $"{workflowName}_AckMessage", maxDoP, ensureOrdered)
+                .AddStep(RetrieveObjectFromState, $"{workflowName}_RetrieveObjectFromState", null, maxDoP, ensureOrdered)
+                .AddStep(ProcessStepAsync, $"{workflowName}_ProcessStep", null, maxDoP, ensureOrdered)
+                .AddStep(AckMessage, $"{workflowName}_AckMessage", null, maxDoP, ensureOrdered)
                 .WithErrorHandling(ErrorHandlingAsync, capacity, maxDoP, ensureOrdered)
                 .WithFinalization(Finalization, maxDoP, ensureOrdered);
 

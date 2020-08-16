@@ -7,55 +7,55 @@ namespace HouseofCat.Metrics
     public class NullMetricsProvider : IMetricsProvider
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void DecrementCounter(string name, bool create)
+        public void DecrementCounter(string name, string description = null)
         {
 
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void DecrementGauge(string name, bool create)
+        public void DecrementGauge(string name, string description = null)
         {
 
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void IncrementCounter(string name, bool create)
+        public void IncrementCounter(string name, string description = null)
         {
 
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void IncrementGauge(string name, bool create)
+        public void IncrementGauge(string name, string description = null)
         {
 
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IDisposable MeasureDuration(string name, bool create)
-        {
-            return null;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ObserveValue(string name, double value, bool create)
+        public void ObserveValue(string name, double value, string description = null)
         {
 
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ObserveValueFluctuation(string name, double value, bool create)
+        public void ObserveValueFluctuation(string name, double value, string description = null)
         {
 
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IDisposable TrackConcurrency(string name, bool create)
+        public IDisposable Duration(string name, string description = null)
         {
             return null;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public MultiDispose MeasureAndTrack(string name, bool create)
+        public IDisposable Track(string name, string description = null)
+        {
+            return null;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public MultiDispose TrackAndDuration(string name, string description = null)
         {
             return null;
         }

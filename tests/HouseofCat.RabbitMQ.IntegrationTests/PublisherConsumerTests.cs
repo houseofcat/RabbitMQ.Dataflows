@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
+namespace HouseofCat.RabbitMQ.IntegrationTests
 {
     public class PublisherConsumerTests : IClassFixture<RabbitFixture>
     {
@@ -18,9 +18,10 @@ namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
         public Consumer Consumer;
         public Publisher Publisher;
 
-        public PublisherConsumerTests(RabbitFixture fixture)
+        public PublisherConsumerTests(RabbitFixture fixture, ITestOutputHelper output)
         {
             _fixture = fixture;
+            _fixture.Output = output;
             Consumer = new Consumer(_fixture.ChannelPool, "TestAutoPublisherConsumerName");
             Publisher = new Publisher(
                 _fixture.ChannelPool,

@@ -30,7 +30,7 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
         public static bool AwaitShutdown = true;
         public static bool LogOutcome = false;
         public static bool UseStreamPipeline = false;
-        public static int MaxDoP = 64;
+        public static int MaxDoP = 16;
         public static Random Rand = new Random();
 
         public static async Task Main()

@@ -1,19 +1,20 @@
 using HouseofCat.RabbitMQ;
-using HouseofCat.RabbitMQ.Pools;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
+namespace HouseofCat.RabbitMQ.IntegrationTests
 {
     public class AutoPublisherTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
 
-        public AutoPublisherTests(RabbitFixture fixture)
+        public AutoPublisherTests(RabbitFixture fixture, ITestOutputHelper output)
         {
             _fixture = fixture;
+            _fixture.Output = output;
         }
 
         [Fact]

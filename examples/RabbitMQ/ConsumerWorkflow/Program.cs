@@ -21,7 +21,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         public static ConsumerWorkflow<WorkState> _workflow;
         public static Stopwatch Stopwatch;
         public static LogLevel LogLevel = LogLevel.Information;
-        public static int ConsumerCount = 3;
+        public static int ConsumerCount = 4;
         public static long GlobalCount = 100_000;
         public static long ActionCount = 8;
         public static long CurrentCount;
@@ -32,7 +32,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         public static bool AwaitShutdown = true;
         public static bool LogOutcome = false;
         public static bool UseStreamPipeline = false;
-        public static int MaxDoP = Environment.ProcessorCount / 2;
+        public static int MaxDoP = Environment.ProcessorCount;
         public static Random Rand = new Random();
 
         private static ILogger<ConsumerWorkflow<WorkState>> _logger;
@@ -66,9 +66,9 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
                 .WithBuildState<Message>("Message", MaxDoP, false, 200)
                 .WithDecryptionStep(MaxDoP, false, 200)
                 .WithDecompressionStep(MaxDoP, false, 200)
-                .AddStep(RetrieveObjectFromState, $"{workflowName}.RetrieveObjectFromState", MaxDoP, EnsureOrdered, 200)
-                .AddStep(ProcessStepAsync, $"{workflowName}.ProcessStep", MaxDoP, EnsureOrdered, 200)
-                .AddStep(AckMessage, $"{workflowName}.AckMessage", MaxDoP, EnsureOrdered, 200)
+                .AddStep(RetrieveObjectFromState, $"{workflowName}_RetrieveObjectFromState", null, MaxDoP, EnsureOrdered, 200)
+                .AddStep(ProcessStepAsync, $"{workflowName}_ProcessStep", null, MaxDoP, EnsureOrdered, 200)
+                .AddStep(AckMessage, $"{workflowName}_AckMessage", null, MaxDoP, EnsureOrdered, 200)
                 .WithErrorHandling(ErrorHandlingAsync, 200, MaxDoP, false)
                 .WithFinalization(FinalizationAsync, MaxDoP, false);
 
@@ -144,10 +144,10 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         {
             try
             {
-                state.Message = (Message)state.Data["Item"];
-                state.Data.Remove("Item");
+                state.Message = (Message)state.Data["Message"];
+                state.Data.Remove("Message");
             }
-            catch { }
+            catch { state.IsFaulted = true; }
 
             return state;
         }

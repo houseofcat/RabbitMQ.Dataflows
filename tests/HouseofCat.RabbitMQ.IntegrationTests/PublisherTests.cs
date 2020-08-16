@@ -7,15 +7,16 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
+namespace HouseofCat.RabbitMQ.IntegrationTests
 {
     public class PublisherTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
 
-        public PublisherTests(RabbitFixture fixture)
+        public PublisherTests(RabbitFixture fixture, ITestOutputHelper output)
         {
             _fixture = fixture;
+            _fixture.Output = output;
         }
 
         [Fact]

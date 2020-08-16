@@ -1,9 +1,11 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Encryption;
+using HouseofCat.Extensions;
 using HouseofCat.Metrics;
 using HouseofCat.Serialization;
 using HouseofCat.Workflows;
 using System;
+using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -45,32 +47,30 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         public TransformBlock<TState, TState> GetTransformBlock(
             Func<TState, Task<TState>> action,
-            ExecutionDataflowBlockOptions options,
-            string metricIdentifier)
+            ExecutionDataflowBlockOptions options)
         {
-            using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
             return new TransformBlock<TState, TState>(action, options);
         }
 
         public TransformBlock<TState, TState> GetTransformBlock(
             Func<TState, TState> action,
-            ExecutionDataflowBlockOptions options,
-            string metricIdentifier)
+            ExecutionDataflowBlockOptions options)
         {
-            using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
             return new TransformBlock<TState, TState>(action, options);
         }
 
         public TransformBlock<TState, TState> GetWrappedTransformBlock(
             Func<TState, TState> action,
             ExecutionDataflowBlockOptions options,
-            string metricIdentifier)
+            string metricIdentifier,
+            string metricDescription = null)
         {
             TState WrapAction(TState state)
             {
+                var sw = Stopwatch.StartNew();
                 try
                 {
-                    using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
+                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricDescription);
                     return action(state);
                 }
                 catch (Exception ex)
@@ -78,6 +78,11 @@ namespace HouseofCat.RabbitMQ.Workflows
                     state.IsFaulted = true;
                     state.EDI = ExceptionDispatchInfo.Capture(ex);
                     return state;
+                }
+                finally
+                {
+                    sw.Stop();
+                    _metricsProvider.ObserveValueFluctuation(metricIdentifier, sw.ElapsedMicroseconds(), metricDescription);
                 }
             }
 
@@ -87,13 +92,15 @@ namespace HouseofCat.RabbitMQ.Workflows
         public TransformBlock<TState, TState> GetWrappedTransformBlock(
             Func<TState, Task<TState>> action,
             ExecutionDataflowBlockOptions options,
-            string metricIdentifier)
+            string metricIdentifier,
+            string metricDescription = null)
         {
             async Task<TState> WrapActionAsync(TState state)
             {
+                var sw = Stopwatch.StartNew();
                 try
                 {
-                    using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
+                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricDescription);
                     return await action(state).ConfigureAwait(false);
                 }
                 catch (Exception ex)
@@ -101,6 +108,11 @@ namespace HouseofCat.RabbitMQ.Workflows
                     state.IsFaulted = true;
                     state.EDI = ExceptionDispatchInfo.Capture(ex);
                     return state;
+                }
+                finally
+                {
+                    sw.Stop();
+                    _metricsProvider.ObserveValueFluctuation(metricIdentifier, sw.ElapsedMicroseconds(), metricDescription);
                 }
             }
 
@@ -110,16 +122,25 @@ namespace HouseofCat.RabbitMQ.Workflows
         public ActionBlock<TState> GetWrappedActionBlock(
             Action<TState> action,
             ExecutionDataflowBlockOptions options,
-            string metricIdentifier)
+            string metricIdentifier,
+            string metricDescription = null)
         {
             void WrapAction(TState state)
             {
-                using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
+                var sw = Stopwatch.StartNew();
 
                 try
-                { action(state); }
+                {
+                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricDescription);
+                    action(state);
+                }
                 catch
                 { /* Actions are terminating block, so swallow (maybe log) */ }
+                finally
+                {
+                    sw.Stop();
+                    _metricsProvider.ObserveValueFluctuation(metricIdentifier, sw.ElapsedMicroseconds(), metricDescription);
+                }
             }
 
             return new ActionBlock<TState>(WrapAction, options);
@@ -128,16 +149,25 @@ namespace HouseofCat.RabbitMQ.Workflows
         public ActionBlock<TState> GetWrappedActionBlock(
             Func<TState, TState> action,
             ExecutionDataflowBlockOptions options,
-            string metricIdentifier)
+            string metricIdentifier,
+            string metricDescription = null)
         {
             void WrapAction(TState state)
             {
-                using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
+                var sw = Stopwatch.StartNew();
 
                 try
-                { action(state); }
+                {
+                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricDescription);
+                    action(state);
+                }
                 catch
                 { /* Actions are terminating block, so swallow (maybe log) */ }
+                finally
+                {
+                    sw.Stop();
+                    _metricsProvider.ObserveValueFluctuation(metricIdentifier, sw.ElapsedMicroseconds(), metricDescription);
+                }
             }
 
             return new ActionBlock<TState>(WrapAction, options);
@@ -146,16 +176,25 @@ namespace HouseofCat.RabbitMQ.Workflows
         public ActionBlock<TState> GetWrappedActionBlock(
             Func<TState, Task> action,
             ExecutionDataflowBlockOptions options,
-            string metricIdentifier)
+            string metricIdentifier,
+            string metricDescription = null)
         {
             async Task WrapActionAsync(TState state)
             {
-                using var multiDispose = _metricsProvider.MeasureAndTrack(metricIdentifier, true);
+                var sw = Stopwatch.StartNew();
 
                 try
-                { await action(state).ConfigureAwait(false); }
+                {
+                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricDescription);
+                    await action(state).ConfigureAwait(false);
+                }
                 catch
                 { /* Actions are terminating block, so swallow (maybe log) */ }
+                finally
+                {
+                    sw.Stop();
+                    _metricsProvider.ObserveValueFluctuation(metricIdentifier, sw.ElapsedMicroseconds(), metricDescription);
+                }
             }
 
             return new ActionBlock<TState>(WrapActionAsync, options);

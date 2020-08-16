@@ -20,7 +20,7 @@ namespace HouseofCat.RabbitMQ
             return new Letter
             {
                 LetterId = 0,
-                LetterMetadata = null,
+                LetterMetadata = new LetterMetadata(),
                 Envelope = new Envelope
                 {
                     Exchange = string.Empty,

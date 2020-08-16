@@ -4,16 +4,18 @@ using HouseofCat.Workflows.Pipelines;
 using System;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
+namespace HouseofCat.RabbitMQ.IntegrationTests
 {
     public class ConsumerTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
 
-        public ConsumerTests(RabbitFixture fixture)
+        public ConsumerTests(RabbitFixture fixture, ITestOutputHelper output)
         {
             _fixture = fixture;
+            _fixture.Output = output;
         }
 
         [Fact]
@@ -117,7 +119,7 @@ namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
             public string StringMessage { get; set; }
         }
 
-        public class WorkState : HouseofCat.RabbitMQ.Pipelines.WorkState
+        public class WorkState : HouseofCat.RabbitMQ.WorkState.RabbitWorkState
         {
             public Message Message { get; set; }
             public ulong LetterId { get; set; }

@@ -12,11 +12,11 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit.Abstractions;
 
-namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
+namespace HouseofCat.RabbitMQ.IntegrationTests
 {
     public class RabbitFixture
     {
-        public readonly ITestOutputHelper Output;
+        public ITestOutputHelper Output;
         public readonly ISerializationProvider SerializationProvider;
         public readonly IHashingProvider HashingProvider;
         public readonly IEncryptionProvider EncryptionProvider;
@@ -32,9 +32,8 @@ namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
         public readonly ITopologer Topologer;
         public readonly IPublisher Publisher;
 
-        public RabbitFixture(ITestOutputHelper output)
+        public RabbitFixture()
         {
-            Output = output;
             CompressionProvider = new GzipProvider();
             HashingProvider = new Argon2IDHasher();
             HashKey = HashingProvider.GetHashKeyAsync(Passphrase, Salt, 32).GetAwaiter().GetResult();

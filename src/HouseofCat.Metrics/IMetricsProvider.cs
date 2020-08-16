@@ -5,14 +5,14 @@ namespace HouseofCat.Metrics
 {
     public interface IMetricsProvider
     {
-        void DecrementCounter(string name, bool create);
-        void DecrementGauge(string name, bool create);
-        void IncrementCounter(string name, bool create);
-        void IncrementGauge(string name, bool create);
-        void ObserveValue(string name, double value, bool create);
-        void ObserveValueFluctuation(string name, double value, bool create);
-        IDisposable MeasureDuration(string name, bool create);
-        IDisposable TrackConcurrency(string name, bool create);
-        MultiDispose MeasureAndTrack(string name, bool create);
+        void DecrementCounter(string name, string description = null);
+        void DecrementGauge(string name, string description = null);
+        void IncrementCounter(string name, string description = null);
+        void IncrementGauge(string name, string description = null);
+        void ObserveValue(string name, double value, string description = null);
+        void ObserveValueFluctuation(string name, double value, string description = null);
+        IDisposable Duration(string name, string description = null);
+        IDisposable Track(string name, string description = null);
+        MultiDispose TrackAndDuration(string name, string description = null);
     }
 }

@@ -1,9 +1,9 @@
 ﻿using HouseofCat.Utilities;
+using HouseofCat.Utilities.Errors;
 using Prometheus;
 using Prometheus.DotNetRuntime;
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace HouseofCat.Metrics
@@ -11,18 +11,20 @@ namespace HouseofCat.Metrics
     public class PrometheusMetricsProvider : IMetricsProvider, IDisposable
     {
         private readonly IMetricServer _server;
-        private IDisposable _collector;
-        private bool _disposedValue;
 
         public ConcurrentDictionary<string, Counter> Counters { get; } = new ConcurrentDictionary<string, Counter>();
         public ConcurrentDictionary<string, Gauge> Gauges { get; } = new ConcurrentDictionary<string, Gauge>();
         public ConcurrentDictionary<string, Histogram> Histograms { get; } = new ConcurrentDictionary<string, Histogram>();
         public ConcurrentDictionary<string, Summary> Summaries { get; } = new ConcurrentDictionary<string, Summary>();
 
+        private IDisposable _collector;
+        private bool _disposedValue;
+
         /// <summary>
         /// Use this constructor in AspNetCore setup (since AspNetCore Prometheus handles Server creation via middleware).
         /// </summary>
-        public PrometheusMetricsProvider() { }
+        public PrometheusMetricsProvider()
+        { }
 
         public PrometheusMetricsProvider(int port, string url, CollectorRegistry registry = null, bool useHttps = false)
         {
@@ -66,44 +68,24 @@ namespace HouseofCat.Metrics
             return this;
         }
 
-        public PrometheusMetricsProvider AddCounter(string name, string description, CounterConfiguration config = null)
+        public Counter GetOrAddCounter(string name, string description, CounterConfiguration config = null)
         {
-            if (Counters.ContainsKey(name)) throw new ArgumentException(Constants.CounterAlreadyExists);
-
-            Counters[name] = Prometheus.Metrics.CreateCounter(name, description, config);
-            return this;
+            return Counters.GetOrAdd(name, Prometheus.Metrics.CreateCounter(name, description, config));
         }
 
-        public PrometheusMetricsProvider AddGauge(string name, string description, GaugeConfiguration config = null)
+        public Gauge GetOrAddGauge(string name, string description, GaugeConfiguration config = null)
         {
-            if (Gauges.ContainsKey(name)) throw new ArgumentException(Constants.GaugeAlreadyExists);
-
-            Gauges[name] = Prometheus.Metrics.CreateGauge(name, description, config);
-            return this;
+            return Gauges.GetOrAdd(name, Prometheus.Metrics.CreateGauge(name, description, config));
         }
 
-        public PrometheusMetricsProvider AddHistogram(string name, string description, HistogramConfiguration config = null)
+        public Histogram GetOrAddHistogram(string name, string description, HistogramConfiguration config = null)
         {
-            if (Histograms.ContainsKey(name)) throw new ArgumentException(Constants.HistogramAlreadyExists);
-
-            Histograms[name] = Prometheus.Metrics.CreateHistogram(name, description, config);
-            return this;
+            return Histograms.GetOrAdd(name, Prometheus.Metrics.CreateHistogram(name, description, config));
         }
 
-        public PrometheusMetricsProvider AddSummary(string name, string description, SummaryConfiguration config = null)
+        public Summary GetOrdAddSummary(string name, string description, SummaryConfiguration config = null)
         {
-            if (Summaries.ContainsKey(name)) throw new ArgumentException(Constants.SummaryAlreadyExists);
-
-            Summaries[name] = Prometheus.Metrics.CreateSummary(name, description, config);
-            return this;
-        }
-
-        public PrometheusMetricsProvider AddTimer(string name, string description, HistogramConfiguration config = null)
-        {
-            if (Histograms.ContainsKey(name)) throw new ArgumentException(Constants.HistogramAlreadyExists);
-
-            Histograms[name] = Prometheus.Metrics.CreateHistogram(name, description, config);
-            return this;
+            return Summaries.GetOrAdd(name, Prometheus.Metrics.CreateSummary(name, description, config));
         }
 
         protected virtual void Dispose(bool disposing)
@@ -113,6 +95,8 @@ namespace HouseofCat.Metrics
                 if (disposing)
                 {
                     _collector?.Dispose();
+                    _server.Stop();
+                    _server.Dispose();
                 }
 
                 _disposedValue = true;
@@ -128,130 +112,72 @@ namespace HouseofCat.Metrics
         #region IMetricsProvider Implementation
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ObserveValueFluctuation(string name, double value, bool create)
+        public void ObserveValueFluctuation(string name, double value, string description = null)
         {
+            Guard.AgainstNull(name, nameof(name));
             name = $"{name}_Histogram";
-            if (Histograms.ContainsKey(name))
-            {
-                Histograms[name].Observe(value);
-            }
-            else if (create)
-            {
-                AddHistogram(name, string.Empty);
-                Histograms[name].Observe(value);
-            }
+            GetOrAddHistogram(name, description).Observe(value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ObserveValue(string name, double value, bool create)
+        public void ObserveValue(string name, double value, string description = null)
         {
+            Guard.AgainstNull(name, nameof(name));
             name = $"{name}_Summary";
-            if (Summaries.ContainsKey(name))
-            {
-                Summaries[name].Observe(value);
-            }
-            else if (create)
-            {
-                AddSummary(name, string.Empty);
-                Summaries[name].Observe(value);
-            }
+            GetOrdAddSummary(name, description).Observe(value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void IncrementGauge(string name, bool create)
+        public void IncrementGauge(string name, string description = null)
         {
+            Guard.AgainstNull(name, nameof(name));
             name = $"{name}_Gauge";
-            if (Gauges.ContainsKey(name))
-            {
-                Gauges[name].Inc();
-            }
-            else if (create)
-            {
-                AddGauge(name, string.Empty);
-                Gauges[name].Inc();
-            }
+            GetOrAddGauge(name, description).Inc();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void DecrementGauge(string name, bool create)
+        public void DecrementGauge(string name, string description = null)
         {
+            Guard.AgainstNull(name, nameof(name));
             name = $"{name}_Gauge";
-            if (Gauges.ContainsKey(name))
-            {
-                Gauges[name].Dec();
-            }
-            else if (create)
-            {
-                AddGauge(name, string.Empty);
-                Gauges[name].Dec();
-            }
+            GetOrAddGauge(name, description).Dec();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void IncrementCounter(string name, bool create)
+        public void IncrementCounter(string name, string description = null)
         {
+            Guard.AgainstNull(name, nameof(name));
             name = $"{name}_Counter";
-            if (Counters.ContainsKey(name))
-            {
-                Counters[name].Inc();
-            }
-            else if (create)
-            {
-                AddCounter(name, string.Empty);
-                Counters[name].Inc();
-            }
+            GetOrAddCounter(name, description).Inc();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void DecrementCounter(string name, bool create)
+        public void DecrementCounter(string name, string description = null)
         {
             throw new NotImplementedException();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IDisposable MeasureDuration(string name, bool create)
+        public IDisposable Duration(string name, string description = null)
         {
-            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException(Constants.HistogramNotExists);
-
-            name = $"{name}_Histogram";
-            if (Histograms.ContainsKey(name))
-            {
-                return Histograms[name].NewTimer();
-            }
-            else if (create)
-            {
-                AddHistogram(name, string.Empty);
-                return Histograms[name].NewTimer();
-            }
-
-            return null;
+            Guard.AgainstNull(name, nameof(name));
+            name = $"{name}_Timer";
+            return GetOrAddHistogram(name, description).NewTimer();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IDisposable TrackConcurrency(string name, bool create)
+        public IDisposable Track(string name, string description = null)
         {
-            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException(Constants.GaugeNotExists);
-
-            name = $"{name}_Gauge";
-            if (Gauges.ContainsKey(name))
-            {
-                return Gauges[name].TrackInProgress();
-            }
-            else if (create)
-            {
-                AddGauge(name, string.Empty);
-                return Gauges[name].TrackInProgress();
-            }
-
-            return null;
+            Guard.AgainstNull(name, nameof(name));
+            name = $"{name}_Track";
+            return GetOrAddGauge(name, description).TrackInProgress();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public MultiDispose MeasureAndTrack(string name, bool create)
+        public MultiDispose TrackAndDuration(string name, string description = null)
         {
-            var measure = MeasureDuration(name, create);
-            var track = TrackConcurrency(name, create);
-
+            var measure = Duration(name, description);
+            var track = Track(name, description);
             return new MultiDispose(measure, track);
         }
 

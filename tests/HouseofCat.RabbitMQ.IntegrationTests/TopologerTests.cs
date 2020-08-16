@@ -4,16 +4,18 @@ using HouseofCat.Utilities.File;
 using System;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
+namespace HouseofCat.RabbitMQ.IntegrationTests
 {
     public class TopologerTests
     {
         private readonly RabbitFixture _fixture;
 
-        public TopologerTests(RabbitFixture fixture)
+        public TopologerTests(RabbitFixture fixture, ITestOutputHelper output)
         {
             _fixture = fixture;
+            _fixture.Output = output;
         }
 
         [Fact]

@@ -6,15 +6,16 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace HouseofCat.Tests.IntegrationTests.RabbitMQ
+namespace HouseofCat.RabbitMQ.IntegrationTests
 {
     public class ChannelPoolTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
 
-        public ChannelPoolTests(RabbitFixture fixture)
+        public ChannelPoolTests(RabbitFixture fixture, ITestOutputHelper output)
         {
             _fixture = fixture;
+            _fixture.Output = output;
         }
 
         [Fact]
