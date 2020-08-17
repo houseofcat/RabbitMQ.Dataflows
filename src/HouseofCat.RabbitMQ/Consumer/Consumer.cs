@@ -1,7 +1,7 @@
 using HouseofCat.Logger;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities.Errors;
-using HouseofCat.Workflows;
+using HouseofCat.Dataflows;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;

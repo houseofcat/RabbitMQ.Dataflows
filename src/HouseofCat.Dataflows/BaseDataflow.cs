@@ -2,15 +2,14 @@
 using HouseofCat.Encryption;
 using HouseofCat.Metrics;
 using HouseofCat.Serialization;
-using HouseofCat.Workflows;
 using System;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-namespace HouseofCat.RabbitMQ.Workflows
+namespace HouseofCat.Dataflows
 {
-    public abstract class BaseWorkflow<TState> where TState : class, IWorkState, new()
+    public abstract class BaseDataflow<TState> where TState : class, IWorkState, new()
     {
         protected ExecutionDataflowBlockOptions _executeStepOptions;
         protected DataflowLinkOptions _linkStepOptions;

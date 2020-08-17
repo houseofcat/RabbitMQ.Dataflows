@@ -6,6 +6,7 @@
     <FileVersion>1.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HouseofCat.Dataflows\HouseofCat.Dataflows.csproj" />
     <ProjectReference Include="..\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
   </ItemGroup>
 </Project>

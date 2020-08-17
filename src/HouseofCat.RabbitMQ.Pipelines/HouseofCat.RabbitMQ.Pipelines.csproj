@@ -6,9 +6,10 @@
     <FileVersion>1.0.4</FileVersion>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HouseofCat.Dataflows.Pipelines\HouseofCat.Dataflows.Pipelines.csproj" />
     <ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
     <ProjectReference Include="..\HouseofCat.RabbitMQ.WorkState\HouseofCat.RabbitMQ.WorkState.csproj" />
     <ProjectReference Include="..\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
-    <ProjectReference Include="..\HouseofCat.Workflows.Pipelines\HouseofCat.Workflows.Pipelines.csproj" />
+    <ProjectReference Include="..\HouseofCat.Workflows.Pipelines\HouseofCat.Dataflows.Pipelines.csproj" />
   </ItemGroup>
 </Project>

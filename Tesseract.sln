@@ -18,7 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4FCA30F5-D19
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Utilities", "src\HouseofCat.Utilities\HouseofCat.Utilities.csproj", "{2BF50B4E-7EE9-4C51-80AA-68405D76F21A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Workflows", "src\HouseofCat.Workflows\HouseofCat.Workflows.csproj", "{E3D8F002-1DD4-4926-BD15-20B6115AA60C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dataflows", "src\HouseofCat.Dataflows\HouseofCat.Dataflows.csproj", "{E3D8F002-1DD4-4926-BD15-20B6115AA60C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Encryption", "src\HouseofCat.Encryption\HouseofCat.Encryption.csproj", "{97C0674A-E7DC-4EF6-8E8C-1D06FE2FCAC2}"
 EndProject
@@ -50,9 +50,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.RabbitMQ.Pipelin
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.RabbitMQ.Services", "src\HouseofCat.RabbitMQ.Services\HouseofCat.RabbitMQ.Services.csproj", "{369BB764-AEB8-43B9-BF3E-F5B7858DE473}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Workflows.Pipelines", "src\HouseofCat.Workflows.Pipelines\HouseofCat.Workflows.Pipelines.csproj", "{A4623BE8-FDB0-4BBB-AEDE-081109B80801}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dataflows.Pipelines", "src\HouseofCat.Dataflows.Pipelines\HouseofCat.Dataflows.Pipelines.csproj", "{A4623BE8-FDB0-4BBB-AEDE-081109B80801}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Extensions.Workflows", "src\HouseofCat.Extensions.Workflows\HouseofCat.Extensions.Workflows.csproj", "{C2B57CB6-AF57-45D1-B28F-80040C97B9FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Extensions.Dataflows", "src\HouseofCat.Extensions.Dataflows\HouseofCat.Extensions.Dataflows.csproj", "{C2B57CB6-AF57-45D1-B28F-80040C97B9FA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Windows.NativeMethods", "src\HouseofCat.Windows.NativeMethods\HouseofCat.Windows.NativeMethods.csproj", "{C19DE584-8959-4357-AD3F-512530591E51}"
 EndProject
@@ -76,7 +76,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Gremlins.SqlServ
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Windows.WMI", "src\HouseofCat.Windows.WMI\HouseofCat.Windows.WMI.csproj", "{A02B429D-59FF-4499-9DF7-8280CB1303BA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.RabbitMQ.Workflows", "src\HouseofCat.RabbitMQ.Workflows\HouseofCat.RabbitMQ.Workflows.csproj", "{75A7CD53-F942-40ED-95A2-1F9CC7C5F6E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.RabbitMQ.Dataflows", "src\HouseofCat.RabbitMQ.Dataflows\HouseofCat.RabbitMQ.Dataflows.csproj", "{75A7CD53-F942-40ED-95A2-1F9CC7C5F6E3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Serialization", "src\HouseofCat.Serialization\HouseofCat.Serialization.csproj", "{6AE8BE48-BA11-4120-B8F8-3D42CF56DD46}"
 EndProject

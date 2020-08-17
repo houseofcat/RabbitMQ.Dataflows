@@ -4,7 +4,7 @@ using System;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-namespace HouseofCat.Workflows
+namespace HouseofCat.Dataflows
 {
     public class DataflowEngine<TIn, TOut>
     {

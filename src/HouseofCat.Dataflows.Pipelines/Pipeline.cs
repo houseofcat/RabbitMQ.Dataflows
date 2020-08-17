@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-namespace HouseofCat.Workflows.Pipelines
+namespace HouseofCat.Dataflows.Pipelines
 {
     public interface IPipeline<TIn, TOut>
     {

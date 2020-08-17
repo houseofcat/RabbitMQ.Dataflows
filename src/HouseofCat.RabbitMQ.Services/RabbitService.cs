@@ -8,7 +8,7 @@ using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.File;
 using HouseofCat.Utilities.Time;
-using HouseofCat.Workflows.Pipelines;
+using HouseofCat.Dataflows.Pipelines;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System;

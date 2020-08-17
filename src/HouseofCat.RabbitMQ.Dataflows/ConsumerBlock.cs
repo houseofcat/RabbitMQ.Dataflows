@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-namespace HouseofCat.RabbitMQ.Workflows
+namespace HouseofCat.RabbitMQ.Dataflows
 {
     public class ConsumerBlock<TOut> : ISourceBlock<TOut>
     {

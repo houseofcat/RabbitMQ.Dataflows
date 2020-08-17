@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 
-namespace HouseofCat.Workflows
+namespace HouseofCat.Dataflows
 {
     public interface IWorkState
     {

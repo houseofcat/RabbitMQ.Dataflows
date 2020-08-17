@@ -12,10 +12,11 @@
     <PackageReference Include="Twilio" Version="5.45.2" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HouseofCat.Dataflows.Pipelines\HouseofCat.Dataflows.Pipelines.csproj" />
     <ProjectReference Include="..\HouseofCat.RabbitMQ.Pipelines\HouseofCat.RabbitMQ.Pipelines.csproj" />
     <ProjectReference Include="..\HouseofCat.RabbitMQ.Services\HouseofCat.RabbitMQ.Services.csproj" />
     <ProjectReference Include="..\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
     <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
-    <ProjectReference Include="..\HouseofCat.Workflows.Pipelines\HouseofCat.Workflows.Pipelines.csproj" />
+    <ProjectReference Include="..\HouseofCat.Dataflows.Pipelines\HouseofCat.Dataflows.Pipelines.csproj" />
   </ItemGroup>
 </Project>

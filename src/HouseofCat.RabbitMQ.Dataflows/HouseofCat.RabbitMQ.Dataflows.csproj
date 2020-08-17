@@ -15,6 +15,5 @@
     <ProjectReference Include="..\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
     <ProjectReference Include="..\HouseofCat.Reflection\HouseofCat.Reflection.csproj" />
     <ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
-    <ProjectReference Include="..\HouseofCat.Workflows.Pipelines\HouseofCat.Workflows.Pipelines.csproj" />
   </ItemGroup>
 </Project>

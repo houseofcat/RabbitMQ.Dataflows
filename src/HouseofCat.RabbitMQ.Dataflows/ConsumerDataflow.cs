@@ -1,4 +1,5 @@
 ﻿using HouseofCat.Compression;
+using HouseofCat.Dataflows;
 using HouseofCat.Encryption;
 using HouseofCat.Logger;
 using HouseofCat.Metrics;
@@ -14,13 +15,13 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using static HouseofCat.Reflection.Generics;
 
-namespace HouseofCat.RabbitMQ.Workflows
+namespace HouseofCat.RabbitMQ.Dataflows
 {
-    public class ConsumerWorkflow<TState> : BaseWorkflow<TState> where TState : class, IRabbitWorkState, new()
+    public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : class, IRabbitWorkState, new()
     {
         public string WorkflowName { get; }
 
-        private readonly ILogger<BaseWorkflow<TState>> _logger;
+        private readonly ILogger<ConsumerDataflow<TState>> _logger;
         private readonly IRabbitService _rabbitService;
         private readonly ConsumerOptions _consumerOptions;
         private readonly string _consumerName;
@@ -49,7 +50,7 @@ namespace HouseofCat.RabbitMQ.Workflows
         protected BufferBlock<TState> _errorBuffer;
         protected ActionBlock<TState> _errorAction;
 
-        public ConsumerWorkflow(
+        public ConsumerDataflow(
             IRabbitService rabbitService,
             string workflowName,
             string consumerName,
@@ -62,7 +63,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             _consumerCount = consumerCount;
             _consumerName = consumerName;
 
-            _logger = LogHelper.LoggerFactory.CreateLogger<ConsumerWorkflow<TState>>();
+            _logger = LogHelper.LoggerFactory.CreateLogger<ConsumerDataflow<TState>>();
             _rabbitService = rabbitService;
             _consumerOptions = rabbitService.GetConsumer(consumerName).ConsumerOptions;
 
@@ -96,28 +97,28 @@ namespace HouseofCat.RabbitMQ.Workflows
             }
         }
 
-        public ConsumerWorkflow<TState> SetSerilizationProvider(ISerializationProvider provider)
+        public ConsumerDataflow<TState> SetSerilizationProvider(ISerializationProvider provider)
         {
             Guard.AgainstNull(provider, nameof(provider));
             _serializationProvider = provider;
             return this;
         }
 
-        public ConsumerWorkflow<TState> SetCompressionProvider(ICompressionProvider provider)
+        public ConsumerDataflow<TState> SetCompressionProvider(ICompressionProvider provider)
         {
             Guard.AgainstNull(provider, nameof(provider));
             _compressProvider = provider;
             return this;
         }
 
-        public ConsumerWorkflow<TState> SetEncryptionProvider(IEncryptionProvider provider)
+        public ConsumerDataflow<TState> SetEncryptionProvider(IEncryptionProvider provider)
         {
             Guard.AgainstNull(provider, nameof(provider));
             _encryptionProvider = provider;
             return this;
         }
 
-        public ConsumerWorkflow<TState> SetMetricsProvider(IMetricsProvider provider)
+        public ConsumerDataflow<TState> SetMetricsProvider(IMetricsProvider provider)
         {
             _metricsProvider = provider ?? new NullMetricsProvider();
             return this;
@@ -125,7 +126,7 @@ namespace HouseofCat.RabbitMQ.Workflows
 
         #region Step Adders
 
-        public ConsumerWorkflow<TState> WithErrorHandling(Action<TState> action, int boundedCapacity, int? maxDoP = null, bool? ensureOrdered = null)
+        public ConsumerDataflow<TState> WithErrorHandling(Action<TState> action, int boundedCapacity, int? maxDoP = null, bool? ensureOrdered = null)
         {
             Guard.AgainstNull(action, nameof(action));
             if (_errorBuffer == null)
@@ -137,7 +138,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithErrorHandling(
+        public ConsumerDataflow<TState> WithErrorHandling(
             Func<TState, Task> action,
             int boundedCapacity,
             int? maxDoP = null,
@@ -153,7 +154,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithReadyToProcessBuffer(int boundedCapacity)
+        public ConsumerDataflow<TState> WithReadyToProcessBuffer(int boundedCapacity)
         {
             if (_readyBuffer == null)
             {
@@ -162,7 +163,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> AddStep(
+        public ConsumerDataflow<TState> AddStep(
             Func<TState, TState> suppliedStep,
             string metricIdentifier,
             bool metricMicroScale = false,
@@ -179,7 +180,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> AddStep(
+        public ConsumerDataflow<TState> AddStep(
             Func<TState, Task<TState>> suppliedStep,
             string metricIdentifier,
             bool metricMicroScale = false,
@@ -196,7 +197,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithPostProcessingBuffer(int boundedCapacity)
+        public ConsumerDataflow<TState> WithPostProcessingBuffer(int boundedCapacity)
         {
             if (_postProcessingBuffer == null)
             {
@@ -205,7 +206,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithFinalization(
+        public ConsumerDataflow<TState> WithFinalization(
             Action<TState> action,
             int? maxDoP = null,
             bool? ensureOrdered = null,
@@ -221,7 +222,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithFinalization(
+        public ConsumerDataflow<TState> WithFinalization(
             Func<TState, Task> action,
             int? maxDoP = null,
             bool? ensureOrdered = null,
@@ -237,7 +238,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithBuildState<TOut>(
+        public ConsumerDataflow<TState> WithBuildState<TOut>(
             string stateKey,
             int? maxDoP = null,
             bool? ensureOrdered = null,
@@ -252,7 +253,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithDecryptionStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
+        public ConsumerDataflow<TState> WithDecryptionStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             if (_decryptBlock == null)
@@ -271,7 +272,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithDecompressionStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
+        public ConsumerDataflow<TState> WithDecompressionStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             if (_decompressBlock == null)
@@ -291,7 +292,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithCreateSendLetter(
+        public ConsumerDataflow<TState> WithCreateSendLetter(
             Func<TState, Task<TState>> createLetter,
             int? maxDoP = null,
             bool? ensureOrdered = null,
@@ -307,7 +308,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithCompression(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
+        public ConsumerDataflow<TState> WithCompression(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             if (_compressBlock == null)
@@ -326,7 +327,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithEncryption(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
+        public ConsumerDataflow<TState> WithEncryption(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             if (_encryptBlock == null)
@@ -345,7 +346,7 @@ namespace HouseofCat.RabbitMQ.Workflows
             return this;
         }
 
-        public ConsumerWorkflow<TState> WithSendStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
+        public ConsumerDataflow<TState> WithSendStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
         {
             _metricsProvider.IncrementCounter($"{WorkflowName}_Steps");
             if (_sendLetterBlock == null)

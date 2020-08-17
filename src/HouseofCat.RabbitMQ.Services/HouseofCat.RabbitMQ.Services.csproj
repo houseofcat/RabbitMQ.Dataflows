@@ -7,6 +7,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
+    <ProjectReference Include="..\HouseofCat.Dataflows.Pipelines\HouseofCat.Dataflows.Pipelines.csproj" />
+    <ProjectReference Include="..\HouseofCat.Dataflows\HouseofCat.Dataflows.csproj" />
     <ProjectReference Include="..\HouseofCat.Encryption.BouncyCastle\HouseofCat.Encryption.BouncyCastle.csproj" />
     <ProjectReference Include="..\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
     <ProjectReference Include="..\HouseofCat.Hashing.Argon\HouseofCat.Hashing.Argon.csproj" />
@@ -16,6 +18,6 @@
     <ProjectReference Include="..\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
     <ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
     <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
-    <ProjectReference Include="..\HouseofCat.Workflows.Pipelines\HouseofCat.Workflows.Pipelines.csproj" />
+    <ProjectReference Include="..\HouseofCat.Workflows.Pipelines\HouseofCat.Dataflows.Pipelines.csproj" />
   </ItemGroup>
 </Project>
