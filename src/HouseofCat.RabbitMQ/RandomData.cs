@@ -1,7 +1,6 @@
 using HouseofCat.Utilities.Random;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ
 {
