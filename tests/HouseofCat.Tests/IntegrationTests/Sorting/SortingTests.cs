@@ -86,5 +86,24 @@ namespace HouseofCat.Tests.IntegrationTests.Sorting
                 }
             }
         }
+
+        [Fact]
+        public void ShellSortTest()
+        {
+            // Arrange
+            var arrayCount = 0;
+            foreach (var sample in GenerateSampleArrays())
+            {
+                // Act
+                ShellSort.Sort(sample);
+
+                // Assert
+                for (int i = 0; i < sample.Length - 1; i++)
+                {
+                    Assert.True(sample[i] <= sample[i + 1], $"Array #{arrayCount} was not sorted.");
+                    arrayCount++;
+                }
+            }
+        }
     }
 }

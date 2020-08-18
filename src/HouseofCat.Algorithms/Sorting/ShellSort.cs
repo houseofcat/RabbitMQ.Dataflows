@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace HouseofCat.Algorithms.Sorting
+﻿namespace HouseofCat.Algorithms.Sorting
 {
     public static class ShellSort
     {
-        // Complexity O(n^2)
+        // Complexity O(n^3/2)
         public static void Sort(int[] input)
         {
             var gap = 1;
@@ -14,7 +12,7 @@ namespace HouseofCat.Algorithms.Sorting
             {
                 for (int i = gap; i < input.Length; i++)
                 {
-                    for (int j = 1; j >= gap && input[j] < input[j - gap]; j -= gap)
+                    for (int j = i; j >= gap && input[j] < input[j - gap]; j -= gap)
                     {
                         Helpers.Swap(input, j, j - gap);
                     }
