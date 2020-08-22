@@ -1,4 +1,4 @@
-using ConsumerWorkflowMetrics.Services;
+using ConsumerDataflowMetrics.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,10 +14,10 @@ namespace ConsumerWorkflowMetrics
             var webStartAsync = hostBuilder.RunAsync();
 
             using var scope = hostBuilder.Services.CreateScope();
-            var workflowService = scope.ServiceProvider.GetRequiredService<ConsumerWorkflowService>();
+            var workflowService = scope.ServiceProvider.GetRequiredService<ConsumerDataflowService>();
 
             await workflowService
-                .BuildAndStartWorkflowAsync()
+                .BuildAndStartDataflowAsync()
                 .ConfigureAwait(false);
 
             await webStartAsync.ConfigureAwait(false);

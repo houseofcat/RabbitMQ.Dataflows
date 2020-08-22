@@ -1,4 +1,4 @@
-﻿namespace ConsumerWorkflowMetrics.Models
+﻿namespace ConsumerDataflowMetrics.Models
 {
     public class Message
     {

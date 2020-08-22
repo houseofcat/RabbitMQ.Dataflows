@@ -1,6 +1,6 @@
 ﻿using HouseofCat.RabbitMQ.WorkState;
 
-namespace ConsumerWorkflowMetrics.Models
+namespace ConsumerDataflowMetrics.Models
 {
     public class WorkState : RabbitWorkState
     {

@@ -1,4 +1,4 @@
-﻿using ConsumerWorkflowMetrics.Models;
+﻿using ConsumerDataflowMetrics.Models;
 using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.Metrics;
@@ -11,14 +11,14 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ConsumerWorkflowMetrics.Services
+namespace ConsumerDataflowMetrics.Services
 {
-    public class ConsumerWorkflowService
+    public class ConsumerDataflowService
     {
         public Task Completion { get; protected set; }
         private ConsumerDataflow<WorkState> _workflow;
         private readonly IConfiguration _config;
-        private readonly ILogger<ConsumerWorkflowService> _logger;
+        private readonly ILogger<ConsumerDataflowService> _logger;
         private readonly IRabbitService _rabbitService;
         private readonly ISerializationProvider _serializationProvider;
         private readonly ICompressionProvider _compressionProvider;
@@ -31,7 +31,7 @@ namespace ConsumerWorkflowMetrics.Services
         private bool _logStepOutcomes = false;
         private Random _rand = new Random();
 
-        public ConsumerWorkflowService(
+        public ConsumerDataflowService(
             IConfiguration config,
             ILoggerFactory logger,
             IRabbitService rabbitService,
@@ -41,7 +41,7 @@ namespace ConsumerWorkflowMetrics.Services
             IMetricsProvider metricsProvider)
         {
             _config = config;
-            _logger = logger.CreateLogger<ConsumerWorkflowService>();
+            _logger = logger.CreateLogger<ConsumerDataflowService>();
             _rabbitService = rabbitService;
             _serializationProvider = serializationProvider;
             _compressionProvider = compressionProvider;
@@ -49,7 +49,7 @@ namespace ConsumerWorkflowMetrics.Services
             _metricsProvider = metricsProvider;
         }
 
-        public async Task BuildAndStartWorkflowAsync()
+        public async Task BuildAndStartDataflowAsync()
         {
             var workflowName = _config.GetValue<string>("HouseofCat:ConsumerWorkflowService:WorkflowName");
             var consumerName = _config.GetValue<string>("HouseofCat:ConsumerWorkflowService:ConsumerName");
