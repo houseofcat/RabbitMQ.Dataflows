@@ -3,8 +3,8 @@ using HouseofCat.Encryption;
 using HouseofCat.Hashing;
 using HouseofCat.Metrics;
 using HouseofCat.RabbitMQ;
+using HouseofCat.RabbitMQ.Dataflows;
 using HouseofCat.RabbitMQ.Services;
-using HouseofCat.RabbitMQ.Workflows;
 using HouseofCat.RabbitMQ.WorkState;
 using HouseofCat.Serialization;
 using Microsoft.Extensions.Logging;
@@ -18,7 +18,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
 {
     public static class Program
     {
-        public static ConsumerWorkflow<WorkState> _workflow;
+        public static ConsumerDataflow<WorkState> _workflow;
         public static Stopwatch Stopwatch;
         public static LogLevel LogLevel = LogLevel.Information;
         public static int ConsumerCount = 4;
@@ -35,7 +35,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         public static int MaxDoP = Environment.ProcessorCount;
         public static Random Rand = new Random();
 
-        private static ILogger<ConsumerWorkflow<WorkState>> _logger;
+        private static ILogger<ConsumerDataflow<WorkState>> _logger;
         private static IRabbitService _rabbitService;
         private static ISerializationProvider _serializationProvider;
         private static IHashingProvider _hashingProvider;
@@ -54,7 +54,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
             await Console.Out.WriteLineAsync("Setting up Workflow...").ConfigureAwait(false);
 
             var workflowName = "MyConsumerWorkflow";
-            _workflow = new ConsumerWorkflow<WorkState>(
+            _workflow = new ConsumerDataflow<WorkState>(
                 rabbitService: _rabbitService,
                 workflowName: workflowName,
                 consumerName: "ConsumerFromConfig",
@@ -102,7 +102,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
         {
             var letterTemplate = new Letter("", "TestRabbitServiceQueue", null, new LetterMetadata());
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel));
-            _logger = loggerFactory.CreateLogger<ConsumerWorkflow<WorkState>>();
+            _logger = loggerFactory.CreateLogger<ConsumerDataflow<WorkState>>();
 
             _hashingProvider = new Argon2IDHasher();
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);

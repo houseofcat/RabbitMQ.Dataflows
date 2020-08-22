@@ -1,4 +1,5 @@
 ﻿using HouseofCat.Compression;
+using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ;
@@ -6,7 +7,6 @@ using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.RabbitMQ.WorkState;
 using HouseofCat.Serialization;
-using HouseofCat.Workflows.Pipelines;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;

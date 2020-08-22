@@ -2,8 +2,8 @@
 using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.Metrics;
+using HouseofCat.RabbitMQ.Dataflows;
 using HouseofCat.RabbitMQ.Services;
-using HouseofCat.RabbitMQ.Workflows;
 using HouseofCat.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -16,7 +16,7 @@ namespace ConsumerWorkflowMetrics.Services
     public class ConsumerWorkflowService
     {
         public Task Completion { get; protected set; }
-        private ConsumerWorkflow<WorkState> _workflow;
+        private ConsumerDataflow<WorkState> _workflow;
         private readonly IConfiguration _config;
         private readonly ILogger<ConsumerWorkflowService> _logger;
         private readonly IRabbitService _rabbitService;
@@ -64,7 +64,7 @@ namespace ConsumerWorkflowMetrics.Services
 
             _logStepOutcomes = _config.GetValue<bool>("HouseofCat:ConsumerWorkflowService:LogStepOutcomes");
 
-            _workflow = new ConsumerWorkflow<WorkState>(
+            _workflow = new ConsumerDataflow<WorkState>(
                 rabbitService: _rabbitService,
                 workflowName: workflowName,
                 consumerName: consumerName,

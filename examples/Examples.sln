@@ -56,7 +56,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickSocket.Client", "Chann
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickSocket.Server", "Channels\QuickSocket.Server\QuickSocket.Server.csproj", "{6B077376-985B-4AA9-A3E4-9D005FAC5E82}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerWorkflow", "RabbitMQ\ConsumerWorkflow\ConsumerWorkflow.csproj", "{71F4A3C4-7FD8-43B4-80B4-EB679E7D2F23}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerDataflow", "RabbitMQ\ConsumerDataflow\ConsumerDataflow.csproj", "{71F4A3C4-7FD8-43B4-80B4-EB679E7D2F23}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ArrayPool", "ArrayPool", "{EBB3DF28-CA88-4BAC-A061-5F670BBDE272}"
 EndProject
@@ -64,7 +64,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArrayPoolChannel", "ArrayPo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataProducer", "RabbitMQ\DataProducer\DataProducer.csproj", "{CF6A7DAA-6F49-466B-B7E5-59129B91F651}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerWorkflowMetrics", "RabbitMQ\ConsumerWorkflowMetrics\ConsumerWorkflowMetrics.csproj", "{42900843-4BD5-4FBB-81AF-319D029E0FAF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerDataflowMetrics", "RabbitMQ\ConsumerDataflowMetrics\ConsumerDataflowMetrics.csproj", "{42900843-4BD5-4FBB-81AF-319D029E0FAF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Metrics", "Metrics", "{19F29E4F-BBF7-4C51-95AA-DEE315C599A5}"
 EndProject
