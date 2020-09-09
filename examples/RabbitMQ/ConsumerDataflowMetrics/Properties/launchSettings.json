@@ -1,7 +1,7 @@
 ﻿{
   "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "ConsumerWorkflowMetrics": {
+    "ConsumerDataflowMetrics": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "",

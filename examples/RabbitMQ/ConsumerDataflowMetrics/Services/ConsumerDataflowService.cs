@@ -51,18 +51,18 @@ namespace ConsumerDataflowMetrics.Services
 
         public async Task BuildAndStartDataflowAsync()
         {
-            var workflowName = _config.GetValue<string>("HouseofCat:ConsumerWorkflowService:WorkflowName");
-            var consumerName = _config.GetValue<string>("HouseofCat:ConsumerWorkflowService:ConsumerName");
-            var consumerCount = _config.GetValue<int>("HouseofCat:ConsumerWorkflowService:ConsumerCount");
-            var maxDoP = _config.GetValue<int>("HouseofCat:ConsumerWorkflowService:MaxDoP");
-            var ensureOrdered = _config.GetValue<bool>("HouseofCat:ConsumerWorkflowService:EnsureOrdered");
-            var capacity = _config.GetValue<int>("HouseofCat:ConsumerWorkflowService:Capacity");
+            var workflowName = _config.GetValue<string>("HouseofCat:ConsumerDataflowOptions:DataflowName");
+            var consumerName = _config.GetValue<string>("HouseofCat:ConsumerDataflowOptions:ConsumerName");
+            var consumerCount = _config.GetValue<int>("HouseofCat:ConsumerDataflowOptions:ConsumerCount");
+            var maxDoP = _config.GetValue<int>("HouseofCat:ConsumerDataflowOptions:MaxDoP");
+            var ensureOrdered = _config.GetValue<bool>("HouseofCat:ConsumerDataflowOptions:EnsureOrdered");
+            var capacity = _config.GetValue<int>("HouseofCat:ConsumerDataflowOptions:Capacity");
 
-            _simulateIODelay = _config.GetValue<bool>("HouseofCat:ConsumerWorkflowService:SimulateIODelay");
-            _minIODelay = _config.GetValue<int>("HouseofCat:ConsumerWorkflowService:MinIODelay");
-            _maxIODelay = _config.GetValue<int>("HouseofCat:ConsumerWorkflowService:MaxIODelay");
+            _simulateIODelay = _config.GetValue<bool>("HouseofCat:ConsumerDataflowOptions:SimulateIODelay");
+            _minIODelay = _config.GetValue<int>("HouseofCat:ConsumerDataflowOptions:MinIODelay");
+            _maxIODelay = _config.GetValue<int>("HouseofCat:ConsumerDataflowOptions:MaxIODelay");
 
-            _logStepOutcomes = _config.GetValue<bool>("HouseofCat:ConsumerWorkflowService:LogStepOutcomes");
+            _logStepOutcomes = _config.GetValue<bool>("HouseofCat:ConsumerDataflowOptions:LogStepOutcomes");
 
             _workflow = new ConsumerDataflow<WorkState>(
                 rabbitService: _rabbitService,

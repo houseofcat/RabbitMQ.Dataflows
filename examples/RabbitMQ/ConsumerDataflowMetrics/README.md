@@ -46,13 +46,13 @@ scrape_configs:
 Run Prometheus  
 eg.)  
 ```posh
-cd "C:\Users\cat\Desktop\Prometheus v2.20.1"
+cd "C:\prometheus"
 .\prometheus.exe
 ```
 
 eg.)
 ```posh
-cd "C:\Users\cat\Desktop\Grafana v7.1.3\bin"
+cd "C:\grafana\bin"
 .\grafana-server.exe
 ```
 

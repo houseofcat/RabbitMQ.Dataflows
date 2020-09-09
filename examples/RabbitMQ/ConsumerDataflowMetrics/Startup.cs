@@ -1,4 +1,4 @@
-using ConsumerWorkflowMetrics.Services;
+using ConsumerDataflowMetrics.Services;
 using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
@@ -13,7 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Prometheus;
 
-namespace ConsumerWorkflowMetrics
+namespace ConsumerDataflowMetrics
 {
     public class Startup
     {
@@ -54,7 +54,7 @@ namespace ConsumerWorkflowMetrics
             services.AddSingleton(
                 s =>
                 {
-                    return new ConsumerWorkflowService(
+                    return new ConsumerDataflowService(
                         s.GetRequiredService<IConfiguration>(),
                         loggerFactory,
                         rabbitService,
