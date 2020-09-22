@@ -367,7 +367,7 @@ namespace HouseofCat.Dataflows.Pipelines
                 if (ex != null)
                 { _logger.LogCritical(ex, Constants.Pipelines.Faulted, _pipelineName); }
                 else  // No Steps are Faulted... Hooray!
-                { _logger.LogDebug(Constants.Pipelines.Healthy, _pipelineName); }
+                { _logger.LogInformation(Constants.Pipelines.Healthy, _pipelineName); }
             }
         }
     }
