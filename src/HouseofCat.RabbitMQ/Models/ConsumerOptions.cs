@@ -13,6 +13,7 @@ namespace HouseofCat.RabbitMQ
         public Dictionary<string, string> TargetQueues { get; set; } = new Dictionary<string, string>();
 
         public string ErrorQueueName => $"{QueueName}.{ErrorSuffix ?? "Error"}";
+        public string AltQueueName => $"{QueueName}.{AltSuffix ?? "Alt"}";
 
         public ConsumerPipelineOptions ConsumerPipelineOptions { get; set; }
 
@@ -26,6 +27,7 @@ namespace HouseofCat.RabbitMQ
             AutoAck = globalConsumerOptions.AutoAck ?? AutoAck;
             UseTransientChannels = globalConsumerOptions.UseTransientChannels ?? UseTransientChannels;
             ErrorSuffix = globalConsumerOptions.ErrorSuffix ?? ErrorSuffix;
+            AltSuffix = globalConsumerOptions.AltSuffix ?? AltSuffix;
             BehaviorWhenFull = globalConsumerOptions.BehaviorWhenFull ?? BehaviorWhenFull;
 
             if (globalConsumerOptions.GlobalConsumerPipelineOptions != null)

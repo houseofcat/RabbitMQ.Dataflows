@@ -174,14 +174,19 @@ namespace HouseofCat.RabbitMQ.Services
                     await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.QueueName).ConfigureAwait(false);
                 }
 
-                if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorQueueName))
+                if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.TargetQueueName))
+                {
+                    await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.TargetQueueName).ConfigureAwait(false);
+                }
+
+                if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorSuffix) && !string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorQueueName))
                 {
                     await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.ErrorQueueName).ConfigureAwait(false);
                 }
 
-                if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.TargetQueueName))
+                if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.AltSuffix) && !string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.AltQueueName))
                 {
-                    await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.TargetQueueName).ConfigureAwait(false);
+                    await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.AltQueueName).ConfigureAwait(false);
                 }
             }
         }
