@@ -36,8 +36,8 @@
     <PackageReference Include="K4os.Compression.LZ4" Version="1.1.11" />
     <PackageReference Include="prometheus-net" Version="3.6.0" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="3.6.0" />
-    <PackageReference Include="RabbitMQ.Client" Version="6.2.1" />
     <PackageReference Include="Utf8Json" Version="1.3.7" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.2.1" />
   </ItemGroup>
 
   <ItemGroup>
