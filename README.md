@@ -259,6 +259,13 @@ A library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (E
 A library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio (SMS/TextMessages) with the HouseofCat.RabbitMQ library.  
 
 
+## HouseofCat.RabbitMQ.WorkState
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.WorkState.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.WorkState/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.WorkState.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.WorkState/)  
+
+A library that creates the shared WorkState classes for HouseofCat.RabbitMQ.
+
+
 ## HouseofCat.Reflection
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Reflection.svg)](https://www.nuget.org/packages/HouseofCat.Reflection/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Reflection.svg)](https://www.nuget.org/packages/HouseofCat.Reflection/)  
