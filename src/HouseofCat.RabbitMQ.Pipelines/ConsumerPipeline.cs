@@ -1,5 +1,6 @@
 ﻿using HouseofCat.Logger;
-using HouseofCat.Workflows.Pipelines;
+using HouseofCat.RabbitMQ.WorkState;
+using HouseofCat.Dataflows.Pipelines;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
@@ -8,7 +9,7 @@ using static HouseofCat.RabbitMQ.Pipelines.Constants;
 
 namespace HouseofCat.RabbitMQ.Pipelines
 {
-    public interface IConsumerPipeline<TOut> where TOut : IWorkState
+    public interface IConsumerPipeline<TOut> where TOut : RabbitWorkState
     {
         string ConsumerPipelineName { get; }
         ConsumerOptions ConsumerOptions { get; }
@@ -18,7 +19,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
         Task StopAsync();
     }
 
-    public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where TOut : IWorkState
+    public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where TOut : RabbitWorkState
     {
         public string ConsumerPipelineName { get; }
         public ConsumerOptions ConsumerOptions { get; }

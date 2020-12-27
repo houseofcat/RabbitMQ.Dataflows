@@ -1,7 +1,7 @@
 using HouseofCat.Logger;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities.Errors;
-using HouseofCat.Workflows;
+using HouseofCat.Dataflows;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -39,7 +39,7 @@ namespace HouseofCat.RabbitMQ
         private IChannelHost _chanHost;
         private bool _disposedValue;
         private Channel<ReceivedData> _dataBuffer;
-        private bool _shutdown { get; set; }
+        private bool _shutdown;
 
         public Options Options { get; }
         public ConsumerOptions ConsumerOptions { get; }

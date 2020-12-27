@@ -102,7 +102,7 @@ namespace HouseofCat.RabbitMQ
                 _compress = false;
                 _logger.LogWarning("Compression disabled, compressionProvider provided was null.");
             }
-            else if (Options.PublisherOptions.Encrypt)
+            else if (Options.PublisherOptions.Compress)
             {
                 _compress = true;
                 _compressionProvider = compressionProvider;

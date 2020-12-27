@@ -14,6 +14,7 @@ namespace HouseofCat.RabbitMQ
         public bool? UseTransientChannels { get; set; } = true;
 
         public string ErrorSuffix { get; set; }
+        public string AltSuffix { get; set; }
 
         public BoundedChannelFullMode? BehaviorWhenFull { get; set; } = BoundedChannelFullMode.Wait;
 

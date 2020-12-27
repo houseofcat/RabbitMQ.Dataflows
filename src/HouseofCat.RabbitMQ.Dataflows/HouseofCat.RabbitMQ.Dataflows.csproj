@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\common.props" />
+  <PropertyGroup>
+    <Version>1.0.4</Version>
+    <AssemblyVersion>1.0.4</AssemblyVersion>
+    <FileVersion>1.0.4</FileVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
+    <ProjectReference Include="..\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
+    <ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
+    <ProjectReference Include="..\HouseofCat.Metrics\HouseofCat.Metrics.csproj" />
+    <ProjectReference Include="..\HouseofCat.RabbitMQ.Services\HouseofCat.RabbitMQ.Services.csproj" />
+    <ProjectReference Include="..\HouseofCat.RabbitMQ.WorkState\HouseofCat.RabbitMQ.WorkState.csproj" />
+    <ProjectReference Include="..\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
+    <ProjectReference Include="..\HouseofCat.Reflection\HouseofCat.Reflection.csproj" />
+    <ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
+  </ItemGroup>
+</Project>

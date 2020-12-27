@@ -6,9 +6,9 @@ A library of `NetCore` tools to help rapidly develop well performant micro/macro
 
 Prototypes you could send to production!  
 
-## Why Make A Tesseract Powered Workflow  
+## Why Make A Tesseract Powered Dataflow  
 
-`Workflows` have concurrency, compression, and encryption all as first class citizens. This paradigm allows developers to just focus on the important stuff - getting work done. We pay attention to the extra dimensions so you don't have to!
+`Dataflows` have concurrency, serailization, monitoring, compression, and encryption all as first class citizens. This paradigm allows developers to just focus on the important stuff - getting work done. Dataflows pay attention to the extra dimensions so you don't have to!
 
 Here are some features ready with RabbitMQ today, tomorrow - the world!
 

@@ -3,11 +3,12 @@ using HouseofCat.Encryption;
 using HouseofCat.Logger;
 using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.RabbitMQ.WorkState;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.File;
 using HouseofCat.Utilities.Time;
-using HouseofCat.Workflows.Pipelines;
+using HouseofCat.Dataflows.Pipelines;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System;
@@ -33,10 +34,10 @@ namespace HouseofCat.RabbitMQ.Services
 
         Task ComcryptAsync(Letter letter);
         Task<bool> CompressAsync(Letter letter);
-        IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, int batchSize, bool? ensureOrdered, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : IWorkState;
-        IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, IPipeline<ReceivedData, TOut> pipeline) where TOut : IWorkState;
+        IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, int batchSize, bool? ensureOrdered, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
+        IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, IPipeline<ReceivedData, TOut> pipeline) where TOut : RabbitWorkState;
 
-        IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : IWorkState;
+        IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
 
         Task DecomcryptAsync(Letter letter);
         Task<bool> DecompressAsync(Letter letter);
@@ -173,14 +174,19 @@ namespace HouseofCat.RabbitMQ.Services
                     await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.QueueName).ConfigureAwait(false);
                 }
 
-                if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorQueueName))
+                if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.TargetQueueName))
+                {
+                    await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.TargetQueueName).ConfigureAwait(false);
+                }
+
+                if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorSuffix) && !string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorQueueName))
                 {
                     await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.ErrorQueueName).ConfigureAwait(false);
                 }
 
-                if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.TargetQueueName))
+                if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.AltSuffix) && !string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.AltQueueName))
                 {
-                    await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.TargetQueueName).ConfigureAwait(false);
+                    await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.AltQueueName).ConfigureAwait(false);
                 }
             }
         }
@@ -190,7 +196,7 @@ namespace HouseofCat.RabbitMQ.Services
             int batchSize,
             bool? ensureOrdered,
             Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder)
-            where TOut : IWorkState
+            where TOut : RabbitWorkState
         {
             var consumer = GetConsumer(consumerName);
             var pipeline = pipelineBuilder.Invoke(batchSize, ensureOrdered);
@@ -201,7 +207,7 @@ namespace HouseofCat.RabbitMQ.Services
         public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
             string consumerName,
             Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder)
-            where TOut : IWorkState
+            where TOut : RabbitWorkState
         {
             var consumer = GetConsumer(consumerName);
             var pipeline = pipelineBuilder.Invoke(
@@ -214,7 +220,7 @@ namespace HouseofCat.RabbitMQ.Services
         public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
             string consumerName,
             IPipeline<ReceivedData, TOut> pipeline)
-            where TOut : IWorkState
+            where TOut : RabbitWorkState
         {
             var consumer = GetConsumer(consumerName);
 

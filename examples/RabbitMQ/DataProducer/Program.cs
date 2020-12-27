@@ -18,7 +18,7 @@ namespace Examples.RabbitMQ.DataProducer
         private static IEncryptionProvider _encryptionProvider;
         private static IRabbitService _rabbitService;
 
-        public static long GlobalCount = 100_000;
+        public static long GlobalCount = 1_000_000;
         public static LogLevel LogLevel = LogLevel.Information;
 
         public static async Task Main()

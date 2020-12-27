@@ -5,7 +5,7 @@ namespace HouseofCat.Utilities.Random
     /// <summary>
     /// Static class for generating filler (random) data for users and Tests.
     /// </summary>
-    public static class RandomData
+    public static class Data
     {
         private static readonly System.Random Rand = new System.Random();
         private const string AllowedChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()_-+=";
@@ -51,6 +51,19 @@ namespace HouseofCat.Utilities.Random
             }
 
             return new string(chars, 0, length);
+        }
+
+        public static int[] CreateRandomInts(int count, int maxValue = int.MaxValue)
+        {
+            var ints = new int[count];
+            var validatedInt = ((maxValue < 2 ? 2 : maxValue) / 2) - 1;
+
+            for (int i = 0; i < count; i++)
+            {
+                ints[i] = Rand.Next(validatedInt) - Rand.Next(validatedInt);
+            }
+
+            return ints;
         }
     }
 }

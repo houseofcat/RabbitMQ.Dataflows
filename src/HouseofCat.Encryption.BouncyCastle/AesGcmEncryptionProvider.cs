@@ -13,9 +13,9 @@ namespace HouseofCat.Encryption
         private readonly Random _random = new Random();
         private readonly AesEncryptionOptions _options;
 
-        private KeyParameter _keyParameter;
-        private int _macBitSize;
-        private int _nonceSize;
+        private readonly KeyParameter _keyParameter;
+        private readonly int _macBitSize;
+        private readonly int _nonceSize;
 
         public string Type { get; private set; }
 

@@ -6,7 +6,7 @@ namespace HouseofCat.Gremlins
 {
     public static class ExceptionGremlin
     {
-        private static Random _random = new Random();
+        private static readonly Random _random = new Random();
 
         #region General Exceptions
 

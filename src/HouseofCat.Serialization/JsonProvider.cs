@@ -8,7 +8,7 @@ namespace HouseofCat.Serialization
 {
     public class JsonProvider : ISerializationProvider
     {
-        private JsonSerializerOptions _options;
+        private readonly JsonSerializerOptions _options;
 
         public JsonProvider(JsonSerializerOptions options = null)
         {
@@ -17,17 +17,17 @@ namespace HouseofCat.Serialization
 
         public byte[] Serialize<TIn>(TIn input)
         {
-            return JsonSerializer.SerializeToUtf8Bytes(input);
+            return JsonSerializer.SerializeToUtf8Bytes(input, _options);
         }
 
         public Task SerializeAsync<TIn>(Stream utf8Json, TIn input)
         {
-            return JsonSerializer.SerializeAsync(utf8Json, input);
+            return JsonSerializer.SerializeAsync(utf8Json, input, _options);
         }
 
         public string SerializeToString<TIn>(TIn input)
         {
-            return JsonSerializer.Serialize(input);
+            return JsonSerializer.Serialize(input, _options);
         }
 
         public string SerializeToPrettyString<TIn>(TIn input)
@@ -37,17 +37,17 @@ namespace HouseofCat.Serialization
 
         public TOut Deserialize<TOut>(ReadOnlyMemory<byte> input)
         {
-            return JsonSerializer.Deserialize<TOut>(input.Span);
+            return JsonSerializer.Deserialize<TOut>(input.Span, _options);
         }
 
         public TOut Deserialize<TOut>(string input)
         {
-            return JsonSerializer.Deserialize<TOut>(Encoding.UTF8.GetBytes(input));
+            return JsonSerializer.Deserialize<TOut>(Encoding.UTF8.GetBytes(input), _options);
         }
 
         public async Task<TOut> DeserializeAsync<TOut>(Stream utf8Json)
         {
-            return await JsonSerializer.DeserializeAsync<TOut>(utf8Json).ConfigureAwait(false);
+            return await JsonSerializer.DeserializeAsync<TOut>(utf8Json, _options).ConfigureAwait(false);
         }
     }
 }

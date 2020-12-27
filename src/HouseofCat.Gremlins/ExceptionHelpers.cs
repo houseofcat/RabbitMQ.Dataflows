@@ -11,7 +11,7 @@ namespace HouseofCat.Gremlins
 {
     public static class ExceptionHelpers
     {
-        private static Random _random = new Random();
+        private static readonly Random _random = new Random();
 
         public static Task ThrowsRandomSystemExceptionAsync()
         {

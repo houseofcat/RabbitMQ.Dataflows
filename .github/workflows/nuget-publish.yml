@@ -24,7 +24,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.100-preview.7.20366.6
+        dotnet-version: 5.0.101
     - name: Install dependencies
       run: dotnet restore Tesseract.sln
     - name: Build
@@ -53,12 +53,6 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Dapper/HouseofCat.Dapper.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-    - name: Publish HouseofCat.Dapper
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          PROJECT_FILE_PATH: src/HouseofCat.Dapper.LegacySqlServer/HouseofCat.Dapper.LegacySqlServer.csproj
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Dapper.LegacySqlServer
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -70,6 +64,18 @@ jobs:
       continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Dapper.SqlServer/HouseofCat.Dapper.SqlServer.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Dataflows
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Dataflows/HouseofCat.Dataflows.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Dataflows.Pipelines
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Dataflows.Pipelines/HouseofCat.Dataflows.Pipelines.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Encryption
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -89,17 +95,17 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Extensions/HouseofCat.Extensions.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Extensions.Dataflows
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Extensions.Dataflows/HouseofCat.Extensions.Dataflows.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Extensions.Host.SerilogSqlServer
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Extensions.Host.Serilog/HouseofCat.Extensions.Host.Serilog.csproj
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-    - name: Publish HouseofCat.Extensions.Workflows
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          PROJECT_FILE_PATH: src/HouseofCat.Extensions.Workflows/HouseofCat.Extensions.Workflows.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Framing
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -137,6 +143,18 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Logger/HouseofCat.Logger.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Metrics
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Metrics/HouseofCat.Metrics.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Metrics.Prometheus
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Metrics.Prometheus/HouseofCat.Metrics.Prometheus.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Network
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -154,6 +172,12 @@ jobs:
       continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Client/HouseofCat.RabbitMQ.Client.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.RabbitMQ.Dataflows
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Dataflows/HouseofCat.RabbitMQ.Dataflows.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.RabbitMQ.Pipelines
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -179,11 +203,11 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Services.Twilio/HouseofCat.RabbitMQ.Services.Twilio.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-    - name: Publish HouseofCat.RabbitMQ.Workflows
+    - name: Publish HouseofCat.RabbitMQ.WorkState
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
-          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Workflows/HouseofCat.RabbitMQ.Workflows.csproj
+          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.WorkState/HouseofCat.RabbitMQ.WorkState.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Reflection
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -262,10 +286,4 @@ jobs:
       continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Workflows/HouseofCat.Workflows.csproj
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-    - name: Publish HouseofCat.Workflows.Pipelines
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          PROJECT_FILE_PATH: src/HouseofCat.Workflows.Pipelines/HouseofCat.Workflows.Pipelines.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}

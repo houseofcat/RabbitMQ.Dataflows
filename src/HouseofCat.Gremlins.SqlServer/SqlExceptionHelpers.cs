@@ -12,7 +12,7 @@ namespace HouseofCat.Gremlins
 {
     public static class SqlExceptionHelpers
     {
-        private static Random _random = new Random();
+        private static readonly Random _random = new Random();
         private static int _sqlErrorCount = -1;
 
         public static async Task ThrowsRandomSqlExceptionAsync()

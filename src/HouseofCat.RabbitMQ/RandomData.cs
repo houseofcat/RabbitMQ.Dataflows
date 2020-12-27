@@ -1,7 +1,6 @@
 using HouseofCat.Utilities.Random;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ
 {
@@ -20,7 +19,7 @@ namespace HouseofCat.RabbitMQ
             return new Letter
             {
                 LetterId = 0,
-                LetterMetadata = null,
+                LetterMetadata = new LetterMetadata(),
                 Envelope = new Envelope
                 {
                     Exchange = string.Empty,

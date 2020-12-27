@@ -1,11 +1,12 @@
 ﻿using HouseofCat.Compression;
+using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.RabbitMQ.Services;
+using HouseofCat.RabbitMQ.WorkState;
 using HouseofCat.Serialization;
-using HouseofCat.Workflows.Pipelines;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
@@ -29,7 +30,7 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
         public static bool AwaitShutdown = true;
         public static bool LogOutcome = false;
         public static bool UseStreamPipeline = false;
-        public static int MaxDoP = 64;
+        public static int MaxDoP = 16;
         public static Random Rand = new Random();
 
         public static async Task Main()
@@ -188,7 +189,7 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
             public string StringMessage { get; set; }
         }
 
-        public class WorkState : HouseofCat.RabbitMQ.Pipelines.WorkState
+        public class WorkState : RabbitWorkState
         {
             public Message Message { get; set; }
             public ulong LetterId { get; set; }
