@@ -207,7 +207,7 @@ A library that focuses on making it easier to deal with systems networking.
 
 A library that focuses on RabbitMQ connection and channel management to create fault tolerant Publishers and Consumers.  
 
-Formerly [CookedRabbit.Core](https://github.com/houseofcat/RabbitMQ.Core/tree/master/CookedRabbit.Core)  
+Formerly found at [RabbitMQ.Core](https://github.com/houseofcat/RabbitMQ.Core/tree/master/CookedRabbit.Core)  
 [![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.svg)](https://www.nuget.org/packages/CookedRabbit.Core/)    
 [![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Core.svg)](https://www.nuget.org/packages/CookedRabbit.Core/)   
 
@@ -219,7 +219,7 @@ Formerly [CookedRabbit.Core](https://github.com/houseofcat/RabbitMQ.Core/tree/ma
 
 A library that focuses on cloning the official Pivotal/VMWare RabbitMQ DotNetClient but ported to pure NetCore 3.1/5.x with small code enhancements.  
 
-Formerly [RabbitMQ.Core](https://github.com/houseofcat/RabbitMQ.Core)  
+Formerly found at [RabbitMQ.Core](https://github.com/houseofcat/RabbitMQ.Core)  
 [![NuGet](https://img.shields.io/nuget/dt/RabbitMQ.Core.Client.svg)](https://www.nuget.org/packages/RabbitMQ.Core.Client/)   
 [![NuGet](https://img.shields.io/nuget/v/RabbitMQ.Core.Client.svg)](https://www.nuget.org/packages/RabbitMQ.Core.Client/)  
 
@@ -242,14 +242,14 @@ A library that extends HouseofCat.RabbitMQ functionality by providing simplified
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
 
-A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.RabbitMQ library.
+A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.RabbitMQ library.  
 
 
 ## HouseofCat.RabbitMQ.Services.Mailkit
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
 
-A library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (Email) with the HouseofCat.RabbitMQ library. 
+A library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (Email) with the HouseofCat.RabbitMQ library.  
 
 
 ## HouseofCat.RabbitMQ.Services.Twilio
