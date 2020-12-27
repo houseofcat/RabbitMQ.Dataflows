@@ -103,6 +103,20 @@ A library that provides a standard System.Data.SqlClient implementation.
 A library that provides a standard Microsoft.Data.SqlClient implementation.  
 
 
+## HouseofCat.Dataflows
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.Dataflows/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.Dataflows/)  
+
+A library that provides the base magic Dataflows for Tesseract. 
+
+
+## HouseofCat.Dataflows.Pipelines
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Dataflows.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.Dataflows.Pipelines/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Dataflows.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.Dataflows.Pipelines/)  
+
+A library that provides the base magic Pipelines for Tesseract. 
+
+
 ## HouseofCat.Encryption
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Encryption.svg)](https://www.nuget.org/packages/HouseofCat.Encryption/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Encryption.svg)](https://www.nuget.org/packages/HouseofCat.Encryption/)  
@@ -124,18 +138,18 @@ A library that provides encryption from the BouncyCastle provider.
 A library that focuses on extending functionality to other objects.  
 
 
+## HouseofCat.Extensions.Dataflows
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Extensions.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Dataflows/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Dataflows/)  
+
+A library that focuses on extending functionality to other dataflow related objects. 
+
+
 ## HouseofCat.Extensions.Host.Serilog
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Extensions.Host.Serilog.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Host.Serilog/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.Host.Serilog.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Host.Serilog/)  
 
 A library that focuses on extending IHost functionality to quickly setup Serilog.  
-
-
-## HouseofCat.Extensions.Workflows
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Extensions.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Workflows/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Workflows/)  
-
-A library that focuses on extending functionality to other workflow related objects.  
 
 
 ## HouseofCat.Framing
@@ -198,6 +212,7 @@ Formerly [CookedRabbit.Core](https://github.com/houseofcat/RabbitMQ.Core/tree/ma
 [![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Core.svg)](https://www.nuget.org/packages/CookedRabbit.Core/)   
 
 
+# Deprecated - Using Official Pivotal/VMWare client again.
 ## HouseofCat.RabbitMQ.Client
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Client.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Client/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Client.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Client/)  
@@ -207,6 +222,13 @@ A library that focuses on cloning the official Pivotal/VMWare RabbitMQ DotNetCli
 Formerly [RabbitMQ.Core](https://github.com/houseofcat/RabbitMQ.Core)  
 [![NuGet](https://img.shields.io/nuget/dt/RabbitMQ.Core.Client.svg)](https://www.nuget.org/packages/RabbitMQ.Core.Client/)   
 [![NuGet](https://img.shields.io/nuget/v/RabbitMQ.Core.Client.svg)](https://www.nuget.org/packages/RabbitMQ.Core.Client/)  
+
+
+## HouseofCat.RabbitMQ.Dataflows
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Dataflows/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Dataflows/)  
+
+A library that extends HouseofCat.RabbitMQ functionality by providing epic TPL Dataflow usage for Tesseract.  
 
 
 ## HouseofCat.RabbitMQ.Pipelines
@@ -235,13 +257,6 @@ A library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (E
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Twilio/)  
 
 A library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio (SMS/TextMessages) with the HouseofCat.RabbitMQ library.  
-
-
-## HouseofCat.RabbitMQ.Workflows
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Workflows/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Workflows/)  
-
-A library that extends HouseofCat.RabbitMQ functionality by providing robust Workflow support.  
 
 
 ## HouseofCat.Reflection
@@ -326,20 +341,6 @@ A library that focuses on simplifying affinity and thread management.
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Windows.WMI.svg)](https://www.nuget.org/packages/HouseofCat.Windows.WMI/)  
 
 A library that focuses on performing System.Management (Windows.Compatibility.Pack) WMI Queries.  
-
-
-## HouseofCat.Workflows
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Workflows/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Workflows.svg)](https://www.nuget.org/packages/HouseofCat.Workflows/)  
-
-A library that focuses on Task Parallel Library and rapid Function execution.  
-
-
-## HouseofCat.Workflows.Pipelines
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Workflows.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.Workflows.Pipelines/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Workflows.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.Workflows.Pipelines/)  
-
-A library that focuses on a narrow TPL implementation of mine called Pipelines.  
 
 
 # [HouseofCat.io](https://houseofcat.io)
