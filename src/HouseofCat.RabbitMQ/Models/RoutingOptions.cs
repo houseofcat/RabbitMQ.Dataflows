@@ -15,5 +15,15 @@ namespace HouseofCat.RabbitMQ
         public byte PriorityLevel { get; set; }
 
         public string MessageType { get; set; } = $"{Enums.ContentType.Json.Description()} {Enums.Charset.Utf8.Description()}";
+        
+        public static RoutingOptions CreateDefaultRoutingOptions(byte priority = 0)
+        {
+            return new RoutingOptions
+            {
+                DeliveryMode = 2,
+                Mandatory = false,
+                PriorityLevel = priority
+            };
+        }
     }
 }

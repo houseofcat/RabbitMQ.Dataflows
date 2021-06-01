@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace HouseofCat.RabbitMQ
 {
-    public class LetterMetadata
+    public class LetterMetadata : IMetadata
     {
         public string Id { get; set; }
         public bool Encrypted { get; set; }
