@@ -485,7 +485,7 @@ namespace HouseofCat.RabbitMQ
                     message.Envelope.RoutingKey,
                     message.Envelope.RoutingOptions?.Mandatory ?? false,
                     message.BuildProperties(chanHost, withHeaders),
-                    _serializationProvider.Serialize(message));
+                    message.GetBodyToPublish(_serializationProvider));
             }
             catch (Exception ex)
             {
@@ -534,7 +534,7 @@ namespace HouseofCat.RabbitMQ
                     message.Envelope.RoutingKey,
                     message.Envelope.RoutingOptions?.Mandatory ?? false,
                     message.BuildProperties(chanHost, withHeaders),
-                    _serializationProvider.Serialize(message));
+                    message.GetBodyToPublish(_serializationProvider));
 
                 chanHost.GetChannel().WaitForConfirmsOrDie(_waitForConfirmation);
             }
@@ -583,7 +583,7 @@ namespace HouseofCat.RabbitMQ
                         messages[i].Envelope.RoutingKey,
                         messages[i].Envelope.RoutingOptions.Mandatory,
                         messages[i].BuildProperties(chanHost, withHeaders),
-                        _serializationProvider.Serialize(messages[i]));
+                        messages[i].GetBodyToPublish(_serializationProvider));
                 }
                 catch (Exception ex)
                 {
@@ -631,7 +631,7 @@ namespace HouseofCat.RabbitMQ
                             messages[i].Envelope.RoutingKey,
                             messages[i].Envelope.RoutingOptions.Mandatory,
                             messages[i].BuildProperties(chanHost, withHeaders),
-                            _serializationProvider.Serialize(messages[i]).AsMemory());
+                            messages[i].GetBodyToPublish(_serializationProvider).AsMemory());
 
                         if (createReceipt)
                         {

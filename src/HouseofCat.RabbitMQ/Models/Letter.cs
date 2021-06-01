@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Serialization;
 using RabbitMQ.Client;
 
 namespace HouseofCat.RabbitMQ
@@ -67,6 +68,9 @@ namespace HouseofCat.RabbitMQ
         }
 
         public Letter Clone() => this.Clone<Letter, LetterMetadata>();
+        
+        public byte[] GetBodyToPublish(ISerializationProvider serializationProvider) =>
+            serializationProvider.Serialize(this);
 
         public void UpsertHeader(string key, object value) => this.UpsertHeader<LetterMetadata>(key, value);
 

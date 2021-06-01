@@ -1,4 +1,5 @@
 using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Serialization;
 using RabbitMQ.Client;
 
 namespace HouseofCat.RabbitMQ
@@ -11,6 +12,8 @@ namespace HouseofCat.RabbitMQ
         IMetadata Metadata { get; set; }
         byte[] Body { get; set; }
         
+        byte[] GetBodyToPublish(ISerializationProvider serializationProvider);
+
         IBasicProperties BuildProperties(IChannelHost channelHost, bool withHeaders);
     }
 }
