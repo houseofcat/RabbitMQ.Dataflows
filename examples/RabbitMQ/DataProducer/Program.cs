@@ -78,7 +78,7 @@ namespace Examples.RabbitMQ.DataProducer
                 letter.LetterId = (ulong)i;
                 await _rabbitService
                     .Publisher
-                    .QueueLetterAsync(letter)
+                    .QueueMessageAsync(letter)
                     .ConfigureAwait(false);
             }
         }

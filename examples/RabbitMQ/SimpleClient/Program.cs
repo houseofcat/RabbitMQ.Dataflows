@@ -57,7 +57,7 @@ namespace Examples.RabbitMQ.SimpleClient
             // Queue the letter for delivery by the library.
             await _rabbitService
                 .Publisher
-                .QueueLetterAsync(letter);
+                .QueueMessageAsync(letter);
 
             // Start Consumer
             var consumer = _rabbitService.GetConsumer("ConsumerFromConfig");
@@ -115,7 +115,7 @@ namespace Examples.RabbitMQ.SimpleClient
                 letter.Body = JsonSerializer.SerializeToUtf8Bytes(sentMessage);
                 await _rabbitService
                     .Publisher
-                    .QueueLetterAsync(letter);
+                    .QueueMessageAsync(letter);
             }
 
             // Start Consumer As An Execution Engine

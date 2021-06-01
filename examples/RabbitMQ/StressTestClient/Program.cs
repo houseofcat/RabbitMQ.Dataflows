@@ -199,7 +199,7 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
                 letter.Envelope.RoutingOptions.DeliveryMode = 1;
                 letter.LetterId = i;
 
-                await apub.QueueLetterAsync(letter).ConfigureAwait(false);
+                await apub.QueueMessageAsync(letter).ConfigureAwait(false);
 
                 if (letter.LetterId % 10_000 == 0)
                 {
