@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace HouseofCat.RabbitMQ
 {
-    public class Options
+    public class RabbitOptions
     {
         /// <summary>
         /// Class to hold settings for ConnectionFactory (RabbitMQ) options.

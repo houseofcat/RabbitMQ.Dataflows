@@ -21,7 +21,7 @@ namespace HouseofCat.RabbitMQ
 
         byte[] Data { get; set; }
         ulong DeliveryTag { get; }
-        Letter Letter { get; set; }
+        IMessage Letter { get; set; }
 
         IBasicProperties Properties { get; }
 
@@ -40,7 +40,7 @@ namespace HouseofCat.RabbitMQ
         public IModel Channel { get; set; }
         public ulong DeliveryTag { get; }
         public byte[] Data { get; set; }
-        public Letter Letter { get; set; }
+        public IMessage Letter { get; set; }
 
         // Headers
         public string ContentType { get; private set; }
@@ -92,7 +92,7 @@ namespace HouseofCat.RabbitMQ
                 // ADD SERIALIZER TO HEADER AND && JSON THIS ONE
                 if (ContentType == Constants.HeaderValueForLetter && Data?.Length > 0)
                 {
-                    // All Letter objects SHOULD deserialize with System.Text.Json, the inner Body maybe not.
+                    // All IMessage objects SHOULD deserialize with System.Text.Json, the inner Body maybe not.
                     try
                     { Letter = JsonSerializer.Deserialize<Letter>(Data); }
                     catch { /* Swallow */}

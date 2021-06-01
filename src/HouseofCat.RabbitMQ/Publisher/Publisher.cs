@@ -19,7 +19,7 @@ namespace HouseofCat.RabbitMQ
     public interface IPublisher
     {
         bool AutoPublisherStarted { get; }
-        Options Options { get; }
+        RabbitOptions Options { get; }
 
         ChannelReader<IPublishReceipt> GetReceiptBufferReader();
         Task PublishAsync(IMessage message, bool createReceipt, bool withHeaders = true);
@@ -37,7 +37,7 @@ namespace HouseofCat.RabbitMQ
 
     public class Publisher : IPublisher, IDisposable
     {
-        public Options Options { get; }
+        public RabbitOptions Options { get; }
 
         public bool AutoPublisherStarted { get; private set; }
 
@@ -62,7 +62,7 @@ namespace HouseofCat.RabbitMQ
         private bool _disposedValue;
 
         public Publisher(
-            Options options,
+            RabbitOptions options,
             ISerializationProvider serializationProvider,
             IEncryptionProvider encryptionProvider = null,
             ICompressionProvider compressionProvider = null)

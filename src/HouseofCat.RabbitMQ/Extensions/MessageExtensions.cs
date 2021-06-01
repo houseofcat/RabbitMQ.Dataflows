@@ -39,7 +39,10 @@ namespace HouseofCat.RabbitMQ
         }
         
         public static IBasicProperties CreateBasicProperties(
-            this IMessage message, IChannelHost channelHost, bool withHeaders, IMetadata metadata)
+            this IMessage message,
+            IChannelHost channelHost,
+            bool withHeaders,
+            IMetadata metadata)
         {
             var props = channelHost.GetChannel().CreateBasicProperties();
 

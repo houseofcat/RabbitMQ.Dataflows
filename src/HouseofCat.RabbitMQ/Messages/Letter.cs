@@ -5,6 +5,27 @@ using RabbitMQ.Client;
 
 namespace HouseofCat.RabbitMQ
 {
+    public interface IMessage
+    {
+        Envelope Envelope { get; set; }
+        byte[] Body { get; set; }
+
+        ulong GetMessageId();
+        IMetadata GetMetadata();
+
+        IMetadata CreateMetadataIfMissing();
+
+        T GetHeader<T>(string key);
+        bool RemoveHeader(string key);
+        IDictionary<string, object> GetHeadersOutOfMetadata();
+
+        byte[] GetBodyToPublish(ISerializationProvider serializationProvider);
+
+        IPublishReceipt GetPublishReceipt(bool error);
+
+        IBasicProperties BuildProperties(IChannelHost channelHost, bool withHeaders);
+    }
+
     public class Letter : IMessage
     {
         public Envelope Envelope { get; set; }

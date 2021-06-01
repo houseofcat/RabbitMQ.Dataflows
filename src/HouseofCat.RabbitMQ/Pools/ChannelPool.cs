@@ -12,7 +12,7 @@ namespace HouseofCat.RabbitMQ.Pools
 {
     public interface IChannelPool
     {
-        Options Options { get; }
+        RabbitOptions Options { get; }
         ulong CurrentChannelId { get; }
         bool Shutdown { get; }
 
@@ -58,13 +58,13 @@ namespace HouseofCat.RabbitMQ.Pools
         private ConcurrentDictionary<ulong, bool> _flaggedChannels;
         private bool _disposedValue;
 
-        public Options Options { get; }
+        public RabbitOptions Options { get; }
 
         // A 0 indicates TransientChannels.
         public ulong CurrentChannelId { get; private set; } = 1;
         public bool Shutdown { get; private set; }
 
-        public ChannelPool(Options options)
+        public ChannelPool(RabbitOptions options)
         {
             Guard.AgainstNull(options, nameof(options));
 

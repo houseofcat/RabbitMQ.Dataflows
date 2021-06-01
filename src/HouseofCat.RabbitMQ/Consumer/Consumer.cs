@@ -16,7 +16,7 @@ namespace HouseofCat.RabbitMQ
     public interface IConsumer<TFromQueue>
     {
         IChannelPool ChannelPool { get; }
-        Options Options { get; }
+        RabbitOptions Options { get; }
         ConsumerOptions ConsumerOptions { get; }
         bool Started { get; }
 
@@ -41,13 +41,13 @@ namespace HouseofCat.RabbitMQ
         private Channel<ReceivedData> _dataBuffer;
         private bool _shutdown;
 
-        public Options Options { get; }
+        public RabbitOptions Options { get; }
         public ConsumerOptions ConsumerOptions { get; }
 
         public IChannelPool ChannelPool { get; }
         public bool Started { get; private set; }
 
-        public Consumer(Options options, string consumerName)
+        public Consumer(RabbitOptions options, string consumerName)
             : this(new ChannelPool(options), consumerName)
         { }
 

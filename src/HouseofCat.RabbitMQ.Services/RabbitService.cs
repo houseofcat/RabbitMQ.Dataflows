@@ -24,7 +24,7 @@ namespace HouseofCat.RabbitMQ.Services
         IPublisher Publisher { get; }
         IChannelPool ChannelPool { get; }
         ITopologer Topologer { get; }
-        Options Options { get; }
+        RabbitOptions Options { get; }
 
         ISerializationProvider SerializationProvider { get; }
         IEncryptionProvider EncryptionProvider { get; }
@@ -56,7 +56,7 @@ namespace HouseofCat.RabbitMQ.Services
         private readonly SemaphoreSlim _serviceLock = new SemaphoreSlim(1, 1);
         private bool _disposedValue;
 
-        public Options Options { get; }
+        public RabbitOptions Options { get; }
         public IChannelPool ChannelPool { get; }
         public IPublisher Publisher { get; }
         public ITopologer Topologer { get; }
@@ -76,7 +76,7 @@ namespace HouseofCat.RabbitMQ.Services
             ILoggerFactory loggerFactory = null, Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
             : this(
                   JsonFileReader
-                    .ReadFileAsync<Options>(fileNamePath)
+                    .ReadFileAsync<RabbitOptions>(fileNamePath)
                     .GetAwaiter()
                     .GetResult(),
                   serializationProvider,
@@ -87,7 +87,7 @@ namespace HouseofCat.RabbitMQ.Services
         { }
 
         public RabbitService(
-            Options options,
+            RabbitOptions options,
             ISerializationProvider serializationProvider,
             IEncryptionProvider encryptionProvider = null,
             ICompressionProvider compressionProvider = null,

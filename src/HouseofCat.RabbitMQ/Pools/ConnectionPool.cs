@@ -12,7 +12,7 @@ namespace HouseofCat.RabbitMQ.Pools
 {
     public interface IConnectionPool
     {
-        Options Options { get; }
+        RabbitOptions Options { get; }
 
         IConnection CreateConnection(string connectionName);
         ValueTask<IConnectionHost> GetConnectionAsync();
@@ -31,9 +31,9 @@ namespace HouseofCat.RabbitMQ.Pools
         private bool _disposedValue;
         private ulong _currentConnectionId;
 
-        public Options Options { get; }
+        public RabbitOptions Options { get; }
 
-        public ConnectionPool(Options options)
+        public ConnectionPool(RabbitOptions options)
         {
             Guard.AgainstNull(options, nameof(options));
             Options = options;

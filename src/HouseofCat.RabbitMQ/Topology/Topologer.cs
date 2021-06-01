@@ -10,7 +10,7 @@ namespace HouseofCat.RabbitMQ
 {
     public interface ITopologer
     {
-        Options Options { get; }
+        RabbitOptions Options { get; }
 
         Task<bool> BindExchangeToExchangeAsync(string childExchangeName, string parentExchangeName, string routingKey = "", IDictionary<string, object> args = null);
         Task<bool> BindQueueToExchangeAsync(string queueName, string exchangeName, string routingKey = "", IDictionary<string, object> args = null);
@@ -27,9 +27,9 @@ namespace HouseofCat.RabbitMQ
     public class Topologer : ITopologer
     {
         private readonly IChannelPool _channelPool;
-        public Options Options { get; }
+        public RabbitOptions Options { get; }
 
-        public Topologer(Options options) : this(new ChannelPool(options))
+        public Topologer(RabbitOptions options) : this(new ChannelPool(options))
         { }
 
         public Topologer(IChannelPool channelPool)
