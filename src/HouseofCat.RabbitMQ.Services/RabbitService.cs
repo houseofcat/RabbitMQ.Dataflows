@@ -260,13 +260,13 @@ namespace HouseofCat.RabbitMQ.Services
         // Returns Success
         public bool Encrypt(Letter letter)
         {
-            if (!letter.LetterMetadata.Encrypted)
+            if (!letter.Metadata.Encrypted)
             {
                 letter.Body = EncryptionProvider.Encrypt(letter.Body);
-                letter.LetterMetadata.Encrypted = true;
-                letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypted] = true;
-                letter.LetterMetadata.CustomFields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
-                letter.LetterMetadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
+                letter.Metadata.Encrypted = true;
+                letter.Metadata.CustomFields[Constants.HeaderForEncrypted] = true;
+                letter.Metadata.CustomFields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
+                letter.Metadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
 
                 return true;
             }
@@ -277,20 +277,20 @@ namespace HouseofCat.RabbitMQ.Services
         // Returns Success
         public bool Decrypt(Letter letter)
         {
-            if (letter.LetterMetadata.Encrypted)
+            if (letter.Metadata.Encrypted)
             {
                 letter.Body = EncryptionProvider.Decrypt(letter.Body);
-                letter.LetterMetadata.Encrypted = false;
-                letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypted] = false;
+                letter.Metadata.Encrypted = false;
+                letter.Metadata.CustomFields[Constants.HeaderForEncrypted] = false;
 
-                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForEncryption))
+                if (letter.Metadata.CustomFields.ContainsKey(Constants.HeaderForEncryption))
                 {
-                    letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncryption);
+                    letter.Metadata.CustomFields.Remove(Constants.HeaderForEncryption);
                 }
 
-                if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForEncryptDate))
+                if (letter.Metadata.CustomFields.ContainsKey(Constants.HeaderForEncryptDate))
                 {
-                    letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForEncryptDate);
+                    letter.Metadata.CustomFields.Remove(Constants.HeaderForEncryptDate);
                 }
 
                 return true;
@@ -302,15 +302,15 @@ namespace HouseofCat.RabbitMQ.Services
         // Returns Success
         public async Task<bool> CompressAsync(Letter letter)
         {
-            if (letter.LetterMetadata.Encrypted)
+            if (letter.Metadata.Encrypted)
             { return false; } // Don't compress after encryption.
 
-            if (!letter.LetterMetadata.Compressed)
+            if (!letter.Metadata.Compressed)
             {
                 letter.Body = await CompressionProvider.CompressAsync(letter.Body).ConfigureAwait(false);
-                letter.LetterMetadata.Compressed = true;
-                letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = true;
-                letter.LetterMetadata.CustomFields[Constants.HeaderForCompression] = CompressionProvider.Type;
+                letter.Metadata.Compressed = true;
+                letter.Metadata.CustomFields[Constants.HeaderForCompressed] = true;
+                letter.Metadata.CustomFields[Constants.HeaderForCompression] = CompressionProvider.Type;
 
                 return true;
             }
@@ -321,20 +321,20 @@ namespace HouseofCat.RabbitMQ.Services
         // Returns Success
         public async Task<bool> DecompressAsync(Letter letter)
         {
-            if (letter.LetterMetadata.Encrypted)
+            if (letter.Metadata.Encrypted)
             { return false; } // Don't decompress before decryption.
 
-            if (letter.LetterMetadata.Compressed)
+            if (letter.Metadata.Compressed)
             {
                 try
                 {
                     letter.Body = await CompressionProvider.DecompressAsync(letter.Body).ConfigureAwait(false);
-                    letter.LetterMetadata.Compressed = false;
-                    letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = false;
+                    letter.Metadata.Compressed = false;
+                    letter.Metadata.CustomFields[Constants.HeaderForCompressed] = false;
 
-                    if (letter.LetterMetadata.CustomFields.ContainsKey(Constants.HeaderForCompression))
+                    if (letter.Metadata.CustomFields.ContainsKey(Constants.HeaderForCompression))
                     {
-                        letter.LetterMetadata.CustomFields.Remove(Constants.HeaderForCompression);
+                        letter.Metadata.CustomFields.Remove(Constants.HeaderForCompression);
                     }
                 }
                 catch { return false; }

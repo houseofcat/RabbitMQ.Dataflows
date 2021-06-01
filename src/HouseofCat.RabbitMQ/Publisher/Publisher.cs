@@ -22,15 +22,15 @@ namespace HouseofCat.RabbitMQ
         Options Options { get; }
 
         ChannelReader<PublishReceipt> GetReceiptBufferReader();
-        Task PublishAsync(Letter letter, bool createReceipt, bool withHeaders = true);
-        Task PublishWithConfirmationAsync(Letter letter, bool createReceipt, bool withHeaders = true);
+        Task PublishAsync(IMessage message, bool createReceipt, bool withHeaders = true);
+        Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withHeaders = true);
         Task<bool> PublishAsync(string exchangeName, string routingKey, ReadOnlyMemory<byte> payload, bool mandatory = false, IBasicProperties messageProperties = null);
         Task<bool> PublishAsync(string exchangeName, string routingKey, ReadOnlyMemory<byte> payload, IDictionary<string, object> headers = null, byte? priority = 0, bool mandatory = false);
         Task<bool> PublishBatchAsync(string exchangeName, string routingKey, IList<ReadOnlyMemory<byte>> payloads, bool mandatory = false, IBasicProperties messageProperties = null);
         Task<bool> PublishBatchAsync(string exchangeName, string routingKey, IList<ReadOnlyMemory<byte>> payloads, IDictionary<string, object> headers = null, byte? priority = 0, bool mandatory = false);
-        Task PublishManyAsBatchAsync(IList<Letter> letters, bool createReceipt, bool withHeaders = true);
-        Task PublishManyAsync(IList<Letter> letters, bool createReceipt, bool withHeaders = true);
-        ValueTask QueueLetterAsync(Letter letter);
+        Task PublishManyAsBatchAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true);
+        Task PublishManyAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true);
+        ValueTask QueueMessageAsync(IMessage message);
         Task StartAutoPublishAsync(Func<PublishReceipt, ValueTask> processReceiptAsync = null);
         Task StopAutoPublishAsync(bool immediately = false);
     }
@@ -54,7 +54,7 @@ namespace HouseofCat.RabbitMQ
         private readonly bool _createPublishReceipts;
         private readonly TimeSpan _waitForConfirmation;
 
-        private Channel<Letter> _letterQueue;
+        private Channel<IMessage> _messageQueue;
         private Channel<PublishReceipt> _receiptBuffer;
 
         private Task _publishingTask;
@@ -128,13 +128,13 @@ namespace HouseofCat.RabbitMQ
 
             try
             {
-                _letterQueue = Channel.CreateBounded<Letter>(
+                _messageQueue = Channel.CreateBounded<IMessage>(
                     new BoundedChannelOptions(Options.PublisherOptions.LetterQueueBufferSize)
                     {
                         FullMode = Options.PublisherOptions.BehaviorWhenFull
                     });
 
-                _publishingTask = ProcessLettersAsync(_letterQueue.Reader);
+                _publishingTask = ProcessMessagesAsync(_messageQueue.Reader);
 
                 if (processReceiptAsync == null)
                 { processReceiptAsync = ProcessReceiptAsync; }
@@ -157,11 +157,11 @@ namespace HouseofCat.RabbitMQ
             {
                 if (AutoPublisherStarted)
                 {
-                    _letterQueue.Writer.Complete();
+                    _messageQueue.Writer.Complete();
 
                     if (!immediately)
                     {
-                        await _letterQueue
+                        await _messageQueue
                             .Reader
                             .Completion
                             .ConfigureAwait(false);
@@ -187,12 +187,12 @@ namespace HouseofCat.RabbitMQ
 
         #region AutoPublisher
 
-        public async ValueTask QueueLetterAsync(Letter letter)
+        public async ValueTask QueueMessageAsync(IMessage message)
         {
             if (!AutoPublisherStarted) throw new InvalidOperationException(ExceptionMessages.AutoPublisherNotStartedError);
-            Guard.AgainstNull(letter, nameof(letter));
+            Guard.AgainstNull(message, nameof(message));
 
-            if (!await _letterQueue
+            if (!await _messageQueue
                  .Writer
                  .WaitToWriteAsync()
                  .ConfigureAwait(false))
@@ -200,44 +200,44 @@ namespace HouseofCat.RabbitMQ
                 throw new InvalidOperationException(ExceptionMessages.QueueChannelError);
             }
 
-            _logger.LogDebug(LogMessages.AutoPublishers.LetterQueued, letter.LetterId, letter.LetterMetadata?.Id);
+            _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, message.Metadata?.Id);
 
-            await _letterQueue
+            await _messageQueue
                 .Writer
-                .WriteAsync(letter)
+                .WriteAsync(message)
                 .ConfigureAwait(false);
         }
 
-        private async Task ProcessLettersAsync(ChannelReader<Letter> channelReader)
+        private async Task ProcessMessagesAsync(ChannelReader<IMessage> channelReader)
         {
             await Task.Yield();
             while (await channelReader.WaitToReadAsync().ConfigureAwait(false))
             {
-                while (channelReader.TryRead(out var letter))
+                while (channelReader.TryRead(out var message))
                 {
-                    if (letter == null)
+                    if (message == null)
                     { continue; }
 
                     if (_compress)
                     {
-                        letter.Body = _compressionProvider.Compress(letter.Body);
-                        letter.LetterMetadata.Compressed = _compress;
-                        letter.LetterMetadata.CustomFields[Constants.HeaderForCompressed] = _compress;
-                        letter.LetterMetadata.CustomFields[Constants.HeaderForCompression] = _compressionProvider.Type;
+                        message.Body = _compressionProvider.Compress(message.Body);
+                        message.Metadata.Compressed = _compress;
+                        message.Metadata.CustomFields[Constants.HeaderForCompressed] = _compress;
+                        message.Metadata.CustomFields[Constants.HeaderForCompression] = _compressionProvider.Type;
                     }
 
                     if (_encrypt)
                     {
-                        letter.Body = _encryptionProvider.Encrypt(letter.Body);
-                        letter.LetterMetadata.Encrypted = _encrypt;
-                        letter.LetterMetadata.CustomFields[Constants.HeaderForEncrypted] = _encrypt;
-                        letter.LetterMetadata.CustomFields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
-                        letter.LetterMetadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
+                        message.Body = _encryptionProvider.Encrypt(message.Body);
+                        message.Metadata.Encrypted = _encrypt;
+                        message.Metadata.CustomFields[Constants.HeaderForEncrypted] = _encrypt;
+                        message.Metadata.CustomFields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
+                        message.Metadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
                     }
 
-                    _logger.LogDebug(LogMessages.AutoPublishers.LetterPublished, letter.LetterId, letter.LetterMetadata?.Id);
+                    _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.MessageId, message.Metadata?.Id);
 
-                    await PublishAsync(letter, _createPublishReceipts, _withHeaders)
+                    await PublishAsync(message, _createPublishReceipts, _withHeaders)
                         .ConfigureAwait(false);
                 }
             }
@@ -255,18 +255,18 @@ namespace HouseofCat.RabbitMQ
         // Super simple version to bake in requeueing of all failed to publish messages.
         private async ValueTask ProcessReceiptAsync(PublishReceipt receipt)
         {
-            if (receipt.IsError && receipt.OriginalLetter != null && AutoPublisherStarted)
+            if (receipt.IsError && receipt.OriginalMessage != null && AutoPublisherStarted)
             {
-                _logger.LogWarning($"Failed publish for letter ({receipt.OriginalLetter.LetterId}). Retrying with AutoPublishing...");
+                _logger.LogWarning($"Failed publish for letter ({receipt.OriginalMessage.MessageId}). Retrying with AutoPublishing...");
 
                 try
-                { await QueueLetterAsync(receipt.OriginalLetter); }
+                { await QueueMessageAsync(receipt.OriginalMessage); }
                 catch (Exception ex) /* No-op */
                 { _logger.LogDebug("Error ({0}) occurred on retry, most likely because retry during shutdown.", ex.Message); }
             }
             else if (receipt.IsError)
             {
-                _logger.LogError($"Failed publish for letter ({receipt.OriginalLetter.LetterId}). Unable to retry as the original letter was not received.");
+                _logger.LogError($"Failed publish for letter ({receipt.OriginalMessage.MessageId}). Unable to retry as the original letter was not received.");
             }
         }
 
@@ -468,10 +468,10 @@ namespace HouseofCat.RabbitMQ
         /// Acquires a channel from the channel pool, then publishes message based on the letter/envelope parameters.
         /// <para>Only throws exception when failing to acquire channel or when creating a receipt after the ReceiptBuffer is closed.</para>
         /// </summary>
-        /// <param name="letter"></param>
+        /// <param name="message"></param>
         /// <param name="createReceipt"></param>
         /// <param name="withHeaders"></param>
-        public async Task PublishAsync(Letter letter, bool createReceipt, bool withHeaders = true)
+        public async Task PublishAsync(IMessage message, bool createReceipt, bool withHeaders = true)
         {
             var error = false;
             var chanHost = await _channelPool
@@ -481,18 +481,18 @@ namespace HouseofCat.RabbitMQ
             try
             {
                 chanHost.GetChannel().BasicPublish(
-                    letter.Envelope.Exchange,
-                    letter.Envelope.RoutingKey,
-                    letter.Envelope.RoutingOptions?.Mandatory ?? false,
-                    BuildProperties(letter, chanHost, withHeaders),
-                    _serializationProvider.Serialize(letter));
+                    message.Envelope.Exchange,
+                    message.Envelope.RoutingKey,
+                    message.Envelope.RoutingOptions?.Mandatory ?? false,
+                    message.BuildProperties(chanHost, withHeaders),
+                    _serializationProvider.Serialize(message));
             }
             catch (Exception ex)
             {
                 _logger.LogDebug(
-                    LogMessages.Publishers.PublishLetterFailed,
-                    $"{letter.Envelope.Exchange}->{letter.Envelope.RoutingKey}",
-                    letter.LetterId,
+                    LogMessages.Publishers.PublishMessageFailed,
+                    $"{message.Envelope.Exchange}->{message.Envelope.RoutingKey}",
+                    message.MessageId,
                     ex.Message);
 
                 error = true;
@@ -501,7 +501,7 @@ namespace HouseofCat.RabbitMQ
             {
                 if (createReceipt)
                 {
-                    await CreateReceiptAsync(letter, error)
+                    await CreateReceiptAsync(message, error)
                         .ConfigureAwait(false);
                 }
 
@@ -515,10 +515,10 @@ namespace HouseofCat.RabbitMQ
         /// <para>Only throws exception when failing to acquire channel or when creating a receipt after the ReceiptBuffer is closed.</para>
         /// <para>Not fully ready for production yet.</para>
         /// </summary>
-        /// <param name="letter"></param>
+        /// <param name="message"></param>
         /// <param name="createReceipt"></param>
         /// <param name="withHeaders"></param>
-        public async Task PublishWithConfirmationAsync(Letter letter, bool createReceipt, bool withHeaders = true)
+        public async Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withHeaders = true)
         {
             var error = false;
             var chanHost = await _channelPool
@@ -530,20 +530,20 @@ namespace HouseofCat.RabbitMQ
                 chanHost.GetChannel().WaitForConfirmsOrDie(_waitForConfirmation);
 
                 chanHost.GetChannel().BasicPublish(
-                    letter.Envelope.Exchange,
-                    letter.Envelope.RoutingKey,
-                    letter.Envelope.RoutingOptions?.Mandatory ?? false,
-                    BuildProperties(letter, chanHost, withHeaders),
-                    _serializationProvider.Serialize(letter));
+                    message.Envelope.Exchange,
+                    message.Envelope.RoutingKey,
+                    message.Envelope.RoutingOptions?.Mandatory ?? false,
+                    message.BuildProperties(chanHost, withHeaders),
+                    _serializationProvider.Serialize(message));
 
                 chanHost.GetChannel().WaitForConfirmsOrDie(_waitForConfirmation);
             }
             catch (Exception ex)
             {
                 _logger.LogDebug(
-                    LogMessages.Publishers.PublishLetterFailed,
-                    $"{letter.Envelope.Exchange}->{letter.Envelope.RoutingKey}",
-                    letter.LetterId,
+                    LogMessages.Publishers.PublishMessageFailed,
+                    $"{message.Envelope.Exchange}->{message.Envelope.RoutingKey}",
+                    message.MessageId,
                     ex.Message);
 
                 error = true;
@@ -552,7 +552,7 @@ namespace HouseofCat.RabbitMQ
             {
                 if (createReceipt)
                 {
-                    await CreateReceiptAsync(letter, error)
+                    await CreateReceiptAsync(message, error)
                         .ConfigureAwait(false);
                 }
 
@@ -564,40 +564,40 @@ namespace HouseofCat.RabbitMQ
         /// <summary>
         /// Use this method to sequentially publish all messages in a list in the order received.
         /// </summary>
-        /// <param name="letters"></param>
+        /// <param name="messages"></param>
         /// <param name="createReceipt"></param>
         /// <param name="withHeaders"></param>
-        public async Task PublishManyAsync(IList<Letter> letters, bool createReceipt, bool withHeaders = true)
+        public async Task PublishManyAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true)
         {
             var error = false;
             var chanHost = await _channelPool
                 .GetChannelAsync()
                 .ConfigureAwait(false);
 
-            for (int i = 0; i < letters.Count; i++)
+            for (int i = 0; i < messages.Count; i++)
             {
                 try
                 {
                     chanHost.GetChannel().BasicPublish(
-                        letters[i].Envelope.Exchange,
-                        letters[i].Envelope.RoutingKey,
-                        letters[i].Envelope.RoutingOptions.Mandatory,
-                        BuildProperties(letters[i], chanHost, withHeaders),
-                        _serializationProvider.Serialize(letters[i]));
+                        messages[i].Envelope.Exchange,
+                        messages[i].Envelope.RoutingKey,
+                        messages[i].Envelope.RoutingOptions.Mandatory,
+                        messages[i].BuildProperties(chanHost, withHeaders),
+                        _serializationProvider.Serialize(messages[i]));
                 }
                 catch (Exception ex)
                 {
                     _logger.LogDebug(
-                        LogMessages.Publishers.PublishLetterFailed,
-                        $"{letters[i].Envelope.Exchange}->{letters[i].Envelope.RoutingKey}",
-                        letters[i].LetterId,
+                        LogMessages.Publishers.PublishMessageFailed,
+                        $"{messages[i].Envelope.Exchange}->{messages[i].Envelope.RoutingKey}",
+                        messages[i].MessageId,
                         ex.Message);
 
                     error = true;
                 }
 
                 if (createReceipt)
-                { await CreateReceiptAsync(letters[i], error).ConfigureAwait(false); }
+                { await CreateReceiptAsync(messages[i], error).ConfigureAwait(false); }
 
                 if (error) { break; }
             }
@@ -609,10 +609,10 @@ namespace HouseofCat.RabbitMQ
         /// Use this method when a group of letters who have the same properties (deliverymode, messagetype, priority).
         /// <para>Receipt with no error indicates that we successfully handed off to internal library, not necessarily published.</para>
         /// </summary>
-        /// <param name="letters"></param>
+        /// <param name="messages"></param>
         /// <param name="createReceipt"></param>
         /// <param name="withHeaders"></param>
-        public async Task PublishManyAsBatchAsync(IList<Letter> letters, bool createReceipt, bool withHeaders = true)
+        public async Task PublishManyAsBatchAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true)
         {
             var error = false;
             var chanHost = await _channelPool
@@ -621,21 +621,21 @@ namespace HouseofCat.RabbitMQ
 
             try
             {
-                if (letters.Count > 0)
+                if (messages.Count > 0)
                 {
                     var publishBatch = chanHost.GetChannel().CreateBasicPublishBatch();
-                    for (int i = 0; i < letters.Count; i++)
+                    for (int i = 0; i < messages.Count; i++)
                     {
                         publishBatch.Add(
-                            letters[i].Envelope.Exchange,
-                            letters[i].Envelope.RoutingKey,
-                            letters[i].Envelope.RoutingOptions.Mandatory,
-                            BuildProperties(letters[i], chanHost, withHeaders),
-                            _serializationProvider.Serialize(letters[i]).AsMemory());
+                            messages[i].Envelope.Exchange,
+                            messages[i].Envelope.RoutingKey,
+                            messages[i].Envelope.RoutingOptions.Mandatory,
+                            messages[i].BuildProperties(chanHost, withHeaders),
+                            _serializationProvider.Serialize(messages[i]).AsMemory());
 
                         if (createReceipt)
                         {
-                            await CreateReceiptAsync(letters[i], error).ConfigureAwait(false);
+                            await CreateReceiptAsync(messages[i], error).ConfigureAwait(false);
                         }
                     }
 
@@ -655,7 +655,7 @@ namespace HouseofCat.RabbitMQ
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private async ValueTask CreateReceiptAsync(Letter letter, bool error)
+        private async ValueTask CreateReceiptAsync(IMessage message, bool error)
         {
             if (!await _receiptBuffer
                 .Writer
@@ -667,38 +667,8 @@ namespace HouseofCat.RabbitMQ
 
             await _receiptBuffer
                 .Writer
-                .WriteAsync(new PublishReceipt { LetterId = letter.LetterId, IsError = error, OriginalLetter = error ? letter : null })
+                .WriteAsync(new PublishReceipt { MessageId = message.MessageId, IsError = error, OriginalMessage = error ? message : null })
                 .ConfigureAwait(false);
-        }
-
-        private static IBasicProperties BuildProperties(Letter letter, IChannelHost channelHost, bool withHeaders)
-        {
-            var props = channelHost.GetChannel().CreateBasicProperties();
-
-            props.DeliveryMode = letter.Envelope.RoutingOptions.DeliveryMode;
-            props.ContentType = letter.Envelope.RoutingOptions.MessageType;
-            props.Priority = letter.Envelope.RoutingOptions.PriorityLevel;
-
-            if (!props.IsHeadersPresent())
-            {
-                props.Headers = new Dictionary<string, object>();
-            }
-
-            if (withHeaders && letter.LetterMetadata != null)
-            {
-                foreach (var kvp in letter.LetterMetadata?.CustomFields)
-                {
-                    if (kvp.Key.StartsWith(Constants.HeaderPrefix, StringComparison.OrdinalIgnoreCase))
-                    {
-                        props.Headers[kvp.Key] = kvp.Value;
-                    }
-                }
-            }
-
-            // Non-optional Header.
-            props.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForLetter;
-
-            return props;
         }
 
         private static IBasicProperties BuildProperties(IDictionary<string, object> headers, IChannelHost channelHost, byte? priority = 0, byte? deliveryMode = 2)
@@ -739,7 +709,7 @@ namespace HouseofCat.RabbitMQ
                 }
 
                 _receiptBuffer = null;
-                _letterQueue = null;
+                _messageQueue = null;
                 _disposedValue = true;
             }
         }
