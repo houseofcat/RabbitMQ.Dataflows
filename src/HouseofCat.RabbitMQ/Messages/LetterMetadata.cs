@@ -13,6 +13,9 @@ namespace HouseofCat.RabbitMQ
 
     public class LetterMetadata : IMetadata
     {
+        /// <summary>
+        /// An alternative Id field, intended to be user-supplied.
+        /// </summary>
         public string Id { get; set; }
         public bool Encrypted { get; set; }
         public bool Compressed { get; set; }

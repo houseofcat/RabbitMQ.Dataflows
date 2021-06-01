@@ -18,7 +18,7 @@ namespace HouseofCat.RabbitMQ
 
             return new Letter
             {
-                LetterId = 0,
+                LetterId = Guid.NewGuid().ToString(),
                 LetterMetadata = new LetterMetadata(),
                 Envelope = new Envelope
                 {

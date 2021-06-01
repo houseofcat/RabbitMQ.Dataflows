@@ -109,7 +109,7 @@ namespace Examples.RabbitMQ.SimpleClient
             for (ulong i = 0; i < 100; i++)
             {
                 var letter = letterTemplate.Clone();
-                letter.LetterId = i;
+                letter.LetterId = Guid.NewGuid().ToString();
                 var sentMessage = new TestMessage { Message = "Sensitive Message" };
                 sentMessage.Message += $" {i}";
                 letter.Body = JsonSerializer.SerializeToUtf8Bytes(sentMessage);

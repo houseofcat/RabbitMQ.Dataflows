@@ -21,7 +21,7 @@ namespace HouseofCat.RabbitMQ
 
         byte[] Data { get; set; }
         ulong DeliveryTag { get; }
-        IMessage Letter { get; set; }
+        Letter Letter { get; set; }
 
         IBasicProperties Properties { get; }
 
@@ -40,7 +40,7 @@ namespace HouseofCat.RabbitMQ
         public IModel Channel { get; set; }
         public ulong DeliveryTag { get; }
         public byte[] Data { get; set; }
-        public IMessage Letter { get; set; }
+        public Letter Letter { get; set; }
 
         // Headers
         public string ContentType { get; private set; }
