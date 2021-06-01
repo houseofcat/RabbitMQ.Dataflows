@@ -21,7 +21,7 @@ namespace HouseofCat.RabbitMQ
         bool AutoPublisherStarted { get; }
         Options Options { get; }
 
-        ChannelReader<PublishReceipt> GetReceiptBufferReader();
+        ChannelReader<IPublishReceipt> GetReceiptBufferReader();
         Task PublishAsync(IMessage message, bool createReceipt, bool withHeaders = true);
         Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withHeaders = true);
         Task<bool> PublishAsync(string exchangeName, string routingKey, ReadOnlyMemory<byte> payload, bool mandatory = false, IBasicProperties messageProperties = null);
@@ -31,7 +31,7 @@ namespace HouseofCat.RabbitMQ
         Task PublishManyAsBatchAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true);
         Task PublishManyAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true);
         ValueTask QueueMessageAsync(IMessage message);
-        Task StartAutoPublishAsync(Func<PublishReceipt, ValueTask> processReceiptAsync = null);
+        Task StartAutoPublishAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null);
         Task StopAutoPublishAsync(bool immediately = false);
     }
 
@@ -55,7 +55,7 @@ namespace HouseofCat.RabbitMQ
         private readonly TimeSpan _waitForConfirmation;
 
         private Channel<IMessage> _messageQueue;
-        private Channel<PublishReceipt> _receiptBuffer;
+        private Channel<IPublishReceipt> _receiptBuffer;
 
         private Task _publishingTask;
         private Task _processReceiptsAsync;
@@ -109,7 +109,7 @@ namespace HouseofCat.RabbitMQ
             }
 
             _channelPool = channelPool;
-            _receiptBuffer = Channel.CreateBounded<PublishReceipt>(
+            _receiptBuffer = Channel.CreateBounded<IPublishReceipt>(
                 new BoundedChannelOptions(1024)
                 {
                     SingleWriter = false,
@@ -122,7 +122,7 @@ namespace HouseofCat.RabbitMQ
             _waitForConfirmation = TimeSpan.FromMilliseconds(Options.PublisherOptions.WaitForConfirmationTimeoutInMilliseconds);
         }
 
-        public async Task StartAutoPublishAsync(Func<PublishReceipt, ValueTask> processReceiptAsync = null)
+        public async Task StartAutoPublishAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
         {
             await _pubLock.WaitAsync().ConfigureAwait(false);
 
@@ -180,7 +180,7 @@ namespace HouseofCat.RabbitMQ
             { _pubLock.Release(); }
         }
 
-        public ChannelReader<PublishReceipt> GetReceiptBufferReader()
+        public ChannelReader<IPublishReceipt> GetReceiptBufferReader()
         {
             return _receiptBuffer.Reader;
         }
@@ -246,7 +246,7 @@ namespace HouseofCat.RabbitMQ
             }
         }
 
-        private async Task ProcessReceiptsAsync(Func<PublishReceipt, ValueTask> processReceiptAsync)
+        private async Task ProcessReceiptsAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync)
         {
             await Task.Yield();
             await foreach (var receipt in _receiptBuffer.Reader.ReadAllAsync())
@@ -256,20 +256,24 @@ namespace HouseofCat.RabbitMQ
         }
 
         // Super simple version to bake in requeueing of all failed to publish messages.
-        private async ValueTask ProcessReceiptAsync(PublishReceipt receipt)
+        private async ValueTask ProcessReceiptAsync(IPublishReceipt receipt)
         {
-            if (receipt.IsError && receipt.OriginalMessage != null && AutoPublisherStarted)
+            var originalMessage = receipt.GetOriginalMessage();
+            if (receipt.IsError && originalMessage != null)
             {
-                _logger.LogWarning($"Failed publish for message ({receipt.OriginalMessage.GetMessageId()}). Retrying with AutoPublishing...");
+                if (AutoPublisherStarted)
+                {
+                    _logger.LogWarning($"Failed publish for message ({originalMessage.GetMessageId()}). Retrying with AutoPublishing...");
 
-                try
-                { await QueueMessageAsync(receipt.OriginalMessage); }
-                catch (Exception ex) /* No-op */
-                { _logger.LogDebug("Error ({0}) occurred on retry, most likely because retry during shutdown.", ex.Message); }
-            }
-            else if (receipt.IsError)
-            {
-                _logger.LogError($"Failed publish for message ({receipt.OriginalMessage.GetMessageId()}). Unable to retry as the original message was not received.");
+                    try
+                    { await QueueMessageAsync(receipt.GetOriginalMessage()); }
+                    catch (Exception ex) /* No-op */
+                    { _logger.LogDebug("Error ({0}) occurred on retry, most likely because retry during shutdown.", ex.Message); }
+                    }
+                else
+                {
+                    _logger.LogError($"Failed publish for message ({originalMessage.GetMessageId()}). Unable to retry as the original message was not received.");
+                }
             }
         }
 
@@ -670,7 +674,7 @@ namespace HouseofCat.RabbitMQ
 
             await _receiptBuffer
                 .Writer
-                .WriteAsync(new PublishReceipt { MessageId = message.GetMessageId(), IsError = error, OriginalMessage = error ? message : null })
+                .WriteAsync(message.GetPublishReceipt(error))
                 .ConfigureAwait(false);
         }
 

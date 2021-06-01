@@ -20,6 +20,8 @@ namespace HouseofCat.RabbitMQ
         IDictionary<string, object> GetHeadersOutOfMetadata();
         
         byte[] GetBodyToPublish(ISerializationProvider serializationProvider);
+        
+        IPublishReceipt GetPublishReceipt(bool error);
 
         IBasicProperties BuildProperties(IChannelHost channelHost, bool withHeaders);
     }

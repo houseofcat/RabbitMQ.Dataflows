@@ -73,7 +73,7 @@ namespace HouseofCat.RabbitMQ.Services
             ISerializationProvider serializationProvider,
             IEncryptionProvider encryptionProvider = null,
             ICompressionProvider compressionProvider = null,
-            ILoggerFactory loggerFactory = null, Func<PublishReceipt, ValueTask> processReceiptAsync = null)
+            ILoggerFactory loggerFactory = null, Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
             : this(
                   JsonFileReader
                     .ReadFileAsync<Options>(fileNamePath)
@@ -92,7 +92,7 @@ namespace HouseofCat.RabbitMQ.Services
             IEncryptionProvider encryptionProvider = null,
             ICompressionProvider compressionProvider = null,
             ILoggerFactory loggerFactory = null,
-            Func<PublishReceipt, ValueTask> processReceiptAsync = null)
+            Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
         {
             Guard.AgainstNull(options, nameof(options));
             Guard.AgainstNull(serializationProvider, nameof(serializationProvider));

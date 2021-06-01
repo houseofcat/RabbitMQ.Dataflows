@@ -89,5 +89,8 @@ namespace HouseofCat.RabbitMQ
 
         public byte[] GetBodyToPublish(ISerializationProvider serializationProvider) => 
             serializationProvider.Serialize(this);
+        
+        public IPublishReceipt GetPublishReceipt(bool error) => 
+            new PublishReceipt { LetterId = GetMessageId(), IsError = error, OriginalLetter = error ? this : null };
     }
 }
