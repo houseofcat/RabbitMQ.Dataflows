@@ -21,7 +21,7 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
         private static ICompressionProvider _compressionProvider;
         private static IEncryptionProvider _encryptionProvider;
 
-        private static Options options;
+        private static RabbitOptions options;
         private static ChannelPool channelPool;
         private static Topologer topologer;
 
@@ -86,7 +86,7 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
         private static async Task SetupAsync()
         {
             var sw = Stopwatch.StartNew();
-            options = await JsonFileReader.ReadFileAsync<Options>("Config.json");
+            options = await JsonFileReader.ReadFileAsync<RabbitOptions>("Config.json");
 
             channelPool = new ChannelPool(options);
 

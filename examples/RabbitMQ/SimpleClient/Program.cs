@@ -135,7 +135,7 @@ namespace Examples.RabbitMQ.SimpleClient
             {
                 var decodedLetter = JsonSerializer.Deserialize<TestMessage>(data.Letter.Body);
 
-                await Console.Out.WriteLineAsync($"LetterId: {data.Letter.LetterId} Received: {decodedLetter.Message}").ConfigureAwait(false);
+                await Console.Out.WriteLineAsync($"LetterId: {data.Letter.GetMessageId()} Received: {decodedLetter.Message}").ConfigureAwait(false);
 
                 // Return true or false to ack / nack the message. Exceptions thrown automatically nack the message.
                 // Strategy would be that you control the retry / permanent error in this method and return true.
