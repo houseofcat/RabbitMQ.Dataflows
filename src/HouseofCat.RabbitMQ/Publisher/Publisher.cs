@@ -260,7 +260,7 @@ namespace HouseofCat.RabbitMQ
         {
             if (receipt.IsError && receipt.OriginalMessage != null && AutoPublisherStarted)
             {
-                _logger.LogWarning($"Failed publish for letter ({receipt.OriginalMessage.GetMessageId()}). Retrying with AutoPublishing...");
+                _logger.LogWarning($"Failed publish for message ({receipt.OriginalMessage.GetMessageId()}). Retrying with AutoPublishing...");
 
                 try
                 { await QueueMessageAsync(receipt.OriginalMessage); }
@@ -269,7 +269,7 @@ namespace HouseofCat.RabbitMQ
             }
             else if (receipt.IsError)
             {
-                _logger.LogError($"Failed publish for letter ({receipt.OriginalMessage.GetMessageId()}). Unable to retry as the original letter was not received.");
+                _logger.LogError($"Failed publish for message ({receipt.OriginalMessage.GetMessageId()}). Unable to retry as the original message was not received.");
             }
         }
 
