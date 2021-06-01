@@ -7,9 +7,11 @@ namespace HouseofCat.RabbitMQ
 {
     public static class MessageExtensions
     {
-        public static TMessage Clone<TMessage>(this IMessage message) where TMessage : IMessage, new()
+        public static TMessage Clone<TMessage, TMetadata>(this IMessage message) 
+            where TMessage : IMessage, new()
+            where TMetadata : IMetadata, new()
         {
-            var metadata = message.Metadata.Clone<LetterMetadata>();
+            var metadata = message.Metadata.Clone<TMetadata>();
 
             return new TMessage
             {

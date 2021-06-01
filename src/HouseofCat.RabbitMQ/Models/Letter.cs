@@ -66,7 +66,7 @@ namespace HouseofCat.RabbitMQ
             { Metadata = new LetterMetadata(); }
         }
 
-        public Letter Clone() => this.Clone<Letter>();
+        public Letter Clone() => this.Clone<Letter, LetterMetadata>();
 
         public void UpsertHeader(string key, object value) => this.UpsertHeader<LetterMetadata>(key, value);
 
