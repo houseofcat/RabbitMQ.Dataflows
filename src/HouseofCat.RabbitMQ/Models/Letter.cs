@@ -85,12 +85,10 @@ namespace HouseofCat.RabbitMQ
         }
         
         public T GetHeader<T>(string key) => LetterMetadata.GetHeader<T>(key);
-        
         public bool RemoveHeader(string key) => LetterMetadata.RemoveHeader(key);
-
         public IDictionary<string, object> GetHeadersOutOfMetadata() => LetterMetadata.GetHeadersOutOfMetadata();
 
-        public byte[] GetBodyToPublish(ISerializationProvider serializationProvider) =>
+        public byte[] GetBodyToPublish(ISerializationProvider serializationProvider) => 
             serializationProvider.Serialize(this);
     }
 }
