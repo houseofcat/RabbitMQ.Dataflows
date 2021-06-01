@@ -199,8 +199,9 @@ namespace HouseofCat.RabbitMQ
             {
                 throw new InvalidOperationException(ExceptionMessages.QueueChannelError);
             }
-
-            _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, message.Metadata?.Id);
+            
+            var metadata = message.GetMetadata();
+            _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.GetMessageId(), metadata?.Id);
 
             await _messageQueue
                 .Writer
@@ -218,24 +219,26 @@ namespace HouseofCat.RabbitMQ
                     if (message == null)
                     { continue; }
 
+                    var metadata = message.GetMetadata();
+                    
                     if (_compress)
                     {
                         message.Body = _compressionProvider.Compress(message.Body);
-                        message.Metadata.Compressed = _compress;
-                        message.Metadata.CustomFields[Constants.HeaderForCompressed] = _compress;
-                        message.Metadata.CustomFields[Constants.HeaderForCompression] = _compressionProvider.Type;
+                        metadata.Compressed = _compress;
+                        metadata.CustomFields[Constants.HeaderForCompressed] = _compress;
+                        metadata.CustomFields[Constants.HeaderForCompression] = _compressionProvider.Type;
                     }
 
                     if (_encrypt)
                     {
                         message.Body = _encryptionProvider.Encrypt(message.Body);
-                        message.Metadata.Encrypted = _encrypt;
-                        message.Metadata.CustomFields[Constants.HeaderForEncrypted] = _encrypt;
-                        message.Metadata.CustomFields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
-                        message.Metadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
+                        metadata.Encrypted = _encrypt;
+                        metadata.CustomFields[Constants.HeaderForEncrypted] = _encrypt;
+                        metadata.CustomFields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
+                        metadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
                     }
 
-                    _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.MessageId, message.Metadata?.Id);
+                    _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.GetMessageId(), metadata?.Id);
 
                     await PublishAsync(message, _createPublishReceipts, _withHeaders)
                         .ConfigureAwait(false);
@@ -257,7 +260,7 @@ namespace HouseofCat.RabbitMQ
         {
             if (receipt.IsError && receipt.OriginalMessage != null && AutoPublisherStarted)
             {
-                _logger.LogWarning($"Failed publish for letter ({receipt.OriginalMessage.MessageId}). Retrying with AutoPublishing...");
+                _logger.LogWarning($"Failed publish for letter ({receipt.OriginalMessage.GetMessageId()}). Retrying with AutoPublishing...");
 
                 try
                 { await QueueMessageAsync(receipt.OriginalMessage); }
@@ -266,7 +269,7 @@ namespace HouseofCat.RabbitMQ
             }
             else if (receipt.IsError)
             {
-                _logger.LogError($"Failed publish for letter ({receipt.OriginalMessage.MessageId}). Unable to retry as the original letter was not received.");
+                _logger.LogError($"Failed publish for letter ({receipt.OriginalMessage.GetMessageId()}). Unable to retry as the original letter was not received.");
             }
         }
 
@@ -492,7 +495,7 @@ namespace HouseofCat.RabbitMQ
                 _logger.LogDebug(
                     LogMessages.Publishers.PublishMessageFailed,
                     $"{message.Envelope.Exchange}->{message.Envelope.RoutingKey}",
-                    message.MessageId,
+                    message.GetMessageId(),
                     ex.Message);
 
                 error = true;
@@ -543,7 +546,7 @@ namespace HouseofCat.RabbitMQ
                 _logger.LogDebug(
                     LogMessages.Publishers.PublishMessageFailed,
                     $"{message.Envelope.Exchange}->{message.Envelope.RoutingKey}",
-                    message.MessageId,
+                    message.GetMessageId(),
                     ex.Message);
 
                 error = true;
@@ -590,7 +593,7 @@ namespace HouseofCat.RabbitMQ
                     _logger.LogDebug(
                         LogMessages.Publishers.PublishMessageFailed,
                         $"{messages[i].Envelope.Exchange}->{messages[i].Envelope.RoutingKey}",
-                        messages[i].MessageId,
+                        messages[i].GetMessageId(),
                         ex.Message);
 
                     error = true;
@@ -667,7 +670,7 @@ namespace HouseofCat.RabbitMQ
 
             await _receiptBuffer
                 .Writer
-                .WriteAsync(new PublishReceipt { MessageId = message.MessageId, IsError = error, OriginalMessage = error ? message : null })
+                .WriteAsync(new PublishReceipt { MessageId = message.GetMessageId(), IsError = error, OriginalMessage = error ? message : null })
                 .ConfigureAwait(false);
         }
 

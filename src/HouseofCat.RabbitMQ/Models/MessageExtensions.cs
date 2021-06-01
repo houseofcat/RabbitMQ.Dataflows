@@ -7,12 +7,9 @@ namespace HouseofCat.RabbitMQ
 {
     public static class MessageExtensions
     {
-        public static TMessage Clone<TMessage, TMetadata>(this IMessage message) 
+        public static TMessage Clone<TMessage>(this IMessage message) 
             where TMessage : IMessage, new()
-            where TMetadata : IMetadata, new()
         {
-            var metadata = message.Metadata.Clone<TMetadata>();
-
             return new TMessage
             {
                 Envelope = new Envelope
@@ -25,37 +22,24 @@ namespace HouseofCat.RabbitMQ
                         Mandatory = message.Envelope.RoutingOptions?.Mandatory ?? false,
                         PriorityLevel = message.Envelope.RoutingOptions?.PriorityLevel ?? 0,
                     }
-                },
-                Metadata = metadata
+                }
             };
         }
 
-        public static T GetHeader<T>(this IMessage message, string key) => message.Metadata.GetHeader<T>(key);
-        
-        public static bool RemoveHeader(this IMessage message, string key) => message.Metadata.RemoveHeader(key);
-        
-        public static void UpsertHeader<TMetadata>(this IMessage message, string key, object value)
-            where TMetadata: IMetadata, new()
+        public static void UpsertHeader(this IMessage message, string key, object value)
         {
-            if (message.Metadata == null)
-            { message.Metadata = new TMetadata(); }
-            
-            message.Metadata.UpsertHeader(key, value);
-        }
-
-        public static IDictionary<string, object> GetHeadersOutOfMetadata(this IMessage message) => 
-            message.Metadata.GetHeadersOutOfMetadata();
-        
-        public static void WriteHeadersToMetadata<TMetadata>(this IMessage message, IDictionary<string, object> headers)
-            where TMetadata: IMetadata, new()
-        {
-            if (message.Metadata == null)
-            { message.Metadata = new TMetadata(); }
-            
-            message.Metadata.WriteHeadersToMetadata(headers);
+            var metadata = message.CreateMetadataIfMissing();
+            metadata.UpsertHeader(key, value);
         }
         
-        public static IBasicProperties CreateBasicProperties(this IMessage message, IChannelHost channelHost, bool withHeaders)
+        public static void WriteHeadersToMetadata(this IMessage message, IDictionary<string, object> headers)
+        {
+            var metadata = message.CreateMetadataIfMissing();
+            metadata.WriteHeadersToMetadata(headers);
+        }
+        
+        public static IBasicProperties CreateBasicProperties(
+            this IMessage message, IChannelHost channelHost, bool withHeaders, IMetadata metadata)
         {
             var props = channelHost.GetChannel().CreateBasicProperties();
 
@@ -68,9 +52,9 @@ namespace HouseofCat.RabbitMQ
                 props.Headers = new Dictionary<string, object>();
             }
 
-            if (withHeaders && message.Metadata != null)
+            if (withHeaders && metadata != null)
             {
-                foreach (var kvp in message.Metadata?.CustomFields)
+                foreach (var kvp in metadata?.CustomFields)
                 {
                     if (kvp.Key.StartsWith(Constants.HeaderPrefix, StringComparison.OrdinalIgnoreCase))
                     {

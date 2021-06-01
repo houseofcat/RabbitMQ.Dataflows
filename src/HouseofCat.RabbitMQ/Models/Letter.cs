@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
@@ -8,14 +9,14 @@ namespace HouseofCat.RabbitMQ
     public class Letter : IMessage
     {
         public Envelope Envelope { get; set; }
-        public ulong MessageId { get; set; }
+        public ulong LetterId { get; set; }
 
-        public IMetadata Metadata { get; set; }
+        public IMetadata LetterMetadata { get; set; }
         public byte[] Body { get; set; }
         
         public IBasicProperties BuildProperties(IChannelHost channelHost, bool withHeaders)
         {
-            var props = this.CreateBasicProperties(channelHost, withHeaders);
+            var props = this.CreateBasicProperties(channelHost, withHeaders, LetterMetadata);
             
             // Non-optional Header.
             props.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForLetter;
@@ -34,7 +35,7 @@ namespace HouseofCat.RabbitMQ
                 RoutingOptions = routingOptions ?? RoutingOptions.CreateDefaultRoutingOptions()
             };
             Body = data;
-            Metadata = metadata ?? new LetterMetadata();
+            LetterMetadata = metadata ?? new LetterMetadata();
         }
 
         public Letter(string exchange, string routingKey, byte[] data, string id, RoutingOptions routingOptions = null)
@@ -47,9 +48,9 @@ namespace HouseofCat.RabbitMQ
             };
             Body = data;
             if (!string.IsNullOrWhiteSpace(id))
-            { Metadata = new LetterMetadata { Id = id }; }
+            { LetterMetadata = new LetterMetadata { Id = id }; }
             else
-            { Metadata = new LetterMetadata(); }
+            { LetterMetadata = new LetterMetadata(); }
         }
 
         public Letter(string exchange, string routingKey, byte[] data, string id, byte priority)
@@ -62,19 +63,34 @@ namespace HouseofCat.RabbitMQ
             };
             Body = data;
             if (!string.IsNullOrWhiteSpace(id))
-            { Metadata = new LetterMetadata { Id = id }; }
+            { LetterMetadata = new LetterMetadata { Id = id }; }
             else
-            { Metadata = new LetterMetadata(); }
+            { LetterMetadata = new LetterMetadata(); }
         }
 
-        public Letter Clone() => this.Clone<Letter, LetterMetadata>();
+        public Letter Clone()
+        {
+            var clone = this.Clone<Letter>();
+            clone.LetterMetadata = LetterMetadata.Clone<LetterMetadata>();
+            return clone;
+        }
+
+        public ulong GetMessageId() => LetterId;
+        public IMetadata GetMetadata() => LetterMetadata;
+
+        public IMetadata CreateMetadataIfMissing()
+        {
+            LetterMetadata ??= new LetterMetadata();
+            return LetterMetadata;
+        }
         
+        public T GetHeader<T>(string key) => LetterMetadata.GetHeader<T>(key);
+        
+        public bool RemoveHeader(string key) => LetterMetadata.RemoveHeader(key);
+
+        public IDictionary<string, object> GetHeadersOutOfMetadata() => LetterMetadata.GetHeadersOutOfMetadata();
+
         public byte[] GetBodyToPublish(ISerializationProvider serializationProvider) =>
             serializationProvider.Serialize(this);
-
-        public void UpsertHeader(string key, object value) => this.UpsertHeader<LetterMetadata>(key, value);
-
-        public void WriteHeadersToMetadata(IDictionary<string, object> headers) =>
-            this.WriteHeadersToMetadata<LetterMetadata>(headers);
     }
 }

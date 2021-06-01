@@ -18,8 +18,8 @@ namespace HouseofCat.RabbitMQ
 
             return new Letter
             {
-                MessageId = 0,
-                Metadata = new LetterMetadata(),
+                LetterId = 0,
+                LetterMetadata = new LetterMetadata(),
                 Envelope = new Envelope
                 {
                     Exchange = string.Empty,
