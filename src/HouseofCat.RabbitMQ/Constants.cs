@@ -34,7 +34,7 @@ namespace HouseofCat.RabbitMQ
         public readonly static string AutoPublisherNotStartedError = "AutoPublisher has not been started.";
 
         // General
-        public readonly static string QueueChannelError = "Can't queue a letter to a closed Threading.Channel.";
+        public readonly static string QueueChannelError = "Can't queue a message to a closed Threading.Channel.";
 
         public readonly static string ChannelReadErrorMessage = "Can't use reader on a closed Threading.Channel.";
         public readonly static string NoConsumerOptionsMessage = "Consumer {0} not found in Consumers dictionary.";
@@ -100,14 +100,14 @@ namespace HouseofCat.RabbitMQ
         public static class Publishers
         {
             public readonly static string PublishFailed = "Publish to route ({0}) failed, flagging channel host. Error: {1}";
-            public readonly static string PublishLetterFailed = "Publish to route ({0}) failed [LetterId: {1}] flagging channel host. Error: {2}";
+            public readonly static string PublishMessageFailed = "Publish to route ({0}) failed [MessageId: {1}] flagging channel host. Error: {2}";
             public readonly static string PublishBatchFailed = "Batch publish failed, flagging channel host. Error: {0}";
         }
 
         public static class AutoPublishers
         {
-            public readonly static string LetterQueued = "AutoPublisher queued letter [LetterId:{0} InternalId:{1}].";
-            public readonly static string LetterPublished = "AutoPublisher published letter [LetterId:{0} InternalId:{1}]. Listen for receipt to indicate success...";
+            public readonly static string MessageQueued = "AutoPublisher queued message [MessageId:{0} InternalId:{1}].";
+            public readonly static string MessagePublished = "AutoPublisher published message [MessageId:{0} InternalId:{1}]. Listen for receipt to indicate success...";
         }
 
         public static class Consumers

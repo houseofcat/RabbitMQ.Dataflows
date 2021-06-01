@@ -1,26 +1,37 @@
-using HouseofCat.Utilities.Errors;
-using System;
 using System.Collections.Generic;
+using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Serialization;
+using RabbitMQ.Client;
 
 namespace HouseofCat.RabbitMQ
 {
-    public class Letter
+    public class Letter : IMessage
     {
         public Envelope Envelope { get; set; }
         public ulong LetterId { get; set; }
 
-        public LetterMetadata LetterMetadata { get; set; }
+        public IMetadata LetterMetadata { get; set; }
         public byte[] Body { get; set; }
+        
+        public IBasicProperties BuildProperties(IChannelHost channelHost, bool withHeaders)
+        {
+            var props = this.CreateBasicProperties(channelHost, withHeaders, LetterMetadata);
+            
+            // Non-optional Header.
+            props.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForLetter;
+
+            return props;
+        }
 
         public Letter() { }
 
-        public Letter(string exchange, string routingKey, byte[] data, LetterMetadata metadata = null, RoutingOptions routingOptions = null)
+        public Letter(string exchange, string routingKey, byte[] data, IMetadata metadata = null, RoutingOptions routingOptions = null)
         {
             Envelope = new Envelope
             {
                 Exchange = exchange,
                 RoutingKey = routingKey,
-                RoutingOptions = routingOptions ?? DefaultRoutingOptions()
+                RoutingOptions = routingOptions ?? RoutingOptions.CreateDefaultRoutingOptions()
             };
             Body = data;
             LetterMetadata = metadata ?? new LetterMetadata();
@@ -32,7 +43,7 @@ namespace HouseofCat.RabbitMQ
             {
                 Exchange = exchange,
                 RoutingKey = routingKey,
-                RoutingOptions = routingOptions ?? DefaultRoutingOptions()
+                RoutingOptions = routingOptions ?? RoutingOptions.CreateDefaultRoutingOptions()
             };
             Body = data;
             if (!string.IsNullOrWhiteSpace(id))
@@ -47,7 +58,7 @@ namespace HouseofCat.RabbitMQ
             {
                 Exchange = exchange,
                 RoutingKey = routingKey,
-                RoutingOptions = DefaultRoutingOptions(priority)
+                RoutingOptions = RoutingOptions.CreateDefaultRoutingOptions(priority)
             };
             Body = data;
             if (!string.IsNullOrWhiteSpace(id))
@@ -56,115 +67,30 @@ namespace HouseofCat.RabbitMQ
             { LetterMetadata = new LetterMetadata(); }
         }
 
-        public static RoutingOptions DefaultRoutingOptions(byte priority = 0)
-        {
-            return new RoutingOptions
-            {
-                DeliveryMode = 2,
-                Mandatory = false,
-                PriorityLevel = priority
-            };
-        }
-
         public Letter Clone()
         {
-            var metadata = new LetterMetadata
-            {
-                Compressed = LetterMetadata.Compressed,
-                Encrypted = LetterMetadata.Encrypted,
-            };
-
-            foreach (var kvp in LetterMetadata.CustomFields)
-            {
-                metadata.CustomFields.Add(kvp.Key, kvp.Value);
-            }
-
-            return new Letter
-            {
-                Envelope = new Envelope
-                {
-                    Exchange = Envelope.Exchange,
-                    RoutingKey = Envelope.RoutingKey,
-                    RoutingOptions = new RoutingOptions
-                    {
-                        DeliveryMode = Envelope.RoutingOptions?.DeliveryMode ?? 2,
-                        Mandatory = Envelope.RoutingOptions?.Mandatory ?? false,
-                        PriorityLevel = Envelope.RoutingOptions?.PriorityLevel ?? 0,
-                    }
-                },
-                LetterMetadata = metadata
-            };
+            var clone = this.Clone<Letter>();
+            clone.LetterMetadata = LetterMetadata.Clone<LetterMetadata>();
+            return clone;
         }
 
-        public T GetHeader<T>(string key)
+        public ulong GetMessageId() => LetterId;
+        public IMetadata GetMetadata() => LetterMetadata;
+
+        public IMetadata CreateMetadataIfMissing()
         {
-            Guard.AgainstNull(LetterMetadata, nameof(LetterMetadata));
-            Guard.AgainstNullOrEmpty(LetterMetadata.CustomFields, nameof(LetterMetadata.CustomFields));
-
-            if (LetterMetadata.CustomFields.ContainsKey(key))
-            {
-                if (LetterMetadata.CustomFields[key] is T temp)
-                { return temp; }
-                else { throw new InvalidCastException(); }
-            }
-
-            return default;
+            LetterMetadata ??= new LetterMetadata();
+            return LetterMetadata;
         }
+        
+        public T GetHeader<T>(string key) => LetterMetadata.GetHeader<T>(key);
+        public bool RemoveHeader(string key) => LetterMetadata.RemoveHeader(key);
+        public IDictionary<string, object> GetHeadersOutOfMetadata() => LetterMetadata.GetHeadersOutOfMetadata();
 
-        public void UpsertHeader(string key, object value)
-        {
-            if (LetterMetadata == null)
-            { LetterMetadata = new LetterMetadata(); }
-
-            if (LetterMetadata.CustomFields == null)
-            { LetterMetadata.CustomFields = new Dictionary<string, object>(); }
-
-            LetterMetadata.CustomFields[key] = value;
-        }
-
-        public bool RemoveHeader(string key)
-        {
-            Guard.AgainstNull(LetterMetadata, nameof(LetterMetadata));
-            Guard.AgainstNullOrEmpty(LetterMetadata.CustomFields, nameof(LetterMetadata.CustomFields));
-
-            return LetterMetadata
-                .CustomFields
-                .Remove(key);
-        }
-
-        public IDictionary<string, object> GetHeadersOutOfMetadata()
-        {
-            Guard.AgainstNull(LetterMetadata, nameof(LetterMetadata));
-            Guard.AgainstNullOrEmpty(LetterMetadata.CustomFields, nameof(LetterMetadata.CustomFields));
-
-            var dict = new Dictionary<string, object>();
-
-            foreach (var kvp in LetterMetadata.CustomFields)
-            {
-                if (kvp.Key.StartsWith(Constants.HeaderPrefix, StringComparison.OrdinalIgnoreCase))
-                {
-                    dict[kvp.Key] = kvp.Value;
-                }
-            }
-
-            return dict;
-        }
-
-        public void WriteHeadersToMetadata(IDictionary<string, object> headers)
-        {
-            if (LetterMetadata == null)
-            { LetterMetadata = new LetterMetadata(); }
-
-            if (LetterMetadata.CustomFields == null)
-            { LetterMetadata.CustomFields = new Dictionary<string, object>(); }
-
-            foreach (var kvp in headers)
-            {
-                if (kvp.Key.StartsWith(Constants.HeaderPrefix, StringComparison.OrdinalIgnoreCase))
-                {
-                    LetterMetadata.CustomFields[kvp.Key] = kvp.Value;
-                }
-            }
-        }
+        public byte[] GetBodyToPublish(ISerializationProvider serializationProvider) => 
+            serializationProvider.Serialize(this);
+        
+        public IPublishReceipt GetPublishReceipt(bool error) => 
+            new PublishReceipt { LetterId = GetMessageId(), IsError = error, OriginalLetter = error ? this : null };
     }
 }
