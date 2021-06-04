@@ -92,7 +92,7 @@ namespace HouseofCat.RabbitMQ
                 // ADD SERIALIZER TO HEADER AND && JSON THIS ONE
                 if (ContentType == Constants.HeaderValueForLetter && Data?.Length > 0)
                 {
-                    // All Letter objects SHOULD deserialize with System.Text.Json, the inner Body maybe not.
+                    // All IMessage objects SHOULD deserialize with System.Text.Json, the inner Body maybe not.
                     try
                     { Letter = JsonSerializer.Deserialize<Letter>(Data); }
                     catch { /* Swallow */}

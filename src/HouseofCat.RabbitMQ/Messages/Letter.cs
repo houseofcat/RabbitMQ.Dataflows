@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
@@ -5,18 +6,42 @@ using RabbitMQ.Client;
 
 namespace HouseofCat.RabbitMQ
 {
+    public interface IMessage
+    {
+        Envelope Envelope { get; set; }
+        byte[] Body { get; set; }
+
+        string GetMessageId();
+        IMetadata GetMetadata();
+
+        IMetadata CreateMetadataIfMissing();
+
+        T GetHeader<T>(string key);
+        bool RemoveHeader(string key);
+        IDictionary<string, object> GetHeadersOutOfMetadata();
+
+        byte[] GetBodyToPublish(ISerializationProvider serializationProvider);
+
+        IPublishReceipt GetPublishReceipt(bool error);
+
+        IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders);
+    }
+
     public class Letter : IMessage
     {
         public Envelope Envelope { get; set; }
-        public ulong LetterId { get; set; }
+        public string LetterId { get; set; }
 
         public IMetadata LetterMetadata { get; set; }
         public byte[] Body { get; set; }
         
-        public IBasicProperties BuildProperties(IChannelHost channelHost, bool withHeaders)
+        public IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders)
         {
-            var props = this.CreateBasicProperties(channelHost, withHeaders, LetterMetadata);
-            
+            LetterId ??= Guid.NewGuid().ToString();
+
+            var props = this.CreateBasicProperties(channelHost, withOptionalHeaders, LetterMetadata);
+            props.MessageId = LetterId;
+
             // Non-optional Header.
             props.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForLetter;
 
@@ -74,7 +99,7 @@ namespace HouseofCat.RabbitMQ
             return clone;
         }
 
-        public ulong GetMessageId() => LetterId;
+        public string GetMessageId() => LetterId;
         public IMetadata GetMetadata() => LetterMetadata;
 
         public IMetadata CreateMetadataIfMissing()

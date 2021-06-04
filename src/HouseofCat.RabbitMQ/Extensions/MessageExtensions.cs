@@ -39,20 +39,24 @@ namespace HouseofCat.RabbitMQ
         }
         
         public static IBasicProperties CreateBasicProperties(
-            this IMessage message, IChannelHost channelHost, bool withHeaders, IMetadata metadata)
+            this IMessage message,
+            IChannelHost channelHost,
+            bool withOptionalHeaders,
+            IMetadata metadata)
         {
             var props = channelHost.GetChannel().CreateBasicProperties();
 
             props.DeliveryMode = message.Envelope.RoutingOptions.DeliveryMode;
             props.ContentType = message.Envelope.RoutingOptions.MessageType;
             props.Priority = message.Envelope.RoutingOptions.PriorityLevel;
+            props.MessageId = message.GetMessageId() ?? Guid.NewGuid().ToString();
 
             if (!props.IsHeadersPresent())
             {
                 props.Headers = new Dictionary<string, object>();
             }
 
-            if (withHeaders && metadata != null)
+            if (withOptionalHeaders && metadata != null)
             {
                 foreach (var kvp in metadata?.CustomFields)
                 {

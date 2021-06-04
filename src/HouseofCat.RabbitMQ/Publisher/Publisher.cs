@@ -19,15 +19,44 @@ namespace HouseofCat.RabbitMQ
     public interface IPublisher
     {
         bool AutoPublisherStarted { get; }
-        Options Options { get; }
+        RabbitOptions Options { get; }
 
         ChannelReader<IPublishReceipt> GetReceiptBufferReader();
         Task PublishAsync(IMessage message, bool createReceipt, bool withHeaders = true);
         Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withHeaders = true);
-        Task<bool> PublishAsync(string exchangeName, string routingKey, ReadOnlyMemory<byte> payload, bool mandatory = false, IBasicProperties messageProperties = null);
-        Task<bool> PublishAsync(string exchangeName, string routingKey, ReadOnlyMemory<byte> payload, IDictionary<string, object> headers = null, byte? priority = 0, bool mandatory = false);
-        Task<bool> PublishBatchAsync(string exchangeName, string routingKey, IList<ReadOnlyMemory<byte>> payloads, bool mandatory = false, IBasicProperties messageProperties = null);
-        Task<bool> PublishBatchAsync(string exchangeName, string routingKey, IList<ReadOnlyMemory<byte>> payloads, IDictionary<string, object> headers = null, byte? priority = 0, bool mandatory = false);
+
+        Task<bool> PublishAsync(
+            string exchangeName,
+            string routingKey,
+            ReadOnlyMemory<byte> payload,
+            bool mandatory = false,
+            IBasicProperties messageProperties = null,
+            string messageId = null);
+
+        Task<bool> PublishAsync(
+            string exchangeName,
+            string routingKey,
+            ReadOnlyMemory<byte> payload,
+            IDictionary<string, object> headers = null,
+            string messageId = null,
+            byte? priority = 0,
+            bool mandatory = false);
+
+        Task<bool> PublishBatchAsync(
+            string exchangeName,
+            string routingKey,
+            IList<ReadOnlyMemory<byte>> payloads,
+            bool mandatory = false,
+            IBasicProperties messageProperties = null);
+
+        Task<bool> PublishBatchAsync(
+            string exchangeName,
+            string routingKey,
+            IList<ReadOnlyMemory<byte>> payloads,
+            IDictionary<string, object> headers = null,
+            byte? priority = 0,
+            bool mandatory = false);
+
         Task PublishManyAsBatchAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true);
         Task PublishManyAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true);
         ValueTask QueueMessageAsync(IMessage message);
@@ -37,7 +66,7 @@ namespace HouseofCat.RabbitMQ
 
     public class Publisher : IPublisher, IDisposable
     {
-        public Options Options { get; }
+        public RabbitOptions Options { get; }
 
         public bool AutoPublisherStarted { get; private set; }
 
@@ -62,7 +91,7 @@ namespace HouseofCat.RabbitMQ
         private bool _disposedValue;
 
         public Publisher(
-            Options options,
+            RabbitOptions options,
             ISerializationProvider serializationProvider,
             IEncryptionProvider encryptionProvider = null,
             ICompressionProvider compressionProvider = null)
@@ -199,7 +228,7 @@ namespace HouseofCat.RabbitMQ
             {
                 throw new InvalidOperationException(ExceptionMessages.QueueChannelError);
             }
-            
+
             var metadata = message.GetMetadata();
             _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.GetMessageId(), metadata?.Id);
 
@@ -220,7 +249,7 @@ namespace HouseofCat.RabbitMQ
                     { continue; }
 
                     var metadata = message.GetMetadata();
-                    
+
                     if (_compress)
                     {
                         message.Body = _compressionProvider.Compress(message.Body);
@@ -269,7 +298,7 @@ namespace HouseofCat.RabbitMQ
                     { await QueueMessageAsync(receipt.GetOriginalMessage()); }
                     catch (Exception ex) /* No-op */
                     { _logger.LogDebug("Error ({0}) occurred on retry, most likely because retry during shutdown.", ex.Message); }
-                    }
+                }
                 else
                 {
                     _logger.LogError($"Failed publish for message ({originalMessage.GetMessageId()}). Unable to retry as the original message was not received.");
@@ -287,7 +316,8 @@ namespace HouseofCat.RabbitMQ
             string routingKey,
             ReadOnlyMemory<byte> payload,
             bool mandatory = false,
-            IBasicProperties messageProperties = null)
+            IBasicProperties messageProperties = null,
+            string messageId = null)
         {
             Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
 
@@ -297,6 +327,7 @@ namespace HouseofCat.RabbitMQ
             {
                 messageProperties = channelHost.GetChannel().CreateBasicProperties();
                 messageProperties.DeliveryMode = 2;
+                messageProperties.MessageId = messageId ?? Guid.NewGuid().ToString();
 
                 if (!messageProperties.IsHeadersPresent())
                 {
@@ -309,12 +340,14 @@ namespace HouseofCat.RabbitMQ
 
             try
             {
-                channelHost.GetChannel().BasicPublish(
-                    exchange: exchangeName ?? string.Empty,
-                    routingKey: routingKey,
-                    mandatory: mandatory,
-                    basicProperties: messageProperties,
-                    body: payload);
+                channelHost
+                    .GetChannel()
+                    .BasicPublish(
+                        exchange: exchangeName ?? string.Empty,
+                        routingKey: routingKey,
+                        mandatory: mandatory,
+                        basicProperties: messageProperties,
+                        body: payload);
             }
             catch (Exception ex)
             {
@@ -336,6 +369,7 @@ namespace HouseofCat.RabbitMQ
             string routingKey,
             ReadOnlyMemory<byte> payload,
             IDictionary<string, object> headers = null,
+            string messageId = null,
             byte? priority = 0,
             bool mandatory = false)
         {
@@ -346,12 +380,14 @@ namespace HouseofCat.RabbitMQ
 
             try
             {
-                channelHost.GetChannel().BasicPublish(
-                    exchange: exchangeName ?? string.Empty,
-                    routingKey: routingKey,
-                    mandatory: mandatory,
-                    basicProperties: BuildProperties(headers, channelHost, priority),
-                    body: payload);
+                channelHost
+                    .GetChannel()
+                    .BasicPublish(
+                        exchange: exchangeName ?? string.Empty,
+                        routingKey: routingKey,
+                        mandatory: mandatory,
+                        basicProperties: BuildProperties(headers, channelHost, messageId, priority),
+                        body: payload);
             }
             catch (Exception ex)
             {
@@ -388,6 +424,7 @@ namespace HouseofCat.RabbitMQ
             {
                 messageProperties = channelHost.GetChannel().CreateBasicProperties();
                 messageProperties.DeliveryMode = 2;
+                messageProperties.MessageId = Guid.NewGuid().ToString();
 
                 if (!messageProperties.IsHeadersPresent())
                 {
@@ -448,7 +485,7 @@ namespace HouseofCat.RabbitMQ
 
                 for (int i = 0; i < payloads.Count; i++)
                 {
-                    batch.Add(exchangeName, routingKey, mandatory, BuildProperties(headers, channelHost, priority), payloads[i]);
+                    batch.Add(exchangeName, routingKey, mandatory, BuildProperties(headers, channelHost, null, priority), payloads[i]);
                 }
 
                 batch.Publish();
@@ -477,8 +514,8 @@ namespace HouseofCat.RabbitMQ
         /// </summary>
         /// <param name="message"></param>
         /// <param name="createReceipt"></param>
-        /// <param name="withHeaders"></param>
-        public async Task PublishAsync(IMessage message, bool createReceipt, bool withHeaders = true)
+        /// <param name="withOptionalHeaders"></param>
+        public async Task PublishAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true)
         {
             var error = false;
             var chanHost = await _channelPool
@@ -487,12 +524,14 @@ namespace HouseofCat.RabbitMQ
 
             try
             {
-                chanHost.GetChannel().BasicPublish(
-                    message.Envelope.Exchange,
-                    message.Envelope.RoutingKey,
-                    message.Envelope.RoutingOptions?.Mandatory ?? false,
-                    message.BuildProperties(chanHost, withHeaders),
-                    message.GetBodyToPublish(_serializationProvider));
+                chanHost
+                    .GetChannel()
+                    .BasicPublish(
+                        message.Envelope.Exchange,
+                        message.Envelope.RoutingKey,
+                        message.Envelope.RoutingOptions?.Mandatory ?? false,
+                        message.BuildProperties(chanHost, withOptionalHeaders),
+                        message.GetBodyToPublish(_serializationProvider));
             }
             catch (Exception ex)
             {
@@ -524,8 +563,8 @@ namespace HouseofCat.RabbitMQ
         /// </summary>
         /// <param name="message"></param>
         /// <param name="createReceipt"></param>
-        /// <param name="withHeaders"></param>
-        public async Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withHeaders = true)
+        /// <param name="withOptionalHeaders"></param>
+        public async Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true)
         {
             var error = false;
             var chanHost = await _channelPool
@@ -536,12 +575,14 @@ namespace HouseofCat.RabbitMQ
             {
                 chanHost.GetChannel().WaitForConfirmsOrDie(_waitForConfirmation);
 
-                chanHost.GetChannel().BasicPublish(
-                    message.Envelope.Exchange,
-                    message.Envelope.RoutingKey,
-                    message.Envelope.RoutingOptions?.Mandatory ?? false,
-                    message.BuildProperties(chanHost, withHeaders),
-                    message.GetBodyToPublish(_serializationProvider));
+                chanHost
+                    .GetChannel()
+                    .BasicPublish(
+                        message.Envelope.Exchange,
+                        message.Envelope.RoutingKey,
+                        message.Envelope.RoutingOptions?.Mandatory ?? false,
+                        message.BuildProperties(chanHost, withOptionalHeaders),
+                        message.GetBodyToPublish(_serializationProvider));
 
                 chanHost.GetChannel().WaitForConfirmsOrDie(_waitForConfirmation);
             }
@@ -573,8 +614,8 @@ namespace HouseofCat.RabbitMQ
         /// </summary>
         /// <param name="messages"></param>
         /// <param name="createReceipt"></param>
-        /// <param name="withHeaders"></param>
-        public async Task PublishManyAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true)
+        /// <param name="withOptionalHeaders"></param>
+        public async Task PublishManyAsync(IList<IMessage> messages, bool createReceipt, bool withOptionalHeaders = true)
         {
             var error = false;
             var chanHost = await _channelPool
@@ -589,7 +630,7 @@ namespace HouseofCat.RabbitMQ
                         messages[i].Envelope.Exchange,
                         messages[i].Envelope.RoutingKey,
                         messages[i].Envelope.RoutingOptions.Mandatory,
-                        messages[i].BuildProperties(chanHost, withHeaders),
+                        messages[i].BuildProperties(chanHost, withOptionalHeaders),
                         messages[i].GetBodyToPublish(_serializationProvider));
                 }
                 catch (Exception ex)
@@ -618,8 +659,8 @@ namespace HouseofCat.RabbitMQ
         /// </summary>
         /// <param name="messages"></param>
         /// <param name="createReceipt"></param>
-        /// <param name="withHeaders"></param>
-        public async Task PublishManyAsBatchAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true)
+        /// <param name="withOptionalHeaders"></param>
+        public async Task PublishManyAsBatchAsync(IList<IMessage> messages, bool createReceipt, bool withOptionalHeaders = true)
         {
             var error = false;
             var chanHost = await _channelPool
@@ -637,7 +678,7 @@ namespace HouseofCat.RabbitMQ
                             messages[i].Envelope.Exchange,
                             messages[i].Envelope.RoutingKey,
                             messages[i].Envelope.RoutingOptions.Mandatory,
-                            messages[i].BuildProperties(chanHost, withHeaders),
+                            messages[i].BuildProperties(chanHost, withOptionalHeaders),
                             messages[i].GetBodyToPublish(_serializationProvider).AsMemory());
 
                         if (createReceipt)
@@ -678,11 +719,26 @@ namespace HouseofCat.RabbitMQ
                 .ConfigureAwait(false);
         }
 
-        private static IBasicProperties BuildProperties(IDictionary<string, object> headers, IChannelHost channelHost, byte? priority = 0, byte? deliveryMode = 2)
+        /// <summary>
+        /// Intended to bring feature parity and include properties when publishing byte[], which you get for free when publishing with IMessage objects.
+        /// </summary>
+        /// <param name="headers"></param>
+        /// <param name="channelHost"></param>
+        /// <param name="messageId"></param>
+        /// <param name="priority"></param>
+        /// <param name="deliveryMode"></param>
+        /// <returns></returns>
+        private static IBasicProperties BuildProperties(
+            IDictionary<string, object> headers,
+            IChannelHost channelHost,
+            string messageId = null,
+            byte? priority = 0,
+            byte? deliveryMode = 2)
         {
             var props = channelHost.GetChannel().CreateBasicProperties();
             props.DeliveryMode = deliveryMode ?? 2; // Default Persisted
             props.Priority = priority ?? 0; // Default Priority
+            props.MessageId = messageId ?? Guid.NewGuid().ToString();
 
             if (!props.IsHeadersPresent())
             {

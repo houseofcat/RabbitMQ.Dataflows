@@ -1,12 +1,20 @@
 namespace HouseofCat.RabbitMQ
 {
+    public interface IPublishReceipt
+    {
+        bool IsError { get; set; }
+
+        string GetMessageId();
+        IMessage GetOriginalMessage();
+    }
+
     public struct PublishReceipt : IPublishReceipt
     {
         public bool IsError { get; set; }
-        public ulong LetterId { get; set; }
+        public string LetterId { get; set; }
         public IMessage OriginalLetter { get; set; }
 
-        public ulong GetMessageId() => LetterId;
+        public string GetMessageId() => LetterId;
         public IMessage GetOriginalMessage() => OriginalLetter;
     }
 }

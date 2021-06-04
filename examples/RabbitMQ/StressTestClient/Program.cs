@@ -21,7 +21,7 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
         private static ICompressionProvider _compressionProvider;
         private static IEncryptionProvider _encryptionProvider;
 
-        private static Options options;
+        private static RabbitOptions options;
         private static ChannelPool channelPool;
         private static Topologer topologer;
 
@@ -36,7 +36,7 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
         private static Consumer con4;
 
         // Per Publisher
-        private const ulong MessageCount = 250_000;
+        private const int MessageCount = 250_000;
         private const int MessageSize = 1_000;
 
         public static async Task Main()
@@ -86,7 +86,7 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
         private static async Task SetupAsync()
         {
             var sw = Stopwatch.StartNew();
-            options = await JsonFileReader.ReadFileAsync<Options>("Config.json");
+            options = await JsonFileReader.ReadFileAsync<RabbitOptions>("Config.json");
 
             channelPool = new ChannelPool(options);
 
@@ -190,18 +190,18 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
             await Console.Out.WriteLineAsync($"- Consumer ({consumer.ConsumerOptions.ConsumerName}) stopped.").ConfigureAwait(false);
         }
 
-        private static async Task PublishLettersAsync(Publisher apub, string queueName, ulong count)
+        private static async Task PublishLettersAsync(Publisher apub, string queueName, int count)
         {
             var sw = Stopwatch.StartNew();
-            for (ulong i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
                 var letter = RandomData.CreateSimpleRandomLetter(queueName, MessageSize);
                 letter.Envelope.RoutingOptions.DeliveryMode = 1;
-                letter.LetterId = i;
+                letter.LetterId = Guid.NewGuid().ToString();
 
-                await apub.QueueLetterAsync(letter).ConfigureAwait(false);
+                await apub.QueueMessageAsync(letter).ConfigureAwait(false);
 
-                if (letter.LetterId % 10_000 == 0)
+                if (i % 10_000 == 0)
                 {
                     await Console
                         .Out
