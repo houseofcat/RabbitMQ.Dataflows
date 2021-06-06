@@ -508,8 +508,8 @@ namespace HouseofCat.RabbitMQ.Dataflows
                     {
                         if (state.SendData?.Length > 0)
                         { state.SendData = action(state.SendData); }
-                        else if (state.SendLetter.Body?.Length > 0)
-                        { state.SendLetter.Body = action(state.SendLetter.Body); }
+                        else if (state.SendMessage.Body?.Length > 0)
+                        { state.SendMessage.Body = action(state.SendMessage.Body); }
                     }
                     else if (predicate.Invoke(state))
                     {
@@ -556,8 +556,8 @@ namespace HouseofCat.RabbitMQ.Dataflows
                     {
                         if (state.SendData?.Length > 0)
                         { state.SendData = await action(state.SendData).ConfigureAwait(false); }
-                        else if (state.SendLetter.Body?.Length > 0)
-                        { state.SendLetter.Body = await action(state.SendLetter.Body).ConfigureAwait(false); }
+                        else if (state.SendMessage.Body?.Length > 0)
+                        { state.SendMessage.Body = await action(state.SendMessage.Body).ConfigureAwait(false); }
                     }
                     else if (predicate.Invoke(state))
                     {
@@ -595,8 +595,8 @@ namespace HouseofCat.RabbitMQ.Dataflows
                 {
                     using var multiDispose = _metricsProvider.TrackAndDuration(PublishStepIdentifier, true);
 
-                    await service.Publisher.PublishAsync(state.SendLetter, true, true).ConfigureAwait(false);
-                    state.SendLetterSent = true;
+                    await service.Publisher.PublishAsync(state.SendMessage, true, true).ConfigureAwait(false);
+                    state.SendMessageSent = true;
 
                     return state;
                 }
