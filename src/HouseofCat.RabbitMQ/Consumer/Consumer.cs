@@ -151,7 +151,7 @@ namespace HouseofCat.RabbitMQ
 
             if (Options.FactoryOptions.EnableDispatchConsumersAsync)
             {
-                if (_asyncConsumer != null)
+                if (_asyncConsumer != null) // Cleanup operation, this prevents an EventHandler leak.
                 {
                     _asyncConsumer.Received -= ReceiveHandlerAsync;
                     _asyncConsumer.Shutdown -= ConsumerShutdownAsync;
@@ -183,7 +183,7 @@ namespace HouseofCat.RabbitMQ
             }
             else
             {
-                if (_consumer != null)
+                if (_consumer != null) // Cleanup operation, this prevents an EventHandler leak.
                 {
                     _consumer.Received -= ReceiveHandler;
                     _consumer.Shutdown -= ConsumerShutdown;

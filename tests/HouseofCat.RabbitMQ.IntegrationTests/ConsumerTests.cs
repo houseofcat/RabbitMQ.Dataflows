@@ -69,7 +69,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task ConsumerStartAndStopTesting()
         {
-            var consumer = _fixture.RabbitService.GetConsumer("ConsumerFromConfig");
+            var consumer = _fixture.RabbitService.GetConsumer("TestMessageConsumer");
 
             for (int i = 0; i < 100; i++)
             {
@@ -81,7 +81,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task ConsumerPipelineStartAndStopTesting()
         {
-            var consumerPipeline = _fixture.RabbitService.CreateConsumerPipeline<WorkState>("ConsumerFromConfig", 100, false, BuildPipeline);
+            var consumerPipeline = _fixture.RabbitService.CreateConsumerPipeline<WorkState>("TestMessageConsumer", 100, false, BuildPipeline);
 
             for (int i = 0; i < 100; i++)
             {

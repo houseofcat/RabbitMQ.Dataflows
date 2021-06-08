@@ -32,7 +32,7 @@ namespace HouseofCat.RabbitMQ
         public Envelope Envelope { get; set; }
         public string MessageId { get; set; }
 
-        public IMetadata LetterMetadata { get; set; }
+        public LetterMetadata LetterMetadata { get; set; }
         public byte[] Body { get; set; }
         
         public IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders)
@@ -50,7 +50,7 @@ namespace HouseofCat.RabbitMQ
 
         public Letter() { }
 
-        public Letter(string exchange, string routingKey, byte[] data, IMetadata metadata = null, RoutingOptions routingOptions = null)
+        public Letter(string exchange, string routingKey, byte[] data, LetterMetadata metadata = null, RoutingOptions routingOptions = null)
         {
             Envelope = new Envelope
             {
@@ -95,7 +95,7 @@ namespace HouseofCat.RabbitMQ
         public Letter Clone()
         {
             var clone = this.Clone<Letter>();
-            clone.LetterMetadata = LetterMetadata.Clone<LetterMetadata>();
+            clone.LetterMetadata = (LetterMetadata)LetterMetadata.Clone<LetterMetadata>();
             return clone;
         }
 

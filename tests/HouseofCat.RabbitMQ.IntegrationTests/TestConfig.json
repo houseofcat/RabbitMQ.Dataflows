@@ -47,36 +47,6 @@
         "EnsureOrdered": false
       }
     },
-    "ModerateSettings": {
-      "ErrorSuffix": "Error",
-      "BatchSize": 48,
-      "BehaviorWhenFull": 0,
-      "SleepOnIdleInterval": 100,
-      "UseTransientChannels": true,
-      "AutoAck": false,
-      "NoLocal": false,
-      "Exclusive": false,
-      "GlobalConsumerPipelineOptions": {
-        "WaitForCompletion": true,
-        "MaxDegreesOfParallelism": 24,
-        "EnsureOrdered": false
-      }
-    },
-    "LightSettings": {
-      "ErrorSuffix": "Error",
-      "BatchSize": 8,
-      "BehaviorWhenFull": 0,
-      "SleepOnIdleInterval": 100,
-      "UseTransientChannels": true,
-      "AutoAck": false,
-      "NoLocal": false,
-      "Exclusive": false,
-      "GlobalConsumerPipelineOptions": {
-        "WaitForCompletion": true,
-        "MaxDegreesOfParallelism": 4,
-        "EnsureOrdered": false
-      }
-    },
     "SingleThreaded": {
       "ErrorSuffix": "Error",
       "BatchSize": 1,
@@ -94,10 +64,10 @@
     }
   },
   "ConsumerOptions": {
-    "ConsumerFromConfig": {
+    "TestMessageConsumer": {
       "Enabled": true,
       "GlobalSettings": "AggressiveSettings",
-      "ConsumerName": "ConsumerFromConfig",
+      "ConsumerName": "TestMessageConsumer",
       "QueueName": "TestRabbitServiceQueue"
     },
     "TestConsumer": {
@@ -105,6 +75,12 @@
       "GlobalSettings": "AggressiveSettings",
       "ConsumerName": "TestConsumer",
       "QueueName": "TestRabbitServiceQueue"
+    },
+    "TestAutoPublisherConsumerName": {
+      "Enabled": true,
+      "GlobalSettings": "AggressiveSettings",
+      "ConsumerName": "TestAutoPublisherConsumerName",
+      "QueueName": "TestAutoPublisherConsumerQueue"
     }
   }
 }

@@ -37,7 +37,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             await _fixture.Topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
             await Publisher.StartAutoPublishAsync().ConfigureAwait(false);
 
-            const ulong count = 10000;
+            const ulong count = 1000;
 
             var processReceiptsTask = ProcessReceiptsAsync(Publisher, count);
             var publishLettersTask = PublishLettersAsync(Publisher, count);
@@ -49,6 +49,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             while (!processReceiptsTask.IsCompleted)
             { await Task.Delay(1).ConfigureAwait(false); }
 
+            await Task.Delay(3000); // There is an internal RabbitMQ client delay in fully publishing 
             await _fixture.Publisher.StopAutoPublishAsync().ConfigureAwait(false);
 
             while (!consumeMessagesTask.IsCompleted)
