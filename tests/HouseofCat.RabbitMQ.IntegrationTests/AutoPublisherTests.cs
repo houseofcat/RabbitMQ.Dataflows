@@ -116,7 +116,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
                     for (ulong i = 0; i < count; i++)
                     {
                         var letter = RandomData.CreateSimpleRandomLetter("AutoPublisherTestQueue");
-                        letter.LetterId = Guid.NewGuid().ToString();
+                        letter.MessageId = Guid.NewGuid().ToString();
                         await pub.QueueMessageAsync(letter).ConfigureAwait(false);
                     }
 
@@ -161,7 +161,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             for (ulong i = 0; i < count; i++)
             {
                 var letter = RandomData.CreateSimpleRandomLetter("AutoPublisherTestQueue");
-                letter.LetterId = Guid.NewGuid().ToString();
+                letter.MessageId = Guid.NewGuid().ToString();
                 await pub.QueueMessageAsync(letter).ConfigureAwait(false);
             }
             sw.Stop();

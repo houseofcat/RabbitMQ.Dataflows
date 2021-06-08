@@ -1,12 +1,10 @@
-﻿using HouseofCat.RabbitMQ.Pipelines;
-using HouseofCat.RabbitMQ.WorkState;
+﻿using HouseofCat.RabbitMQ.WorkState;
 
 namespace HouseofCat.RabbitMQ.Services
 {
     public class TwilioWorkState : RabbitWorkState
     {
         public TextMessage TextMessage { get; set; }
-        public ulong LetterId { get; set; }
         public bool DeserializeStepSuccess { get; set; }
         public bool ProcessStepSuccess { get; set; }
         public bool AcknowledgeStepSuccess { get; set; }

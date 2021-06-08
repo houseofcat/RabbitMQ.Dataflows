@@ -69,9 +69,11 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             for (ulong i = 0; i < count; i++)
             {
                 var letter = RandomData.CreateSimpleRandomLetter("TestAutoPublisherConsumerQueue");
-                letter.LetterId = Guid.NewGuid().ToString();
+                letter.MessageId = Guid.NewGuid().ToString();
 
-                await apub.QueueLetterAsync(letter).ConfigureAwait(false);
+                await apub
+                    .QueueMessageAsync(letter)
+                    .ConfigureAwait(false);
             }
             sw.Stop();
 

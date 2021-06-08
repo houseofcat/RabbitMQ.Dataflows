@@ -22,7 +22,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public void CreatePublisher()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var pub = new Publisher(
@@ -37,7 +37,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task CreatePublisherAndInitializeChannelPool()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var pub = new Publisher(
@@ -54,7 +54,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public void CreatePublisherWithChannelPool()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var chanPool = new ChannelPool(options);
@@ -70,7 +70,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task PublishWithoutInitializeToQueueAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var pub = new Publisher(
@@ -89,7 +89,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task PublishAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var pub = new Publisher(
@@ -111,7 +111,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task PublishManyAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
             const int letterCount = 10_000;
             const int byteCount = 500;
