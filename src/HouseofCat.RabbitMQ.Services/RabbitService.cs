@@ -93,13 +93,29 @@ namespace HouseofCat.RabbitMQ.Services
             ICompressionProvider compressionProvider = null,
             ILoggerFactory loggerFactory = null,
             Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
+        : this(
+                new ChannelPool(options), 
+                serializationProvider, 
+                encryptionProvider, 
+                compressionProvider, 
+                loggerFactory, 
+                processReceiptAsync)
+        { }
+
+        public RabbitService(
+            IChannelPool chanPool,
+            ISerializationProvider serializationProvider,
+            IEncryptionProvider encryptionProvider = null,
+            ICompressionProvider compressionProvider = null,
+            ILoggerFactory loggerFactory = null,
+            Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
         {
-            Guard.AgainstNull(options, nameof(options));
+            Guard.AgainstNull(chanPool, nameof(chanPool));
             Guard.AgainstNull(serializationProvider, nameof(serializationProvider));
             LogHelper.LoggerFactory = loggerFactory;
 
-            Options = options;
-            ChannelPool = new ChannelPool(Options);
+            Options = chanPool.Options;
+            ChannelPool = chanPool;
 
             SerializationProvider = serializationProvider;
             EncryptionProvider = encryptionProvider;

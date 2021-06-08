@@ -69,7 +69,7 @@ namespace HouseofCat.RabbitMQ.Pools
             _hostLock.Release();
         }
 
-        private void ConnectionClosed(object sender, ShutdownEventArgs e)
+        protected virtual void ConnectionClosed(object sender, ShutdownEventArgs e)
         {
             _hostLock.Wait();
             _logger.LogWarning(e.ReplyText);
@@ -77,7 +77,7 @@ namespace HouseofCat.RabbitMQ.Pools
             _hostLock.Release();
         }
 
-        private void ConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
+        protected virtual void ConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
         {
             _hostLock.Wait();
             _logger.LogWarning(e.Reason);
@@ -85,7 +85,7 @@ namespace HouseofCat.RabbitMQ.Pools
             _hostLock.Release();
         }
 
-        private void ConnectionUnblocked(object sender, EventArgs e)
+        protected virtual void ConnectionUnblocked(object sender, EventArgs e)
         {
             _hostLock.Wait();
             _logger.LogInformation("Connection unblocked!");
