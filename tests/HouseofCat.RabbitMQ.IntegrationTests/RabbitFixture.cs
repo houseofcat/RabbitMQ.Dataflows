@@ -1,15 +1,11 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
-using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.File;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit.Abstractions;
 
 namespace HouseofCat.RabbitMQ.IntegrationTests
@@ -26,7 +22,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         public const string Salt = "SegaGenesisIsTheBestConsole";
         public readonly byte[] HashKey;
 
-        public readonly Options Options;
+        public readonly RabbitOptions Options;
         public readonly RabbitService RabbitService;
         public readonly IChannelPool ChannelPool;
         public readonly ITopologer Topologer;
@@ -40,7 +36,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             EncryptionProvider = new AesGcmEncryptionProvider(HashKey, HashingProvider.Type);
             SerializationProvider = new Utf8JsonProvider();
 
-            Options = JsonFileReader.ReadFileAsync<Options>("Config.json").GetAwaiter().GetResult();
+            Options = JsonFileReader.ReadFileAsync<RabbitOptions>("Config.json").GetAwaiter().GetResult();
 
             RabbitService = new RabbitService(
                 Options,

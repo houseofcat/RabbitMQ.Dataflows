@@ -11,14 +11,14 @@ namespace HouseofCat.RabbitMQ
     {
         private static readonly XorShift XorShift = new XorShift(true);
 
-        public static Letter CreateSimpleRandomLetter(string queueName, int bodySize = 1000)
+        public static IMessage CreateSimpleRandomLetter(string queueName, int bodySize = 1000)
         {
             var payload = new byte[bodySize];
             XorShift.FillBuffer(payload, 0, bodySize);
 
             return new Letter
             {
-                LetterId = Guid.NewGuid().ToString(),
+                MessageId = Guid.NewGuid().ToString(),
                 LetterMetadata = new LetterMetadata(),
                 Envelope = new Envelope
                 {
@@ -34,10 +34,10 @@ namespace HouseofCat.RabbitMQ
             };
         }
 
-        public static IList<Letter> CreateManySimpleRandomLetters(List<string> queueNames, int letterCount, int bodySize = 1000)
+        public static IList<IMessage> CreateManySimpleRandomLetters(List<string> queueNames, int letterCount, int bodySize = 1000)
         {
             var random = new Random();
-            var letters = new List<Letter>();
+            var letters = new List<IMessage>();
 
             var queueCount = queueNames.Count;
             for (int i = 0; i < letterCount; i++)
@@ -48,9 +48,9 @@ namespace HouseofCat.RabbitMQ
             return letters;
         }
 
-        public static IList<Letter> CreateManySimpleRandomLetters(string queueName, int letterCount, int bodySize = 1000)
+        public static IList<IMessage> CreateManySimpleRandomLetters(string queueName, int letterCount, int bodySize = 1000)
         {
-            var letters = new List<Letter>();
+            var letters = new List<IMessage>();
 
             for (int i = 0; i < letterCount; i++)
             {

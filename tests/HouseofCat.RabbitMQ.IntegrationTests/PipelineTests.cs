@@ -1,5 +1,5 @@
+using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.RabbitMQ;
-using HouseofCat.Workflows.Pipelines;
 using System;
 using System.Threading.Tasks;
 using Xunit;

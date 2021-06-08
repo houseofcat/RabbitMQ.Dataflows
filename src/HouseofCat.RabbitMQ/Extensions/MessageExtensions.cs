@@ -49,7 +49,7 @@ namespace HouseofCat.RabbitMQ
             props.DeliveryMode = message.Envelope.RoutingOptions.DeliveryMode;
             props.ContentType = message.Envelope.RoutingOptions.MessageType;
             props.Priority = message.Envelope.RoutingOptions.PriorityLevel;
-            props.MessageId = message.GetMessageId() ?? Guid.NewGuid().ToString();
+            props.MessageId = message.MessageId ?? Guid.NewGuid().ToString();
 
             if (!props.IsHeadersPresent())
             {

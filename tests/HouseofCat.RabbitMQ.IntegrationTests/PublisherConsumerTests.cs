@@ -5,6 +5,7 @@ using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.File;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Xunit;
@@ -68,7 +69,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             for (ulong i = 0; i < count; i++)
             {
                 var letter = RandomData.CreateSimpleRandomLetter("TestAutoPublisherConsumerQueue");
-                letter.LetterId = i;
+                letter.LetterId = Guid.NewGuid().ToString();
 
                 await apub.QueueLetterAsync(letter).ConfigureAwait(false);
             }
