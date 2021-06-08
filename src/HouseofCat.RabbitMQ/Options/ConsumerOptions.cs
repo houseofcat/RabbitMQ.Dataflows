@@ -6,17 +6,22 @@ namespace HouseofCat.RabbitMQ
     {
         public bool Enabled { get; set; }
         public string GlobalSettings { get; set; }
-        public string QueueName { get; set; }
+
         public string ConsumerName { get; set; }
 
+        public string QueueName { get; set; }
+        public IDictionary<string, object> QueueArgs { get; set; }
+
         public string TargetQueueName { get; set; }
+        public IDictionary<string, object> TargetQueueArgs { get; set; }
         public Dictionary<string, string> TargetQueues { get; set; } = new Dictionary<string, string>();
 
         public string ErrorQueueName => $"{QueueName}.{ErrorSuffix ?? "Error"}";
+        public IDictionary<string, object> ErrorQueueArgs { get; set; }
         public string AltQueueName => $"{QueueName}.{AltSuffix ?? "Alt"}";
+        public IDictionary<string, object> AltQueueArgs { get; set; }
 
         public ConsumerPipelineOptions ConsumerPipelineOptions { get; set; }
-
 
         public void ApplyGlobalOptions(GlobalConsumerOptions globalConsumerOptions)
         {

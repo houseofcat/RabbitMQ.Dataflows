@@ -75,7 +75,7 @@ namespace HouseofCat.RabbitMQ.Services
             ICompressionProvider compressionProvider = null,
             ILoggerFactory loggerFactory = null, Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
             : this(
-                  JsonFileReader
+                  Utf8JsonFileReader
                     .ReadFileAsync<RabbitOptions>(fileNamePath)
                     .GetAwaiter()
                     .GetResult(),
@@ -171,22 +171,92 @@ namespace HouseofCat.RabbitMQ.Services
             {
                 if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.QueueName))
                 {
-                    await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.QueueName).ConfigureAwait(false);
+                    if (consumer.Value.ConsumerOptions.QueueArgs == null
+                        || consumer.Value.ConsumerOptions.QueueArgs.Count == 0)
+                    {
+                        await Topologer
+                            .CreateQueueAsync(consumer.Value.ConsumerOptions.QueueName)
+                            .ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await Topologer
+                            .CreateQueueAsync(
+                                consumer.Value.ConsumerOptions.QueueName,
+                                true,
+                                false,
+                                false,
+                                consumer.Value.ConsumerOptions.QueueArgs)
+                            .ConfigureAwait(false);
+                    }
                 }
 
                 if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.TargetQueueName))
                 {
-                    await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.TargetQueueName).ConfigureAwait(false);
+                    if (consumer.Value.ConsumerOptions.TargetQueueArgs == null
+                        || consumer.Value.ConsumerOptions.TargetQueueArgs.Count == 0)
+                    {
+                        await Topologer
+                            .CreateQueueAsync(consumer.Value.ConsumerOptions.TargetQueueName)
+                            .ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await Topologer
+                            .CreateQueueAsync(
+                                consumer.Value.ConsumerOptions.TargetQueueName,
+                                true,
+                                false,
+                                false,
+                                consumer.Value.ConsumerOptions.TargetQueueArgs)
+                            .ConfigureAwait(false);
+                    }
                 }
 
-                if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorSuffix) && !string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorQueueName))
+                if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorSuffix)
+                    && !string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorQueueName))
                 {
-                    await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.ErrorQueueName).ConfigureAwait(false);
+                    if (consumer.Value.ConsumerOptions.ErrorQueueArgs == null
+                        || consumer.Value.ConsumerOptions.ErrorQueueArgs.Count == 0)
+                    {
+                        await Topologer
+                            .CreateQueueAsync(consumer.Value.ConsumerOptions.ErrorQueueName)
+                            .ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await Topologer
+                            .CreateQueueAsync(
+                                consumer.Value.ConsumerOptions.ErrorQueueName,
+                                true,
+                                false,
+                                false,
+                                consumer.Value.ConsumerOptions.ErrorQueueArgs)
+                            .ConfigureAwait(false);
+                    }
                 }
 
-                if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.AltSuffix) && !string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.AltQueueName))
+                if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.AltSuffix)
+                    && !string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.AltQueueName))
                 {
-                    await Topologer.CreateQueueAsync(consumer.Value.ConsumerOptions.AltQueueName).ConfigureAwait(false);
+                    if (consumer.Value.ConsumerOptions.AltQueueArgs == null
+                        || consumer.Value.ConsumerOptions.AltQueueArgs.Count == 0)
+                    {
+                        await Topologer
+                            .CreateQueueAsync(consumer.Value.ConsumerOptions.AltQueueName)
+                            .ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await Topologer
+                            .CreateQueueAsync(
+                                consumer.Value.ConsumerOptions.AltQueueName,
+                                true,
+                                false,
+                                false,
+                                consumer.Value.ConsumerOptions.AltQueueArgs)
+                            .ConfigureAwait(false);
+                    }
                 }
             }
         }

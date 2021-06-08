@@ -7,6 +7,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Utf8Json" Version="1.3.7" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Extensions\HouseofCat.Extensions.csproj" />
   </ItemGroup>
 
