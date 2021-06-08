@@ -6,7 +6,8 @@ namespace HouseofCat.RabbitMQ
 {
     public static class MetadataExtensions
     {
-        public static IMetadata Clone<T>(this IMetadata metadata) where T: IMetadata, new()
+        public static T Clone<T>(this IMetadata metadata)
+            where T : IMetadata, new()
         {
             var clonedMetadata = new T
             {

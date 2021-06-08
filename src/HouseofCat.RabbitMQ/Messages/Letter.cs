@@ -95,7 +95,7 @@ namespace HouseofCat.RabbitMQ
         public Letter Clone()
         {
             var clone = this.Clone<Letter>();
-            clone.LetterMetadata = (LetterMetadata)LetterMetadata.Clone<LetterMetadata>();
+            clone.LetterMetadata = LetterMetadata.Clone<LetterMetadata>();
             return clone;
         }
 
