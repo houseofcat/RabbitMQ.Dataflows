@@ -173,6 +173,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
             int? boundedCapacity = null)
         {
             Guard.AgainstNull(suppliedStep, nameof(suppliedStep));
+            Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             _metricsProvider.IncrementCounter($"{WorkflowName}_Steps", metricDescription);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
             _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions, metricIdentifier, metricMicroScale));
@@ -189,6 +190,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
             int? boundedCapacity = null)
         {
             Guard.AgainstNull(suppliedStep, nameof(suppliedStep));
+            Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             _metricsProvider.IncrementCounter($"{WorkflowName}_Steps", metricDescription);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
             _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions, metricIdentifier, metricMicroScale));
@@ -296,6 +298,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
             bool? ensureOrdered = null,
             int? boundedCapacity = null)
         {
+            Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             if (_createSendLetter == null)
             {
                 _metricsProvider.IncrementCounter($"{WorkflowName}_Steps");
