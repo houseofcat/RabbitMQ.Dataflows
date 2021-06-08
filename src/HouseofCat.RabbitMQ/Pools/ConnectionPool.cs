@@ -78,8 +78,8 @@ namespace HouseofCat.RabbitMQ.Pools
 
         public IConnection CreateConnection(string connectionName) => _connectionFactory.CreateConnection(connectionName);
         
-        protected virtual IConnectionHost CreateConnectionHost(ulong connectionId, string serviceName) => 
-            new ConnectionHost(connectionId, CreateConnection(serviceName));
+        protected virtual IConnectionHost CreateConnectionHost(ulong connectionId, IConnection connection) => 
+            new ConnectionHost(connectionId, connection);
 
         private async Task CreateConnectionsAsync()
         {
@@ -92,7 +92,7 @@ namespace HouseofCat.RabbitMQ.Pools
                 {
                     await _connections
                         .Writer
-                        .WriteAsync(CreateConnectionHost(_currentConnectionId++, serviceName));
+                        .WriteAsync(CreateConnectionHost(_currentConnectionId++, CreateConnection(serviceName)));
                 }
                 catch (Exception ex)
                 {
