@@ -3,7 +3,7 @@ namespace HouseofCat.RabbitMQ
     public interface IPublishReceipt
     {
         bool IsError { get; set; }
-        public string MessageId { get; set; }
+        string MessageId { get; set; }
 
         IMessage GetOriginalMessage();
     }
