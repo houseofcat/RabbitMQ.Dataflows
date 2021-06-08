@@ -3,6 +3,7 @@ using HouseofCat.RabbitMQ.Pools;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -81,9 +82,18 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
 
             var letter = RandomData.CreateSimpleRandomLetter("TestQueue", 2000);
 
+            await pub.PublishAsync(letter, false);
+
+            var tokenSource = new CancellationTokenSource(delay: TimeSpan.FromSeconds(1));
+            async Task ReadReceiptAsync(CancellationToken cancellationToken)
+            {
+                var receiptBuffer = pub.GetReceiptBufferReader();
+                await receiptBuffer.WaitToReadAsync(cancellationToken);
+                var receipt = receiptBuffer.ReadAsync(cancellationToken);
+            }
+
             await Assert
-                .ThrowsAsync<InvalidOperationException>(() => pub.PublishAsync(letter, false))
-                .ConfigureAwait(false);
+                .ThrowsAnyAsync<OperationCanceledException>(() => ReadReceiptAsync(tokenSource.Token));
         }
 
         [Fact]
