@@ -55,9 +55,7 @@ namespace HouseofCat.RabbitMQ.Pools
             _hostLock.Wait();
 
             try
-            {
-                return _channel;
-            }
+            { return _channel; }
             finally
             { _hostLock.Release(); }
         }
@@ -99,7 +97,7 @@ namespace HouseofCat.RabbitMQ.Pools
             { _hostLock.Release(); }
         }
 
-        private void ChannelClose(object sender, ShutdownEventArgs e)
+        protected virtual void ChannelClose(object sender, ShutdownEventArgs e)
         {
             _hostLock.Wait();
             _logger.LogDebug(e.ReplyText);
@@ -107,14 +105,17 @@ namespace HouseofCat.RabbitMQ.Pools
             _hostLock.Release();
         }
 
-        private void FlowControl(object sender, FlowControlEventArgs e)
+        protected virtual void FlowControl(object sender, FlowControlEventArgs e)
         {
             _hostLock.Wait();
+
             if (e.Active)
             { _logger.LogWarning(LogMessages.ChannelHosts.FlowControlled); }
             else
             { _logger.LogInformation(LogMessages.ChannelHosts.FlowControlFinished); }
+
             FlowControlled = e.Active;
+
             _hostLock.Release();
         }
 

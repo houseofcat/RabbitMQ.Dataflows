@@ -42,6 +42,11 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             var processReceiptsTask = ProcessReceiptsAsync(Publisher, count);
             var publishLettersTask = PublishLettersAsync(Publisher, count);
 
+            await Task.Yield();
+
+            // Note to self: Testing frameworks are sensitive to high concurrent scenarios. You can
+            // starve the threadpool / max concurrency and break things without Task.Yield(); Also
+            // there should be a better way to test this stuff.
             while (!publishLettersTask.IsCompleted)
             { await Task.Delay(1).ConfigureAwait(false); }
 
@@ -71,8 +76,11 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             var publishLettersTask = PublishLettersAsync(Publisher, count);
             var consumeMessagesTask = ConsumeMessagesAsync(Consumer, count);
 
-            await Task.Yield(); 
+            await Task.Yield();
 
+            // Note to self: Testing frameworks are sensitive to high concurrency scenarios. You can
+            // starve the threadpool / max concurrency and break things without Task.Yield(); Also
+            // there should be a better way to test this stuff.
             while (!publishLettersTask.IsCompleted)
             { await Task.Delay(1).ConfigureAwait(false); }
 

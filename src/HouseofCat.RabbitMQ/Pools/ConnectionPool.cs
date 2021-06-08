@@ -78,6 +78,10 @@ namespace HouseofCat.RabbitMQ.Pools
 
         public IConnection CreateConnection(string connectionName) => _connectionFactory.CreateConnection(connectionName);
 
+        // Allows overriding the mechanism for creating ConnectionHosts while a base one was implemented.
+        protected virtual IConnectionHost CreateConnectionHost(ulong connectionId, IConnection connection) =>
+            new ConnectionHost(connectionId, connection);
+
         private async Task CreateConnectionsAsync()
         {
             _logger.LogTrace(LogMessages.ConnectionPools.CreateConnections);
@@ -89,7 +93,7 @@ namespace HouseofCat.RabbitMQ.Pools
                 {
                     await _connections
                         .Writer
-                        .WriteAsync(new ConnectionHost(_currentConnectionId++, CreateConnection(serviceName)));
+                        .WriteAsync(CreateConnectionHost(_currentConnectionId++, CreateConnection(serviceName)));
                 }
                 catch (Exception ex)
                 {
