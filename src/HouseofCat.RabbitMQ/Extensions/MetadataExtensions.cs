@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HouseofCat.Utilities.Errors;
+using static HouseofCat.Reflection.Generics;
 
 namespace HouseofCat.RabbitMQ
 {
@@ -9,11 +10,9 @@ namespace HouseofCat.RabbitMQ
         public static T Clone<T>(this IMetadata metadata)
             where T : IMetadata, new()
         {
-            var clonedMetadata = new T
-            {
-                Compressed = metadata.Compressed,
-                Encrypted = metadata.Encrypted,
-            };
+            var clonedMetadata = New<T>.Instance();
+            clonedMetadata.Compressed = metadata.Compressed;
+            clonedMetadata.Encrypted = metadata.Encrypted;
 
             foreach (var kvp in metadata.CustomFields)
             {

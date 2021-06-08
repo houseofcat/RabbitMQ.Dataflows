@@ -69,7 +69,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         }
 
         [Fact]
-        public async Task PublishWithoutInitializeToQueueAsync()
+        public async Task PublishToNonExistentQueueAsync()
         {
             var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
@@ -80,7 +80,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
 
-            var letter = RandomData.CreateSimpleRandomLetter("TestQueue", 2000);
+            var letter = MessageExtensions.CreateSimpleRandomLetter("TestQueue", 2000);
 
             await pub.PublishAsync(letter, false);
 
@@ -112,7 +112,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
                 .StartAutoPublishAsync()
                 .ConfigureAwait(false);
 
-            var letter = RandomData.CreateSimpleRandomLetter("TestQueue", 2000);
+            var letter = MessageExtensions.CreateSimpleRandomLetter("TestQueue", 2000);
             await pub
                 .PublishAsync(letter, false)
                 .ConfigureAwait(false);
@@ -149,7 +149,8 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
                 "TestQueue8",
                 "TestQueue9",
             };
-            var letters = RandomData.CreateManySimpleRandomLetters(queueNames, letterCount, byteCount);
+
+            var letters = MessageExtensions.CreateManySimpleRandomLetters(queueNames, letterCount, byteCount);
 
             var sw = Stopwatch.StartNew();
             await pub

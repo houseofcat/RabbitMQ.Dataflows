@@ -13,13 +13,13 @@ using Xunit.Abstractions;
 
 namespace HouseofCat.RabbitMQ.IntegrationTests
 {
-    public class PublisherConsumerTests : IClassFixture<RabbitFixture>
+    public class ComplexTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
         public Consumer Consumer;
         public Publisher Publisher;
 
-        public PublisherConsumerTests(RabbitFixture fixture, ITestOutputHelper output)
+        public ComplexTests(RabbitFixture fixture, ITestOutputHelper output)
         {
             _fixture = fixture;
             _fixture.Output = output;
@@ -29,6 +29,34 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
+        }
+
+        [Fact]
+        public async Task PublishAndCountReceipts()
+        {
+            await _fixture.Topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
+            await Publisher.StartAutoPublishAsync().ConfigureAwait(false);
+
+            const ulong count = 1000;
+
+            var processReceiptsTask = ProcessReceiptsAsync(Publisher, count);
+            var publishLettersTask = PublishLettersAsync(Publisher, count);
+
+            while (!publishLettersTask.IsCompleted)
+            { await Task.Delay(1).ConfigureAwait(false); }
+
+            while (!processReceiptsTask.IsCompleted)
+            { await Task.Delay(1).ConfigureAwait(false); }
+
+            Assert.True(publishLettersTask.IsCompletedSuccessfully);
+            Assert.True(processReceiptsTask.IsCompletedSuccessfully);
+            Assert.False(processReceiptsTask.Result);
+
+            // Cleanup
+            await _fixture
+                .Topologer
+                .DeleteQueueAsync("TestAutoPublisherConsumerQueue")
+                .ConfigureAwait(false);
         }
 
         [Fact]
@@ -43,14 +71,13 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             var publishLettersTask = PublishLettersAsync(Publisher, count);
             var consumeMessagesTask = ConsumeMessagesAsync(Consumer, count);
 
+            await Task.Yield(); 
+
             while (!publishLettersTask.IsCompleted)
             { await Task.Delay(1).ConfigureAwait(false); }
 
             while (!processReceiptsTask.IsCompleted)
             { await Task.Delay(1).ConfigureAwait(false); }
-
-            await Task.Delay(3000); // There is an internal RabbitMQ client delay in fully publishing 
-            await _fixture.Publisher.StopAutoPublishAsync().ConfigureAwait(false);
 
             while (!consumeMessagesTask.IsCompleted)
             { await Task.Delay(1).ConfigureAwait(false); }
@@ -69,7 +96,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             var sw = Stopwatch.StartNew();
             for (ulong i = 0; i < count; i++)
             {
-                var letter = RandomData.CreateSimpleRandomLetter("TestAutoPublisherConsumerQueue");
+                var letter = MessageExtensions.CreateSimpleRandomLetter("TestAutoPublisherConsumerQueue");
                 letter.MessageId = Guid.NewGuid().ToString();
 
                 await apub
@@ -92,12 +119,10 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             var sw = Stopwatch.StartNew();
             while (receiptCount < count)
             {
-                if (buffer.TryRead(out var receipt))
-                {
-                    receiptCount++;
-                    if (receipt.IsError)
-                    { error = true; break; }
-                }
+                var receipt = await buffer.ReadAsync();
+                receiptCount++;
+                if (receipt.IsError)
+                { error = true; break; }
             }
             sw.Stop();
 
@@ -121,6 +146,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
                 try
                 {
                     var message = await consumer.ReadAsync().ConfigureAwait(false);
+                    message.AckMessage();
                     messageCount++;
                 }
                 catch

@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 
 namespace HouseofCat.RabbitMQ.IntegrationTests
 {
-    public class TopologerTests
+    public class TopologerTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
 
@@ -50,19 +50,6 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             var top = new Topologer(chanPool);
 
             Assert.NotNull(top);
-        }
-
-        [Fact]
-        public async Task CreateQueueWithoutInitializeAsync()
-        {
-            var options = new RabbitOptions();
-            options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
-
-            var top = new Topologer(options);
-
-            await Assert
-                .ThrowsAsync<InvalidOperationException>(() => top.CreateQueueAsync("TestQueue", false, false, false, null))
-                .ConfigureAwait(false);
         }
 
         [Fact]
