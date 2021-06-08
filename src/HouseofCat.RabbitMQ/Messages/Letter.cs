@@ -8,10 +8,10 @@ namespace HouseofCat.RabbitMQ
 {
     public interface IMessage
     {
+        string MessageId { get; set; }
         Envelope Envelope { get; set; }
         byte[] Body { get; set; }
 
-        string GetMessageId();
         IMetadata GetMetadata();
 
         IMetadata CreateMetadataIfMissing();
@@ -30,17 +30,17 @@ namespace HouseofCat.RabbitMQ
     public class Letter : IMessage
     {
         public Envelope Envelope { get; set; }
-        public string LetterId { get; set; }
+        public string MessageId { get; set; }
 
-        public IMetadata LetterMetadata { get; set; }
+        public LetterMetadata LetterMetadata { get; set; }
         public byte[] Body { get; set; }
         
         public IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders)
         {
-            LetterId ??= Guid.NewGuid().ToString();
+            MessageId ??= Guid.NewGuid().ToString();
 
             var props = this.CreateBasicProperties(channelHost, withOptionalHeaders, LetterMetadata);
-            props.MessageId = LetterId;
+            props.MessageId = MessageId;
 
             // Non-optional Header.
             props.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForLetter;
@@ -50,7 +50,7 @@ namespace HouseofCat.RabbitMQ
 
         public Letter() { }
 
-        public Letter(string exchange, string routingKey, byte[] data, IMetadata metadata = null, RoutingOptions routingOptions = null)
+        public Letter(string exchange, string routingKey, byte[] data, LetterMetadata metadata = null, RoutingOptions routingOptions = null)
         {
             Envelope = new Envelope
             {
@@ -99,7 +99,6 @@ namespace HouseofCat.RabbitMQ
             return clone;
         }
 
-        public string GetMessageId() => LetterId;
         public IMetadata GetMetadata() => LetterMetadata;
 
         public IMetadata CreateMetadataIfMissing()
@@ -116,6 +115,6 @@ namespace HouseofCat.RabbitMQ
             serializationProvider.Serialize(this);
         
         public IPublishReceipt GetPublishReceipt(bool error) => 
-            new PublishReceipt { LetterId = GetMessageId(), IsError = error, OriginalLetter = error ? this : null };
+            new PublishReceipt { MessageId = MessageId, IsError = error, OriginalLetter = error ? this : null };
     }
 }

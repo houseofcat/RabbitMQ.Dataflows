@@ -1,6 +1,5 @@
-using HouseofCat.RabbitMQ;
+using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.Utilities.File;
-using HouseofCat.Workflows.Pipelines;
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -21,7 +20,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task CreateConsumer()
         {
-            var options = await JsonFileReader.ReadFileAsync<Options>("TestConfig.json");
+            var options = await JsonFileReader.ReadFileAsync<RabbitOptions>("TestConfig.json");
             Assert.NotNull(options);
 
             var con = new Consumer(options, "TestMessageConsumer");
@@ -31,7 +30,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task CreateConsumerAndInitializeChannelPool()
         {
-            var options = await JsonFileReader.ReadFileAsync<Options>("TestConfig.json");
+            var options = await JsonFileReader.ReadFileAsync<RabbitOptions>("TestConfig.json");
             Assert.NotNull(options);
 
             var con = new Consumer(options, "TestMessageConsumer");
@@ -70,7 +69,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task ConsumerStartAndStopTesting()
         {
-            var consumer = _fixture.RabbitService.GetConsumer("ConsumerFromConfig");
+            var consumer = _fixture.RabbitService.GetConsumer("TestMessageConsumer");
 
             for (int i = 0; i < 100; i++)
             {
@@ -82,7 +81,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task ConsumerPipelineStartAndStopTesting()
         {
-            var consumerPipeline = _fixture.RabbitService.CreateConsumerPipeline<WorkState>("ConsumerFromConfig", 100, false, BuildPipeline);
+            var consumerPipeline = _fixture.RabbitService.CreateConsumerPipeline<WorkState>("TestMessageConsumer", 100, false, BuildPipeline);
 
             for (int i = 0; i < 100; i++)
             {

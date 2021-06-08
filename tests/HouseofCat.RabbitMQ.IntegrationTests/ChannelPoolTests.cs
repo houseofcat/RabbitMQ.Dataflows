@@ -21,7 +21,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public void CreateChannelPoolWithLocalHost()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var chanPool = new ChannelPool(options);
@@ -32,7 +32,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public void InitializeChannelPoolAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var chanPool = new ChannelPool(options);
@@ -44,7 +44,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task OverLoopThroughChannelPoolAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
             options.PoolOptions.MaxConnections = 5;
             options.PoolOptions.MaxChannels = 25;
