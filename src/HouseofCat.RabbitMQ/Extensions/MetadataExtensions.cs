@@ -1,18 +1,18 @@
 using System;
 using System.Collections.Generic;
 using HouseofCat.Utilities.Errors;
+using static HouseofCat.Reflection.Generics;
 
 namespace HouseofCat.RabbitMQ
 {
     public static class MetadataExtensions
     {
-        public static IMetadata Clone<T>(this IMetadata metadata) where T: IMetadata, new()
+        public static T Clone<T>(this IMetadata metadata)
+            where T : IMetadata, new()
         {
-            var clonedMetadata = new T
-            {
-                Compressed = metadata.Compressed,
-                Encrypted = metadata.Encrypted,
-            };
+            var clonedMetadata = New<T>.Instance();
+            clonedMetadata.Compressed = metadata.Compressed;
+            clonedMetadata.Encrypted = metadata.Encrypted;
 
             foreach (var kvp in metadata.CustomFields)
             {

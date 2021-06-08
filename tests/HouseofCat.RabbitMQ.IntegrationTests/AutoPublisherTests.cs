@@ -52,8 +52,8 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
 
-            var letter = RandomData.CreateSimpleRandomLetter("AutoPublisherTestQueue");
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await pub.QueueLetterAsync(letter));
+            var letter = MessageExtensions.CreateSimpleRandomLetter("AutoPublisherTestQueue");
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await pub.QueueMessageAsync(letter));
         }
 
         [Fact]
@@ -93,8 +93,8 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
 
             await pub.StartAutoPublishAsync().ConfigureAwait(false);
 
-            var letter = RandomData.CreateSimpleRandomLetter("AutoPublisherTestQueue");
-            await pub.QueueLetterAsync(letter).ConfigureAwait(false);
+            var letter = MessageExtensions.CreateSimpleRandomLetter("AutoPublisherTestQueue");
+            await pub.QueueMessageAsync(letter).ConfigureAwait(false);
         }
 
         [Fact]
@@ -110,18 +110,18 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             var finished = false;
             const ulong count = 10000;
 
-            await Task.Run(async () =>
-            {
-                for (ulong i = 0; i < count; i++)
+            await Task.Run(
+                async () =>
                 {
-                    var letter = RandomData.CreateSimpleRandomLetter("AutoPublisherTestQueue");
-                    letter.LetterId = i;
+                    for (ulong i = 0; i < count; i++)
+                    {
+                        var letter = MessageExtensions.CreateSimpleRandomLetter("AutoPublisherTestQueue");
+                        letter.MessageId = Guid.NewGuid().ToString();
+                        await pub.QueueMessageAsync(letter).ConfigureAwait(false);
+                    }
 
-                    await pub.QueueLetterAsync(letter).ConfigureAwait(false);
-                }
-
-                finished = true;
-            }).ConfigureAwait(false);
+                    finished = true;
+                }).ConfigureAwait(false);
 
             while (!finished) { await Task.Delay(1).ConfigureAwait(false); }
 
@@ -160,10 +160,9 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             var sw = Stopwatch.StartNew();
             for (ulong i = 0; i < count; i++)
             {
-                var letter = RandomData.CreateSimpleRandomLetter("AutoPublisherTestQueue");
-                letter.LetterId = i;
-
-                await pub.QueueLetterAsync(letter).ConfigureAwait(false);
+                var letter = MessageExtensions.CreateSimpleRandomLetter("AutoPublisherTestQueue");
+                letter.MessageId = Guid.NewGuid().ToString();
+                await pub.QueueMessageAsync(letter).ConfigureAwait(false);
             }
             sw.Stop();
 
