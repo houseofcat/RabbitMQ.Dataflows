@@ -76,7 +76,7 @@ namespace Benchmarks.RabbitMQ
         }
 
         [Benchmark]
-        public void Encrypt4kBytes()
+        public void Encrypt4KBytes()
         {
             EncryptionProvider.Encrypt(Payload3);
         }
@@ -100,7 +100,7 @@ namespace Benchmarks.RabbitMQ
         }
 
         [Benchmark]
-        public void Decrypt4kBytes()
+        public void Decrypt4KBytes()
         {
             EncryptionProvider.Decrypt(EncryptedPayload3);
         }

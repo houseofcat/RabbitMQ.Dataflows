@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Benchmarks.RabbitMQ
 {
     [MarkdownExporterAttribute.GitHub]
-    [MemoryDiagnoser, ThreadingDiagnoser]
+    [MemoryDiagnoser]
     [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
     public class BouncyEncryptBenchmark
     {
@@ -55,7 +55,7 @@ namespace Benchmarks.RabbitMQ
             EncryptedPayload4 = EncryptionProvider.Encrypt(Payload4);
         }
 
-        [Benchmark(Baseline = true), IterationCount(33)]
+        [Benchmark(Baseline = true)]
         public void Encrypt1KBytes()
         {
             EncryptionProvider.Encrypt(Payload1);
@@ -68,7 +68,7 @@ namespace Benchmarks.RabbitMQ
         }
 
         [Benchmark]
-        public void Encrypt4kBytes()
+        public void Encrypt4KBytes()
         {
             EncryptionProvider.Encrypt(Payload3);
         }
@@ -92,7 +92,7 @@ namespace Benchmarks.RabbitMQ
         }
 
         [Benchmark]
-        public void Decrypt4kBytes()
+        public void Decrypt4KBytes()
         {
             EncryptionProvider.Decrypt(EncryptedPayload3);
         }
