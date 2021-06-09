@@ -72,7 +72,7 @@ A library that has a collection of algorithms as I have time to learn and play w
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Compression.svg)](https://www.nuget.org/packages/HouseofCat.Compression/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Compression.svg)](https://www.nuget.org/packages/HouseofCat.Compression/)  
 
-A library that has a collection of builtin and 3rd party copmression providers.  
+A library that has a collection of builtin and 3rd party compression providers.  
 
 
 ## HouseofCat.Compression.LZ4
