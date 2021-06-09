@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 
 namespace HouseofCat.RabbitMQ.IntegrationTests
 {
-    public class TopologerTests
+    public class TopologerTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
 
@@ -21,7 +21,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public void CreateTopologer()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var top = new Topologer(options);
@@ -32,7 +32,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public void CreateTopologerAndInitializeChannelPool()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var top = new Topologer(options);
@@ -43,7 +43,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public void CreateTopologerWithChannelPool()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var chanPool = new ChannelPool(options);
@@ -53,22 +53,9 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         }
 
         [Fact]
-        public async Task CreateQueueWithoutInitializeAsync()
-        {
-            var options = new Options();
-            options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
-
-            var top = new Topologer(options);
-
-            await Assert
-                .ThrowsAsync<InvalidOperationException>(() => top.CreateQueueAsync("TestQueue", false, false, false, null))
-                .ConfigureAwait(false);
-        }
-
-        [Fact]
         public async Task CreateQueueAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var top = new Topologer(options);
@@ -79,7 +66,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task CreateAndDeleteQueueAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var top = new Topologer(options);
@@ -93,7 +80,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task CreateExchangeAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var top = new Topologer(options);
@@ -104,7 +91,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task CreateAndDeleteExchangeAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var top = new Topologer(options);
@@ -118,7 +105,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task CreateAndBindQueueAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var top = new Topologer(options);
@@ -141,7 +128,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task CreateAndBindExchangeAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var top = new Topologer(options);
@@ -164,7 +151,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task CreateBindAndUnbindExchangeAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var top = new Topologer(options);
@@ -190,7 +177,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task CreateTopologyFromFileAsync()
         {
-            var options = await JsonFileReader.ReadFileAsync<Options>("TestConfig.json");
+            var options = await JsonFileReader.ReadFileAsync<RabbitOptions>("TestConfig.json");
             var top = new Topologer(options);
             await top
                 .CreateTopologyFromFileAsync("TestTopologyConfig.json")
@@ -200,7 +187,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task CreateTopologyFromPartialFileAsync()
         {
-            var options = await JsonFileReader.ReadFileAsync<Options>("TestConfig.json");
+            var options = await JsonFileReader.ReadFileAsync<RabbitOptions>("TestConfig.json");
             var top = new Topologer(options);
             await top
                 .CreateTopologyFromFileAsync("TestPartialTopologyConfig.json")

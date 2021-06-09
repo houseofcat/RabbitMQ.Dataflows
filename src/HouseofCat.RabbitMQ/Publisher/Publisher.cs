@@ -230,7 +230,7 @@ namespace HouseofCat.RabbitMQ
             }
 
             var metadata = message.GetMetadata();
-            _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.GetMessageId(), metadata?.Id);
+            _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, metadata?.Id);
 
             await _messageQueue
                 .Writer
@@ -267,7 +267,7 @@ namespace HouseofCat.RabbitMQ
                         metadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
                     }
 
-                    _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.GetMessageId(), metadata?.Id);
+                    _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.MessageId, metadata?.Id);
 
                     await PublishAsync(message, _createPublishReceipts, _withHeaders)
                         .ConfigureAwait(false);
@@ -292,7 +292,7 @@ namespace HouseofCat.RabbitMQ
             {
                 if (AutoPublisherStarted)
                 {
-                    _logger.LogWarning($"Failed publish for message ({originalMessage.GetMessageId()}). Retrying with AutoPublishing...");
+                    _logger.LogWarning($"Failed publish for message ({originalMessage.MessageId}). Retrying with AutoPublishing...");
 
                     try
                     { await QueueMessageAsync(receipt.GetOriginalMessage()); }
@@ -301,7 +301,7 @@ namespace HouseofCat.RabbitMQ
                 }
                 else
                 {
-                    _logger.LogError($"Failed publish for message ({originalMessage.GetMessageId()}). Unable to retry as the original message was not received.");
+                    _logger.LogError($"Failed publish for message ({originalMessage.MessageId}). Unable to retry as the original message was not received.");
                 }
             }
         }
@@ -538,7 +538,7 @@ namespace HouseofCat.RabbitMQ
                 _logger.LogDebug(
                     LogMessages.Publishers.PublishMessageFailed,
                     $"{message.Envelope.Exchange}->{message.Envelope.RoutingKey}",
-                    message.GetMessageId(),
+                    message.MessageId,
                     ex.Message);
 
                 error = true;
@@ -591,7 +591,7 @@ namespace HouseofCat.RabbitMQ
                 _logger.LogDebug(
                     LogMessages.Publishers.PublishMessageFailed,
                     $"{message.Envelope.Exchange}->{message.Envelope.RoutingKey}",
-                    message.GetMessageId(),
+                    message.MessageId,
                     ex.Message);
 
                 error = true;
@@ -638,7 +638,7 @@ namespace HouseofCat.RabbitMQ
                     _logger.LogDebug(
                         LogMessages.Publishers.PublishMessageFailed,
                         $"{messages[i].Envelope.Exchange}->{messages[i].Envelope.RoutingKey}",
-                        messages[i].GetMessageId(),
+                        messages[i].MessageId,
                         ex.Message);
 
                     error = true;

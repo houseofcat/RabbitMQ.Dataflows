@@ -2,7 +2,7 @@
 using Xunit;
 using Xunit.Abstractions;
 
-namespace HouseofCat.Tests.IntegrationTests.Sorting
+namespace HouseofCat.Tests.IntegrationTests
 {
     public class SortingTests
     {

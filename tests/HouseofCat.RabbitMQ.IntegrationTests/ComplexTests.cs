@@ -5,6 +5,7 @@ using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.File;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Xunit;
@@ -12,13 +13,13 @@ using Xunit.Abstractions;
 
 namespace HouseofCat.RabbitMQ.IntegrationTests
 {
-    public class PublisherConsumerTests : IClassFixture<RabbitFixture>
+    public class ComplexTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
         public Consumer Consumer;
         public Publisher Publisher;
 
-        public PublisherConsumerTests(RabbitFixture fixture, ITestOutputHelper output)
+        public ComplexTests(RabbitFixture fixture, ITestOutputHelper output)
         {
             _fixture = fixture;
             _fixture.Output = output;
@@ -31,24 +32,60 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         }
 
         [Fact]
-        public async Task PublishAndConsume()
+        public async Task PublishAndCountReceipts()
         {
             await _fixture.Topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
             await Publisher.StartAutoPublishAsync().ConfigureAwait(false);
 
-            const ulong count = 10000;
+            const ulong count = 1000;
 
             var processReceiptsTask = ProcessReceiptsAsync(Publisher, count);
             var publishLettersTask = PublishLettersAsync(Publisher, count);
-            var consumeMessagesTask = ConsumeMessagesAsync(Consumer, count);
 
+            await Task.Yield();
+
+            // Note to self: Testing frameworks are sensitive to high concurrent scenarios. You can
+            // starve the threadpool / max concurrency and break things without Task.Yield(); Also
+            // there should be a better way to test this stuff.
             while (!publishLettersTask.IsCompleted)
             { await Task.Delay(1).ConfigureAwait(false); }
 
             while (!processReceiptsTask.IsCompleted)
             { await Task.Delay(1).ConfigureAwait(false); }
 
-            await _fixture.Publisher.StopAutoPublishAsync().ConfigureAwait(false);
+            Assert.True(publishLettersTask.IsCompletedSuccessfully);
+            Assert.True(processReceiptsTask.IsCompletedSuccessfully);
+            Assert.False(processReceiptsTask.Result);
+
+            // Cleanup
+            await _fixture
+                .Topologer
+                .DeleteQueueAsync("TestAutoPublisherConsumerQueue")
+                .ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task PublishAndConsume()
+        {
+            await _fixture.Topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
+            await Publisher.StartAutoPublishAsync().ConfigureAwait(false);
+
+            const ulong count = 1000;
+
+            var processReceiptsTask = ProcessReceiptsAsync(Publisher, count);
+            var publishLettersTask = PublishLettersAsync(Publisher, count);
+            var consumeMessagesTask = ConsumeMessagesAsync(Consumer, count);
+
+            await Task.Yield();
+
+            // Note to self: Testing frameworks are sensitive to high concurrency scenarios. You can
+            // starve the threadpool / max concurrency and break things without Task.Yield(); Also
+            // there should be a better way to test this stuff.
+            while (!publishLettersTask.IsCompleted)
+            { await Task.Delay(1).ConfigureAwait(false); }
+
+            while (!processReceiptsTask.IsCompleted)
+            { await Task.Delay(1).ConfigureAwait(false); }
 
             while (!consumeMessagesTask.IsCompleted)
             { await Task.Delay(1).ConfigureAwait(false); }
@@ -67,10 +104,12 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             var sw = Stopwatch.StartNew();
             for (ulong i = 0; i < count; i++)
             {
-                var letter = RandomData.CreateSimpleRandomLetter("TestAutoPublisherConsumerQueue");
-                letter.LetterId = i;
+                var letter = MessageExtensions.CreateSimpleRandomLetter("TestAutoPublisherConsumerQueue");
+                letter.MessageId = Guid.NewGuid().ToString();
 
-                await apub.QueueLetterAsync(letter).ConfigureAwait(false);
+                await apub
+                    .QueueMessageAsync(letter)
+                    .ConfigureAwait(false);
             }
             sw.Stop();
 
@@ -88,12 +127,10 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
             var sw = Stopwatch.StartNew();
             while (receiptCount < count)
             {
-                if (buffer.TryRead(out var receipt))
-                {
-                    receiptCount++;
-                    if (receipt.IsError)
-                    { error = true; break; }
-                }
+                var receipt = await buffer.ReadAsync();
+                receiptCount++;
+                if (receipt.IsError)
+                { error = true; break; }
             }
             sw.Stop();
 
@@ -117,6 +154,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
                 try
                 {
                     var message = await consumer.ReadAsync().ConfigureAwait(false);
+                    message.AckMessage();
                     messageCount++;
                 }
                 catch

@@ -2,6 +2,7 @@
 using HouseofCat.Utilities.Errors;
 using Prometheus;
 using Prometheus.DotNetRuntime;
+using Prometheus.DotNetRuntime.Metrics.Producers;
 using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
@@ -39,18 +40,20 @@ namespace HouseofCat.Metrics
         }
 
         public PrometheusMetricsProvider AddDotNetRuntimeStats(
+            CaptureLevel contentionCaptureLevel = CaptureLevel.Counters,
             SampleEvery contentionSampleRate = SampleEvery.TenEvents,
+            CaptureLevel jitCaptureLevel = CaptureLevel.Counters,
             SampleEvery jitSampleRate = SampleEvery.HundredEvents,
-            SampleEvery threadScheduleSampleRate = SampleEvery.OneEvent)
+            CaptureLevel threadPoolCaptureLevel = CaptureLevel.Counters,
+            ThreadPoolMetricsProducer.Options threadPoolOptions = null)
         {
             if (_collector == null)
             {
                 _collector = DotNetRuntimeStatsBuilder
                     .Customize()
-                    .WithContentionStats(contentionSampleRate)
-                    .WithJitStats(jitSampleRate)
-                    .WithThreadPoolSchedulingStats(null, threadScheduleSampleRate)
-                    .WithThreadPoolStats()
+                    .WithContentionStats(contentionCaptureLevel, contentionSampleRate)
+                    .WithJitStats(jitCaptureLevel, jitSampleRate)
+                    .WithThreadPoolStats(threadPoolCaptureLevel, threadPoolOptions)
                     .WithGcStats()
                     .StartCollecting();
             }

@@ -2,7 +2,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ
@@ -35,6 +34,10 @@ namespace HouseofCat.RabbitMQ
 
     public class ReceivedData : IReceivedData, IDisposable
     {
+        /// <summary>
+        /// Indicates that the content was not deserializeable based on the provided headers.
+        /// </summary>
+        public bool FailedToDeserialize { get; private set; }
         public IBasicProperties Properties { get; }
         public bool Ackable { get; }
         public IModel Channel { get; set; }
@@ -92,10 +95,17 @@ namespace HouseofCat.RabbitMQ
                 // ADD SERIALIZER TO HEADER AND && JSON THIS ONE
                 if (ContentType == Constants.HeaderValueForLetter && Data?.Length > 0)
                 {
-                    // All IMessage objects SHOULD deserialize with System.Text.Json, the inner Body maybe not.
+                    // All IMessage objects SHOULD deserialize with Utf8Json, the inner Body maybe not.
                     try
-                    { Letter = JsonSerializer.Deserialize<Letter>(Data); }
-                    catch { /* Swallow */}
+                    { Letter = Utf8Json.JsonSerializer.Deserialize<Letter>(Data); }
+                    catch
+                    {
+                        // Allow fallback option to default System.Text.Json.
+                        try
+                        { Letter = System.Text.Json.JsonSerializer.Deserialize<Letter>(Data); }
+                        catch
+                        { FailedToDeserialize = true; }
+                    }
                 }
 
                 if (Properties.Headers.ContainsKey(Constants.HeaderForEncrypted))
