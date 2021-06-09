@@ -1,4 +1,4 @@
-using HouseofCat.Encryption;
+using HouseofCat.Encryption.BouncyCastle;
 using HouseofCat.Hashing;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,7 +7,7 @@ using Xunit.Abstractions;
 
 namespace HouseofCat.Tests.IntegrationTests
 {
-    public class EncryptionTests
+    public class BouncyCastleEncryptionTests
     {
         private readonly ITestOutputHelper _output;
         private readonly IHashingProvider _hashingProvider;
@@ -15,14 +15,14 @@ namespace HouseofCat.Tests.IntegrationTests
         private const string Salt = "SegaGenesisIsTheBestConsole";
         private static byte[] _data = new byte[] { 0xFF, 0x00, 0xAA, 0xFF, 0x00, 0x00, 0xFF, 0xAA, 0x00, 0xFF, 0x00, 0xFF };
 
-        public EncryptionTests(ITestOutputHelper output)
+        public BouncyCastleEncryptionTests(ITestOutputHelper output)
         {
             _output = output;
             _hashingProvider = new Argon2IDHasher();
         }
 
         [Fact]
-        public async Task Aes256_GCM()
+        public async Task Aes256_GCM_BouncyCastle()
         {
             var hashKey = await _hashingProvider
                 .GetHashKeyAsync(Passphrase, Salt, 32)
@@ -44,7 +44,7 @@ namespace HouseofCat.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task Aes192_GCM()
+        public async Task Aes192_GCM_BouncyCastle()
         {
             var hashKey = await _hashingProvider
                 .GetHashKeyAsync(Passphrase, Salt, 24)
@@ -66,7 +66,7 @@ namespace HouseofCat.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task Aes128_GCM()
+        public async Task Aes128_GCM_BouncyCastle()
         {
             var hashKey = await _hashingProvider
                 .GetHashKeyAsync(Passphrase, Salt, 16)

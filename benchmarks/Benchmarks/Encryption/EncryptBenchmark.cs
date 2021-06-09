@@ -1,7 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using HouseofCat.Encryption;
-using HouseofCat.Encryption.Hash;
+using HouseofCat.Hashing;
 using HouseofCat.Utilities.Random;
 using System.Threading.Tasks;
 
@@ -9,14 +9,22 @@ namespace Benchmarks.RabbitMQ
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser, ThreadingDiagnoser]
-    [SimpleJob(runtimeMoniker: RuntimeMoniker.NetCoreApp31)]
+    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
     public class EncryptBenchmark
     {
         private XorShift XorShift;
+        private IHashingProvider HashProvider;
+        private IEncryptionProvider EncryptionProvider;
+
         private byte[] Payload1 { get; set; }
         private byte[] Payload2 { get; set; }
         private byte[] Payload3 { get; set; }
         private byte[] Payload4 { get; set; }
+
+        private byte[] EncryptedPayload1 { get; set; }
+        private byte[] EncryptedPayload2 { get; set; }
+        private byte[] EncryptedPayload3 { get; set; }
+        private byte[] EncryptedPayload4 { get; set; }
 
         private string Passphrase { get; } = "TestMessageToEncrypt";
         private string Salt { get; } = "SaltySaltSaltSalt";
@@ -33,66 +41,74 @@ namespace Benchmarks.RabbitMQ
             Payload3 = XorShift.GetRandomBytes(4096);
             Payload4 = XorShift.GetRandomBytes(8192);
 
-            HashKey = ArgonHash
+            HashProvider = new Argon2IDHasher();
+
+            HashKey = HashProvider
                 .GetHashKeyAsync(Passphrase, Salt, KeySize)
                 .GetAwaiter()
                 .GetResult();
+
+            EncryptionProvider = new AesGcmEncryptionProvider(HashKey, HashProvider.Type);
+            EncryptedPayload1 = EncryptionProvider.Encrypt(Payload1);
+            EncryptedPayload2 = EncryptionProvider.Encrypt(Payload2);
+            EncryptedPayload3 = EncryptionProvider.Encrypt(Payload3);
+            EncryptedPayload4 = EncryptionProvider.Encrypt(Payload4);
         }
 
         [Benchmark]
         public async Task CreateArgonHashKeyAsync()
         {
-            var hashKey = await ArgonHash
+            var hashKey = await HashProvider
                 .GetHashKeyAsync(Passphrase, Salt, KeySize)
                 .ConfigureAwait(false);
         }
 
         [Benchmark]
-        public void Encrypt256()
+        public void Encrypt1KBytes()
         {
-            var encryptedData = AesEncrypt.Aes256Encrypt(Payload1, HashKey);
+            EncryptionProvider.Encrypt(Payload1);
         }
 
         [Benchmark]
-        public void Encrypt512()
+        public void Encrypt2KBytes()
         {
-            var encryptedData = AesEncrypt.Aes256Encrypt(Payload2, HashKey);
+            EncryptionProvider.Encrypt(Payload2);
         }
 
         [Benchmark]
-        public void Encrypt1024()
+        public void Encrypt4kBytes()
         {
-            var encryptedData = AesEncrypt.Aes256Encrypt(Payload3, HashKey);
+            EncryptionProvider.Encrypt(Payload3);
         }
 
         [Benchmark]
-        public void Encrypt2048()
+        public void Encrypt8KBytes()
         {
-            var encryptedData = AesEncrypt.Aes256Encrypt(Payload4, HashKey);
+            EncryptionProvider.Encrypt(Payload4);
         }
 
         [Benchmark]
-        public void EncryptDecrypt256()
+        public void Decrypt1KBytes()
         {
-            var decryptedData = AesEncrypt.Aes256Decrypt(AesEncrypt.Aes256Encrypt(Payload1, HashKey), HashKey);
+            EncryptionProvider.Decrypt(EncryptedPayload1);
         }
 
         [Benchmark]
-        public void EncryptDecrypt512()
+        public void Decrypt2KBytes()
         {
-            var decryptedData = AesEncrypt.Aes256Decrypt(AesEncrypt.Aes256Encrypt(Payload2, HashKey), HashKey);
+            EncryptionProvider.Decrypt(EncryptedPayload2);
         }
 
         [Benchmark]
-        public void EncryptDecrypt1024()
+        public void Decrypt4kBytes()
         {
-            var decryptedData = AesEncrypt.Aes256Decrypt(AesEncrypt.Aes256Encrypt(Payload3, HashKey), HashKey);
+            EncryptionProvider.Decrypt(EncryptedPayload3);
         }
 
         [Benchmark]
-        public void EncryptDecrypt2048()
+        public void Decrypt8KBytes()
         {
-            var decryptedData = AesEncrypt.Aes256Decrypt(AesEncrypt.Aes256Encrypt(Payload4, HashKey), HashKey);
+            EncryptionProvider.Decrypt(EncryptedPayload4);
         }
     }
 }
