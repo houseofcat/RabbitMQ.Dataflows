@@ -1,7 +1,5 @@
 ﻿using K4os.Compression.LZ4;
-using K4os.Compression.LZ4.Streams;
 using System;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace HouseofCat.Compression
@@ -19,22 +17,22 @@ namespace HouseofCat.Compression
 
         public byte[] Compress(ReadOnlyMemory<byte> data)
         {
-            return LZ4Pickler.Pickle(data.ToArray(), _level);
+            return LZ4Pickler.Pickle(data.Span, _level);
         }
 
         public Task<byte[]> CompressAsync(ReadOnlyMemory<byte> data)
         {
-            return Task.FromResult(LZ4Pickler.Pickle(data.ToArray(), _level));
+            return Task.FromResult(LZ4Pickler.Pickle(data.Span, _level));
         }
 
         public byte[] Decompress(ReadOnlyMemory<byte> data)
         {
-            return LZ4Pickler.Unpickle(data.ToArray());
+            return LZ4Pickler.Unpickle(data.Span);
         }
 
         public Task<byte[]> DecompressAsync(ReadOnlyMemory<byte> data)
         {
-            return Task.FromResult(LZ4Pickler.Unpickle(data.ToArray()));
+            return Task.FromResult(LZ4Pickler.Unpickle(data.Span));
         }
     }
 }

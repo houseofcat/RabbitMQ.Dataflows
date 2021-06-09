@@ -3,7 +3,7 @@ using BenchmarkDotNet.Jobs;
 using HouseofCat.Utilities.Random;
 using System;
 
-namespace Benchmarks.RabbitMQ
+namespace HouseofCat.Benchmarks.Misc
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser, ThreadingDiagnoser]

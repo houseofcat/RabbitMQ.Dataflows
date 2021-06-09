@@ -14,7 +14,7 @@ namespace HouseofCat.Compression
             using var compressedStream = new MemoryStream();
             using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Compress))
             {
-                gzipStream.Write(data.ToArray());
+                gzipStream.Write(data.Span);
             }
 
             return compressedStream.ToArray();
@@ -33,17 +33,34 @@ namespace HouseofCat.Compression
             return compressedStream.ToArray();
         }
 
-        public byte[] Decompress(ReadOnlyMemory<byte> data)
+        //public byte[] Decompress(ReadOnlyMemory<byte> data)
+        //{
+        //    using var uncompressedStream = new MemoryStream();
+
+        //    using (var compressedStream = new MemoryStream(data.ToArray()))
+        //    using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
+        //    {
+        //        gzipStream.CopyTo(uncompressedStream);
+        //    }
+
+        //    return uncompressedStream.ToArray();
+        //}
+
+        // Memory optimized version.
+        public unsafe byte[] Decompress(ReadOnlyMemory<byte> data)
         {
-            using var uncompressedStream = new MemoryStream();
-
-            using (var compressedStream = new MemoryStream(data.ToArray()))
-            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
+            fixed (byte* pBuffer = &data.Span[0])
             {
-                gzipStream.CopyTo(uncompressedStream);
-            }
+                using var uncompressedStream = new MemoryStream();
 
-            return uncompressedStream.ToArray();
+                using (var compressedStream = new UnmanagedMemoryStream(pBuffer, data.Length))
+                using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
+                {
+                    gzipStream.CopyTo(uncompressedStream);
+                }
+
+                return uncompressedStream.ToArray();
+            }
         }
 
         public async Task<byte[]> DecompressAsync(ReadOnlyMemory<byte> data)

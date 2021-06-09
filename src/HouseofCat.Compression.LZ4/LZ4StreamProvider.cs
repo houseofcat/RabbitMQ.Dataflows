@@ -28,7 +28,7 @@ namespace HouseofCat.Compression
             using var compressedStream = new MemoryStream();
             using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, false))
             {
-                 lz4Stream.Write(data.ToArray());
+                 lz4Stream.Write(data.Span);
             }
 
             return compressedStream.ToArray();
@@ -47,17 +47,34 @@ namespace HouseofCat.Compression
             return compressedStream.ToArray();
         }
 
-        public byte[] Decompress(ReadOnlyMemory<byte> data)
+        //public byte[] Decompress(ReadOnlyMemory<byte> data)
+        //{
+        //    using var uncompressedStream = new MemoryStream();
+
+        //    using (var compressedStream = new MemoryStream(data.ToArray()))
+        //    using (var lz4Stream = LZ4Stream.Decode(compressedStream, _decoderSettings, false))
+        //    {
+        //        lz4Stream.CopyTo(uncompressedStream);
+        //    }
+
+        //    return uncompressedStream.ToArray();
+        //}
+
+        // Memory optimized version.
+        public unsafe byte[] Decompress(ReadOnlyMemory<byte> data)
         {
-            using var uncompressedStream = new MemoryStream();
-
-            using (var compressedStream = new MemoryStream(data.ToArray()))
-            using (var lz4Stream = LZ4Stream.Decode(compressedStream, _decoderSettings, false))
+            fixed (byte* pBuffer = &data.Span[0])
             {
-                lz4Stream.CopyTo(uncompressedStream);
-            }
+                using var uncompressedStream = new MemoryStream();
 
-            return uncompressedStream.ToArray();
+                using (var compressedStream = new UnmanagedMemoryStream(pBuffer, data.Length))
+                using (var lz4Stream = LZ4Stream.Decode(compressedStream, _decoderSettings, false))
+                {
+                    lz4Stream.CopyTo(uncompressedStream);
+                }
+
+                return uncompressedStream.ToArray();
+            }
         }
 
         public async Task<byte[]> DecompressAsync(ReadOnlyMemory<byte> data)

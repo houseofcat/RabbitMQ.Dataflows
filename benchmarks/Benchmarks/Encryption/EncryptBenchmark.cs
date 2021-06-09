@@ -5,7 +5,7 @@ using HouseofCat.Hashing;
 using HouseofCat.Utilities.Random;
 using System.Threading.Tasks;
 
-namespace Benchmarks.RabbitMQ
+namespace HouseofCat.Benchmarks.Encryption
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
@@ -53,14 +53,6 @@ namespace Benchmarks.RabbitMQ
             EncryptedPayload2 = EncryptionProvider.Encrypt(Payload2);
             EncryptedPayload3 = EncryptionProvider.Encrypt(Payload3);
             EncryptedPayload4 = EncryptionProvider.Encrypt(Payload4);
-        }
-
-        [Benchmark, IterationCount(10)]
-        public async Task CreateArgonHashKeyAsync()
-        {
-            var hashKey = await HashProvider
-                .GetHashKeyAsync(Passphrase, Salt, KeySize)
-                .ConfigureAwait(false);
         }
 
         [Benchmark(Baseline = true)]
