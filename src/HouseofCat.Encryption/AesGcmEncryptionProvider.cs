@@ -1,5 +1,5 @@
-﻿
-using System;
+﻿using System;
+using System.Buffers;
 using System.Security.Cryptography;
 
 namespace HouseofCat.Encryption
@@ -14,6 +14,7 @@ namespace HouseofCat.Encryption
         /// https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.rngcryptoserviceprovider?redirectedfrom=MSDN&view=net-5.0
         /// </summary>
         private readonly RNGCryptoServiceProvider _rng = new RNGCryptoServiceProvider();
+        private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Create();
 
         private readonly byte[] _key;
 
@@ -38,19 +39,46 @@ namespace HouseofCat.Encryption
         {
             using var aes = new AesGcm(_key);
 
-            var nonce = new byte[AesGcm.NonceByteSizes.MaxSize]; // MaxSize = 12
-            _rng.GetNonZeroBytes(nonce);
+            // Byte Allocation Version
+            //var nonce = new byte[AesGcm.NonceByteSizes.MaxSize]; // MaxSize = 12
+            //_rng.GetNonZeroBytes(nonce);
 
-            var enryptedBytes = new byte[data.Length];
-            var tag = new byte[AesGcm.TagByteSizes.MaxSize]; // MaxSize = 16
+            //var encryptedBytes = new byte[data.Length];
+            //var tag = new byte[AesGcm.TagByteSizes.MaxSize]; // MaxSize = 16
 
-            aes.Encrypt(nonce, data.ToArray(), enryptedBytes, tag);
+            //aes.Encrypt(nonce, data, encryptedBytes, tag);
 
-            // Pad ciphertext with nonce and tag.
-            var encryptedData = new byte[nonce.Length + tag.Length + enryptedBytes.Length];
-            Buffer.BlockCopy(nonce, 0, encryptedData, 0, nonce.Length);
-            Buffer.BlockCopy(tag, 0, encryptedData, nonce.Length, tag.Length);
-            Buffer.BlockCopy(enryptedBytes, 0, encryptedData, nonce.Length + tag.Length, enryptedBytes.Length);
+            //var encryptedData = new byte[nonce.Length + tag.Length + enryptedBytes.Length];
+            //Buffer.BlockCopy(nonce, 0, encryptedData, 0, nonce.Length);
+            //Buffer.BlockCopy(tag, 0, encryptedData, nonce.Length, tag.Length);
+            //Buffer.BlockCopy(encryptedBytes, 0, encryptedData, nonce.Length + tag.Length, encryptedBytes.Length);
+
+
+            // Slicing Version
+            // Rented arrays sizes are minimums, not guarantees.
+            // Need to perform extra work managing slices to keep the byte sizes correct but the memory allocations are lower by 200%
+            var encryptedBytes = _pool.Rent(data.Length);
+            var tag = _pool.Rent(AesGcm.TagByteSizes.MaxSize); // MaxSize = 16
+            var nonce = _pool.Rent(AesGcm.NonceByteSizes.MaxSize); // MaxSize = 12
+            _rng.GetBytes(nonce, 0, AesGcm.NonceByteSizes.MaxSize);
+
+            aes.Encrypt(
+                nonce.AsSpan().Slice(0, AesGcm.NonceByteSizes.MaxSize),
+                data.Span,
+                encryptedBytes.AsSpan().Slice(0, data.Length),
+                tag.AsSpan().Slice(0, AesGcm.TagByteSizes.MaxSize));
+
+            // Prefix ciphertext with nonce and tag, since they are fixed length and it will simplify decryption.
+            // Our pattern: Nonce Tag Cipher
+            // Other patterns people use: Nonce Cipher Tag // couldn't find a solid source.
+            var encryptedData = new byte[AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize + data.Length];
+            Buffer.BlockCopy(nonce, 0, encryptedData, 0, AesGcm.NonceByteSizes.MaxSize);
+            Buffer.BlockCopy(tag, 0, encryptedData, AesGcm.NonceByteSizes.MaxSize, AesGcm.TagByteSizes.MaxSize);
+            Buffer.BlockCopy(encryptedBytes, 0, encryptedData, AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize, data.Length);
+
+            _pool.Return(encryptedBytes);
+            _pool.Return(tag);
+            _pool.Return(nonce);
 
             return encryptedData;
         }
@@ -70,6 +98,7 @@ namespace HouseofCat.Encryption
             //Buffer.BlockCopy(encryptedBytes, 0, nonce, 0, nonce.Length);
             //Buffer.BlockCopy(encryptedBytes, nonce.Length, tag, 0, tag.Length);
             //Buffer.BlockCopy(encryptedBytes, nonce.Length + tag.Length, ciphertext, 0, ciphertext.Length);
+
 
             // Slicing Version
             var nonce = encryptedData

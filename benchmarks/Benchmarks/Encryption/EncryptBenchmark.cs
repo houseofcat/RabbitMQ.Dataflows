@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Benchmarks.RabbitMQ
 {
     [MarkdownExporterAttribute.GitHub]
-    [MemoryDiagnoser, ThreadingDiagnoser]
+    [MemoryDiagnoser]
     [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
     public class EncryptBenchmark
     {
@@ -55,7 +55,7 @@ namespace Benchmarks.RabbitMQ
             EncryptedPayload4 = EncryptionProvider.Encrypt(Payload4);
         }
 
-        [Benchmark]
+        [Benchmark, IterationCount(10)]
         public async Task CreateArgonHashKeyAsync()
         {
             var hashKey = await HashProvider
@@ -63,7 +63,7 @@ namespace Benchmarks.RabbitMQ
                 .ConfigureAwait(false);
         }
 
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         public void Encrypt1KBytes()
         {
             EncryptionProvider.Encrypt(Payload1);

@@ -55,7 +55,7 @@ namespace Benchmarks.RabbitMQ
             EncryptedPayload4 = EncryptionProvider.Encrypt(Payload4);
         }
 
-        [Benchmark]
+        [Benchmark(Baseline = true), IterationCount(33)]
         public void Encrypt1KBytes()
         {
             EncryptionProvider.Encrypt(Payload1);
