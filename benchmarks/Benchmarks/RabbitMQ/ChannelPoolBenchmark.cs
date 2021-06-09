@@ -20,7 +20,7 @@ namespace Benchmarks.RabbitMQ
         {
             await Task.Yield();
 
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
             options.PoolOptions.MaxConnections = 5;
             options.PoolOptions.MaxChannels = 50;

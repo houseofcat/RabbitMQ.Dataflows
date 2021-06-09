@@ -64,22 +64,9 @@ namespace HouseofCat.RabbitMQ.Pools
         public ulong CurrentChannelId { get; private set; } = 1;
         public bool Shutdown { get; private set; }
 
-        public ChannelPool(RabbitOptions options)
-        {
-            Guard.AgainstNull(options, nameof(options));
+        public ChannelPool(RabbitOptions options) : this(new ConnectionPool(options)) { }
 
-            Options = options;
-
-            _logger = LogHelper.GetLogger<ChannelPool>();
-            _connectionPool = new ConnectionPool(options);
-            _flaggedChannels = new ConcurrentDictionary<ulong, bool>();
-            _channels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
-            _ackChannels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
-
-            CreateChannelsAsync().GetAwaiter().GetResult();
-        }
-
-        public ChannelPool(ConnectionPool connPool)
+        public ChannelPool(IConnectionPool connPool)
         {
             Guard.AgainstNull(connPool, nameof(connPool));
             Options = connPool.Options;

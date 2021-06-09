@@ -1,4 +1,4 @@
-﻿namespace HouseofCat.Encryption
+﻿namespace HouseofCat.Encryption.BouncyCastle
 {
     public class AesEncryptionOptions
     {

@@ -4,13 +4,17 @@ using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using System;
 using System.IO;
-using System.Runtime.Intrinsics.X86;
+using System.Security.Cryptography;
 
-namespace HouseofCat.Encryption
+namespace HouseofCat.Encryption.BouncyCastle
 {
     public class AesGcmEncryptionProvider : IEncryptionProvider
     {
-        private readonly Random _random = new Random();
+        /// <summary>
+        /// Safer way of generating random bytes.
+        /// https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.rngcryptoserviceprovider?redirectedfrom=MSDN&view=net-5.0
+        /// </summary>
+        private readonly RNGCryptoServiceProvider _rng = new RNGCryptoServiceProvider();
         private readonly AesEncryptionOptions _options;
 
         private readonly KeyParameter _keyParameter;
@@ -41,7 +45,7 @@ namespace HouseofCat.Encryption
         public byte[] Encrypt(ReadOnlyMemory<byte> data)
         {
             var nonce = new byte[_nonceSize];
-            _random.NextBytes(nonce);
+            _rng.GetNonZeroBytes(nonce);
 
             var cipher = GetGcmBlockCipher(true, nonce);
 

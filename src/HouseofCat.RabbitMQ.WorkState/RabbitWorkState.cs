@@ -9,8 +9,8 @@ namespace HouseofCat.RabbitMQ.WorkState
     {
         // Inbound Data
         IReceivedData ReceivedData { get; set; }
-        Letter SendLetter { get; set; }
-        bool SendLetterSent { get; set; }
+        IMessage SendMessage { get; set; }
+        bool SendMessageSent { get; set; }
     }
 
     public abstract class RabbitWorkState : IRabbitWorkState
@@ -18,8 +18,8 @@ namespace HouseofCat.RabbitMQ.WorkState
         [IgnoreDataMember]
         public virtual IReceivedData ReceivedData { get; set; }
         public virtual byte[] SendData { get; set; }
-        public virtual Letter SendLetter { get; set; }
-        public virtual bool SendLetterSent { get; set; }
+        public virtual IMessage SendMessage { get; set; }
+        public virtual bool SendMessageSent { get; set; }
 
         public virtual IDictionary<string, object> Data { get; set; }
 

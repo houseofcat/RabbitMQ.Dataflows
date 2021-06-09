@@ -21,7 +21,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public void CreateConnectionPoolWithLocalHost()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var connPool = new ConnectionPool(options);
@@ -32,7 +32,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public void InitializeConnectionPoolAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var connPool = new ConnectionPool(options);
@@ -43,7 +43,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task OverLoopThroughConnectionPoolAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
             options.PoolOptions.MaxConnections = 5;
             var successCount = 0;

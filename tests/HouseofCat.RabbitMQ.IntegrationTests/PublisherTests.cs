@@ -3,6 +3,7 @@ using HouseofCat.RabbitMQ.Pools;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -22,7 +23,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public void CreatePublisher()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var pub = new Publisher(
@@ -37,7 +38,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task CreatePublisherAndInitializeChannelPool()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var pub = new Publisher(
@@ -54,7 +55,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public void CreatePublisherWithChannelPool()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var chanPool = new ChannelPool(options);
@@ -68,9 +69,9 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         }
 
         [Fact]
-        public async Task PublishWithoutInitializeToQueueAsync()
+        public async Task PublishToNonExistentQueueAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var pub = new Publisher(
@@ -79,17 +80,26 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
 
-            var letter = RandomData.CreateSimpleRandomLetter("TestQueue", 2000);
+            var letter = MessageExtensions.CreateSimpleRandomLetter("TestQueue", 2000);
+
+            await pub.PublishAsync(letter, false);
+
+            var tokenSource = new CancellationTokenSource(delay: TimeSpan.FromSeconds(1));
+            async Task ReadReceiptAsync(CancellationToken cancellationToken)
+            {
+                var receiptBuffer = pub.GetReceiptBufferReader();
+                await receiptBuffer.WaitToReadAsync(cancellationToken);
+                var receipt = receiptBuffer.ReadAsync(cancellationToken);
+            }
 
             await Assert
-                .ThrowsAsync<InvalidOperationException>(() => pub.PublishAsync(letter, false))
-                .ConfigureAwait(false);
+                .ThrowsAnyAsync<OperationCanceledException>(() => ReadReceiptAsync(tokenSource.Token));
         }
 
         [Fact]
         public async Task PublishAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
 
             var pub = new Publisher(
@@ -102,7 +112,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
                 .StartAutoPublishAsync()
                 .ConfigureAwait(false);
 
-            var letter = RandomData.CreateSimpleRandomLetter("TestQueue", 2000);
+            var letter = MessageExtensions.CreateSimpleRandomLetter("TestQueue", 2000);
             await pub
                 .PublishAsync(letter, false)
                 .ConfigureAwait(false);
@@ -111,7 +121,7 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
         [Fact]
         public async Task PublishManyAsync()
         {
-            var options = new Options();
+            var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
             const int letterCount = 10_000;
             const int byteCount = 500;
@@ -139,7 +149,8 @@ namespace HouseofCat.RabbitMQ.IntegrationTests
                 "TestQueue8",
                 "TestQueue9",
             };
-            var letters = RandomData.CreateManySimpleRandomLetters(queueNames, letterCount, byteCount);
+
+            var letters = MessageExtensions.CreateManySimpleRandomLetters(queueNames, letterCount, byteCount);
 
             var sw = Stopwatch.StartNew();
             await pub
