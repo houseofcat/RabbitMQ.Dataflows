@@ -1,4 +1,6 @@
-﻿# LZ4 Pickle
+﻿# LZ4 Compression Benchmarks
+
+### LZ4 Pickle
 ``` ini
 
 BenchmarkDotNet=v0.13.0, OS=Windows 10.0.18363.1556 (1909/November2019Update/19H2)
@@ -10,16 +12,14 @@ Intel Core i7-9850H CPU 2.60GHz, 1 CPU, 12 logical and 6 physical cores
 Job=.NET 5.0  Runtime=.NET 5.0  
 
 ```
-|                 Method |     Mean |     Error |    StdDev | Ratio | RatioSD |  Gen 0 | Gen 1 | Gen 2 | Allocated |
-|----------------------- |---------:|----------:|----------:|------:|--------:|-------:|------:|------:|----------:|
-|        Compress5KBytes | 2.055 μs | 0.0204 μs | 0.0191 μs |  1.00 |    0.00 | 0.0114 |     - |     - |      80 B |
-|   Compress5KBytesAsync | 2.033 μs | 0.0269 μs | 0.0251 μs |  0.99 |    0.02 | 0.0229 |     - |     - |     152 B |
-|      Decompress5KBytes | 1.080 μs | 0.0101 μs | 0.0089 μs |  0.53 |    0.01 | 0.7992 |     - |     - |   5,024 B |
-| Decompress5KBytesAsync | 1.101 μs | 0.0102 μs | 0.0090 μs |  0.54 |    0.01 | 0.8106 |     - |     - |   5,096 B |
+|            Method |     Mean |     Error |    StdDev | Ratio |  Gen 0 | Gen 1 | Gen 2 | Allocated |
+|------------------ |---------:|----------:|----------:|------:|-------:|------:|------:|----------:|
+|   Compress5KBytes | 2.092 μs | 0.0310 μs | 0.0290 μs |  1.00 | 0.0114 |     - |     - |      80 B |
+| Decompress5KBytes | 1.092 μs | 0.0181 μs | 0.0169 μs |  0.52 | 0.7992 |     - |     - |   5,024 B |
 
 
 
-# LZ4 Stream
+### LZ4 Stream
 ``` ini
 
 BenchmarkDotNet=v0.13.0, OS=Windows 10.0.18363.1556 (1909/November2019Update/19H2)

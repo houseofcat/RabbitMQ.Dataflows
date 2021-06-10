@@ -1,11 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using HouseofCat.Compression;
-using HouseofCat.Encryption;
-using HouseofCat.Hashing;
-using HouseofCat.Utilities.Random;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace HouseofCat.Benchmarks.Compression
 {
@@ -39,21 +35,9 @@ namespace HouseofCat.Benchmarks.Compression
         }
 
         [Benchmark]
-        public async Task Compress5KBytesAsync()
-        {
-            await CompressionProvider.CompressAsync(Payload1);
-        }
-
-        [Benchmark]
         public void Decompress5KBytes()
         {
             CompressionProvider.Decompress(CompressedPayload1);
-        }
-
-        [Benchmark]
-        public async Task Decompress5KBytesAsync()
-        {
-            await CompressionProvider.DecompressAsync(CompressedPayload1);
         }
     }
 }
