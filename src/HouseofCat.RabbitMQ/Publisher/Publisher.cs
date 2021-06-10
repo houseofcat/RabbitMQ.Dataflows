@@ -252,7 +252,7 @@ namespace HouseofCat.RabbitMQ
 
                     if (_compress)
                     {
-                        message.Body = _compressionProvider.Compress(message.Body);
+                        message.Body = _compressionProvider.Compress(message.Body).ToArray();
                         metadata.Compressed = _compress;
                         metadata.CustomFields[Constants.HeaderForCompressed] = _compress;
                         metadata.CustomFields[Constants.HeaderForCompression] = _compressionProvider.Type;
@@ -260,7 +260,7 @@ namespace HouseofCat.RabbitMQ
 
                     if (_encrypt)
                     {
-                        message.Body = _encryptionProvider.Encrypt(message.Body);
+                        message.Body = _encryptionProvider.Encrypt(message.Body).ToArray();
                         metadata.Encrypted = _encrypt;
                         metadata.CustomFields[Constants.HeaderForEncrypted] = _encrypt;
                         metadata.CustomFields[Constants.HeaderForEncryption] = _encryptionProvider.Type;

@@ -35,7 +35,7 @@ namespace HouseofCat.Encryption
             if (!string.IsNullOrWhiteSpace(hashType)) { Type = $"{hashType}-{Type}"; }
         }
 
-        public byte[] Encrypt(ReadOnlyMemory<byte> data)
+        public ArraySegment<byte> Encrypt(ReadOnlyMemory<byte> data)
         {
             using var aes = new AesGcm(_key);
 
@@ -83,7 +83,7 @@ namespace HouseofCat.Encryption
             return encryptedData;
         }
 
-        public byte[] Decrypt(ReadOnlyMemory<byte> encryptedData)
+        public ArraySegment<byte> Decrypt(ReadOnlyMemory<byte> encryptedData)
         {
             using var aes = new AesGcm(_key);
 

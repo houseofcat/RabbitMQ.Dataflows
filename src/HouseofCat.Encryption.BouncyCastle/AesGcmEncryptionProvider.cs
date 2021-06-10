@@ -42,7 +42,7 @@ namespace HouseofCat.Encryption.BouncyCastle
             if (!string.IsNullOrWhiteSpace(hashType)) { Type = $"{hashType}-{Type}"; }
         }
 
-        public byte[] Encrypt(ReadOnlyMemory<byte> data)
+        public ArraySegment<byte> Encrypt(ReadOnlyMemory<byte> data)
         {
             var nonce = new byte[_nonceSize];
             _rng.GetNonZeroBytes(nonce);
@@ -63,7 +63,7 @@ namespace HouseofCat.Encryption.BouncyCastle
             return cs.ToArray();
         }
 
-        public byte[] Decrypt(ReadOnlyMemory<byte> encryptedData)
+        public ArraySegment<byte> Decrypt(ReadOnlyMemory<byte> encryptedData)
         {
             using var cipherStream = new MemoryStream(encryptedData.ToArray());
             using var cipherReader = new BinaryReader(cipherStream);

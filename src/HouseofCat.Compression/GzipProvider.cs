@@ -1,35 +1,22 @@
-﻿using K4os.Compression.LZ4;
-using K4os.Compression.LZ4.Streams;
-using Microsoft.Toolkit.HighPerformance;
+﻿using Microsoft.Toolkit.HighPerformance;
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Threading.Tasks;
 
 namespace HouseofCat.Compression
 {
-    public class LZ4StreamProvider : ICompressionProvider
+    public class GzipProvider : ICompressionProvider
     {
-        public string Type { get; } = "LZ4STREAM";
-
-        private readonly LZ4EncoderSettings _encoderSettings;
-        private readonly LZ4DecoderSettings _decoderSettings;
-
-        public LZ4StreamProvider(LZ4EncoderSettings encoderSettings = null, LZ4DecoderSettings decoderSettings = null)
-        {
-            _encoderSettings = encoderSettings ?? new LZ4EncoderSettings
-            {
-                CompressionLevel = LZ4Level.L00_FAST,
-            };
-
-            _decoderSettings = decoderSettings ?? new LZ4DecoderSettings();
-        }
+        public string Type { get; } = "GZIP";
+        public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
 
         public ArraySegment<byte> Compress(ReadOnlyMemory<byte> data)
         {
             using var compressedStream = new MemoryStream();
-            using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, false))
+            using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, false))
             {
-                lz4Stream.Write(data.Span);
+                gzipStream.Write(data.Span);
             }
 
             if (compressedStream.TryGetBuffer(out var buffer))
@@ -41,9 +28,9 @@ namespace HouseofCat.Compression
         public async Task<byte[]> CompressAsync(ReadOnlyMemory<byte> data)
         {
             using var compressedStream = new MemoryStream();
-            using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, false))
+            using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, false))
             {
-                await lz4Stream
+                await gzipStream
                     .WriteAsync(data)
                     .ConfigureAwait(false);
             }
@@ -54,9 +41,9 @@ namespace HouseofCat.Compression
         public MemoryStream CompressToStream(ReadOnlyMemory<byte> data)
         {
             var compressedStream = new MemoryStream();
-            using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, true))
+            using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
             {
-                lz4Stream.Write(data.Span);
+                gzipStream.Write(data.Span);
             }
 
             return compressedStream;
@@ -65,9 +52,9 @@ namespace HouseofCat.Compression
         public async Task<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data)
         {
             var compressedStream = new MemoryStream();
-            using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, true))
+            using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
             {
-                await lz4Stream
+                await gzipStream
                     .WriteAsync(data)
                     .ConfigureAwait(false);
             }
@@ -81,9 +68,9 @@ namespace HouseofCat.Compression
             {
                 using var uncompressedStream = new MemoryStream();
                 using (var compressedStream = new UnmanagedMemoryStream(pBuffer, compressedData.Length))
-                using (var lz4Stream = LZ4Stream.Decode(compressedStream, _decoderSettings, false))
+                using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
                 {
-                    lz4Stream.CopyTo(uncompressedStream);
+                    gzipStream.CopyTo(uncompressedStream);
                 }
 
                 if (uncompressedStream.TryGetBuffer(out var buffer))
@@ -96,9 +83,9 @@ namespace HouseofCat.Compression
         public async Task<byte[]> DecompressAsync(ReadOnlyMemory<byte> compressedData)
         {
             using var uncompressedStream = new MemoryStream();
-            using (var lz4Stream = LZ4Stream.Decode(compressedData.AsStream(), _decoderSettings, false))
+            using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
-                await lz4Stream
+                await gzipStream
                     .CopyToAsync(uncompressedStream)
                     .ConfigureAwait(false);
             }
@@ -116,9 +103,9 @@ namespace HouseofCat.Compression
             compressedStream.Position = 0;
 
             var uncompressedStream = new MemoryStream();
-            using (var lz4Stream = LZ4Stream.Decode(compressedStream, _decoderSettings, true))
+            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
             {
-                lz4Stream.CopyTo(uncompressedStream);
+                gzipStream.CopyTo(uncompressedStream);
             }
 
             return uncompressedStream;
@@ -134,9 +121,9 @@ namespace HouseofCat.Compression
             compressedStream.Position = 0;
 
             var uncompressedStream = new MemoryStream();
-            using (var lz4Stream = LZ4Stream.Decode(compressedStream, _decoderSettings, true))
+            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
             {
-                await lz4Stream
+                await gzipStream
                     .CopyToAsync(uncompressedStream)
                     .ConfigureAwait(false);
             }

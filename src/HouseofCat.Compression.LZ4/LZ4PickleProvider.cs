@@ -1,5 +1,6 @@
 ﻿using K4os.Compression.LZ4;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace HouseofCat.Compression
@@ -15,7 +16,7 @@ namespace HouseofCat.Compression
             _level = level ?? LZ4Level.L00_FAST;
         }
 
-        public byte[] Compress(ReadOnlyMemory<byte> data)
+        public ArraySegment<byte> Compress(ReadOnlyMemory<byte> data)
         {
             return LZ4Pickler.Pickle(data.Span, _level);
         }
@@ -25,14 +26,34 @@ namespace HouseofCat.Compression
             return Task.FromResult(LZ4Pickler.Pickle(data.Span, _level));
         }
 
-        public byte[] Decompress(ReadOnlyMemory<byte> data)
+        public MemoryStream CompressToStream(ReadOnlyMemory<byte> data)
         {
-            return LZ4Pickler.Unpickle(data.Span);
+            throw new NotSupportedException();
         }
 
-        public Task<byte[]> DecompressAsync(ReadOnlyMemory<byte> data)
+        public Task<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data)
         {
-            return Task.FromResult(LZ4Pickler.Unpickle(data.Span));
+            throw new NotSupportedException();
+        }
+
+        public unsafe ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
+        {
+            return LZ4Pickler.Unpickle(compressedData.Span);
+        }
+
+        public Task<byte[]> DecompressAsync(ReadOnlyMemory<byte> compressedData)
+        {
+            return Task.FromResult(LZ4Pickler.Unpickle(compressedData.Span));
+        }
+
+        public MemoryStream DecompressStream(Stream compressedStream)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<MemoryStream> DecompressStreamAsync(Stream compressedStream)
+        {
+            throw new NotSupportedException();
         }
     }
 }

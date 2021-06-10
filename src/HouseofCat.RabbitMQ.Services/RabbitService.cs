@@ -347,7 +347,7 @@ namespace HouseofCat.RabbitMQ.Services
             var metadata = message.GetMetadata();
             if (!metadata.Encrypted)
             {
-                message.Body = EncryptionProvider.Encrypt(message.Body);
+                message.Body = EncryptionProvider.Encrypt(message.Body).Array;
                 metadata.Encrypted = true;
                 metadata.CustomFields[Constants.HeaderForEncrypted] = true;
                 metadata.CustomFields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
@@ -365,7 +365,7 @@ namespace HouseofCat.RabbitMQ.Services
             var metadata = message.GetMetadata();
             if (metadata.Encrypted)
             {
-                message.Body = EncryptionProvider.Decrypt(message.Body);
+                message.Body = EncryptionProvider.Decrypt(message.Body).Array;
                 metadata.Encrypted = false;
                 metadata.CustomFields[Constants.HeaderForEncrypted] = false;
 

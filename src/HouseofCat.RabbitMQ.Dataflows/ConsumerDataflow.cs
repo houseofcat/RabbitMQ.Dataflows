@@ -490,7 +490,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
         }
 
         public TransformBlock<TState, TState> GetByteManipulationTransformBlock(
-            Func<ReadOnlyMemory<byte>, byte[]> action,
+            Func<ReadOnlyMemory<byte>, ArraySegment<byte>> action,
             ExecutionDataflowBlockOptions options,
             bool outbound,
             Predicate<TState> predicate,
@@ -507,9 +507,9 @@ namespace HouseofCat.RabbitMQ.Dataflows
                     if (outbound)
                     {
                         if (state.SendData?.Length > 0)
-                        { state.SendData = action(state.SendData); }
+                        { state.SendData = action(state.SendData.AsMemory()).ToArray(); }
                         else if (state.SendMessage.Body?.Length > 0)
-                        { state.SendMessage.Body = action(state.SendMessage.Body); }
+                        { state.SendMessage.Body = action(state.SendMessage.Body.AsMemory()).ToArray(); }
                     }
                     else if (predicate.Invoke(state))
                     {
@@ -518,10 +518,10 @@ namespace HouseofCat.RabbitMQ.Dataflows
                             if (state.ReceivedData.Letter == null)
                             { state.ReceivedData.Letter = _serializationProvider.Deserialize<Letter>(state.ReceivedData.Data); }
 
-                            state.ReceivedData.Letter.Body = action(state.ReceivedData.Letter.Body);
+                            state.ReceivedData.Letter.Body = action(state.ReceivedData.Letter.Body.AsMemory()).ToArray();
                         }
                         else
-                        { state.ReceivedData.Data = action(state.ReceivedData.Data); }
+                        { state.ReceivedData.Data = action(state.ReceivedData.Data.AsMemory()).ToArray(); }
                     }
 
                     return state;

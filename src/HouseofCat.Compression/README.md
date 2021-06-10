@@ -1,4 +1,4 @@
-﻿# Brotli
+﻿# Brotli - Unsafe
 ``` ini
 
 BenchmarkDotNet=v0.13.0, OS=Windows 10.0.18363.1556 (1909/November2019Update/19H2)
@@ -17,9 +17,11 @@ Job=.NET 5.0  Runtime=.NET 5.0
 |      Decompress5KBytes |     9.895 μs |  0.0640 μs |  0.0500 μs | 0.010 |    0.00 | 1.6327 | 0.0305 |     - |  10,328 B |
 | Decompress5KBytesAsync |    10.471 μs |  0.2032 μs |  0.1802 μs | 0.010 |    0.00 | 1.6479 | 0.0305 |     - |  10,432 B |
 
+Note: Ran the numbers multiple times... Brotli has performance issues it seems.
 
 
-# Deflate
+
+# Deflate - Unsafe
 ``` ini
 
 BenchmarkDotNet=v0.13.0, OS=Windows 10.0.18363.1556 (1909/November2019Update/19H2)
@@ -40,7 +42,7 @@ Job=.NET 5.0  Runtime=.NET 5.0
 
 
 
-# GZIP
+# GZIP - Unsafe
 ``` ini
 
 BenchmarkDotNet=v0.13.0, OS=Windows 10.0.18363.1556 (1909/November2019Update/19H2)
@@ -58,3 +60,72 @@ Job=.NET 5.0  Runtime=.NET 5.0
 |   Compress5KBytesAsync | 12.71 μs | 0.178 μs | 0.149 μs |  1.25 |    0.11 | 0.1068 |      - |     - |     736 B |
 |      Decompress5KBytes | 10.46 μs | 0.186 μs | 0.207 μs |  1.02 |    0.07 | 1.6632 | 0.0305 |     - |  10,496 B |
 | Decompress5KBytesAsync | 10.49 μs | 0.155 μs | 0.145 μs |  1.03 |    0.07 | 1.6785 | 0.0305 |     - |  10,624 B |
+
+
+
+Going through various iterations but wanted to keep them for reference.
+```csharp
+// Original
+public byte[] Decompress(ReadOnlyMemory<byte> data)
+{
+    using var uncompressedStream = new MemoryStream();
+
+    using (var compressedStream = new MemoryStream(data.ToArray()))
+    using (var bstream = new BrotliStream(compressedStream, CompressionMode.Decompress, false))
+    {
+        bstream.CopyTo(uncompressedStream);
+    }
+
+    return uncompressedStream.ToArray();
+}
+
+// Memory optimized version.
+public unsafe byte[] Decompress(ReadOnlyMemory<byte> data)
+{
+    fixed (byte* pBuffer = &data.Span[0])
+    {
+        using var uncompressedStream = new MemoryStream();
+
+        using (var compressedStream = new UnmanagedMemoryStream(pBuffer, data.Length))
+        using (var bstream = new BrotliStream(compressedStream, CompressionMode.Decompress, false))
+        {
+            bstream.CopyTo(uncompressedStream);
+        }
+
+        return uncompressedStream.ToArray();
+    }
+}
+
+// High Performance Toolkit Variant
+public byte[] Decompress(ReadOnlyMemory<byte> data)
+{
+    using var uncompressedStream = new MemoryStream();
+
+    using (var compressedStream = data.AsStream())
+    using (var bstream = new BrotliStream(compressedStream, CompressionMode.Decompress, false))
+    {
+        bstream.CopyTo(uncompressedStream);
+    }
+
+    return uncompressedStream.ToArray();
+}
+
+// ReadOnlySpan Sync Version
+public unsafe Span<byte> Decompress(ReadOnlySpan<byte> compressedData)
+{
+    fixed (byte* pBuffer = &compressedData[0])
+    {
+        using var uncompressedStream = new MemoryStream();
+        using (var compressedStream = new UnmanagedMemoryStream(pBuffer, compressedData.Length))
+        using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
+        {
+            gzipStream.CopyTo(uncompressedStream);
+        }
+
+        if (uncompressedStream.TryGetBuffer(out var buffer))
+        { return buffer; }
+        else
+        { return uncompressedStream.ToArray(); }
+    }
+}
+```
