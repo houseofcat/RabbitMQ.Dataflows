@@ -34,17 +34,17 @@ namespace HouseofCat.Tests.IntegrationTests
         [Fact]
         public void Compress()
         {
-            var compressedData = _provider.Compress(_data);
+            var compressedData = _provider.Compress(_data).ToArray();
 
             Assert.NotNull(compressedData);
-            Assert.NotEqual(compressedData.Array.Length, _data.Length);
-            Assert.True(compressedData.Array.Length < _data.Length);
+            Assert.NotEqual(compressedData.Length, _data.Length);
+            Assert.True(compressedData.Length < _data.Length);
         }
 
         [Fact]
         public async Task CompressAsync()
         {
-            var compressedData = await _provider.CompressAsync(_data);
+            var compressedData = (await _provider.CompressAsync(_data)).ToArray();
 
             Assert.NotNull(compressedData);
             Assert.NotEqual(compressedData.Length, _data.Length);
@@ -56,7 +56,8 @@ namespace HouseofCat.Tests.IntegrationTests
         {
             var compressedStream = _provider.CompressToStream(_data);
             var compressedData = compressedStream.ToArray();
-            var uncompressedData = _provider.Decompress(compressedData);
+
+            var uncompressedData = _provider.Decompress(compressedData).ToArray();
 
             Assert.NotNull(compressedData);
             Assert.NotEqual(compressedData.Length, _data.Length);
@@ -70,7 +71,8 @@ namespace HouseofCat.Tests.IntegrationTests
         {
             var compressedStream = await _provider.CompressToStreamAsync(_data);
             var compressedData = compressedStream.ToArray();
-            var uncompressedData = _provider.Decompress(compressedData);
+
+            var uncompressedData = _provider.Decompress(compressedData).ToArray();
 
             Assert.NotNull(compressedData);
             Assert.NotEqual(compressedData.Length, _data.Length);
@@ -82,17 +84,17 @@ namespace HouseofCat.Tests.IntegrationTests
         [Fact]
         public void Decompress()
         {
-            var decompressedData = _provider.Decompress(_compressedData);
+            var decompressedData = _provider.Decompress(_compressedData).ToArray();
 
             Assert.NotNull(decompressedData);
-            Assert.Equal(decompressedData.Array.Length, _data.Length);
+            Assert.Equal(decompressedData.Length, _data.Length);
             Assert.Equal(decompressedData, _data);
         }
 
         [Fact]
         public async Task DecompressAsync()
         {
-            var decompressedData = await _provider.DecompressAsync(_compressedData);
+            var decompressedData = (await _provider.DecompressAsync(_compressedData)).ToArray();
 
             Assert.NotNull(decompressedData);
             Assert.Equal(decompressedData.Length, _data.Length);
@@ -124,11 +126,11 @@ namespace HouseofCat.Tests.IntegrationTests
         [Fact]
         public void CompressDecompress()
         {
-            var compressedData = _provider.Compress(_data);
+            var compressedData = _provider.Compress(_data).ToArray();
 
             Assert.NotNull(compressedData);
-            Assert.NotEqual(compressedData.Array.Length, _data.Length);
-            Assert.True(compressedData.Array.Length < _data.Length);
+            Assert.NotEqual(compressedData.Length, _data.Length);
+            Assert.True(compressedData.Length < _data.Length);
 
             var decompressedData = _provider.Decompress(compressedData);
 
@@ -140,13 +142,13 @@ namespace HouseofCat.Tests.IntegrationTests
         [Fact]
         public async Task CompressDecompressAsync()
         {
-            var compressedData = await _provider.CompressAsync(_data);
+            var compressedData = (await _provider.CompressAsync(_data)).ToArray();
 
             Assert.NotNull(compressedData);
             Assert.NotEqual(compressedData.Length, _data.Length);
             Assert.True(compressedData.Length < _data.Length);
 
-            var decompressedData = await _provider.DecompressAsync(compressedData);
+            var decompressedData = (await _provider.DecompressAsync(compressedData)).ToArray();
 
             Assert.NotNull(decompressedData);
             Assert.Equal(decompressedData.Length, _data.Length);

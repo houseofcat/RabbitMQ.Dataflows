@@ -42,32 +42,12 @@ namespace HouseofCat.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task CompressAsync()
-        {
-            var compressedData = await _provider.CompressAsync(_data);
-
-            Assert.NotNull(compressedData);
-            Assert.NotEqual(compressedData.Length, _data.Length);
-            Assert.True(compressedData.Length < _data.Length);
-        }
-
-        [Fact]
         public void Decompress()
         {
             var decompressedData = _provider.Decompress(_compressedData);
 
             Assert.NotNull(decompressedData);
             Assert.Equal(decompressedData.Array.Length, _data.Length);
-            Assert.Equal(decompressedData, _data);
-        }
-
-        [Fact]
-        public async Task DecompressAsync()
-        {
-            var decompressedData = await _provider.DecompressAsync(_compressedData);
-
-            Assert.NotNull(decompressedData);
-            Assert.Equal(decompressedData.Length, _data.Length);
             Assert.Equal(decompressedData, _data);
         }
 
@@ -84,22 +64,6 @@ namespace HouseofCat.Tests.IntegrationTests
 
             Assert.NotNull(decompressedData);
             Assert.Equal(decompressedData.Array.Length, _data.Length);
-            Assert.Equal(decompressedData, _data);
-        }
-
-        [Fact]
-        public async Task CompressDecompressAsync()
-        {
-            var compressedData = await _provider.CompressAsync(_data);
-
-            Assert.NotNull(compressedData);
-            Assert.NotEqual(compressedData.Length, _data.Length);
-            Assert.True(compressedData.Length < _data.Length);
-
-            var decompressedData = await _provider.DecompressAsync(compressedData);
-
-            Assert.NotNull(decompressedData);
-            Assert.Equal(decompressedData.Length, _data.Length);
             Assert.Equal(decompressedData, _data);
         }
     }

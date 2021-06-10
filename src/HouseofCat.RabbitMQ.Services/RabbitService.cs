@@ -394,7 +394,7 @@ namespace HouseofCat.RabbitMQ.Services
 
             if (!metadata.Compressed)
             {
-                message.Body = await CompressionProvider.CompressAsync(message.Body).ConfigureAwait(false);
+                message.Body = (await CompressionProvider.CompressAsync(message.Body).ConfigureAwait(false)).ToArray();
                 metadata.Compressed = true;
                 metadata.CustomFields[Constants.HeaderForCompressed] = true;
                 metadata.CustomFields[Constants.HeaderForCompression] = CompressionProvider.Type;
@@ -416,7 +416,7 @@ namespace HouseofCat.RabbitMQ.Services
             {
                 try
                 {
-                    message.Body = await CompressionProvider.DecompressAsync(message.Body).ConfigureAwait(false);
+                    message.Body = (await CompressionProvider.DecompressAsync(message.Body).ConfigureAwait(false)).ToArray();
                     metadata.Compressed = false;
                     metadata.CustomFields[Constants.HeaderForCompressed] = false;
 

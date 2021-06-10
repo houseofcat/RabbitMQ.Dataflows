@@ -25,7 +25,7 @@ namespace HouseofCat.Compression
             { return compressedStream.ToArray(); }
         }
 
-        public async Task<byte[]> CompressAsync(ReadOnlyMemory<byte> data)
+        public async Task<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data)
         {
             using var compressedStream = new MemoryStream();
             using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel))
@@ -35,7 +35,10 @@ namespace HouseofCat.Compression
                     .ConfigureAwait(false);
             }
 
-            return compressedStream.ToArray();
+            if (compressedStream.TryGetBuffer(out var buffer))
+            { return buffer; }
+            else
+            { return compressedStream.ToArray(); }
         }
 
         public MemoryStream CompressToStream(ReadOnlyMemory<byte> data)
@@ -80,7 +83,7 @@ namespace HouseofCat.Compression
             }
         }
 
-        public async Task<byte[]> DecompressAsync(ReadOnlyMemory<byte> compressedData)
+        public async Task<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
         {
             using var uncompressedStream = new MemoryStream();
             using (var deflateStream = new DeflateStream(compressedData.AsStream(), CompressionMode.Decompress, false))
@@ -90,7 +93,10 @@ namespace HouseofCat.Compression
                     .ConfigureAwait(false);
             }
 
-            return uncompressedStream.ToArray();
+            if (uncompressedStream.TryGetBuffer(out var buffer))
+            { return buffer; }
+            else
+            { return uncompressedStream.ToArray(); }
         }
 
         /// <summary>

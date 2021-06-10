@@ -21,9 +21,9 @@ namespace HouseofCat.Compression
             return LZ4Pickler.Pickle(data.Span, _level);
         }
 
-        public Task<byte[]> CompressAsync(ReadOnlyMemory<byte> data)
+        public Task<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data)
         {
-            return Task.FromResult(LZ4Pickler.Pickle(data.Span, _level));
+            throw new NotSupportedException();
         }
 
         public MemoryStream CompressToStream(ReadOnlyMemory<byte> data)
@@ -41,9 +41,9 @@ namespace HouseofCat.Compression
             return LZ4Pickler.Unpickle(compressedData.Span);
         }
 
-        public Task<byte[]> DecompressAsync(ReadOnlyMemory<byte> compressedData)
+        public Task<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
         {
-            return Task.FromResult(LZ4Pickler.Unpickle(compressedData.Span));
+            throw new NotSupportedException();
         }
 
         public MemoryStream DecompressStream(Stream compressedStream)
