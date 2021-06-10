@@ -1,7 +1,7 @@
 # NetCore Builtin Compression Providers
 Hopefully considered optimally implemented.
 
-Small note for to avoid confusion, UnitTests have all full examples, but specifically regarding ArraySegment<byte> as the return value. By switching to this mechanism, I provide the developer the ability to defer their "copy-allocation" right until time of use instead of always by returning an array. Regular use case this has a small burden, in that you then, have to call `.ToArray()` to get your exact bytes out you are expecting.
+Small note to help avoid some confusion. First, all UnitTests provide full examples on usage, but specifically regarding ArraySegment<byte> as the return value. By switching to this return type, I provide the developer the ability to defer their "copy-allocation" right until time of use instead of always by returning an array. Regular use case this has a small burden, in that you then, have to call `.ToArray()` to get your exact bytes out you are expecting when you are ready to pull them out of the buffer.
 
 But by doing this, the benefits on middleware/pipelines will be rather rewarding. It still requires other changes, but consider it groundwork for the ability to reduce memory allocations by up to 200% when Serializing, Compressing, and Encrypting.
 
