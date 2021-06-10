@@ -1,5 +1,11 @@
-﻿# NetCore Builtin Compression Providers
+# NetCore Builtin Compression Providers
 Hopefully considered optimally implemented.
+
+Small note for to avoid confusion, UnitTests have all full examples, but specifically regarding ArraySegment<byte> as the return value. By switching to this mechanism, I provide the developer the ability to defer their "copy-allocation" right until time of use instead of always by returning an array. Regular use case this has a small burden, in that you then, have to call `.ToArray()` to get your exact bytes out you are expecting.
+
+But by doing this, the benefits on middleware/pipelines will be rather rewarding. It still requires other changes, but consider it groundwork for the ability to reduce memory allocations by up to 200% when Serializing, Compressing, and Encrypting.
+
+I have also added MemoryStream overrides too to really give developers some additional freedoms.
 
 ### Brotli
 ``` ini
