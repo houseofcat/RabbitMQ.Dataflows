@@ -49,10 +49,10 @@ namespace HouseofCat.Benchmarks.Encryption
                 .GetResult();
 
             EncryptionProvider = new AesGcmEncryptionProvider(HashKey, HashProvider.Type);
-            EncryptedPayload1 = EncryptionProvider.Encrypt(Payload1);
-            EncryptedPayload2 = EncryptionProvider.Encrypt(Payload2);
-            EncryptedPayload3 = EncryptionProvider.Encrypt(Payload3);
-            EncryptedPayload4 = EncryptionProvider.Encrypt(Payload4);
+            EncryptedPayload1 = EncryptionProvider.Encrypt(Payload1).ToArray();
+            EncryptedPayload2 = EncryptionProvider.Encrypt(Payload2).ToArray();
+            EncryptedPayload3 = EncryptionProvider.Encrypt(Payload3).ToArray();
+            EncryptedPayload4 = EncryptionProvider.Encrypt(Payload4).ToArray();
         }
 
         [Benchmark(Baseline = true)]

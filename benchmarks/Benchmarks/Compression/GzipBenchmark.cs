@@ -29,7 +29,7 @@ namespace HouseofCat.Benchmarks.Compression
             Enumerable.Repeat<byte>(0x01, 1000).ToArray().CopyTo(Payload1, 4000);
 
             CompressionProvider = new GzipProvider();
-            CompressedPayload1 = CompressionProvider.Compress(Payload1);
+            CompressedPayload1 = CompressionProvider.Compress(Payload1).ToArray();
         }
 
         [Benchmark(Baseline = true)]
