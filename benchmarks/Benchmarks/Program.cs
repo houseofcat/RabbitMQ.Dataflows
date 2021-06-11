@@ -35,7 +35,8 @@ namespace HouseofCat.Benchmarks
             BenchmarkRunner.Run(
                 new[]
                 {
-                    BenchmarkConverter.TypeToBenchmarks(typeof(TransformMiddlewareBenchmark))
+                    BenchmarkConverter.TypeToBenchmarks(typeof(TransformMiddlewareBenchmark)),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(BouncyMiddlewareBenchmark)),
                 });
 
         }

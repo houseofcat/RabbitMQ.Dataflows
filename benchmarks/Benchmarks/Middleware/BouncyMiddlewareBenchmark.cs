@@ -2,7 +2,7 @@
 using BenchmarkDotNet.Jobs;
 using HouseofCat.Compression;
 using HouseofCat.Dataflows;
-using HouseofCat.Encryption;
+using HouseofCat.Encryption.BouncyCastle;
 using HouseofCat.Hashing;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Time;
@@ -17,7 +17,7 @@ namespace HouseofCat.Benchmarks.Middleware
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
     [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
-    public class TransformMiddlewareBenchmark
+    public class BouncyMiddlewareBenchmark
     {
         private TransformMiddleware _middleware;
 

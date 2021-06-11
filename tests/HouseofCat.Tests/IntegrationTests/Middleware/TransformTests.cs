@@ -27,6 +27,7 @@ namespace HouseofCat.Tests.IntegrationTests
         private static byte[] _data = new byte[5000];
         private MyCustomClass MyClass = new MyCustomClass();
 
+        private static int _originalSize;
         private static byte[] _serializedData;
 
         public TransformTests(ITestOutputHelper output)
@@ -46,8 +47,11 @@ namespace HouseofCat.Tests.IntegrationTests
                 .GetAwaiter()
                 .GetResult();
 
+            var serializationProvider = new Utf8JsonProvider();
+            _originalSize = serializationProvider.Serialize(MyClass).Length;
+
             _middleware = new TransformMiddleware(
-                new Utf8JsonProvider(),
+                serializationProvider,
                 new AesGcmEncryptionProvider(hashKey, hashingProvider.Type),
                 new GzipProvider());
 
@@ -98,6 +102,24 @@ namespace HouseofCat.Tests.IntegrationTests
         }
 
         #endregion
+
+        [Fact]
+        public void Serialize()
+        {
+            var serializedData = _middleware.Serialize(MyClass).ToArray();
+
+            Assert.NotNull(serializedData);
+            Assert.Equal(serializedData.Length, _serializedData.Length);
+        }
+
+        [Fact]
+        public void Deserialize()
+        {
+            var myCustomClass = _middleware.Deserialize<MyCustomClass>(_serializedData);
+
+            Assert.NotNull(myCustomClass);
+            Assert.Equal(myCustomClass.ByteData.Length, _data.Length);
+        }
 
         [Fact]
         public async Task SerializeAsync()
