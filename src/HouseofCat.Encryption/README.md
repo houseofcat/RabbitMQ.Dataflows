@@ -1,5 +1,12 @@
-New EncryptionProvider based on Net5.0.
+# New EncryptionProvider based on Net5.0.
 
+Byte structure is straight forward if you need to use alternative decryption mechanism.
+```
+  12 bytes       16 bytes    n bytes up to int.IntMax - 28 bytes.
+[ Nonce / IV ][ Tag / MAC ][               Ciphertext           ]
+```
+
+### Benchmark
 ```ini
 // * Summary *
 
