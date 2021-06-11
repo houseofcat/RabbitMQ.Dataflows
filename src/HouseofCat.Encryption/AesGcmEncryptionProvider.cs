@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.IO;
 using System.Security.Cryptography;
 
 namespace HouseofCat.Encryption
@@ -83,6 +84,11 @@ namespace HouseofCat.Encryption
             return encryptedData;
         }
 
+        public MemoryStream EncryptToStream(ReadOnlyMemory<byte> data)
+        {
+            return new MemoryStream(Encrypt(data).ToArray());
+        }
+
         public ArraySegment<byte> Decrypt(ReadOnlyMemory<byte> encryptedData)
         {
             using var aes = new AesGcm(_key);
@@ -98,7 +104,6 @@ namespace HouseofCat.Encryption
             //Buffer.BlockCopy(encryptedBytes, 0, nonce, 0, nonce.Length);
             //Buffer.BlockCopy(encryptedBytes, nonce.Length, tag, 0, tag.Length);
             //Buffer.BlockCopy(encryptedBytes, nonce.Length + tag.Length, ciphertext, 0, ciphertext.Length);
-
 
             // Slicing Version
             var nonce = encryptedData
@@ -118,6 +123,11 @@ namespace HouseofCat.Encryption
             aes.Decrypt(nonce, encryptedBytes, tag, decryptedBytes);
 
             return decryptedBytes;
+        }
+
+        public MemoryStream DecryptToStream(ReadOnlyMemory<byte> data)
+        {
+            return new MemoryStream(Decrypt(data).ToArray());
         }
     }
 }

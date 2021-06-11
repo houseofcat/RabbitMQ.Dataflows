@@ -30,6 +30,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\HouseofCat.Algorithms\HouseofCat.Algorithms.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.Dataflows\HouseofCat.Dataflows.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Encryption.BouncyCastle\HouseofCat.Encryption.BouncyCastle.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ.Pipelines\HouseofCat.RabbitMQ.Pipelines.csproj" />

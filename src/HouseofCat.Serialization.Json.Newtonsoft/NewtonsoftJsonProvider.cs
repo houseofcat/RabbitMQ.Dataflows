@@ -8,14 +8,21 @@ namespace HouseofCat.Serialization
 {
     public class NewtonsoftJsonProvider : ISerializationProvider
     {
+        private JsonSerializer _jsonSerializer = new JsonSerializer();
+
         public byte[] Serialize<TIn>(TIn input)
         {
             return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(input));
         }
 
-        public Task SerializeAsync<TIn>(Stream utf8Json, TIn input)
+        public async Task SerializeAsync<TIn>(Stream utf8JsonStream, TIn input)
         {
-            throw new NotSupportedException();
+            using (StreamWriter writer = new StreamWriter(utf8JsonStream))
+            using (JsonTextWriter jsonWriter = new JsonTextWriter(writer))
+            {
+                _jsonSerializer.Serialize(jsonWriter, input);
+                await jsonWriter.FlushAsync();
+            }
         }
 
         public string SerializeToString<TIn>(TIn input)

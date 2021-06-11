@@ -41,6 +41,20 @@ namespace HouseofCat.Compression
             { return compressedStream.ToArray(); }
         }
 
+        public async Task<MemoryStream> CompressStreamAsync(Stream data)
+        {
+            var compressedStream = new MemoryStream();
+            using (var bstream = new BrotliStream(compressedStream, CompressionLevel, true))
+            {
+                await data
+                    .CopyToAsync(bstream)
+                    .ConfigureAwait(false);
+            }
+
+            compressedStream.Seek(0, SeekOrigin.Begin);
+            return compressedStream;
+        }
+
         public MemoryStream CompressToStream(ReadOnlyMemory<byte> data)
         {
             var compressedStream = new MemoryStream();
@@ -49,6 +63,7 @@ namespace HouseofCat.Compression
                 bstream.Write(data.Span);
             }
 
+            compressedStream.Seek(0, SeekOrigin.Begin);
             return compressedStream;
         }
 
@@ -62,6 +77,7 @@ namespace HouseofCat.Compression
                     .ConfigureAwait(false);
             }
 
+            compressedStream.Seek(0, SeekOrigin.Begin);
             return compressedStream;
         }
 
@@ -106,8 +122,6 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public MemoryStream DecompressStream(Stream compressedStream)
         {
-            compressedStream.Position = 0;
-
             var uncompressedStream = new MemoryStream();
             using (var bstream = new BrotliStream(compressedStream, CompressionMode.Decompress, false))
             {
@@ -124,14 +138,28 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public async Task<MemoryStream> DecompressStreamAsync(Stream compressedStream)
         {
-            compressedStream.Position = 0;
-
             var uncompressedStream = new MemoryStream();
             using (var bstream = new BrotliStream(compressedStream, CompressionMode.Decompress, false))
             {
                 await bstream
                     .CopyToAsync(uncompressedStream)
                     .ConfigureAwait(false);
+            }
+
+            return uncompressedStream;
+        }
+
+        /// <summary>
+        /// Returns a new MemoryStream() that has decompressed data inside.
+        /// </summary>
+        /// <param name="compressedData"></param>
+        /// <returns></returns>
+        public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData)
+        {
+            var uncompressedStream = new MemoryStream();
+            using (var bStream = new BrotliStream(compressedData.AsStream(), CompressionMode.Decompress, false))
+            {
+                bStream.CopyTo(uncompressedStream);
             }
 
             return uncompressedStream;

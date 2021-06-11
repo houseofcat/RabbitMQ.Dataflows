@@ -26,6 +26,11 @@ namespace HouseofCat.Compression
             throw new NotSupportedException();
         }
 
+        public Task<MemoryStream> CompressStreamAsync(Stream data)
+        {
+            throw new NotSupportedException();
+        }
+
         public MemoryStream CompressToStream(ReadOnlyMemory<byte> data)
         {
             throw new NotSupportedException();
@@ -52,6 +57,10 @@ namespace HouseofCat.Compression
         }
 
         public Task<MemoryStream> DecompressStreamAsync(Stream compressedStream)
+        {
+            throw new NotSupportedException();
+        }
+        public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData)
         {
             throw new NotSupportedException();
         }

@@ -20,7 +20,6 @@ namespace HouseofCat.Encryption.BouncyCastle
         private readonly KeyParameter _keyParameter;
         private readonly int _macBitSize;
         private readonly int _nonceSize;
-
         public string Type { get; private set; }
 
         public AesGcmEncryptionProvider(byte[] key, string hashType, AesEncryptionOptions options = null)
@@ -44,6 +43,11 @@ namespace HouseofCat.Encryption.BouncyCastle
 
         public ArraySegment<byte> Encrypt(ReadOnlyMemory<byte> data)
         {
+            return EncryptToStream(data).ToArray();
+        }
+
+        public MemoryStream EncryptToStream(ReadOnlyMemory<byte> data)
+        {
             var nonce = new byte[_nonceSize];
             _rng.GetNonZeroBytes(nonce);
 
@@ -60,7 +64,7 @@ namespace HouseofCat.Encryption.BouncyCastle
                 bw.Write(cipherText);
             }
 
-            return cs.ToArray();
+            return cs;
         }
 
         public ArraySegment<byte> Decrypt(ReadOnlyMemory<byte> encryptedData)
@@ -80,6 +84,11 @@ namespace HouseofCat.Encryption.BouncyCastle
             { return null; }
 
             return plainText;
+        }
+
+        public MemoryStream DecryptToStream(ReadOnlyMemory<byte> encryptedData)
+        {
+            return new MemoryStream(Decrypt(encryptedData).ToArray());
         }
 
         private GcmBlockCipher GetGcmBlockCipher(bool forEncryption, byte[] nonce)
