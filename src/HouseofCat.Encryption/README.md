@@ -21,8 +21,6 @@ Runtime=.NET 5.0
 
 |                  Method |        Job | IterationCount |          Mean |         Error |        StdDev |        Median | Ratio | RatioSD |     Gen 0 |    Gen 1 |    Gen 2 | Allocated |
 |------------------------ |----------- |--------------- |--------------:|--------------:|--------------:|--------------:|------:|--------:|----------:|---------:|---------:|----------:|
-| CreateArgonHashKeyAsync | Job-ADZLQM |             10 | 27,959.639 us | 1,587.3437 us | 1,049.9296 us | 27,847.659 us |     ? |       ? | 1000.0000 | 500.0000 | 500.0000 |  5,481 KB |
-|                         |            |                |               |               |               |               |       |         |           |          |          |           |
 |          Encrypt1KBytes |   .NET 5.0 |        Default |      1.512 us |     0.0298 us |     0.0398 us |      1.504 us |  1.00 |    0.00 |    0.1926 |        - |        - |      1 KB |
 |          Encrypt2KBytes |   .NET 5.0 |        Default |      1.965 us |     0.0382 us |     0.0408 us |      1.951 us |  1.30 |    0.04 |    0.3548 |        - |        - |      2 KB |
 |          Encrypt4kBytes |   .NET 5.0 |        Default |      2.946 us |     0.0583 us |     0.0942 us |      2.948 us |  1.96 |    0.07 |    0.6828 |        - |        - |      4 KB |
