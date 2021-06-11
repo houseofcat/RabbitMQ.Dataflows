@@ -90,7 +90,15 @@ namespace HouseofCat.Dataflows
                 memoryStream = await _compressionProvider.CompressStreamAsync(memoryStream);
                 memoryStream.Position = 0;
 
-                return _encryptionProvider.Encrypt(memoryStream.GetBuffer());
+                memoryStream = await _encryptionProvider.EncryptAsync(memoryStream);
+                memoryStream.Position = 0;
+
+                if (memoryStream.TryGetBuffer(out var buffer))
+                {
+                    return buffer;
+                }
+                else
+                { return memoryStream.ToArray(); }
             }
             else if (_encryptionProvider != null)
             {
@@ -98,7 +106,15 @@ namespace HouseofCat.Dataflows
                 await _serializationProvider.SerializeAsync(memoryStream, input);
                 memoryStream.Position = 0;
 
-                return _encryptionProvider.Encrypt(memoryStream.GetBuffer());
+                memoryStream = await _encryptionProvider.EncryptAsync(memoryStream);
+                memoryStream.Position = 0;
+
+                if (memoryStream.TryGetBuffer(out var buffer))
+                {
+                    return buffer;
+                }
+                else
+                { return memoryStream.ToArray(); }
             }
             else if (_compressionProvider != null)
             {

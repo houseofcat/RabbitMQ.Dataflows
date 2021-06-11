@@ -25,7 +25,7 @@ namespace HouseofCat.Compression
             { return compressedStream.ToArray(); }
         }
 
-        public async Task<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data)
+        public async ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data)
         {
             using var compressedStream = new MemoryStream();
             using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, false))
@@ -41,7 +41,7 @@ namespace HouseofCat.Compression
             { return compressedStream.ToArray(); }
         }
 
-        public async Task<MemoryStream> CompressStreamAsync(Stream data)
+        public async ValueTask<MemoryStream> CompressStreamAsync(Stream data)
         {
             var compressedStream = new MemoryStream();
             using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
@@ -67,7 +67,7 @@ namespace HouseofCat.Compression
             return compressedStream;
         }
 
-        public async Task<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data)
+        public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data)
         {
             var compressedStream = new MemoryStream();
             using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
@@ -99,7 +99,7 @@ namespace HouseofCat.Compression
             }
         }
 
-        public async Task<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
+        public async ValueTask<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
         {
             using var uncompressedStream = new MemoryStream();
             using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
@@ -136,7 +136,7 @@ namespace HouseofCat.Compression
         /// </summary>
         /// <param name="compressedStream"></param>
         /// <returns></returns>
-        public async Task<MemoryStream> DecompressStreamAsync(Stream compressedStream)
+        public async ValueTask<MemoryStream> DecompressStreamAsync(Stream compressedStream)
         {
             var uncompressedStream = new MemoryStream();
             using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))

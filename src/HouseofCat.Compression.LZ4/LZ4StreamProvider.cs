@@ -38,7 +38,7 @@ namespace HouseofCat.Compression
             { return compressedStream.ToArray(); }
         }
 
-        public async Task<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data)
+        public async ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data)
         {
             using var compressedStream = new MemoryStream();
             using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, false))
@@ -54,7 +54,7 @@ namespace HouseofCat.Compression
             { return compressedStream.ToArray(); }
         }
 
-        public async Task<MemoryStream> CompressStreamAsync(Stream data)
+        public async ValueTask<MemoryStream> CompressStreamAsync(Stream data)
         {
             var compressedStream = new MemoryStream();
             using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, true))
@@ -80,7 +80,7 @@ namespace HouseofCat.Compression
             return compressedStream;
         }
 
-        public async Task<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data)
+        public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data)
         {
             var compressedStream = new MemoryStream();
             using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, true))
@@ -112,7 +112,7 @@ namespace HouseofCat.Compression
             }
         }
 
-        public async Task<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
+        public async ValueTask<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
         {
             using var uncompressedStream = new MemoryStream();
             using (var lz4Stream = LZ4Stream.Decode(compressedData.AsStream(), _decoderSettings, false))
@@ -149,7 +149,7 @@ namespace HouseofCat.Compression
         /// </summary>
         /// <param name="compressedStream"></param>
         /// <returns></returns>
-        public async Task<MemoryStream> DecompressStreamAsync(Stream compressedStream)
+        public async ValueTask<MemoryStream> DecompressStreamAsync(Stream compressedStream)
         {
             var uncompressedStream = new MemoryStream();
             using (var lz4Stream = LZ4Stream.Decode(compressedStream, _decoderSettings, true))
