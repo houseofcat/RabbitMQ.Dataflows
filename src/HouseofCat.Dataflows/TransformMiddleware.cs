@@ -52,87 +52,218 @@ namespace HouseofCat.Dataflows
             return await _serializationProvider.DeserializeAsync<TOut>(data.AsStream());
         }
 
-        private async Task<TOut> DecryptDecompressDeserializeAsync<TOut>(ReadOnlyMemory<byte> data)
+        /// <summary>
+        /// Transforms data back to the original object.
+        /// <para>Data was serialized, compressed, then encrypted. So here it is decrypted, decompressed, and deserialized.</para>
+        /// </summary>
+        /// <typeparam name="TOut"></typeparam>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public TOut Deserialize<TOut>(ReadOnlyMemory<byte> data)
         {
-            var decryptedStream = _encryptionProvider.DecryptToStream(data);
-            decryptedStream.Position = 0;
+            if (_encryptionProvider != null && _compressionProvider != null)
+            {
+                return DecryptDecompressDeserialize<TOut>(data);
+            }
+            else if (_encryptionProvider != null)
+            {
+                return DecryptDeserialize<TOut>(data);
+            }
+            else if (_compressionProvider != null)
+            {
+                return DecompressDeserialize<TOut>(data);
+            }
 
-            var decompressedStream = await _compressionProvider.DecompressStreamAsync(decryptedStream);
-            decompressedStream.Position = 0;
-
-            return await _serializationProvider.DeserializeAsync<TOut>(decompressedStream);
+            return _serializationProvider.Deserialize<TOut>(data);
         }
 
-        private async Task<TOut> DecryptDeserializeAsync<TOut>(ReadOnlyMemory<byte> data)
+        public TOut DecryptDecompressDeserialize<TOut>(ReadOnlyMemory<byte> data)
         {
-            var decryptedStream = _encryptionProvider.DecryptToStream(data);
-            decryptedStream.Position = 0;
+            var decryptedData = _encryptionProvider.Decrypt(data);
+            var decompressedData = _compressionProvider.Decompress(decryptedData);
 
-            return await _serializationProvider.DeserializeAsync<TOut>(decryptedStream);
+            return _serializationProvider.Deserialize<TOut>(decompressedData);
         }
 
-        private async Task<TOut> DecompressDeserializeAsync<TOut>(ReadOnlyMemory<byte> data)
+        public async Task<TOut> DecryptDecompressDeserializeAsync<TOut>(ReadOnlyMemory<byte> data)
         {
-            var decompressedStream = _compressionProvider.DecompressToStream(data);
-            decompressedStream.Position = 0;
+            var memoryStream = _encryptionProvider.DecryptToStream(data);
+            memoryStream.Seek(0, SeekOrigin.Begin);
 
-            return await _serializationProvider.DeserializeAsync<TOut>(decompressedStream);
+            memoryStream = await _compressionProvider
+                .DecompressStreamAsync(memoryStream)
+                .ConfigureAwait(false);
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            return await _serializationProvider
+                .DeserializeAsync<TOut>(memoryStream)
+                .ConfigureAwait(false);
+        }
+
+        public TOut DecryptDeserialize<TOut>(ReadOnlyMemory<byte> data)
+        {
+            var decryptedData = _encryptionProvider.Decrypt(data);
+
+            return _serializationProvider.Deserialize<TOut>(decryptedData);
+        }
+
+        public async Task<TOut> DecryptDeserializeAsync<TOut>(ReadOnlyMemory<byte> data)
+        {
+            var memoryStream = _encryptionProvider.DecryptToStream(data);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            return await _serializationProvider
+                .DeserializeAsync<TOut>(memoryStream)
+                .ConfigureAwait(false);
+        }
+
+        public TOut DecompressDeserialize<TOut>(ReadOnlyMemory<byte> data)
+        {
+            var decompressedData = _compressionProvider.Decompress(data);
+
+            return _serializationProvider.Deserialize<TOut>(decompressedData);
+        }
+
+        public async Task<TOut> DecompressDeserializeAsync<TOut>(ReadOnlyMemory<byte> data)
+        {
+            var memoryStream = _compressionProvider.DecompressToStream(data);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            return await _serializationProvider
+                .DeserializeAsync<TOut>(memoryStream)
+                .ConfigureAwait(false);
+        }
+
+        public ArraySegment<byte> Serialize<TIn>(TIn input)
+        {
+            if (_encryptionProvider != null && _compressionProvider != null)
+            {
+                return SerializeCompressEncrypt(input);
+            }
+            else if (_encryptionProvider != null)
+            {
+                return SerializeEncrypt(input);
+            }
+            else if (_compressionProvider != null)
+            {
+                return SerializeEncrypt(input);
+            }
+
+            return _serializationProvider.Serialize(input);
         }
 
         public async Task<ArraySegment<byte>> SerializeAsync<TIn>(TIn input)
         {
             if (_encryptionProvider != null && _compressionProvider != null)
             {
-                var memoryStream = new MemoryStream();
-                await _serializationProvider.SerializeAsync(memoryStream, input);
-                memoryStream.Position = 0;
-
-                memoryStream = await _compressionProvider.CompressStreamAsync(memoryStream);
-                memoryStream.Position = 0;
-
-                memoryStream = await _encryptionProvider.EncryptAsync(memoryStream);
-                memoryStream.Position = 0;
-
-                if (memoryStream.TryGetBuffer(out var buffer))
-                {
-                    return buffer;
-                }
-                else
-                { return memoryStream.ToArray(); }
+                return await SerializeCompressEncryptAsync(input).ConfigureAwait(false);
             }
             else if (_encryptionProvider != null)
             {
-                var memoryStream = new MemoryStream();
-                await _serializationProvider.SerializeAsync(memoryStream, input);
-                memoryStream.Position = 0;
-
-                memoryStream = await _encryptionProvider.EncryptAsync(memoryStream);
-                memoryStream.Position = 0;
-
-                if (memoryStream.TryGetBuffer(out var buffer))
-                {
-                    return buffer;
-                }
-                else
-                { return memoryStream.ToArray(); }
+                return await SerializeEncryptAsync(input).ConfigureAwait(false);
             }
             else if (_compressionProvider != null)
             {
-                var memoryStream = new MemoryStream();
-                await _serializationProvider.SerializeAsync(memoryStream, input);
-                memoryStream.Position = 0;
-
-                memoryStream = await _compressionProvider.CompressStreamAsync(memoryStream);
-                memoryStream.Position = 0;
-
-                if (memoryStream.TryGetBuffer(out var buffer))
-                { return buffer;
-                }
-                else
-                { return memoryStream.ToArray(); }
+                return await SerializeEncryptAsync(input).ConfigureAwait(false);
             }
 
             return _serializationProvider.Serialize(input);
+        }
+
+        public async Task<ArraySegment<byte>> SerializeCompressEncryptAsync<TIn>(TIn input)
+        {
+            var memoryStream = new MemoryStream();
+            await _serializationProvider
+                .SerializeAsync(memoryStream, input)
+                .ConfigureAwait(false);
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            memoryStream = await _compressionProvider
+                .CompressStreamAsync(memoryStream)
+                .ConfigureAwait(false);
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            memoryStream = await _encryptionProvider
+                .EncryptAsync(memoryStream)
+                .ConfigureAwait(false);
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            if (memoryStream.TryGetBuffer(out var buffer))
+            {
+                return buffer;
+            }
+            else
+            { return memoryStream.ToArray(); }
+        }
+
+        public ArraySegment<byte> SerializeCompressEncrypt<TIn>(TIn input)
+        {
+            return _encryptionProvider
+                .Encrypt(_compressionProvider
+                .Compress(_serializationProvider
+                .Serialize(input)));
+        }
+
+        public async Task<ArraySegment<byte>> SerializeEncryptAsync<TIn>(TIn input)
+        {
+            var memoryStream = new MemoryStream();
+            await _serializationProvider
+                .SerializeAsync(memoryStream, input)
+                .ConfigureAwait(false);
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            memoryStream = await _encryptionProvider
+                .EncryptAsync(memoryStream)
+                .ConfigureAwait(false);
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            if (memoryStream.TryGetBuffer(out var buffer))
+            {
+                return buffer;
+            }
+            else
+            { return memoryStream.ToArray(); }
+        }
+
+        public ArraySegment<byte> SerializeEncrypt<TIn>(TIn input)
+        {
+            return _encryptionProvider
+                .Encrypt(_serializationProvider
+                .Serialize(input));
+        }
+
+        public async Task<ArraySegment<byte>> SerializeCompressAsync<TIn>(TIn input)
+        {
+            var memoryStream = new MemoryStream();
+            await _serializationProvider.SerializeAsync(memoryStream, input);
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            memoryStream = await _compressionProvider
+                .CompressStreamAsync(memoryStream)
+                .ConfigureAwait(false);
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            if (memoryStream.TryGetBuffer(out var buffer))
+            {
+                return buffer;
+            }
+            else
+            { return memoryStream.ToArray(); }
+        }
+
+        public ArraySegment<byte> SerializeCompress<TIn>(TIn input)
+        {
+            return _compressionProvider
+                .Compress(_serializationProvider
+                .Serialize(input));
         }
     }
 }

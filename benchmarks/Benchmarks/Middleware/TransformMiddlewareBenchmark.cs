@@ -59,6 +59,18 @@ namespace HouseofCat.Benchmarks.Middleware
         }
 
         [Benchmark(Baseline = true)]
+        public void Serialize()
+        {
+            _middleware.Serialize(MyClass);
+        }
+
+        [Benchmark]
+        public void Deserialize()
+        {
+            _middleware.Deserialize<MyCustomClass>(_serializedData);
+        }
+
+        [Benchmark(Baseline = true)]
         public async Task SerializeAsync()
         {
             await _middleware.SerializeAsync(MyClass);
