@@ -1,6 +1,5 @@
 ﻿using K4os.Compression.LZ4;
 using System;
-using System.Threading.Tasks;
 
 namespace HouseofCat.Compression
 {

@@ -347,7 +347,7 @@ namespace HouseofCat.RabbitMQ.Services
             var metadata = message.GetMetadata();
             if (!metadata.Encrypted)
             {
-                message.Body = EncryptionProvider.Encrypt(message.Body);
+                message.Body = EncryptionProvider.Encrypt(message.Body).Array;
                 metadata.Encrypted = true;
                 metadata.CustomFields[Constants.HeaderForEncrypted] = true;
                 metadata.CustomFields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
@@ -365,7 +365,7 @@ namespace HouseofCat.RabbitMQ.Services
             var metadata = message.GetMetadata();
             if (metadata.Encrypted)
             {
-                message.Body = EncryptionProvider.Decrypt(message.Body);
+                message.Body = EncryptionProvider.Decrypt(message.Body).Array;
                 metadata.Encrypted = false;
                 metadata.CustomFields[Constants.HeaderForEncrypted] = false;
 
@@ -394,7 +394,7 @@ namespace HouseofCat.RabbitMQ.Services
 
             if (!metadata.Compressed)
             {
-                message.Body = await CompressionProvider.CompressAsync(message.Body).ConfigureAwait(false);
+                message.Body = (await CompressionProvider.CompressAsync(message.Body).ConfigureAwait(false)).ToArray();
                 metadata.Compressed = true;
                 metadata.CustomFields[Constants.HeaderForCompressed] = true;
                 metadata.CustomFields[Constants.HeaderForCompression] = CompressionProvider.Type;
@@ -416,7 +416,7 @@ namespace HouseofCat.RabbitMQ.Services
             {
                 try
                 {
-                    message.Body = await CompressionProvider.DecompressAsync(message.Body).ConfigureAwait(false);
+                    message.Body = (await CompressionProvider.DecompressAsync(message.Body).ConfigureAwait(false)).ToArray();
                     metadata.Compressed = false;
                     metadata.CustomFields[Constants.HeaderForCompressed] = false;
 

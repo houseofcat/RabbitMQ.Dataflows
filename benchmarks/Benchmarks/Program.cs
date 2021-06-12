@@ -1,6 +1,9 @@
 ﻿using BenchmarkDotNet.Running;
+using HouseofCat.Benchmarks.Compression;
+using HouseofCat.Benchmarks.Encryption;
+using HouseofCat.Benchmarks.Middleware;
 
-namespace Benchmarks.RabbitMQ
+namespace HouseofCat.Benchmarks
 {
     public static class Program
     {
@@ -10,14 +13,32 @@ namespace Benchmarks.RabbitMQ
             //_ = BenchmarkRunner.Run<ChannelPoolBenchmark>();
             //_ = BenchmarkRunner.Run<UtilsBenchmark>();
             //_ = BenchmarkRunner.Run<EncryptBenchmark>();
-            //_ = BenchmarkRunner.Run<BouncyEncryptBenchmark
+            //_ = BenchmarkRunner.Run<BouncyEncryptBenchmark>();
+
+            //BenchmarkRunner.Run(
+            //    new[]
+            //    {
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(EncryptBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(BouncyEncryptBenchmark))
+            //    });
+
+            //BenchmarkRunner.Run(
+            //    new[]
+            //    {
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(GzipBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(BrotliBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(DeflateBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(LZ4PickleBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(LZ4StreamBenchmark))
+            //    });
 
             BenchmarkRunner.Run(
                 new[]
                 {
-                    BenchmarkConverter.TypeToBenchmarks(typeof(EncryptBenchmark)),
-                    BenchmarkConverter.TypeToBenchmarks(typeof(BouncyEncryptBenchmark))
+                    BenchmarkConverter.TypeToBenchmarks(typeof(TransformMiddlewareBenchmark)),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(BouncyMiddlewareBenchmark)),
                 });
+
         }
     }
 }

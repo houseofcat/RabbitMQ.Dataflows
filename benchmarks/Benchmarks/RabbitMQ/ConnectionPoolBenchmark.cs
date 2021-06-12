@@ -5,7 +5,7 @@ using HouseofCat.RabbitMQ.Pools;
 using System;
 using System.Threading.Tasks;
 
-namespace Benchmarks.RabbitMQ
+namespace HouseofCat.Benchmarks.RabbitMQ
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser, ThreadingDiagnoser]

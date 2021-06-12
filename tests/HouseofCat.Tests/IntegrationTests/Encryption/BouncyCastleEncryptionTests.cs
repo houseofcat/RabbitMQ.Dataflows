@@ -1,5 +1,6 @@
 using HouseofCat.Encryption.BouncyCastle;
 using HouseofCat.Hashing;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -44,6 +45,23 @@ namespace HouseofCat.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task Aes256_GCM_BouncyCastle_Stream()
+        {
+            var hashKey = await _hashingProvider
+                .GetHashKeyAsync(Passphrase, Salt, 32)
+                .ConfigureAwait(false);
+
+            _output.WriteLine(Encoding.UTF8.GetString(hashKey));
+            _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
+
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptedStream = await encryptionProvider.EncryptAsync(new MemoryStream(_data));
+            var decryptedStream = encryptionProvider.Decrypt(encryptedStream);
+
+            Assert.Equal(_data, decryptedStream.ToArray());
+        }
+
+        [Fact]
         public async Task Aes192_GCM_BouncyCastle()
         {
             var hashKey = await _hashingProvider
@@ -66,6 +84,23 @@ namespace HouseofCat.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task Aes192_GCM_BouncyCastle_Stream()
+        {
+            var hashKey = await _hashingProvider
+                .GetHashKeyAsync(Passphrase, Salt, 24)
+                .ConfigureAwait(false);
+
+            _output.WriteLine(Encoding.UTF8.GetString(hashKey));
+            _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
+
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptedStream = await encryptionProvider.EncryptAsync(new MemoryStream(_data));
+            var decryptedStream = encryptionProvider.Decrypt(encryptedStream);
+
+            Assert.Equal(_data, decryptedStream.ToArray());
+        }
+
+        [Fact]
         public async Task Aes128_GCM_BouncyCastle()
         {
             var hashKey = await _hashingProvider
@@ -85,6 +120,23 @@ namespace HouseofCat.Tests.IntegrationTests
             _output.WriteLine($"Decrypted: {Encoding.UTF8.GetString(decryptedData)}");
 
             Assert.Equal(_data, decryptedData);
+        }
+
+        [Fact]
+        public async Task Aes128_GCM_BouncyCastle_Stream()
+        {
+            var hashKey = await _hashingProvider
+                .GetHashKeyAsync(Passphrase, Salt, 16)
+                .ConfigureAwait(false);
+
+            _output.WriteLine(Encoding.UTF8.GetString(hashKey));
+            _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
+
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptedStream = await encryptionProvider.EncryptAsync(new MemoryStream(_data));
+            var decryptedStream = encryptionProvider.Decrypt(encryptedStream);
+
+            Assert.Equal(_data, decryptedStream.ToArray());
         }
     }
 }

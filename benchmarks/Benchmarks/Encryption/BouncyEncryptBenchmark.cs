@@ -5,7 +5,7 @@ using HouseofCat.Hashing;
 using HouseofCat.Utilities.Random;
 using System.Threading.Tasks;
 
-namespace Benchmarks.RabbitMQ
+namespace HouseofCat.Benchmarks.Encryption
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
@@ -49,10 +49,10 @@ namespace Benchmarks.RabbitMQ
                 .GetResult();
 
             EncryptionProvider = new HouseofCat.Encryption.BouncyCastle.AesGcmEncryptionProvider(HashKey, HashProvider.Type);
-            EncryptedPayload1 = EncryptionProvider.Encrypt(Payload1);
-            EncryptedPayload2 = EncryptionProvider.Encrypt(Payload2);
-            EncryptedPayload3 = EncryptionProvider.Encrypt(Payload3);
-            EncryptedPayload4 = EncryptionProvider.Encrypt(Payload4);
+            EncryptedPayload1 = EncryptionProvider.Encrypt(Payload1).ToArray();
+            EncryptedPayload2 = EncryptionProvider.Encrypt(Payload2).ToArray();
+            EncryptedPayload3 = EncryptionProvider.Encrypt(Payload3).ToArray();
+            EncryptedPayload4 = EncryptionProvider.Encrypt(Payload4).ToArray();
         }
 
         [Benchmark(Baseline = true)]

@@ -72,7 +72,7 @@ A library that has a collection of algorithms as I have time to learn and play w
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Compression.svg)](https://www.nuget.org/packages/HouseofCat.Compression/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Compression.svg)](https://www.nuget.org/packages/HouseofCat.Compression/)  
 
-A library that has a collection of builtin and 3rd party copmression providers.  
+A library that has a collection of builtin and 3rd party compression providers.  
 
 
 ## HouseofCat.Compression.LZ4
@@ -273,28 +273,28 @@ A library that creates the shared WorkState classes for HouseofCat.RabbitMQ.
 A library that focuses on Reflection hackery.  
 
 
-## HouseofCat.Serilization
+## HouseofCat.Serialization
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.svg)](https://www.nuget.org/packages/HouseofCat.Serialization/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.svg)](https://www.nuget.org/packages/HouseofCat.Serialization/)  
 
 A library that focuses on making it easier to deal with Serialization.  
 
 
-## HouseofCat.Serilization.Json.Newtonsoft
+## HouseofCat.Serialization.Json.Newtonsoft
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.Json.Newtonsoft.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Newtonsoft/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.Json.Newtonsoft.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Newtonsoft/)  
 
 A library that focuses on making it easier to deal with Newtonsoft Json Serialization.  
 
 
-## HouseofCat.Serilization.Json.Utf8Json
+## HouseofCat.Serialization.Json.Utf8Json
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Utf8Json/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Utf8Json/)  
 
 A library that focuses on making it easier to deal with Utf8Json Json Serialization.  
 
 
-## HouseofCat.Serilization.MessagePack
+## HouseofCat.Serialization.MessagePack
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.MessagePack/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.MessagePack/)  
 

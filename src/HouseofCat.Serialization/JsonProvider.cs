@@ -14,6 +14,20 @@ namespace HouseofCat.Serialization
         {
             _options = options;
         }
+        public TOut Deserialize<TOut>(string input)
+        {
+            return JsonSerializer.Deserialize<TOut>(Encoding.UTF8.GetBytes(input), _options);
+        }
+
+        public TOut Deserialize<TOut>(ReadOnlyMemory<byte> input)
+        {
+            return JsonSerializer.Deserialize<TOut>(input.Span, _options);
+        }
+
+        public async Task<TOut> DeserializeAsync<TOut>(Stream utf8Json)
+        {
+            return await JsonSerializer.DeserializeAsync<TOut>(utf8Json, _options).ConfigureAwait(false);
+        }
 
         public byte[] Serialize<TIn>(TIn input)
         {
@@ -33,21 +47,6 @@ namespace HouseofCat.Serialization
         public string SerializeToPrettyString<TIn>(TIn input)
         {
             return JsonSerializer.Serialize(input, new JsonSerializerOptions { WriteIndented = true });
-        }
-
-        public TOut Deserialize<TOut>(ReadOnlyMemory<byte> input)
-        {
-            return JsonSerializer.Deserialize<TOut>(input.Span, _options);
-        }
-
-        public TOut Deserialize<TOut>(string input)
-        {
-            return JsonSerializer.Deserialize<TOut>(Encoding.UTF8.GetBytes(input), _options);
-        }
-
-        public async Task<TOut> DeserializeAsync<TOut>(Stream utf8Json)
-        {
-            return await JsonSerializer.DeserializeAsync<TOut>(utf8Json, _options).ConfigureAwait(false);
         }
     }
 }
