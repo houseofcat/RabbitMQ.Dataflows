@@ -62,7 +62,7 @@ namespace HouseofCat.Algorithms.Math
                         index3++;
                         index1++;
                     }
-                    else if (nums1[index1] == nums2[index2]) // handle dupelicates in one pass
+                    else if (nums1[index1] == nums2[index2]) // handle duplicates in one pass
                     {
                         if (index3 == center)
                         {
@@ -222,7 +222,7 @@ namespace HouseofCat.Algorithms.Math
                 {
                     mergedArray[index3++] = nums1[index1++];
                 }
-                else if (nums1[index1] == nums2[index2]) // handle dupelicates in one pass
+                else if (nums1[index1] == nums2[index2]) // handle duplicates in one pass
                 {
                     mergedArray[index3++] = nums1[index1++];
                     mergedArray[index3++] = nums2[index2++];
