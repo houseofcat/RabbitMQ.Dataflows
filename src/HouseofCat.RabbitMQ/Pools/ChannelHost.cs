@@ -45,8 +45,6 @@ namespace HouseofCat.RabbitMQ.Pools
             ChannelId = channelId;
             _connHost = connHost;
             Ackable = ackable;
-
-            MakeChannelAsync().GetAwaiter().GetResult();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

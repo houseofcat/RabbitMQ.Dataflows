@@ -16,6 +16,8 @@ namespace HouseofCat.RabbitMQ.Pools
         ulong CurrentChannelId { get; }
         bool Shutdown { get; }
 
+        Task CreateChannelsAsync(bool createConnections);
+        
         /// <summary>
         /// This pulls an ackable <see cref="IChannelHost"/> out of the <see cref="IChannelPool"/> for usage.
         /// <para>If the <see cref="IChannelHost"/> was previously flagged on error, multi-attempts to recreate it before returning an open channel back to the user.
@@ -77,12 +79,16 @@ namespace HouseofCat.RabbitMQ.Pools
             _channels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
             _ackChannels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
 
-            CreateChannelsAsync().GetAwaiter().GetResult();
+            // do not create connections if lazy initialize is false, as ConnectionPool constructor created them already
+            if (!Options.PoolOptions.LazyInitialize) CreateChannelsAsync(false).GetAwaiter().GetResult();
         }
 
-        private async Task CreateChannelsAsync()
+        public async Task CreateChannelsAsync(bool createConnections)
         {
-            for (int i = 0; i < Options.PoolOptions.MaxChannels; i++)
+            if (createConnections)
+            { await _connectionPool.CreateConnectionsAsync().ConfigureAwait(false); }
+            
+            for (var i = 0; i < Options.PoolOptions.MaxChannels; i++)
             {
                 var chanHost = await CreateChannelAsync(CurrentChannelId++, false).ConfigureAwait(false);
 
@@ -91,7 +97,7 @@ namespace HouseofCat.RabbitMQ.Pools
                     .WriteAsync(chanHost);
             }
 
-            for (int i = 0; i < Options.PoolOptions.MaxChannels; i++)
+            for (var i = 0; i < Options.PoolOptions.MaxChannels; i++)
             {
                 var chanHost = await CreateChannelAsync(CurrentChannelId++, true).ConfigureAwait(false);
 
@@ -199,7 +205,6 @@ namespace HouseofCat.RabbitMQ.Pools
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private async Task<IChannelHost> CreateChannelAsync(ulong channelId, bool ackable)
         {
-            IChannelHost chanHost = null;
             IConnectionHost connHost = null;
 
             while (true)
@@ -219,7 +224,15 @@ namespace HouseofCat.RabbitMQ.Pools
                 // Create a Channel Host
                 try
                 {
-                    chanHost = new ChannelHost(channelId, connHost, ackable);
+                    var chanHost = new ChannelHost(channelId, connHost, ackable);
+
+                    var success = false;
+                    while (!success)
+                    {
+                        success = await chanHost.MakeChannelAsync().ConfigureAwait(false);
+                        await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
+                    }
+
                     await ReturnConnectionWithOptionalSleep(connHost, channelId, 0).ConfigureAwait(false);
                     _flaggedChannels[chanHost.ChannelId] = false;
                     _logger.LogDebug(LogMessages.ChannelPools.CreateChannelSuccess, channelId);

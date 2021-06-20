@@ -21,5 +21,10 @@ namespace HouseofCat.RabbitMQ
         /// The time to sleep (in ms) when an error occurs on Channel or Connection creation. It's best not to be hyper aggressive with this value.
         /// </summary>
         public int SleepOnErrorInterval { get; set; } = 1000;
+        
+        /// <summary>
+        /// Whether to lazy initialize channels and connections after creation.
+        /// </summary>
+        public bool LazyInitialize { get; set; }
     }
 }

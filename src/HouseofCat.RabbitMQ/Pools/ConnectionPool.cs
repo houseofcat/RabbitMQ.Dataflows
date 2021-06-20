@@ -14,6 +14,8 @@ namespace HouseofCat.RabbitMQ.Pools
     {
         RabbitOptions Options { get; }
 
+        Task CreateConnectionsAsync();
+        
         IConnection CreateConnection(string connectionName);
         ValueTask<IConnectionHost> GetConnectionAsync();
         ValueTask ReturnConnectionAsync(IConnectionHost connHost);
@@ -43,7 +45,7 @@ namespace HouseofCat.RabbitMQ.Pools
             _connections = Channel.CreateBounded<IConnectionHost>(Options.PoolOptions.MaxConnections);
             _connectionFactory = CreateConnectionFactory();
 
-            CreateConnectionsAsync().GetAwaiter().GetResult();
+            if (!Options.PoolOptions.LazyInitialize) CreateConnectionsAsync().GetAwaiter().GetResult();
         }
 
         private ConnectionFactory CreateConnectionFactory()
@@ -82,11 +84,11 @@ namespace HouseofCat.RabbitMQ.Pools
         protected virtual IConnectionHost CreateConnectionHost(ulong connectionId, IConnection connection) =>
             new ConnectionHost(connectionId, connection);
 
-        private async Task CreateConnectionsAsync()
+        public async Task CreateConnectionsAsync()
         {
             _logger.LogTrace(LogMessages.ConnectionPools.CreateConnections);
 
-            for (int i = 0; i < Options.PoolOptions.MaxConnections; i++)
+            for (var i = 0; i < Options.PoolOptions.MaxConnections; i++)
             {
                 var serviceName = string.IsNullOrEmpty(Options.PoolOptions.ServiceName) ? $"HoC.RabbitMQ:{i}" : $"{Options.PoolOptions.ServiceName}:{i}";
                 try
