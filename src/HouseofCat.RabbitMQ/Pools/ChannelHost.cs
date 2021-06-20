@@ -38,13 +38,15 @@ namespace HouseofCat.RabbitMQ.Pools
         private readonly SemaphoreSlim _hostLock = new SemaphoreSlim(1, 1);
         private bool _disposedValue;
 
-        public ChannelHost(ulong channelId, IConnectionHost connHost, bool ackable)
+        public ChannelHost(ulong channelId, IConnectionHost connHost, bool ackable, bool lazyInitialize = false)
         {
             _logger = LogHelper.GetLogger<ChannelHost>();
 
             ChannelId = channelId;
             _connHost = connHost;
             Ackable = ackable;
+            
+            if (!lazyInitialize) MakeChannelAsync().GetAwaiter().GetResult();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -224,13 +224,15 @@ namespace HouseofCat.RabbitMQ.Pools
                 // Create a Channel Host
                 try
                 {
-                    var chanHost = new ChannelHost(channelId, connHost, ackable);
-
-                    var success = false;
-                    while (!success)
+                    var chanHost = new ChannelHost(channelId, connHost, ackable, Options.PoolOptions.LazyInitialize);
+                    if (Options.PoolOptions.LazyInitialize)
                     {
-                        success = await chanHost.MakeChannelAsync().ConfigureAwait(false);
-                        await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
+                        var success = false;
+                        while (!success)
+                        {
+                            success = await chanHost.MakeChannelAsync().ConfigureAwait(false);
+                            await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
+                        }
                     }
 
                     await ReturnConnectionWithOptionalSleep(connHost, channelId, 0).ConfigureAwait(false);
