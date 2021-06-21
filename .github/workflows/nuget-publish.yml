@@ -281,9 +281,3 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Windows.WMI/HouseofCat.Windows.WMI.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-    - name: Publish HouseofCat.Workflows
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          PROJECT_FILE_PATH: src/HouseofCat.Workflows/HouseofCat.Workflows.csproj
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
