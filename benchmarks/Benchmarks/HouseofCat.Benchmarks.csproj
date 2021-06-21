@@ -7,6 +7,10 @@
     <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp3.1|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\HouseofCat.Algorithms\HouseofCat.Algorithms.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Compression\HouseofCat.Compression.csproj" />

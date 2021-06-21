@@ -1,7 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
 using HouseofCat.Benchmarks.Compression;
-using HouseofCat.Benchmarks.Encryption;
-using HouseofCat.Benchmarks.Middleware;
 
 namespace HouseofCat.Benchmarks
 {
@@ -32,13 +30,18 @@ namespace HouseofCat.Benchmarks
             //        BenchmarkConverter.TypeToBenchmarks(typeof(LZ4StreamBenchmark))
             //    });
 
+            //BenchmarkRunner.Run(
+            //    new[]
+            //    {
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(TransformMiddlewareBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(BouncyMiddlewareBenchmark)),
+            //    });
+
             BenchmarkRunner.Run(
                 new[]
                 {
-                    BenchmarkConverter.TypeToBenchmarks(typeof(TransformMiddlewareBenchmark)),
-                    BenchmarkConverter.TypeToBenchmarks(typeof(BouncyMiddlewareBenchmark)),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(MedianOfTwoSortedArraysBenchmark)),
                 });
-
         }
     }
 }

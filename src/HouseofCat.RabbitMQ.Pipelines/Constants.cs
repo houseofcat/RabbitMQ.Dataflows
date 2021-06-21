@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace HouseofCat.RabbitMQ.Pipelines
+﻿namespace HouseofCat.RabbitMQ.Pipelines
 {
     public static class Constants
     {
