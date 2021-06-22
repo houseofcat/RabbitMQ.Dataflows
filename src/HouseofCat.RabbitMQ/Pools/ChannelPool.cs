@@ -75,19 +75,19 @@ namespace HouseofCat.RabbitMQ.Pools
             _logger = LogHelper.GetLogger<ChannelPool>();
             _connectionPool = connPool;
             _flaggedChannels = new ConcurrentDictionary<ulong, bool>();
-            _lazyChannels = new AsyncLazy<Channel<IChannelHost>>(
-                CreateChannelsAsync, AsyncLazyFlags.ExecuteOnCallingThread);
-            _lazyAckChannels = new AsyncLazy<Channel<IChannelHost>>(
-                CreateChannelsAsync, AsyncLazyFlags.ExecuteOnCallingThread);
+            _lazyChannels = new AsyncLazy<Channel<IChannelHost>>(() => 
+                CreateChannelsAsync(false), AsyncLazyFlags.ExecuteOnCallingThread);
+            _lazyAckChannels = new AsyncLazy<Channel<IChannelHost>>(() => 
+                CreateChannelsAsync(true), AsyncLazyFlags.ExecuteOnCallingThread);
         }
 
-        private async Task<Channel<IChannelHost>> CreateChannelsAsync()
+        private async Task<Channel<IChannelHost>> CreateChannelsAsync(bool ackable)
         {
             var channels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
 
             for (var i = 0; i < Options.PoolOptions.MaxChannels; i++)
             {
-                var chanHost = await CreateChannelAsync(CurrentChannelId++, false).ConfigureAwait(false);
+                var chanHost = await CreateChannelAsync(CurrentChannelId++, ackable).ConfigureAwait(false);
 
                 await channels
                     .Writer
