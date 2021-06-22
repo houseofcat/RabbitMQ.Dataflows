@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities.Random;
 using RabbitMQ.Client;
@@ -45,9 +46,17 @@ namespace HouseofCat.RabbitMQ
             this IMessage message,
             IChannelHost channelHost,
             bool withOptionalHeaders,
+            IMetadata metadata) => 
+            message.CreateBasicPropertiesAsync(channelHost, withOptionalHeaders, metadata).GetAwaiter().GetResult();
+
+        public static async Task<IBasicProperties> CreateBasicPropertiesAsync(
+            this IMessage message,
+            IChannelHost channelHost,
+            bool withOptionalHeaders,
             IMetadata metadata)
         {
-            var props = channelHost.GetChannel().CreateBasicProperties();
+            var channel = await channelHost.GetChannelAsync().ConfigureAwait(false);
+            var props = channel.CreateBasicProperties();
 
             props.DeliveryMode = message.Envelope.RoutingOptions.DeliveryMode;
             props.ContentType = message.Envelope.RoutingOptions.MessageType;
