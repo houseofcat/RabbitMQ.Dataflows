@@ -25,7 +25,6 @@ namespace HouseofCat.RabbitMQ
 
         IPublishReceipt GetPublishReceipt(bool error);
 
-        IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders);
         Task<IBasicProperties> BuildPropertiesAsync(IChannelHost channelHost, bool withOptionalHeaders);
     }
 
@@ -37,9 +36,6 @@ namespace HouseofCat.RabbitMQ
         public LetterMetadata LetterMetadata { get; set; }
         public byte[] Body { get; set; }
         
-        public IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders) =>
-            BuildPropertiesAsync(channelHost, withOptionalHeaders).GetAwaiter().GetResult();
-
         public async Task<IBasicProperties> BuildPropertiesAsync(IChannelHost channelHost, bool withOptionalHeaders)
         {
             MessageId ??= Guid.NewGuid().ToString();

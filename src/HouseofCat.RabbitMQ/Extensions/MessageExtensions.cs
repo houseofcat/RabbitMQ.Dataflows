@@ -42,6 +42,10 @@ namespace HouseofCat.RabbitMQ
             metadata.WriteHeadersToMetadata(headers);
         }
         
+        public static IBasicProperties BuildProperties(
+            this IMessage message, IChannelHost channelHost, bool withOptionalHeaders) =>
+            message.BuildPropertiesAsync(channelHost, withOptionalHeaders).GetAwaiter().GetResult();
+
         public static IBasicProperties CreateBasicProperties(
             this IMessage message,
             IChannelHost channelHost,
