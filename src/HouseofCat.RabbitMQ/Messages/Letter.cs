@@ -48,7 +48,6 @@ namespace HouseofCat.RabbitMQ
             props.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForLetter;
 
             return props;
-            
         }
 
         public Letter() { }
