@@ -42,15 +42,8 @@ namespace HouseofCat.RabbitMQ.Pools
             _logger = LogHelper.GetLogger<ConnectionPool>();
 
             _lazyConnections = new AsyncLazy<Channel<IConnectionHost>>(
-                CreateLazyConnectionsAsync, AsyncLazyFlags.ExecuteOnCallingThread);
+                CreateConnectionsAsync, AsyncLazyFlags.ExecuteOnCallingThread | AsyncLazyFlags.RetryOnFailure);
             _connectionFactory = CreateConnectionFactory();
-        }
-        
-        private async Task<Channel<IConnectionHost>> CreateLazyConnectionsAsync()
-        {
-            var connections = Channel.CreateBounded<IConnectionHost>(Options.PoolOptions.MaxConnections);
-            await CreateConnectionsAsync(connections).ConfigureAwait(false);
-            return connections;
         }
         
         private ConnectionFactory CreateConnectionFactory()
@@ -89,10 +82,12 @@ namespace HouseofCat.RabbitMQ.Pools
         protected virtual IConnectionHost CreateConnectionHost(ulong connectionId, IConnection connection) =>
             new ConnectionHost(connectionId, connection);
 
-        private async Task CreateConnectionsAsync(Channel<IConnectionHost, IConnectionHost> connections)
+        private async Task<Channel<IConnectionHost>> CreateConnectionsAsync()
         {
             _logger.LogTrace(LogMessages.ConnectionPools.CreateConnections);
 
+            var connections = Channel.CreateBounded<IConnectionHost>(Options.PoolOptions.MaxConnections);
+            
             for (var i = 0; i < Options.PoolOptions.MaxConnections; i++)
             {
                 var serviceName = string.IsNullOrEmpty(Options.PoolOptions.ServiceName) ? $"HoC.RabbitMQ:{i}" : $"{Options.PoolOptions.ServiceName}:{i}";
@@ -110,6 +105,8 @@ namespace HouseofCat.RabbitMQ.Pools
             }
 
             _logger.LogTrace(LogMessages.ConnectionPools.CreateConnectionsComplete);
+            
+            return connections;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
