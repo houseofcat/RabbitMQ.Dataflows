@@ -75,19 +75,19 @@ namespace HouseofCat.RabbitMQ.Pools
             _logger = LogHelper.GetLogger<ChannelPool>();
             _connectionPool = connPool;
             _flaggedChannels = new ConcurrentDictionary<ulong, bool>();
-            _lazyChannels = new AsyncLazy<Channel<IChannelHost>>(
-                CreateChannelsAsync, AsyncLazyFlags.ExecuteOnCallingThread | AsyncLazyFlags.RetryOnFailure);
-            _lazyAckChannels = new AsyncLazy<Channel<IChannelHost>>(
-                CreateChannelsAsync, AsyncLazyFlags.ExecuteOnCallingThread | AsyncLazyFlags.RetryOnFailure);
+            _lazyChannels = new AsyncLazy<Channel<IChannelHost>>(() => CreateChannelsAsync(false), 
+                AsyncLazyFlags.ExecuteOnCallingThread | AsyncLazyFlags.RetryOnFailure);
+            _lazyAckChannels = new AsyncLazy<Channel<IChannelHost>>(() => CreateChannelsAsync(true), 
+                AsyncLazyFlags.ExecuteOnCallingThread | AsyncLazyFlags.RetryOnFailure);
         }
 
-        private async Task<Channel<IChannelHost>> CreateChannelsAsync()
+        private async Task<Channel<IChannelHost>> CreateChannelsAsync(bool ackable)
         {
             var channels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
 
             for (var i = 0; i < Options.PoolOptions.MaxChannels; i++)
             {
-                var chanHost = await CreateChannelAsync(CurrentChannelId++, false).ConfigureAwait(false);
+                var chanHost = await CreateChannelAsync(CurrentChannelId++, ackable).ConfigureAwait(false);
 
                 await channels
                     .Writer
@@ -219,12 +219,7 @@ namespace HouseofCat.RabbitMQ.Pools
                 try
                 {
                     var chanHost = new ChannelHost(channelId, connHost, ackable);
-                    var success = false;
-                    while (!success)
-                    {
-                        success = await chanHost.MakeChannelAsync().ConfigureAwait(false);
-                        await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
-                    }
+                    await chanHost.MakeChannelAsync().ConfigureAwait(false);
                     await ReturnConnectionWithOptionalSleep(connHost, channelId, 0).ConfigureAwait(false);
                     _flaggedChannels[chanHost.ChannelId] = false;
                     _logger.LogDebug(LogMessages.ChannelPools.CreateChannelSuccess, channelId);
