@@ -76,9 +76,9 @@ namespace HouseofCat.RabbitMQ.Pools
             _connectionPool = connPool;
             _flaggedChannels = new ConcurrentDictionary<ulong, bool>();
             _lazyChannels = new AsyncLazy<Channel<IChannelHost>>(
-                CreateChannelsAsync, AsyncLazyFlags.ExecuteOnCallingThread);
+                CreateChannelsAsync, AsyncLazyFlags.ExecuteOnCallingThread | AsyncLazyFlags.RetryOnFailure);
             _lazyAckChannels = new AsyncLazy<Channel<IChannelHost>>(
-                CreateChannelsAsync, AsyncLazyFlags.ExecuteOnCallingThread);
+                CreateChannelsAsync, AsyncLazyFlags.ExecuteOnCallingThread | AsyncLazyFlags.RetryOnFailure);
         }
 
         private async Task<Channel<IChannelHost>> CreateChannelsAsync()
