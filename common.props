@@ -11,14 +11,14 @@
 
     <!-- NuGet Attributes -->
     <Authors>HouseofCat.io</Authors>
-    <Description>HouseofCat.io Library used across many projects.</Description>
+    <Description>HouseofCat.io Tesseract library is used across many projects.</Description>
     <Copyright>Copyright © 2020</Copyright>
-    <Product>HouseofCat.io - The Library</Product>
+    <Product>HouseofCat.io - Tesseract</Product>
     <PackageIcon>houseofcat.png</PackageIcon>
     <PackageTags>C# NetCore HouseofCat HouseofCat.io</PackageTags>
     <PackageReleaseNotes>Features, fixes, and dependency updates!</PackageReleaseNotes>
-    <PackageProjectUrl>https://github.com/houseofcat/Library</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/houseofcat/Library</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/houseofcat/Tesseract</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/houseofcat/Tesseract</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
 
     <!-- Sourcelink-->

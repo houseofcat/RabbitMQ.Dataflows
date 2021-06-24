@@ -20,6 +20,6 @@ jobs:
     - name: Install dependencies
       run: dotnet restore Tesseract.sln
     - name: Build
-      run: dotnet build Tesseract.sln --configuration Release --no-restore
+      run: dotnet build Tesseract.sln --configuration Release
     - name: Test
       run: dotnet test "./tests/HouseofCat.Tests.sln"
