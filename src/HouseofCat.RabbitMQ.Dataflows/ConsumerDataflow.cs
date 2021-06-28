@@ -65,7 +65,8 @@ namespace HouseofCat.RabbitMQ.Dataflows
 
             _logger = LogHelper.LoggerFactory.CreateLogger<ConsumerDataflow<TState>>();
             _rabbitService = rabbitService;
-            _consumerOptions = rabbitService.GetConsumer(consumerName).ConsumerOptions;
+            _consumerOptions = rabbitService.Options.GetConsumerOptions(consumerName);
+            _serializationProvider = rabbitService.SerializationProvider;
 
             _linkStepOptions = new DataflowLinkOptions { PropagateCompletion = true };
             _executeStepOptions = new ExecutionDataflowBlockOptions
