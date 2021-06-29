@@ -98,10 +98,30 @@ namespace HouseofCat.RabbitMQ.Dataflows
             }
         }
 
-        public ConsumerDataflow<TState> SetSerilizationProvider(ISerializationProvider provider)
+        /// <summary>
+        /// Allows you to set the consumers serialization provider. This will be used to convert your bytes into an object.
+        /// <para>By default, the serialization provider will auto-assign the same serialization provider as the one RabbitService uses. This is the most common use case.</para>
+        /// </summary>
+        /// <param name="provider"></param>
+        /// <returns></returns>
+        public ConsumerDataflow<TState> SetSerializationProvider(ISerializationProvider provider)
         {
             Guard.AgainstNull(provider, nameof(provider));
             _serializationProvider = provider;
+            return this;
+        }
+
+        /// <summary>
+        /// Allows you to unset the consumers serialization provider. This will be used when you are not using any serialization on your inner byte payloads.
+        /// <para>By default, the serialization provider will auto-assign the same serialization provider as the one RabbitService uses.</para>
+        /// <para>This is a more exotic scenario where you may be moving plain bytes around.</para>
+        /// <para>ex.) You are transferring data from queue to database and don't need manipulate the bytes.</para>
+        /// </summary>
+        /// <param name="provider"></param>
+        /// <returns></returns>
+        public ConsumerDataflow<TState> UnsetSerializationProvider()
+        {
+            _serializationProvider = null;
             return this;
         }
 
