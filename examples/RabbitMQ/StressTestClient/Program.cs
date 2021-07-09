@@ -195,9 +195,9 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
             var sw = Stopwatch.StartNew();
             for (int i = 0; i < count; i++)
             {
-                var letter = RandomData.CreateSimpleRandomLetter(queueName, MessageSize);
+                var letter = MessageExtensions.CreateSimpleRandomLetter(queueName, MessageSize);
                 letter.Envelope.RoutingOptions.DeliveryMode = 1;
-                letter.LetterId = Guid.NewGuid().ToString();
+                letter.MessageId = Guid.NewGuid().ToString();
 
                 await apub.QueueMessageAsync(letter).ConfigureAwait(false);
 
@@ -205,7 +205,7 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
                 {
                     await Console
                         .Out
-                        .WriteLineAsync($"- QueueName ({queueName}) is publishing letter {letter.LetterId}")
+                        .WriteLineAsync($"- QueueName ({queueName}) is publishing letter {letter.MessageId}")
                         .ConfigureAwait(false);
                 }
             }

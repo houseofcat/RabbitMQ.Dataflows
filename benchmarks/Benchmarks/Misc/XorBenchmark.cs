@@ -8,7 +8,7 @@ namespace HouseofCat.Benchmarks.Misc
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser, ThreadingDiagnoser]
     [SimpleJob(runtimeMoniker: RuntimeMoniker.NetCoreApp31)]
-    public class UtilsBenchmark
+    public class XorBenchmark
     {
         public XorShift XorShift;
 
