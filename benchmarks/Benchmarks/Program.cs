@@ -1,5 +1,6 @@
 ﻿using BenchmarkDotNet.Running;
 using HouseofCat.Benchmarks.Compression;
+using HouseofCat.Benchmarks.Misc;
 
 namespace HouseofCat.Benchmarks
 {
@@ -37,10 +38,16 @@ namespace HouseofCat.Benchmarks
             //        BenchmarkConverter.TypeToBenchmarks(typeof(BouncyMiddlewareBenchmark)),
             //    });
 
+            //BenchmarkRunner.Run(
+            //    new[]
+            //    {
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(MedianOfTwoSortedArraysBenchmark)),
+            //    });
+
             BenchmarkRunner.Run(
                 new[]
                 {
-                    BenchmarkConverter.TypeToBenchmarks(typeof(MedianOfTwoSortedArraysBenchmark)),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(IsNumericBenchmark)),
                 });
         }
     }
