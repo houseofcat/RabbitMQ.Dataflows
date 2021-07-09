@@ -21,7 +21,6 @@ namespace HouseofCat.RabbitMQ.Dataflows
     {
         public string WorkflowName { get; }
 
-        private readonly ILogger<ConsumerDataflow<TState>> _logger;
         private readonly IRabbitService _rabbitService;
         private readonly ConsumerOptions _consumerOptions;
         private readonly string _consumerName;
@@ -63,7 +62,6 @@ namespace HouseofCat.RabbitMQ.Dataflows
             _consumerCount = consumerCount;
             _consumerName = consumerName;
 
-            _logger = LogHelper.LoggerFactory.CreateLogger<ConsumerDataflow<TState>>();
             _rabbitService = rabbitService;
             _consumerOptions = rabbitService.Options.GetConsumerOptions(consumerName);
             _serializationProvider = rabbitService.SerializationProvider;
@@ -89,11 +87,11 @@ namespace HouseofCat.RabbitMQ.Dataflows
             }
         }
 
-        public async Task StopAsync()
+        public async Task StopAsync(bool immediate = false)
         {
             foreach (var consumerBlock in _consumerBlocks)
             {
-                await consumerBlock.StopConsumingAsync().ConfigureAwait(false);
+                await consumerBlock.StopConsumingAsync(immediate).ConfigureAwait(false);
                 consumerBlock.Complete();
             }
         }

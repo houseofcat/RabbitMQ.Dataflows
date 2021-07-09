@@ -16,7 +16,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
 
         Task AwaitCompletionAsync();
         Task StartAsync(bool useStream);
-        Task StopAsync();
+        Task StopAsync(bool immediate = false);
     }
 
     public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where TOut : RabbitWorkState
@@ -95,7 +95,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
             { _cpLock.Release(); }
         }
 
-        public async Task StopAsync()
+        public async Task StopAsync(bool immediate = false)
         {
             await _cpLock.WaitAsync().ConfigureAwait(false);
 
@@ -106,7 +106,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
                     _cancellationTokenSource.Cancel();
 
                     await Consumer
-                        .StopConsumerAsync(false)
+                        .StopConsumerAsync(immediate)
                         .ConfigureAwait(false);
 
                     if (FeedPipelineWithDataTasks != null)
