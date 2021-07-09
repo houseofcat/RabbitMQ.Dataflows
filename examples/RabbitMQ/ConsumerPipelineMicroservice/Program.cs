@@ -133,7 +133,7 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
             {
                 var letter = letterTemplate.Clone();
                 letter.Body = JsonSerializer.SerializeToUtf8Bytes(new Message { StringMessage = $"Sensitive ReceivedLetter {i}", MessageId = i });
-                letter.LetterId = (ulong)i;
+                letter.MessageId = Guid.NewGuid().ToString();
                 await rabbitService
                     .Publisher
                     .PublishAsync(letter, true, true)

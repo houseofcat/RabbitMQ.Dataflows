@@ -75,7 +75,7 @@ namespace Examples.RabbitMQ.DataProducer
             {
                 var letter = letterTemplate.Clone();
                 letter.Body = _serializationProvider.Serialize(new Message { StringMessage = $"Sensitive ReceivedLetter {i}", MessageId = i });
-                letter.LetterId = Guid.NewGuid().ToString();
+                letter.MessageId = Guid.NewGuid().ToString();
                 await _rabbitService
                     .Publisher
                     .QueueMessageAsync(letter)

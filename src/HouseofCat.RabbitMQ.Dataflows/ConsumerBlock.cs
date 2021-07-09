@@ -38,9 +38,9 @@ namespace HouseofCat.RabbitMQ.Dataflows
             _bufferProcessor = PushToBufferAsync(_cts.Token);
         }
 
-        public async Task StopConsumingAsync()
+        public async Task StopConsumingAsync(bool immediate = false)
         {
-            await _consumer.StopConsumerAsync().ConfigureAwait(false);
+            await _consumer.StopConsumerAsync(immediate).ConfigureAwait(false);
             _cts.Cancel();
             await _bufferProcessor.ConfigureAwait(false);
         }
