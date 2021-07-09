@@ -109,9 +109,9 @@ namespace HouseofCat.RabbitMQ.Dataflows
 
         /// <summary>
         /// Allows you to unset the consumers serialization provider. This will be used when you are not using any serialization on your inner byte payloads.
-        /// <para>By default, the serialization provider will auto-assign the same serialization provider as the one RabbitService uses.</para>
+        /// <para>By default, the serialization provider will auto-assign the same serialization provider (in the Constructor) as the one RabbitService uses.</para>
         /// <para>This is a more exotic scenario where you may be moving plain bytes around.</para>
-        /// <para>ex.) You are transferring data from queue to database and don't need to deserialize the bytes.</para>
+        /// <para>ex.) You are transferring data from queue to database (or other queue) and don't need to deserialize the bytes.</para>
         /// </summary>
         /// <param name="provider"></param>
         /// <returns></returns>
