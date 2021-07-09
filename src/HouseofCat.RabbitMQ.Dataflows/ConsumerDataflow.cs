@@ -1,13 +1,11 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Dataflows;
 using HouseofCat.Encryption;
-using HouseofCat.Logger;
 using HouseofCat.Metrics;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.RabbitMQ.WorkState;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
@@ -34,7 +32,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
         protected TransformBlock<TState, TState> _decryptBlock;
         protected TransformBlock<TState, TState> _decompressBlock;
 
-        // Main Flow - Supplied Steps
+        // Main Flow - User Defined/Supplied Steps
         protected BufferBlock<TState> _readyBuffer;
         protected readonly List<TransformBlock<TState, TState>> _suppliedTransforms = new List<TransformBlock<TState, TState>>();
 
@@ -113,7 +111,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
         /// Allows you to unset the consumers serialization provider. This will be used when you are not using any serialization on your inner byte payloads.
         /// <para>By default, the serialization provider will auto-assign the same serialization provider as the one RabbitService uses.</para>
         /// <para>This is a more exotic scenario where you may be moving plain bytes around.</para>
-        /// <para>ex.) You are transferring data from queue to database and don't need manipulate the bytes.</para>
+        /// <para>ex.) You are transferring data from queue to database and don't need to deserialize the bytes.</para>
         /// </summary>
         /// <param name="provider"></param>
         /// <returns></returns>
@@ -478,14 +476,18 @@ namespace HouseofCat.RabbitMQ.Dataflows
         #region Step Wrappers
 
         private string StateIdentifier => $"{WorkflowName}_StateBuild";
-        private TState BuildState<TOut>(ISerializationProvider provider, string key, ReceivedData data)
+        public virtual TState BuildState<TOut>(ISerializationProvider provider, string key, ReceivedData data)
         {
             var state = New<TState>.Instance.Invoke();
             state.ReceivedData = data;
-            state.Data = new Dictionary<string, object>
-            {
-                { key, provider.Deserialize<TOut>(data.Data) },
-            };
+            state.Data = new Dictionary<string, object>();
+
+            // If the SerializationProvider was assigned, use it, else it's raw bytes.
+            if (provider != null)
+            { state.Data[key] = provider.Deserialize<TOut>(data.Data); }
+            else
+            { state.Data[key] = data.Data; }
+
             return state;
         }
 
