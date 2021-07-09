@@ -109,7 +109,7 @@ namespace Examples.RabbitMQ.SimpleClient
             for (ulong i = 0; i < 100; i++)
             {
                 var letter = letterTemplate.Clone();
-                letter.LetterId = Guid.NewGuid().ToString();
+                letter.MessageId = Guid.NewGuid().ToString();
                 var sentMessage = new TestMessage { Message = "Sensitive Message" };
                 sentMessage.Message += $" {i}";
                 letter.Body = JsonSerializer.SerializeToUtf8Bytes(sentMessage);
@@ -135,7 +135,7 @@ namespace Examples.RabbitMQ.SimpleClient
             {
                 var decodedLetter = JsonSerializer.Deserialize<TestMessage>(data.Letter.Body);
 
-                await Console.Out.WriteLineAsync($"LetterId: {data.Letter.GetMessageId()} Received: {decodedLetter.Message}").ConfigureAwait(false);
+                await Console.Out.WriteLineAsync($"LetterId: {data.Letter.MessageId} Received: {decodedLetter.Message}").ConfigureAwait(false);
 
                 // Return true or false to ack / nack the message. Exceptions thrown automatically nack the message.
                 // Strategy would be that you control the retry / permanent error in this method and return true.

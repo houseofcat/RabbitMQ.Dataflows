@@ -59,7 +59,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
                 workflowName: workflowName,
                 consumerName: "ConsumerFromConfig",
                 consumerCount: ConsumerCount)
-                .SetSerilizationProvider(_serializationProvider)
+                .SetSerializationProvider(_serializationProvider)
                 .SetEncryptionProvider(_encryptionProvider)
                 .SetCompressionProvider(_compressionProvider)
                 .SetMetricsProvider(_metricsProvider)

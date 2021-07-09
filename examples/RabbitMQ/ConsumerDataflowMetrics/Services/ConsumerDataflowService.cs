@@ -69,7 +69,7 @@ namespace ConsumerDataflowMetrics.Services
                 workflowName: workflowName,
                 consumerName: consumerName,
                 consumerCount: consumerCount)
-                .SetSerilizationProvider(_serializationProvider)
+                .SetSerializationProvider(_serializationProvider)
                 .SetEncryptionProvider(_encryptionProvider)
                 .SetCompressionProvider(_compressionProvider)
                 .SetMetricsProvider(_metricsProvider)
