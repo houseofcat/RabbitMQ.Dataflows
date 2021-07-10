@@ -27,7 +27,7 @@ namespace HouseofCat.Dataflows
             _currentBlock = (ISourceBlock<TState>)block;
         }
 
-        protected ExecutionDataflowBlockOptions GetExecuteStepOptions(int? maxDoP, bool? ensureOrdered, int? boundedCapacity)
+        protected ExecutionDataflowBlockOptions GetExecuteStepOptions(int? maxDoP, bool? ensureOrdered, int? boundedCapacity, TaskScheduler taskScheduler = null)
         {
             if (maxDoP.HasValue || ensureOrdered.HasValue || boundedCapacity.HasValue)
             {
@@ -35,7 +35,8 @@ namespace HouseofCat.Dataflows
                 {
                     BoundedCapacity = boundedCapacity ?? _executeStepOptions.BoundedCapacity,
                     EnsureOrdered = ensureOrdered ?? _executeStepOptions.EnsureOrdered,
-                    MaxDegreeOfParallelism = maxDoP ?? _executeStepOptions.MaxDegreeOfParallelism
+                    MaxDegreeOfParallelism = maxDoP ?? _executeStepOptions.MaxDegreeOfParallelism,
+                    TaskScheduler = taskScheduler ?? TaskScheduler.Current,
                 };
             }
 
