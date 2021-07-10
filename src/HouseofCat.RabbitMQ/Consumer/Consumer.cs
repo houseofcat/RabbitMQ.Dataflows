@@ -302,7 +302,7 @@ namespace HouseofCat.RabbitMQ
             await HandleMessage(bdea).ConfigureAwait(false);
         }
 
-        private async Task HandleMessage(BasicDeliverEventArgs bdea)
+        protected async Task HandleMessage(BasicDeliverEventArgs bdea)
         {
             var rabbitMessage = new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false));
 
