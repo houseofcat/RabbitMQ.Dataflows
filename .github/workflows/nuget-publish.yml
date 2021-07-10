@@ -10,9 +10,9 @@ on:
       tags:
         description: 'Manual Publish'
   push:
-    branches: [ 'nuget-publish/**' ]
+    branches: [ 'nuget/publish' ]
   pull_request:
-    branches: [ 'nuget-publish/**' ]
+    branches: [ 'nuget/publish' ]
 
 jobs:
   build:

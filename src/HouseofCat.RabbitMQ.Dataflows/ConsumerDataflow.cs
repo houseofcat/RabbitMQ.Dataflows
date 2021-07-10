@@ -8,6 +8,7 @@ using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -20,7 +21,9 @@ namespace HouseofCat.RabbitMQ.Dataflows
         public string WorkflowName { get; }
 
         private readonly IRabbitService _rabbitService;
+        private readonly List<IConsumer<ReceivedData>> _consumers;
         private readonly ConsumerOptions _consumerOptions;
+        private readonly TaskScheduler _taskScheduler;
         private readonly string _consumerName;
         private readonly int _consumerCount;
 
@@ -51,7 +54,8 @@ namespace HouseofCat.RabbitMQ.Dataflows
             IRabbitService rabbitService,
             string workflowName,
             string consumerName,
-            int consumerCount)
+            int consumerCount,
+            TaskScheduler taskScheduler = null)
         {
             Guard.AgainstNull(rabbitService, nameof(rabbitService));
             Guard.AgainstNullOrEmpty(consumerName, nameof(consumerName));
@@ -65,11 +69,54 @@ namespace HouseofCat.RabbitMQ.Dataflows
             _serializationProvider = rabbitService.SerializationProvider;
 
             _linkStepOptions = new DataflowLinkOptions { PropagateCompletion = true };
+            _taskScheduler = taskScheduler ?? TaskScheduler.Current;
+
             _executeStepOptions = new ExecutionDataflowBlockOptions
             {
                 MaxDegreeOfParallelism = _consumerOptions.ConsumerPipelineOptions.MaxDegreesOfParallelism ?? 1,
                 SingleProducerConstrained = true,
-                EnsureOrdered = _consumerOptions.ConsumerPipelineOptions.EnsureOrdered ?? true
+                EnsureOrdered = _consumerOptions.ConsumerPipelineOptions.EnsureOrdered ?? true,
+                TaskScheduler = _taskScheduler,
+            };
+
+            _consumerBlocks = new List<ConsumerBlock<ReceivedData>>();
+        }
+
+        /// <summary>
+        /// This constructor is used for when you want to supply Consumers manually, or custom Consumers without having to write a custom IRabbitService.
+        /// </summary>
+        /// <param name="rabbitService"></param>
+        /// <param name="consumer"></param>
+        /// <param name="workflowName"></param>
+        /// <param name="consumerCount"></param>
+        /// <param name="serializationProvider"></param>
+        /// <param name="taskScheduler"></param>
+        public ConsumerDataflow(
+            IRabbitService rabbitService,
+            List<IConsumer<ReceivedData>> consumers,
+            string workflowName,
+            int maxDoP,
+            bool ensureOrder,
+            ISerializationProvider serializationProvider = null,
+            TaskScheduler taskScheduler = null)
+        {
+            Guard.AgainstNull(rabbitService, nameof(rabbitService));
+            Guard.AgainstNullOrEmpty(consumers, nameof(consumers));
+
+            WorkflowName = workflowName;
+            _consumers = consumers;
+            _rabbitService = rabbitService;
+            _serializationProvider = serializationProvider;
+
+            _linkStepOptions = new DataflowLinkOptions { PropagateCompletion = true };
+            _taskScheduler = taskScheduler ?? TaskScheduler.Current;
+
+            _executeStepOptions = new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = maxDoP,
+                SingleProducerConstrained = true,
+                EnsureOrdered = ensureOrder,
+                TaskScheduler = _taskScheduler,
             };
 
             _consumerBlocks = new List<ConsumerBlock<ReceivedData>>();
@@ -143,13 +190,18 @@ namespace HouseofCat.RabbitMQ.Dataflows
 
         #region Step Adders
 
-        public ConsumerDataflow<TState> WithErrorHandling(Action<TState> action, int boundedCapacity, int? maxDoP = null, bool? ensureOrdered = null)
+        public ConsumerDataflow<TState> WithErrorHandling(
+            Action<TState> action,
+            int boundedCapacity,
+            int? maxDoP = null,
+            bool? ensureOrdered = null,
+            TaskScheduler taskScheduler = null)
         {
             Guard.AgainstNull(action, nameof(action));
             if (_errorBuffer == null)
             {
                 _errorBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
                 _errorAction = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler", false);
             }
             return this;
@@ -159,23 +211,31 @@ namespace HouseofCat.RabbitMQ.Dataflows
             Func<TState, Task> action,
             int boundedCapacity,
             int? maxDoP = null,
-            bool? ensureOrdered = null)
+            bool? ensureOrdered = null,
+            TaskScheduler taskScheduler = null)
         {
             Guard.AgainstNull(action, nameof(action));
             if (_errorBuffer == null)
             {
                 _errorBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
                 _errorAction = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler", false);
             }
             return this;
         }
 
-        public ConsumerDataflow<TState> WithReadyToProcessBuffer(int boundedCapacity)
+        public ConsumerDataflow<TState> WithReadyToProcessBuffer(
+            int boundedCapacity,
+            TaskScheduler taskScheduler = null)
         {
             if (_readyBuffer == null)
             {
-                _readyBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
+                _readyBuffer = new BufferBlock<TState>(
+                    new DataflowBlockOptions
+                    {
+                        BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000,
+                        TaskScheduler = taskScheduler ?? _taskScheduler
+                    });
             }
             return this;
         }
@@ -187,11 +247,12 @@ namespace HouseofCat.RabbitMQ.Dataflows
             string metricDescription = null,
             int? maxDoP = null,
             bool? ensureOrdered = null,
-            int? boundedCapacity = null)
+            int? boundedCapacity = null,
+            TaskScheduler taskScheduler = null)
         {
             Guard.AgainstNull(suppliedStep, nameof(suppliedStep));
             _metricsProvider.IncrementCounter($"{WorkflowName}_Steps", metricDescription);
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
             _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions, metricIdentifier, metricMicroScale));
             return this;
         }
@@ -203,20 +264,28 @@ namespace HouseofCat.RabbitMQ.Dataflows
             string metricDescription = null,
             int? maxDoP = null,
             bool? ensureOrdered = null,
-            int? boundedCapacity = null)
+            int? boundedCapacity = null,
+            TaskScheduler taskScheduler = null)
         {
             Guard.AgainstNull(suppliedStep, nameof(suppliedStep));
             _metricsProvider.IncrementCounter($"{WorkflowName}_Steps", metricDescription);
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
             _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions, metricIdentifier, metricMicroScale));
             return this;
         }
 
-        public ConsumerDataflow<TState> WithPostProcessingBuffer(int boundedCapacity)
+        public ConsumerDataflow<TState> WithPostProcessingBuffer(
+            int boundedCapacity,
+            TaskScheduler taskScheduler = null)
         {
             if (_postProcessingBuffer == null)
             {
-                _postProcessingBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
+                _postProcessingBuffer = new BufferBlock<TState>(
+                    new DataflowBlockOptions
+                    {
+                        BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000,
+                        TaskScheduler = taskScheduler ?? _taskScheduler
+                    });
             }
             return this;
         }
@@ -225,13 +294,14 @@ namespace HouseofCat.RabbitMQ.Dataflows
             Action<TState> action,
             int? maxDoP = null,
             bool? ensureOrdered = null,
-            int? boundedCapacity = null)
+            int? boundedCapacity = null,
+            TaskScheduler taskScheduler = null)
         {
             Guard.AgainstNull(action, nameof(action));
             if (_finalization == null)
             {
                 _metricsProvider.IncrementCounter($"{WorkflowName}_Steps");
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
                 _finalization = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_Finalization", true);
             }
             return this;
@@ -241,13 +311,14 @@ namespace HouseofCat.RabbitMQ.Dataflows
             Func<TState, Task> action,
             int? maxDoP = null,
             bool? ensureOrdered = null,
-            int? boundedCapacity = null)
+            int? boundedCapacity = null,
+            TaskScheduler taskScheduler = null)
         {
             Guard.AgainstNull(action, nameof(action));
             if (_finalization == null)
             {
                 _metricsProvider.IncrementCounter($"{WorkflowName}_Steps");
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
                 _finalization = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_Finalization", true);
             }
             return this;
@@ -257,24 +328,29 @@ namespace HouseofCat.RabbitMQ.Dataflows
             string stateKey,
             int? maxDoP = null,
             bool? ensureOrdered = null,
-            int? boundedCapacity = null)
+            int? boundedCapacity = null,
+            TaskScheduler taskScheduler = null)
         {
             if (_buildStateBlock == null)
             {
                 _metricsProvider.IncrementCounter($"{WorkflowName}_Steps");
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
                 _buildStateBlock = GetBuildStateBlock<TOut>(_serializationProvider, stateKey, executionOptions);
             }
             return this;
         }
 
-        public ConsumerDataflow<TState> WithDecryptionStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
+        public ConsumerDataflow<TState> WithDecryptionStep(
+            int? maxDoP = null,
+            bool? ensureOrdered = null,
+            int? boundedCapacity = null,
+            TaskScheduler taskScheduler = null)
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             if (_decryptBlock == null)
             {
                 _metricsProvider.IncrementCounter($"{WorkflowName}_Steps");
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
                 _decryptBlock = GetByteManipulationTransformBlock(
                     _encryptionProvider.Decrypt,
@@ -287,13 +363,17 @@ namespace HouseofCat.RabbitMQ.Dataflows
             return this;
         }
 
-        public ConsumerDataflow<TState> WithDecompressionStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
+        public ConsumerDataflow<TState> WithDecompressionStep(
+            int? maxDoP = null,
+            bool? ensureOrdered = null,
+            int? boundedCapacity = null,
+            TaskScheduler taskScheduler = null)
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             if (_decompressBlock == null)
             {
                 _metricsProvider.IncrementCounter($"{WorkflowName}_Steps");
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
                 _decompressBlock = GetByteManipulationTransformBlock(
                     _compressProvider.Decompress,
@@ -311,24 +391,29 @@ namespace HouseofCat.RabbitMQ.Dataflows
             Func<TState, Task<TState>> createLetter,
             int? maxDoP = null,
             bool? ensureOrdered = null,
-            int? boundedCapacity = null)
+            int? boundedCapacity = null,
+            TaskScheduler taskScheduler = null)
         {
             if (_createSendLetter == null)
             {
                 _metricsProvider.IncrementCounter($"{WorkflowName}_Steps");
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
                 _createSendLetter = GetWrappedTransformBlock(createLetter, executionOptions, $"{WorkflowName}_CreateSendLetter");
             }
             return this;
         }
 
-        public ConsumerDataflow<TState> WithCompression(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
+        public ConsumerDataflow<TState> WithCompression(
+            int? maxDoP = null,
+            bool? ensureOrdered = null,
+            int? boundedCapacity = null,
+            TaskScheduler taskScheduler = null)
         {
             Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
             if (_compressBlock == null)
             {
                 _metricsProvider.IncrementCounter($"{WorkflowName}_Steps");
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
                 _compressBlock = GetByteManipulationTransformBlock(
                     _compressProvider.Compress,
@@ -341,13 +426,17 @@ namespace HouseofCat.RabbitMQ.Dataflows
             return this;
         }
 
-        public ConsumerDataflow<TState> WithEncryption(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
+        public ConsumerDataflow<TState> WithEncryption(
+            int? maxDoP = null,
+            bool? ensureOrdered = null,
+            int? boundedCapacity = null,
+            TaskScheduler taskScheduler = null)
         {
             Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
             if (_encryptBlock == null)
             {
                 _metricsProvider.IncrementCounter($"{WorkflowName}_Steps");
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
                 _encryptBlock = GetByteManipulationTransformBlock(
                     _encryptionProvider.Encrypt,
@@ -360,12 +449,16 @@ namespace HouseofCat.RabbitMQ.Dataflows
             return this;
         }
 
-        public ConsumerDataflow<TState> WithSendStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null)
+        public ConsumerDataflow<TState> WithSendStep(
+            int? maxDoP = null,
+            bool? ensureOrdered = null,
+            int? boundedCapacity = null,
+            TaskScheduler taskScheduler = null)
         {
             _metricsProvider.IncrementCounter($"{WorkflowName}_Steps");
             if (_sendLetterBlock == null)
             {
-                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity);
+                var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
                 _sendLetterBlock = GetWrappedPublishTransformBlock(_rabbitService, executionOptions);
             }
             return this;
@@ -390,11 +483,23 @@ namespace HouseofCat.RabbitMQ.Dataflows
             if (_postProcessingBuffer == null)
             { _postProcessingBuffer = new BufferBlock<TState>(); }
 
-            for (int i = 0; i < _consumerCount; i++)
+            if (_consumers == null)
             {
-                var consumer = new Consumer(_rabbitService.ChannelPool, _consumerName);
-                _consumerBlocks.Add(new ConsumerBlock<ReceivedData>(consumer));
-                _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
+                for (var i = 0; i < _consumerCount; i++)
+                {
+
+                    var consumer = new Consumer(_rabbitService.ChannelPool, _consumerName);
+                    _consumerBlocks.Add(new ConsumerBlock<ReceivedData>(consumer));
+                    _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
+                }
+            }
+            else
+            {
+                for (var i = 0; i < _consumers.Count; i++)
+                {
+                    _consumerBlocks.Add(new ConsumerBlock<ReceivedData>(_consumers.ElementAt(i)));
+                    _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
+                }
             }
 
             _inputBuffer.LinkTo(_buildStateBlock, overrideOptions ?? _linkStepOptions);

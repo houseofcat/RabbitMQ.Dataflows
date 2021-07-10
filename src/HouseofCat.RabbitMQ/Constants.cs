@@ -123,6 +123,7 @@ namespace HouseofCat.RabbitMQ
             public const string ConsumerMessageReceived = "Consumer ({0}) message received (DT:{1}). Adding to buffer...";
             public const string ConsumerAsyncMessageReceived = "Consumer ({0}) async message received (DT:{1}). Adding to buffer...";
             public const string ConsumerShutdownEvent = "Consumer ({0}) shutdown event has occurred. Reason: {1}. Attempting to restart consuming...";
+            public const string ConsumerMessageWriteToBufferError = "Consumer ({0}) was unable to write to channel buffer. Error: {1}";
 
             public const string ConsumerDataflowActionCancelled = "Consumer ({0}) dataflow engine actions were cancelled.";
             public const string ConsumerDataflowError = "Consumer ({0}) dataflow engine encountered an error. Error: {1}";
