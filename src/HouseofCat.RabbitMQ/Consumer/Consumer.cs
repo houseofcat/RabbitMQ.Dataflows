@@ -287,8 +287,7 @@ namespace HouseofCat.RabbitMQ
                 ConsumerOptions.ConsumerName,
                 bdea.DeliveryTag);
 
-            var (rabbitMessage, handled) = await HandleMessage(bdea).ConfigureAwait(false);
-            if (!handled) { rabbitMessage.NackMessage(true); }
+            await HandleMessage(bdea).ConfigureAwait(false);
         }
 
         private async void ConsumerShutdown(object sender, ShutdownEventArgs e)
@@ -316,13 +315,12 @@ namespace HouseofCat.RabbitMQ
                 ConsumerOptions.ConsumerName,
                 bdea.DeliveryTag);
 
-            var (rabbitMessage, handled) = await HandleMessage(bdea).ConfigureAwait(false);
-            if (!handled) { rabbitMessage.NackMessage(true); }
+            await HandleMessage(bdea).ConfigureAwait(false);
         }
 
-        protected async Task<(ReceivedData, bool)> HandleMessage(BasicDeliverEventArgs bdea)
+        protected async Task HandleMessage(BasicDeliverEventArgs bdea)
         {
-            if (!await _dataBuffer.Writer.WaitToWriteAsync().ConfigureAwait(false)) return (null, false);
+            if (!await _dataBuffer.Writer.WaitToWriteAsync().ConfigureAwait(false)) return;
 
             try
             {
@@ -334,8 +332,6 @@ namespace HouseofCat.RabbitMQ
                     .Writer
                     .WriteAsync(rabbitMessage)
                     .ConfigureAwait(false);
-
-                return (rabbitMessage, true);
             }
             catch (Exception ex)
             {
@@ -343,8 +339,6 @@ namespace HouseofCat.RabbitMQ
                     LogMessages.Consumers.ConsumerMessageWriteToBufferError,
                     ConsumerOptions.ConsumerName,
                     ex.Message);
-
-                return (null, false);
             }
         }
 
