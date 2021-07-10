@@ -324,13 +324,9 @@ namespace HouseofCat.RabbitMQ
 
             try
             {
-                var rabbitMessage = new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false));
-
-                // In the event the internal buffer is closed - most likely in a fatal/shutdown scenario, returning true/false allows
-                // the EventHandler to nack the message so that another consumer may immediately acquire it.
                 await _dataBuffer
                     .Writer
-                    .WriteAsync(rabbitMessage)
+                    .WriteAsync(new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false)))
                     .ConfigureAwait(false);
             }
             catch (Exception ex)
