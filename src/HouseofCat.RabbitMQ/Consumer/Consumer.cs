@@ -271,7 +271,8 @@ namespace HouseofCat.RabbitMQ
                 ConsumerOptions.ConsumerName,
                 bdea.DeliveryTag);
             
-            await HandleMessage(bdea).ConfigureAwait(false);
+            var (rabbitMessage, handled) = await HandleMessage(bdea).ConfigureAwait(false);
+            if (!handled) { rabbitMessage.NackMessage(true); }
         }
 
         private async void ConsumerShutdown(object sender, ShutdownEventArgs e)
@@ -299,26 +300,32 @@ namespace HouseofCat.RabbitMQ
                 ConsumerOptions.ConsumerName,
                 bdea.DeliveryTag);
 
-            await HandleMessage(bdea).ConfigureAwait(false);
+            var (rabbitMessage, handled) = await HandleMessage(bdea).ConfigureAwait(false);
+            if (!handled) { rabbitMessage.NackMessage(true); }
         }
 
-        protected async Task HandleMessage(BasicDeliverEventArgs bdea)
+        protected async Task<(ReceivedData, bool)> HandleMessage(BasicDeliverEventArgs bdea)
         {
             var rabbitMessage = new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false));
 
-            if (await _dataBuffer
+            if (!await _dataBuffer
                     .Writer
                     .WaitToWriteAsync()
                     .ConfigureAwait(false))
             {
+                return (rabbitMessage, false);
+            }
+            
+            try {
                 await _dataBuffer
                     .Writer
                     .WriteAsync(rabbitMessage)
                     .ConfigureAwait(false);
+                return (rabbitMessage, true);
             }
-            else
+            catch
             {
-                rabbitMessage.NackMessage(true);
+                return (rabbitMessage, false);
             }
         }
 
