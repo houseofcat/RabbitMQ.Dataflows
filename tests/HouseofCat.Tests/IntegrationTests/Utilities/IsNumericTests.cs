@@ -1,3 +1,5 @@
+#nullable enable
+
 using HouseofCat.Extensions;
 using System;
 using Xunit;
@@ -69,7 +71,7 @@ namespace HouseofCat.Tests.IntegrationTests
         public void IsNullableNumericWhenNullAsObject()
         {
             int? value = null;
-            var objValue = (object)value;
+            var objValue = value as object;
 
             Assert.False(objValue.IsNullableNumeric());
         }
