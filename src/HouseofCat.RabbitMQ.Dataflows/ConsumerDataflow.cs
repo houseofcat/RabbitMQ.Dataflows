@@ -8,6 +8,7 @@ using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -20,6 +21,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
         public string WorkflowName { get; }
 
         private readonly IRabbitService _rabbitService;
+        private readonly List<IConsumer<ReceivedData>> _consumers;
         private readonly ConsumerOptions _consumerOptions;
         private readonly TaskScheduler _taskScheduler;
         private readonly string _consumerName;
@@ -74,6 +76,46 @@ namespace HouseofCat.RabbitMQ.Dataflows
                 MaxDegreeOfParallelism = _consumerOptions.ConsumerPipelineOptions.MaxDegreesOfParallelism ?? 1,
                 SingleProducerConstrained = true,
                 EnsureOrdered = _consumerOptions.ConsumerPipelineOptions.EnsureOrdered ?? true,
+                TaskScheduler = _taskScheduler,
+            };
+
+            _consumerBlocks = new List<ConsumerBlock<ReceivedData>>();
+        }
+
+        /// <summary>
+        /// This constructor is used for when you want to supply Consumers manually, or custom Consumers without having to write a custom IRabbitService.
+        /// </summary>
+        /// <param name="rabbitService"></param>
+        /// <param name="consumer"></param>
+        /// <param name="workflowName"></param>
+        /// <param name="consumerCount"></param>
+        /// <param name="serializationProvider"></param>
+        /// <param name="taskScheduler"></param>
+        public ConsumerDataflow(
+            IRabbitService rabbitService,
+            List<IConsumer<ReceivedData>> consumers,
+            string workflowName,
+            int maxDoP,
+            bool ensureOrder,
+            ISerializationProvider serializationProvider = null,
+            TaskScheduler taskScheduler = null)
+        {
+            Guard.AgainstNull(rabbitService, nameof(rabbitService));
+            Guard.AgainstNullOrEmpty(consumers, nameof(consumers));
+
+            WorkflowName = workflowName;
+            _consumers = consumers;
+            _rabbitService = rabbitService;
+            _serializationProvider = serializationProvider;
+
+            _linkStepOptions = new DataflowLinkOptions { PropagateCompletion = true };
+            _taskScheduler = taskScheduler ?? TaskScheduler.Current;
+
+            _executeStepOptions = new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = maxDoP,
+                SingleProducerConstrained = true,
+                EnsureOrdered = ensureOrder,
                 TaskScheduler = _taskScheduler,
             };
 
@@ -441,11 +483,23 @@ namespace HouseofCat.RabbitMQ.Dataflows
             if (_postProcessingBuffer == null)
             { _postProcessingBuffer = new BufferBlock<TState>(); }
 
-            for (int i = 0; i < _consumerCount; i++)
+            if (_consumers == null)
             {
-                var consumer = new Consumer(_rabbitService.ChannelPool, _consumerName);
-                _consumerBlocks.Add(new ConsumerBlock<ReceivedData>(consumer));
-                _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
+                for (var i = 0; i < _consumerCount; i++)
+                {
+
+                    var consumer = new Consumer(_rabbitService.ChannelPool, _consumerName);
+                    _consumerBlocks.Add(new ConsumerBlock<ReceivedData>(consumer));
+                    _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
+                }
+            }
+            else
+            {
+                for (var i = 0; i < _consumers.Count; i++)
+                {
+                    _consumerBlocks.Add(new ConsumerBlock<ReceivedData>(_consumers.ElementAt(i)));
+                    _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
+                }
             }
 
             _inputBuffer.LinkTo(_buildStateBlock, overrideOptions ?? _linkStepOptions);
