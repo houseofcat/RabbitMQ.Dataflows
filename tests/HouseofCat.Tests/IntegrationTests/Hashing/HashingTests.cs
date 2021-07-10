@@ -72,7 +72,7 @@ namespace HouseofCat.Tests.IntegrationTests
         [Fact]
         public async Task Argon2ID_Hash_EmptyByteArrays()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _provider.GetHashKeyAsync(new byte[] { }, salt: new byte[] { }, 16));
+            await Assert.ThrowsAsync<ArgumentException>(() => _provider.GetHashKeyAsync(new byte[] { }, salt: new byte[] { }, 16));
         }
     }
 }

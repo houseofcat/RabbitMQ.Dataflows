@@ -9,53 +9,70 @@ namespace HouseofCat.Dataflows
     public class DataflowEngine<TIn, TOut>
     {
         private readonly ILogger<DataflowEngine<TIn, TOut>> _logger;
-        private readonly ActionBlock<TIn> _block;
-        private readonly Func<TIn, Task<TIn>> _preWorkBody;
-        private readonly Func<TIn, Task<TOut>> _workBody;
-        private readonly Func<TOut, Task> _postWorkBody;
+        private readonly BufferBlock<TIn> _bufferBlock;
+        private readonly ActionBlock<TIn> _workBlock;
+        private readonly Func<TIn, Task<TIn>> _preWorkBodyAsync;
+        private readonly Func<TIn, Task<TOut>> _workBodyAsync;
+        private readonly Func<TOut, Task> _postWorkBodyAsync;
 
         public DataflowEngine(
-            Func<TIn, Task<TOut>> workBody,
+            Func<TIn, Task<TOut>> workBodyAsync,
             int maxDegreeOfParallelism,
             bool ensureOrdered,
-            Func<TIn, Task<TIn>> preWorkBody = null,
-            Func<TOut, Task> postWorkBody = null)
+            Func<TIn, Task<TIn>> preWorkBodyAsync = null,
+            Func<TOut, Task> postWorkBodyAsync = null,
+            int boundedCapacity = 1000,
+            TaskScheduler taskScheduler = null)
         {
             _logger = LogHelper.GetLogger<DataflowEngine<TIn, TOut>>();
-            _workBody = workBody ?? throw new ArgumentNullException(nameof(workBody));
+            _workBodyAsync = workBodyAsync ?? throw new ArgumentNullException(nameof(workBodyAsync));
 
-            _preWorkBody = preWorkBody;
-            _postWorkBody = postWorkBody;
+            _preWorkBodyAsync = preWorkBodyAsync;
+            _postWorkBodyAsync = postWorkBodyAsync;
 
-            _block = new ActionBlock<TIn>(
-                ExecuteWorkBodyAsync,
-                new ExecutionDataflowBlockOptions
+            _bufferBlock = new BufferBlock<TIn>(
+                new DataflowBlockOptions
                 {
-                    MaxDegreeOfParallelism = maxDegreeOfParallelism,
-                    EnsureOrdered = ensureOrdered
+                    BoundedCapacity = boundedCapacity,
+                    TaskScheduler = taskScheduler ?? TaskScheduler.Current
                 });
+
+            var executeOptions = new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = maxDegreeOfParallelism,
+                EnsureOrdered = ensureOrdered
+            };
+
+            if (taskScheduler != null)
+            { executeOptions.TaskScheduler = taskScheduler ?? TaskScheduler.Current; }
+
+            _workBlock = new ActionBlock<TIn>(
+                ExecuteWorkBodyAsync,
+                executeOptions);
+
+            _bufferBlock.LinkTo(_workBlock);
         }
 
         private async Task ExecuteWorkBodyAsync(TIn data)
         {
             try
             {
-                if (_preWorkBody != null)
+                if (_preWorkBodyAsync != null)
                 {
-                    data = await _preWorkBody(data).ConfigureAwait(false);
+                    data = await _preWorkBodyAsync(data).ConfigureAwait(false);
                 }
 
-                if (_postWorkBody != null)
+                if (_postWorkBodyAsync != null)
                 {
-                    var output = await _workBody(data).ConfigureAwait(false);
+                    var output = await _workBodyAsync(data).ConfigureAwait(false);
                     if (output != null)
                     {
-                        await _postWorkBody(output).ConfigureAwait(false);
+                        await _postWorkBodyAsync(output).ConfigureAwait(false);
                     }
                 }
                 else
                 {
-                    await _workBody(data).ConfigureAwait(false);
+                    await _workBodyAsync(data).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -66,7 +83,7 @@ namespace HouseofCat.Dataflows
 
         public async ValueTask EnqueueWorkAsync(TIn data)
         {
-            await _block
+            await _bufferBlock
                 .SendAsync(data)
                 .ConfigureAwait(false);
         }

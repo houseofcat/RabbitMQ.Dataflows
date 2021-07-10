@@ -31,7 +31,7 @@ namespace HouseofCat.Utilities.Errors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AgainstNullOrEmpty<T>(IEnumerable<T> argumentValue, string argumentName)
         {
-            if (argumentValue?.Any() != true)
+            if (argumentValue?.Any() ?? false)
                 throw new ArgumentNullException(Strings.Write(Constants.Guards.CantBeNull, argumentName));
         }
 
