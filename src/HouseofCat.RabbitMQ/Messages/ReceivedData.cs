@@ -19,6 +19,7 @@ namespace HouseofCat.RabbitMQ
         string CompressionType { get; }
 
         byte[] Data { get; set; }
+        string ConsumerTag { get; }
         ulong DeliveryTag { get; }
         Letter Letter { get; set; }
 
@@ -41,6 +42,7 @@ namespace HouseofCat.RabbitMQ
         public IBasicProperties Properties { get; }
         public bool Ackable { get; }
         public IModel Channel { get; set; }
+        public string ConsumerTag { get; }
         public ulong DeliveryTag { get; }
         public byte[] Data { get; set; }
         public Letter Letter { get; set; }
@@ -79,6 +81,7 @@ namespace HouseofCat.RabbitMQ
         {
             Ackable = ackable;
             Channel = channel;
+            ConsumerTag = args.ConsumerTag;
             DeliveryTag = args.DeliveryTag;
             Properties = args.BasicProperties;
             Data = args.Body.ToArray();
