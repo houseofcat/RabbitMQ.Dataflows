@@ -318,9 +318,9 @@ namespace HouseofCat.RabbitMQ
             await HandleMessage(bdea).ConfigureAwait(false);
         }
 
-        protected async Task HandleMessage(BasicDeliverEventArgs bdea)
+        protected async ValueTask<bool> HandleMessage(BasicDeliverEventArgs bdea)
         {
-            if (!await _dataBuffer.Writer.WaitToWriteAsync().ConfigureAwait(false)) return;
+            if (!await _dataBuffer.Writer.WaitToWriteAsync().ConfigureAwait(false)) return false;
 
             try
             {
@@ -328,6 +328,7 @@ namespace HouseofCat.RabbitMQ
                     .Writer
                     .WriteAsync(new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false)))
                     .ConfigureAwait(false);
+                return true;
             }
             catch (Exception ex)
             {
@@ -335,6 +336,7 @@ namespace HouseofCat.RabbitMQ
                     LogMessages.Consumers.ConsumerMessageWriteToBufferError,
                     ConsumerOptions.ConsumerName,
                     ex.Message);
+                return false;
             }
         }
 
