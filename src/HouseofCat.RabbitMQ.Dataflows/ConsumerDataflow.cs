@@ -21,7 +21,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
         public string WorkflowName { get; }
 
         private readonly IRabbitService _rabbitService;
-        private readonly List<IConsumer<ReceivedData>> _consumers;
+        private readonly ICollection<IConsumer<ReceivedData>> _consumers;
         private readonly ConsumerOptions _consumerOptions;
         private readonly TaskScheduler _taskScheduler;
         private readonly string _consumerName;
@@ -83,21 +83,46 @@ namespace HouseofCat.RabbitMQ.Dataflows
         }
 
         /// <summary>
-        /// This constructor is used for when you want to supply Consumers manually, or custom Consumers without having to write a custom IRabbitService.
+        /// This constructor is used for when you want to supply Consumers manually, or custom Consumers without having to write a custom IRabbitService,
+        /// and have global consumer pipeline options to retrieve maxDoP and ensureOrdered from.
         /// </summary>
         /// <param name="rabbitService"></param>
-        /// <param name="consumer"></param>
         /// <param name="workflowName"></param>
-        /// <param name="consumerCount"></param>
-        /// <param name="serializationProvider"></param>
+        /// <param name="consumers"></param>
+        /// <param name="globalConsumerPipelineOptions"></param>
         /// <param name="taskScheduler"></param>
         public ConsumerDataflow(
             IRabbitService rabbitService,
-            List<IConsumer<ReceivedData>> consumers,
             string workflowName,
+            ICollection<IConsumer<ReceivedData>> consumers,
+            GlobalConsumerPipelineOptions globalConsumerPipelineOptions,
+            TaskScheduler taskScheduler = null) : this(
+                rabbitService, 
+                workflowName,
+                consumers, 
+                globalConsumerPipelineOptions?.MaxDegreesOfParallelism ?? 1,
+                globalConsumerPipelineOptions?.EnsureOrdered ?? true,
+                taskScheduler)
+        {
+            Guard.AgainstNull(globalConsumerPipelineOptions, nameof(globalConsumerPipelineOptions));
+        }
+
+        /// <summary>
+        /// This constructor is used for when you want to supply Consumers manually, or custom Consumers without having to write a custom IRabbitService,
+        /// and want a custom maxDoP and/or ensureOrdered.
+        /// </summary>
+        /// <param name="rabbitService"></param>
+        /// <param name="workflowName"></param>
+        /// <param name="consumers"></param>
+        /// <param name="maxDoP"></param>
+        /// <param name="ensureOrdered"></param>
+        /// <param name="taskScheduler"></param>
+        public ConsumerDataflow(
+            IRabbitService rabbitService,
+            string workflowName,
+            ICollection<IConsumer<ReceivedData>> consumers,
             int maxDoP,
-            bool ensureOrder,
-            ISerializationProvider serializationProvider = null,
+            bool ensureOrdered,
             TaskScheduler taskScheduler = null)
         {
             Guard.AgainstNull(rabbitService, nameof(rabbitService));
@@ -105,8 +130,9 @@ namespace HouseofCat.RabbitMQ.Dataflows
 
             WorkflowName = workflowName;
             _consumers = consumers;
+            
             _rabbitService = rabbitService;
-            _serializationProvider = serializationProvider;
+            _serializationProvider = rabbitService.SerializationProvider;
 
             _linkStepOptions = new DataflowLinkOptions { PropagateCompletion = true };
             _taskScheduler = taskScheduler ?? TaskScheduler.Current;
@@ -115,7 +141,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
             {
                 MaxDegreeOfParallelism = maxDoP,
                 SingleProducerConstrained = true,
-                EnsureOrdered = ensureOrder,
+                EnsureOrdered = ensureOrdered,
                 TaskScheduler = _taskScheduler,
             };
 
