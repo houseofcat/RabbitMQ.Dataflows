@@ -1,7 +1,9 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using HouseofCat.Compression;
+using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -31,51 +33,87 @@ namespace HouseofCat.Benchmarks.Compression
         }
 
         [Benchmark(Baseline = true)]
+        public void BasicCompress5KBytes()
+        {
+            var data = BasicCompress(Payload1);
+        }
+
+        [Benchmark]
         public void Compress5KBytes()
         {
-            CompressionProvider.Compress(Payload1);
+            var data = CompressionProvider.Compress(Payload1);
         }
 
         [Benchmark]
         public async Task Compress5KBytesAsync()
         {
-            await CompressionProvider.CompressAsync(Payload1);
+            var data = await CompressionProvider.CompressAsync(Payload1);
         }
 
         [Benchmark]
         public void Compress5KBytesToStream()
         {
-            CompressionProvider.CompressToStream(Payload1);
+            var stream = CompressionProvider.CompressToStream(Payload1);
         }
 
         [Benchmark]
         public async Task Compress5KBytesToStreamAsync()
         {
-            await CompressionProvider.CompressToStreamAsync(Payload1);
+            var stream = await CompressionProvider.CompressToStreamAsync(Payload1);
+        }
+
+        [Benchmark]
+        public void BasicDecompress5KBytes()
+        {
+            var data = BasicDecompress(CompressedPayload1);
         }
 
         [Benchmark]
         public void Decompress5KBytes()
         {
-            CompressionProvider.Decompress(CompressedPayload1);
+            var data = CompressionProvider.Decompress(CompressedPayload1);
         }
 
         [Benchmark]
         public async Task Decompress5KBytesAsync()
         {
-            await CompressionProvider.DecompressAsync(CompressedPayload1);
+            var data = await CompressionProvider.DecompressAsync(CompressedPayload1);
         }
 
         [Benchmark]
         public void Decompress5KBytesFromStream()
         {
-            CompressionProvider.DecompressStream(new MemoryStream(CompressedPayload1));
+            var stream = CompressionProvider.DecompressStream(new MemoryStream(CompressedPayload1));
         }
 
         [Benchmark]
         public async Task Decompress5KBytesFromStreamAsync()
         {
-            await CompressionProvider.DecompressStreamAsync(new MemoryStream(CompressedPayload1));
+            var stream = await CompressionProvider.DecompressStreamAsync(new MemoryStream(CompressedPayload1));
+        }
+
+        public byte[] BasicCompress(byte[] data)
+        {
+            using var compressedStream = new MemoryStream();
+            using (var gzipStream = new GZipStream(compressedStream, CompressionLevel.Optimal, false))
+            {
+                gzipStream.Write(data);
+            }
+
+            return compressedStream.ToArray();
+        }
+
+        public byte[] BasicDecompress(byte[] compressedData)
+        {
+            using var uncompressedStream = new MemoryStream();
+
+            using (var compressedStream = new MemoryStream(compressedData))
+            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
+            {
+                gzipStream.CopyTo(uncompressedStream);
+            }
+
+            return uncompressedStream.ToArray();
         }
     }
 }
