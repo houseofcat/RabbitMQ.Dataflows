@@ -7,12 +7,12 @@
 
 #### Intro
 I will start with the most common way I have seen this written. It is with an input of `byte[]` and an 
-output `byte[]` so lets just write that first as a rough draft. Most of you probably just want to
-bounce after that!
+output `byte[]` so lets just write that first as a rough draft. It isn't the most efficient but most of
+you probably just want to bounce after that!
 
-These are super vanilla examples and I demonstrate them with Gzip (`GzipStream`). I did want to add
-though, I think doing it with `Stream` is probably the most common/useful/clean way to do this, as
-opposed to manually working with bytes and operations yourself.
+These are super vanilla examples and I demonstrate them with Gzip (`GzipStream`). I did want to add that
+desipte the requirement, I think doing it with `Stream` is probably the most efficientcommon/useful/clean
+way to do this, as opposed to manually working with bytes, operations, and allocations yourself.
 
 I took some ADD detours here and there, so skip those if you don't really care.
 
@@ -70,7 +70,8 @@ using var compressedStream = new MemoryStream();
 using (var gzipStream = new GZipStream(compressedStream, CompressionLevel.Optimal, false))
 ```
 
-Then funnel our data into our middle-man with `Write()`.
+Then funnel our data into our middle-man with `Write()`. The dispose finishes writing and Closes()
+the stream. Without `using` / `Dispose()` you would have to perform these yourself.
 ```csharp
 using var compressedStream = new MemoryStream();
 using (var gzipStream = new GZipStream(compressedStream, CompressionLevel.Optimal, false))
@@ -79,7 +80,8 @@ using (var gzipStream = new GZipStream(compressedStream, CompressionLevel.Optima
 }
 ```
 
-Then get/flush the final data out.
+Then get the final data out as a `byte[]`. Large `byte[]` will be rough on GC/LOH. I will write another
+guide on addressing this further.
 ```csharp
 return compressedStream.ToArray();
 ```
@@ -97,7 +99,7 @@ GzipStream -> byte, byte, byte, byte, byte -> Stream2 output
 ```
 
 This time though, to get it out, you have to tell `GzipStream` where to now put the data. That's where
-`CopyTo()` comes into play (similar to needing the `Write()` before).
+`CopyTo()` comes into play (similar to needing the `Write()` before). Dispose does a `Flush/Close` too.
 
 Confusing? Good. This is an ancient API that's due for an overhaul. So this is a ***great example of
 learning just how to do it*** not how it works because its convoluted.
@@ -189,14 +191,14 @@ using (var compressedStream = new MemoryStream())
 return ...;
 ```
 
-But I acknowledge they look similar and can add to confusion in a guide/example.
+I acknowledge they look similar and can add to confusion in a guide/example.
 
 #### Back To ~~Reality~~ Compression
 ##### Let's Make It Async Too
 This isn't faster/better than the regular use case (local memory compression) but would work better with
 incoming data from `Stream`. Think `NetworkStream` or `FileStream`. That would make these
-additive methods/APIs - don't replace the sync methods. It maybe tempting to `Async` all the way down,
-but don't, the `sync` methods are faster and lower allocations.
+additive methods/APIs, as in, don't replace the sync methods. It maybe tempting to `async` all the way down,
+but don't, the `sync` methods are faster and lower allocating.
 ```csharp
 using System;
 using System.IO;
@@ -264,9 +266,9 @@ public async Task DecompressAsync(Stream outputStream, byte[] compressedData)
 
 #### Let's Modernize The API - Part 1
 ##### Low Memory Allocation Pattern
-In the spirit of NetCore3.0+, now-a-days we try to write library-esque code for cases where users want the
-option to deal in `Span<T>/Memory<T>` giving them a ton more flexibiliy on allocating data. This parameter
-change will allow byte[] OR a reference to a segment of memory.  
+Since the arrival of NetCore3.0+, we try to write library-esque code for cases where users want the option to
+deal in `Span<T>/Memory<T>` giving them a ton more flexibiliy on allocating data. This parameter change will
+allow `byte[]` OR reference to a segment of memory.  
 
 STOP ALL THE ALLOCATIONS!  
 
@@ -286,15 +288,14 @@ public byte[] Compress(ReadOnlyMemory<byte> data)
     return compressedStream.ToArray();
 }
 ```
-
-Now let's write the Decompress... Wait... the Stream API hasn't been updated to include these
-`Span<T>/Memory<T>` language/library tools! Ahhhh Shit! That means we can't write a Decompress!  
+Easy. Now let's write the Decompress... Wait... the Stream API hasn't been updated to include these
+`Span<T>/Memory<T>` overloads! Ahhhh... Shit! That means we can't write a Decompress!  
 
 ##### Code Detour 3 - `ReadOnlyMemory<T>` Can't Be Used In Streams?!
-It's true. Like I said previously (you may have skimmed over my bullshit) - `Stream` is an ancient API. Lucky
-for you, while I am not a great coder, I am stubborn as shit. I researched some solutions doing my best to
-prevent needing my own custom `Stream`. There was one way that appealed to me as it essentially fell into
-still being able to use a non-library internal method and not requiring a ton of work. I am lazy.
+It's true. Like I said previously (you may have skimmed over my bullshit), `Stream` is an ancient API. Lucky
+for you, while I am not a great coder, I am quite stubborn. I researched some solutions doing my best to
+prevent needing my own custom `Stream`. There was one way that really appealed to me as it essentially fell
+into still being able to be internal-only and more importantly, not requiring a ton of work. I am lazy.
 
 ***THIS MAY NOT WORK IN ALL USE CASES AND YOU MAY NEED TO TWEAK IT***
 ...but this did seem to work on most datasets I tested with.  
@@ -320,17 +321,16 @@ the start of a `byte` segment. Now, I frankly didn't know this before I started 
 avoiding work I don't want to do (just kidding employer :|) so let's go down the rabbit hole.
 
 How do I convert a `ReadOnlyMemory<byte>` to essentially a buffer `pointer`? Well you can't, at least not
-directly. Inside our `ReadOnlyMemory<byte>` however, there are helper Properties/Methods. The one we want to
-look at is the one giving us access to the internal `Span[]`.
+directly. Inside our `ReadOnlyMemory<byte>` however, there are some Properties/Methods. The one we want to
+look at is the one giving us access to the internal `Span[]`. This is where we have to stop playing it `safe`.  
 
-This is where we have to stop playing it `safe`.  
+The `Spans` are why I put the warning disclaimer. It's possible to have more than one `Span` in here. While I
+thoroughly tested this code and it seemed to always work, I am sure there is a use case where this fails
+due to ignoring the other `Spans`. That's why I labeled it `UnsafeDecompress`, so you can keep the original!
 
-This is why I put the warning disclaimer. It's possible to have more than one `Span` in here. While I thoroughly tested this code and it
-seemed to always work, I am sure there is a use case where this fails because we ignore the other `Spans`. That's why I labeled it
-`UnsafeDecompress` though, so you can keep the original!
-
-If we use `fixed` keyword, we can `fix` or `pin` a memory address and stop GC from moving it around in memory and refer to it as a type.
-In this case, this gives us a `fixed` `byte*` which is a `byte` pointer at the beginning of a segment of memory holding/expecting type `byte`.
+If we use `fixed` keyword, we can `fix` or `pin` a memory address and stop GC from moving it around in
+memory and refer to it as a type. In this case, this gives us a `fixed` `byte*` which is a `byte` pointer
+at the beginning of a segment of memory holding/expecting type `byte`.
 
 Exactly what we needed... now to use it!
 
@@ -347,10 +347,11 @@ public unsafe byte[] UnsafeDecompress(ReadOnlyMemory<byte> compressedData)
 
 Now what the hell do we do with that? Great question brotato chip.
 
-Well we just need a `Stream` that will take that as input and just read the data. That's it.
+Well we just need a `Stream` that will take that as input and just read the data. That's all.
 
-So the `Stream` that can perform that is called an `UnmanagedMemoryStream`. We give it a `pointer` and
-length of our segment of data we intend to use with it. Then everything else stitches together like before.
+So one `Stream` can be built with a `pointer` for this purpose called an `UnmanagedMemoryStream`.
+We give it a `pointer` and length of our segment of data we intend to use with it. Then everything
+else stitches together like before.
 
 All together as a Decompress function.
 ```cs
@@ -387,30 +388,22 @@ You know, we have done all this work... but we still make a `byte[]` on return. 
 my memory serves me correctly, this means you are always double allocating (2 x `byte[]`). Once in the
 buffer of the `Stream` and also allocating to when calling `.ToArray()`.
 
-Can we change that? The answer honestly is `no`, not with the way things exist today...
+Can we change that? The answer honestly is `no`, not with the way things exist today... ...we can use different
+`MemoryStreams` like [RecyclableMemoryStream](https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream)
+but there are issues with that still not solved.
 
-...but what if you could use the buffer directly from the `MemoryStream`? Sounds incredibly sketchy to me so
-let's do it. This is a learning experience anyways.
+For now though... what if you could use the buffer directly from the `MemoryStream`? Sounds incredibly sketchy.
+Let's do it. This is a learning experience anyways.
 
 `MemoryStream` doesn't provide direct access to the `Buffer`, but does have method `TryGetBuffer()` that
-gives us an arraysegment of unsigned bytes from which this `Stream` was created. While it may seem new,
-`ArraySegment<byte>` is actually quite old school. Kind of the grandad of `Span<T>/Memory<T>`. By returning
-this, you don't perform the second allocation of memory.  
+gives us an `ArraySegment` of unsigned bytes from which this `Stream` was created. Privately, it also stores
+what is needed to convert a `buffer` into our `dataset`. While it may seem new, `ArraySegment<byte>` is
+actually quite old school. Kind of the grandad of `Span<T>/Memory<T>`. By returning this, you don't perform
+the second allocation of memory... yet.
 
-So it's all solved? Sadly no, is not a silver bullet - there are some asterisks.
+So it's all solved? Sadly no, it is not a silver bullet - there are some asterisks.
 
 Putting it to code first so we can analyze it.
-
-First issue, it is `TryGetBuffer()`, which means it can fail in acquiring the buffer, i.e. can happen because
-the `Stream` was disposed/closed etc. Now, that can't/shouldn't happen in this code (because we control type of
-Stream used and it's life cycle), but lets handle the condition properly regardless - should that change in
-some unforseen future.
-
-Second off, we have to change our return type to `ArraySegment<byte>`. This will put off people not
-familiar with `ArraySegment<byte>` which I would gauge is the majority of developers. Thus you might have
-to call it a different method name.
-
-So `CompressAlt` it is!
 ```csharp
 public ArraySegment<byte> CompressAlt(ReadOnlyMemory<byte> data)
 {
@@ -426,15 +419,26 @@ public ArraySegment<byte> CompressAlt(ReadOnlyMemory<byte> data)
     { return compressedStream.ToArray(); }
 }
 ```
+First issue, it uses `TryGetBuffer()`, which means it can fail in acquiring the buffer, i.e. can happen because
+the `Stream` was disposed/closed etc. Now, that can't/shouldn't happen in this code (because we control type of
+Stream used and it's life cycle), but lets handle the condition properly regardless - should that change in
+some unforseen future.
+
+Second off, we have to change our return type to `ArraySegment<byte>`. This will put off people not
+familiar with `ArraySegment<byte>` which I would gauge is the majority of developers. Thus you might have
+to call it a different method name. So `CompressAlt` it is!
+
 The third issue, is when you get the `ArraySegment<byte>` you can't use it directly as a `byte[]`.
 The length will nearly always be larger than your actual data sets usage as it is a `buffer`. Thus
 using it directly will often break serializers.
 
+Solutions
 1) Shouldn't be an issue in this code.
 2) Shouldn't be as big of an issue with comments/examples etc.
 3) Has two potential good solves.
    a) Change return type to include length, i.e. `ValueTuple(ArraySegment<byte> data, int length)`
-      i) Problem is we don't have a length until we have a final set of data or its provided to us via a header etc.
+      i) Problem is we don't have a length until we have a final set of data or its provided to us via a
+         header etc.
       ii) Gzip's first 4 bytes are usually the int length. 
    b) Teach developers to use the `.ToArray()` method when they are ready to get the data out of it!
 
@@ -445,6 +449,12 @@ This is what I call a `deferred allocation`. You have fully deferred a second al
 least until such time the developer decides to use the data. This can be immediately or the user may
 have strict memory requirements thus may be more conservative with its willy nilly allocation. This
 would give them more control for that option.
+
+Now, in all honesty, it would have been much better to just use `Stream` and no `byte[]` but this use
+case it was not possible as RabbitMQ requires `byte[]` / `ReadOnlyMemory<byte>`. AesGcm only works with
+`byte[]` too as `CryptoStream` support was not included for security reasons.
+
+Stay tuned for another article where I tackle some of these edge cases more efficiently!
 
 #### Whole Bunch of Examples Together
 This should be good enough to get you started with `GzipStream`. You can replace `GzipStream` with
@@ -753,29 +763,32 @@ public class GzipBenchmark
 #### Final Thoughts
 Really, just wanted to share my mental notes of playing around with Compression/Decompression, for my
 open source library Tesseract. I know its a very verbose guide - so if you made it this far kudos! 
-Tesseract code is just code that really helps devs build software by doing my best to have the
-fundamentals clean/solid. I do also have some high performance parallelism voodoo but its nothing
-really special any one could have come up with it. What makes it special is its purpose. By trying to
-handle the parallelism, compression, encryption, serialization, and application metrics, you get to 
-spend nearly all your focus and your energy on your core code making it even better.
 
-At least in theory! I hope this was an interesting dive into coding or at the very least was able to
+These problems usually end up as Tesseract code/libraries. That's just code that helps devs build
+software quicker by having strong, clean, performant fundamentals. I do also have some high
+performance parallelism voodoo but its nothing really special. Any one could have come up with it.
+What makes it useful is when it all comes together for you. By trying to handle the parallelism,
+compression, encryption, serialization, and application metrics, etc., you get to spend nearly all your
+your energy on your core code, which should make the end result even better.
+
+At least in theory! I hope this was an interesting dive into coding - or at the very least was able to
 provide a working example. Nothing wrong with that if that's all you needed.
 
 Plenty of reference links to docs and my library code will actually stay up to date.
 
 Lastly, I just want to say, when it comes to advance topics like Memory Allocation, don't be afraid to
-experiment but also take a step back at the end of the day. Ask yourself, is the code still readable?
-Does it diverge too far from what you wanted it to actually do?
+experiment, do some reading, but also take a step back at the end of the day. Ask yourself, is the code
+still readable? Did it diverge too far from what you originally wanted it to do?
 
 Also, if your end goal was lower allocations make sure that your upstream architecture accounts for it. You gain
-nothing using deferred allocation if the upstream immediately allocates for example... unless its just now
-future ready. There can be lasting implications that aren't readily changeable after the fact. Sometimes its
-just easier to leave things alone.
+nothing using things like `deferred allocation` if the upstream immediately allocates for example... unless
+its just to make it future ready. There can be lasting implications that aren't readily changeable after
+the fact. Sometimes its just easier to leave things alone.
 
-Taking that final step back is valuable. You don't always get the high level view when writing libraries. You do
-benefit from actual use cases, because without them you can get locked into narrow scope of an individual action 
-or idea. It can completely miss the bigger picture of how the code gets used/implemented.
+Taking a final step back is valuable. You don't always get the high level view when writing libraries.
+You do benefit greatly from actual use cases, because without them you can get locked into a very narrow
+scope of an individual action or idea. It can completely miss the bigger picture of how the code
+gets used/implemented.
 
 If you have feedback on the library code, feel free to raise issues/questions on Github,
 and I will respond to them!
