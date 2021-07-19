@@ -5,27 +5,28 @@ e.g., Perform this function against each integer in my list of ints.
 Oh that's eas.... *LOUD SCREECHING BRAKE NOISES*.
         
 ##### Additional Ask  
-I would like for it to not block (asynchronous) and fire in parallel/concurrently to decrease execution time,
+Wait! I would like for it to not block (asynchronous) and fire in parallel/concurrently to decrease execution time,
 but also not be prone to burst/spike traffic.
 
-Oof. Unlike golang this isn't quite that easy *but it should be.* Let's make it happen :devilface:
+Oof 😖. That's not as easy, but let's make it happen 
 
 ##### IEnumerable Extension Method
-Well this is both a straightforward request but also a little complicated as we don't quite have the built in tools for all of
-these requirements. Luckily though, there are still a couple of options to get started with.
+Well this is both a straightforward request, but a little complicated to make. We don't quite have the
+built in tools for those specific requirements. Luckily though, there are still a couple of options to
+get started with.
 
-The following handy method I have written was ready to go. I have used it a few times is really good for simple use cases where
-you just need to do `X()` against each `Y` element.
+The following handy extension method I have written was ready to go. I have used it a few times in the
+past and it is really good for simple use cases where you just need to do `X` thing against each `Y`
+element.
         
-Is it it perfect? No, but it works really well for what it does and very easy to implement.
+Is it it perfect? No, but its a good enough area and easy to implement with existing code.
 
-The idea behind this method is that you have a List of items and you want to fire the same Function/Action against each
-element of the list. This scenario is extremely common in backend services. You have multiples of a `Thing` and this `Thing`
-has to be saved to a `database` for example. The item could be an `Order` and the action could be `SaveToDatabaseAsync().` Another
-example, could be charge payments from a queue, where you are given a list of payments to process and there is no bulk upload
-solution. 
-        
-The example usages goes on and on.
+The idea behind this method is that you have a `List<T>` of items and you want to fire the same
+Function/Action against each element of the list. This scenario is extremely common in backend
+services. You have many `Things` and each `Thing` has to be saved to a `database` for example.
+The item could be an `Order` and the action could be `SaveToDatabaseAsync().` Another example,
+could be charge payments from a queue, where you are given a list of payments to process and
+there is no bulk processing solution, etc.      
 
 How this works:  
 1. Take an IEnumerable and dissect it into partitions.
@@ -34,6 +35,12 @@ How this works:
 2. For each Partition, in parallel, get the current element.
 3. Invoke the supplied function with that element as the input argument.
 4. Repeat till all partitions' elements have been processed or until exception occurs.
+
+Update: One note I would make, you don't have to keep maxDoP identical to your CPU core/logical
+processor count. A good rule of thumb is often 12 x Logical Processors. Testing is really
+required for this which will be unique per system. Be sure to try multiple values for peak
+performance. Especially if this is frequent called code in multiple places, or sharing with
+a AspNetCore Web.Api.
 
 ```cs
 using System;
@@ -98,10 +105,12 @@ namespace ParallelForEachAsync
     }
 }
 ```
-We added `await Task.Yield()` to force asynchronous scheduled pattern. This is absolutely necessary for scenarios where the
-`Task` is CPU heavy immediately and would prevent scheduling/concurrency. Instead of using Task.Run(() =>) for the entire thing
-I used PLINQ (`AsParallel()`). In my mind was cleaner and matched the coding pattern while also performing nearly the same thing.
-I used a `local function` instead of a `lambda` because they perform better and are lower on the allocations.
+We added `await Task.Yield()` to force asynchronous scheduled pattern. This is absolutely
+necessary for scenarios where the `Task` is CPU heavy immediately and would prevent
+scheduling/concurrency. Instead of using `Task.Run(() => { ... })` for the entire thing
+I used PLINQ (`AsParallel()`). In my mind was cleaner and matched the coding pattern
+while also performing nearly the same thing. I used a `local function` instead of a
+`lambda` because they perform better and are lower on the allocations.
 
 ##### Features
 * You want the performance to be adjustable (maxDoP).
