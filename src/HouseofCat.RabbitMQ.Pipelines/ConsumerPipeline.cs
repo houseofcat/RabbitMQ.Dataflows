@@ -255,7 +255,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
                 {
                     _cpLock.Dispose();
                     _pipeExecLock.Dispose();
-                    _cancellationTokenSource.Dispose();
+                    _cancellationTokenSource?.Dispose();
                 }
 
                 _disposedValue = true;

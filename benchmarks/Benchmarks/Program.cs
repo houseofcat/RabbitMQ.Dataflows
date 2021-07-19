@@ -1,6 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
 using HouseofCat.Benchmarks.Compression;
-using HouseofCat.Benchmarks.Misc;
 
 namespace HouseofCat.Benchmarks
 {
@@ -21,15 +20,15 @@ namespace HouseofCat.Benchmarks
             //        BenchmarkConverter.TypeToBenchmarks(typeof(BouncyEncryptBenchmark))
             //    });
 
-            //BenchmarkRunner.Run(
-            //    new[]
-            //    {
-            //        BenchmarkConverter.TypeToBenchmarks(typeof(GzipBenchmark)),
+            BenchmarkRunner.Run(
+                new[]
+                {
+                    BenchmarkConverter.TypeToBenchmarks(typeof(GzipBenchmark)),
             //        BenchmarkConverter.TypeToBenchmarks(typeof(BrotliBenchmark)),
             //        BenchmarkConverter.TypeToBenchmarks(typeof(DeflateBenchmark)),
             //        BenchmarkConverter.TypeToBenchmarks(typeof(LZ4PickleBenchmark)),
             //        BenchmarkConverter.TypeToBenchmarks(typeof(LZ4StreamBenchmark))
-            //    });
+                });
 
             //BenchmarkRunner.Run(
             //    new[]
@@ -44,11 +43,11 @@ namespace HouseofCat.Benchmarks
             //        BenchmarkConverter.TypeToBenchmarks(typeof(MedianOfTwoSortedArraysBenchmark)),
             //    });
 
-            BenchmarkRunner.Run(
-                new[]
-                {
-                    BenchmarkConverter.TypeToBenchmarks(typeof(IsNumericBenchmark)),
-                });
+            //BenchmarkRunner.Run(
+            //    new[]
+            //    {
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(IsNumericBenchmark)),
+            //    });
         }
     }
 }
