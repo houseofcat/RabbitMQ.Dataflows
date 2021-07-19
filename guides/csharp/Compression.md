@@ -203,6 +203,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
 
+// because the bytes are here, and the streams are built here... this async is virtually useless
+// and does nothing to help with performance nor will it really ever await.
 public async Task<byte[]> CompressAsync(byte[] data)
 {
     using var compressedStream = new MemoryStream();
@@ -216,6 +218,8 @@ public async Task<byte[]> CompressAsync(byte[] data)
     return compressedStream.ToArray();
 }
 
+// in this case, we have the input data, but we maybe waiting to write based on the stream status,
+// so writeasync could block depending on what the caller is doing with the stream.
 public async Task CompressAsync(Stream outputStream, byte[] data)
 {
     // Add a little safety check.
@@ -464,6 +468,8 @@ public byte[] Compress(byte[] data)
     return compressedStream.ToArray();
 }
 
+// because the bytes are here, and the streams are built here... this async is virtually useless
+// and does nothing to help with performance nor will it really ever await.
 public async Task<byte[]> CompressAsync(byte[] data)
 {
     using var compressedStream = new MemoryStream();
@@ -477,6 +483,8 @@ public async Task<byte[]> CompressAsync(byte[] data)
     return compressedStream.ToArray();
 }
 
+// in this case, we have the input data, but we maybe waiting to write based on the stream status,
+// so writeasync could block depending on what the caller is doing with the stream.
 public async Task CompressAsync(Stream outputStream, byte[] data)
 {
     // Add a little safety check.
@@ -598,8 +606,8 @@ public unsafe ArraySegment<byte> UnsafeDecompressAlt(ReadOnlyMemory<byte> compre
 ```
 
 #### Benchmarks
-Pretty much just comparing the basic implementation (`Basic`) vs. the optimized deferred allocation way. It's most
-noticeable on Decompress obviously.
+Pretty much just comparing the basic implementation (`Basic`) vs. the slightly more optimized deferred
+allocation way. It's most noticeable on Decompress obviously.
 ``` ini
 BenchmarkDotNet=v0.13.0, OS=Windows 10.0.19042.1110 (20H2/October2020Update)
 Intel Core i9-10900KF CPU 3.70GHz, 1 CPU, 20 logical and 10 physical cores
@@ -747,24 +755,27 @@ Really, just wanted to share my mental notes of playing around with Compression/
 open source library Tesseract. I know its a very verbose guide - so if you made it this far kudos! 
 Tesseract code is just code that really helps devs build software by doing my best to have the
 fundamentals clean/solid. I do also have some high performance parallelism voodoo but its nothing
-really special any one else could come up with. What makes it special is its purpose. By trying to
+really special any one could have come up with it. What makes it special is its purpose. By trying to
 handle the parallelism, compression, encryption, serialization, and application metrics, you get to 
 spend nearly all your focus and your energy on your core code making it even better.
 
 At least in theory! I hope this was an interesting dive into coding or at the very least was able to
 provide a working example. Nothing wrong with that if that's all you needed.
 
-Plenty of reference links to docs and my library which will stay up to date.
+Plenty of reference links to docs and my library code will actually stay up to date.
 
 Lastly, I just want to say, when it comes to advance topics like Memory Allocation, don't be afraid to
-experiment but also take a step back at the end of the day. Is the code still readable, does it diverge
-too far from what you wanted it to actually do, and finally - if your end goal was lower allocations
-make sure that your architecture accounts for it as there can be lasting implications that aren't
-easily changed. Sometimes its just easier to leave things alone.
+experiment but also take a step back at the end of the day. Ask yourself, is the code still readable?
+Does it diverge too far from what you wanted it to actually do?
 
-You don't always get the high level view when writing libraries. You benefit from actual use cases,
-because without them you can get locked into the scope of an individual function and miss the bigger
-picture or how the code gets implemented.
+Also, if your end goal was lower allocations make sure that your upstream architecture accounts for it. You gain
+nothing using deferred allocation if the upstream immediately allocates for example... unless its just now
+future ready. There can be lasting implications that aren't readily changeable after the fact. Sometimes its
+just easier to leave things alone.
+
+Taking that final step back is valuable. You don't always get the high level view when writing libraries. You do
+benefit from actual use cases, because without them you can get locked into narrow scope of an individual action 
+or idea. It can completely miss the bigger picture of how the code gets used/implemented.
 
 If you have feedback on the library code, feel free to raise issues/questions on Github,
 and I will respond to them!
