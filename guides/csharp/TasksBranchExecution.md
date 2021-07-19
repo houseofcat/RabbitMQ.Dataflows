@@ -11,13 +11,6 @@ used right, can really help with performance not just responsiveness.
 
 Let's take the mental handcuffs off of how you typically see the standard `Task` usage for a second. If we are allowed to modify
 the following bit of code we can improve the overall performance without knowing much - if anything - of what's going on beneath the hood.
-    
-You can probably follow this example if you understand that we normally use `async` and `await` to execute an expensive call without
-blocking the calling thread. In this following example, we have the two slow `async` operations (`Tasks`) being properly `awaited`
-by the developer. There is nothing wrong with the internal code (assumption) but they are slow and that we have to wait
-on each one to finish before continuing our executions.
-
-They are written now as non-blocking, but they will execute in order _**sequentially**_.
 
 ```csharp
 using System;
@@ -45,14 +38,20 @@ namespace Tasks
     }
 }
 ```
+We normally use `async` and `await` to execute an expensive call without blocking the calling thread.
+You see above, that we have the two `async` operations (`Tasks`) being properly `awaited` by the developer
+and we are assuming they are slow. There is nothing wrong with the internal code (another assumption)
+and we have to `await` on each one to finish before leaving the method.
 
-What makes everything proceed in an orderly fashion is the use of `await`. The developer achieved the good design of non-blocking
-operations but there is no concurrency due to the same mechanism - the `await`. Which leads me to: there is no rule you have to `await` code
-that is `async`.
+They are written now as non-blocking, but they will execute in order _**sequentially**_.
+
+What makes everything proceed in an orderly fashion is the use of `await`. The developer achieved the good
+design of non-blocking calling threads but there is no concurrency due to the same mechanism: the `await`.
+Which leads me to: there is no rule you have to `await` code that is `async`.
     
 _**WARNING: That also doesn't mean go batshit crazy not using `await` in your code.**_
 
-What I really should clarify is, you don't always have to `await` **here** like where we did in the above example. `Await` ensures that the
+What I really should clarify is, you don't always have to `await` **here** like where we did in the above example. `await` ensures that the
 execution finishes and that it is also not lost to the GC ether. In other words, we want to use `await` and not using it generally causes
 unintended nasty side-effects (like code not even executing)!
         
@@ -66,9 +65,9 @@ I still need it right?
 ```
 Yes!
 
-By altering the above example, we can invoke (start) both `Tasks` (that are independent of each other) concurrently,
-store a reference to these operations into a local variable (called `task1` etc.), then use those references as inputs to
-`Task.WhenAll()` allowing us to `await` them all.
+By altering the example, we can invoke (start) both `Tasks` (that are independent of each other) concurrently,
+store a reference to these operations into a local variable (called `task1` etc.), then use those references
+as inputs to `Task.WhenAll()` allowing us to `await` till both are finished.
 
 ##### TL;DR
 1. Branch out the execution of our two (or more) methods.  
@@ -107,18 +106,18 @@ namespace Tasks
 If `task0` usually takes 30 seconds and `task1` is usually 30 seconds, our starting example code would take a total time of 60 seconds.
     
 By re-arranging when we call the `await` (till after they have both started executing) we now have a `task0` taking 30 seconds and
-`task1` taking 30 seconds concurrently. Our method total execution time is now only 30 seconds (or which ever of the tasks was
+`task1` taking 30 seconds concurrently. Our total execution time is now only 30 seconds (or which ever of the tasks was
 longest) as they happened concurrently.
 
 #### This doesn't always occur...
 This is the general use case, but this isn't a guarantee of execution. This code operates more like an instruction/suggestion. The execution
-is not fully guaranteed. For a lot of use cases this is exactly how it works, but it is based on how busy the `TaskScheduler/ThreadPool` is
-or if it determines this is executed immediately.
+concurrently is not fully guaranteed. For a lot of use cases this is exactly how it works, but it is based on how busy the
+`TaskScheduler/ThreadPool` is or if it determines that this `thing` should execute immediately.
 
 That is a rather complex concept and worth a whole separate and detailed article. As long as the `Task` is properly `async`, able to be
-scheduled, then these can execute concurrently. Some examples would be a call out to a web.api, a save to a database etc.
+scheduled, then these can execute concurrently. Some examples would be a call out to a Web.Api, a save to a database etc.
 
-_**Note: To demonstrate execution immediately, you can remove the `await Task.Yield();` from ProcessMessageAsync. You will then see it execute
+_**Note: To demonstrate sync execution immediately, you can remove the `await Task.Yield();` from ProcessMessageAsync. You will then see it execute
 in order.**_
 
 #### What happens when you have more than two tasks?
@@ -172,22 +171,21 @@ namespace Tasks
     }
 }
 ```
-
 The same possible decrease on execution time is possible, leading to significantly reduced total execution time. This is really only true
 though when are able to create indepenent execution "branches" and the code is not dependent on the previous `task` having to finish.
 
 #### Conclusion
-Sometimes it just takes being mindful of how you use `async` and `await` to greatly increase execution performance. Other times, it requires
+Sometimes, it just takes being mindful of how you use `async` and `await` to greatly increase execution performance. Other times, it requires
 heavy refactoring. Production scenarios are rarely ever as easy as the above scenario demonstrates.
 
 Some weaknesses to this strategy are:
 1. Not all code will execute concurrently/parallely.
-   i. This is due to advanced scheduling algorithm for a variety of reasons like a `hot for loop`.
+   i. This is due to advanced scheduling algorithm or for a variety of reasons like a `hot for loop` preventing scheduling.
       a. There are mechanisms that force scheduling to occur such as `Task.Run` or `Task.Yield` and will make the execution occur on a background
       thread. 
-2. If your workload is not even, you will be prone to burst traffic.
+2. If your workload is not even, you will be prone to burst resource utilization/traffic.
    i. This means that there can overhall hiccups in performance, or bottlenecks on unrelated portions of the application.
-      a. The execution resources are shared application wide unless you have created an independent `TaskScheduler`.
+      a. The execution resources are shared application wide unless you have created a custom and independent `TaskScheduler`.
 3. Exceptions can stop the execution of remaining tasks.
    i. This may be desireable though.
     
