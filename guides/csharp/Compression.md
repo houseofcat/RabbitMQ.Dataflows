@@ -11,7 +11,7 @@ output `byte[]` so lets just write that first as a rough draft. It isn't the mos
 you probably just want to bounce after that!
 
 These are super vanilla examples and I demonstrate them with Gzip (`GzipStream`). I did want to add that
-desipte the requirement, I think doing it with `Stream` is probably the most efficientcommon/useful/clean
+desipte the requirement, I think doing it with `Stream` is probably the most efficient/common/useful/clean
 way to do this, as opposed to manually working with bytes, operations, and allocations yourself.
 
 I took some ADD detours here and there, so skip those if you don't really care.
@@ -268,7 +268,8 @@ public async Task DecompressAsync(Stream outputStream, byte[] compressedData)
 ##### Low Memory Allocation Pattern
 Since the arrival of NetCore3.0+, we try to write library-esque code for cases where users want the option to
 deal in `Span<T>/Memory<T>` giving them a ton more flexibiliy on allocating data. This parameter change will
-allow `byte[]` OR reference to a segment of memory.  
+allow `byte[]` OR reference to a segment of memory. Now to be clear, this would be a lot more efficient dealing
+with Streams and not `byte[]`. `Byte[]` is nearly always the least efficient pattern.
 
 STOP ALL THE ALLOCATIONS!  
 
