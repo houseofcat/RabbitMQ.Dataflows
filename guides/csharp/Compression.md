@@ -6,7 +6,7 @@
 2) No 3rd party dependencies.
 
 #### Intro
-I will start with the most common way I have seen this written is with an input of `byte[]` and an 
+I will start with the most common way I have seen this written. It is with an input of `byte[]` and an 
 output `byte[]` so lets just write that first as a rough draft. Most of you probably just want to
 bounce after that!
 
@@ -14,7 +14,7 @@ These are super vanilla examples and I demonstrate them with Gzip (`GzipStream`)
 though, I think doing it with `Stream` is probably the most common/useful/clean way to do this, as
 opposed to manually working with bytes and operations yourself.
 
-I took some ADD detours here, so skip those if you don't really care.
+I took some ADD detours here and there, so skip those if you don't really care.
 
 ```csharp
 using System;
@@ -52,11 +52,11 @@ things get a little confusing to beginners - because it is essentially not writt
 what is happening.
 
 ###### Compression Breakdown
-`GzipStream` only accepts `Stream` for construction. So when you do construct a `GzipStream` for
+`GzipStream` only accepts `Stream` for construction. So when you construct a `GzipStream` for
 ***compression***, that input `MemoryStream` is where you are telling the `GzipStream` to Write its output
-to! So its a little in reverse of what you may expect (input data would go into a `.ctor`). `GzipStream`
-is essentially a middle-man just performing operations on inputs and outputing the results to another
-`Stream`.
+to! So it maybe a little in reverse of what you may expect (input data would go into a `.ctor`).
+`GzipStream` is essentially a middle-man just performing operations on inputs and outputing the results
+to another `Stream`.
 
 So try to visualize Compression like this:  
 ```
@@ -64,13 +64,13 @@ byte, byte, byte, byte byte -> GzipStream (internal Compression operation)
 GzipStream -> byte, byte, byte -> Stream output
 ```
 
-So to build a `GzipStream`, we need to start with two Streams actually.
+So to build a `GzipStream`, we need to start with two `Streams` actually.
 ```csharp
 using var compressedStream = new MemoryStream();
 using (var gzipStream = new GZipStream(compressedStream, CompressionLevel.Optimal, false))
 ```
 
-Then funnel our data into our middle man with `Write()`.
+Then funnel our data into our middle-man with `Write()`.
 ```csharp
 using var compressedStream = new MemoryStream();
 using (var gzipStream = new GZipStream(compressedStream, CompressionLevel.Optimal, false))
@@ -85,9 +85,10 @@ return compressedStream.ToArray();
 ```
 
 ###### So... the same for Decompression?
-Well no, now you need an additional `Stream` for Decompression! Crazy! `GzipStream` still only accepts a `Stream`
-for construction. So when you do construct a `GzipStream` for ***decompression***, that input `MemoryStream`
-is where you are telling the `GzipStream` where the compressed data is! Hey, that's the opposite?! Yep.
+Well no, now you need an additional `Stream` for Decompression! Crazy! `GzipStream` still only accepts a
+`Stream` for construction. So when you do construct a `GzipStream` for ***decompression***, that input
+`MemoryStream` is where you are telling the `GzipStream` where the compressed data is! Hey, that's the
+opposite?! Yep.
 
 Visualize Decompression like this:  
 ```
@@ -96,7 +97,7 @@ GzipStream -> byte, byte, byte, byte, byte -> Stream2 output
 ```
 
 This time though, to get it out, you have to tell `GzipStream` where to now put the data. That's where
-`CopyTo()` comes into play (similar to needing Write()).
+`CopyTo()` comes into play (similar to needing the `Write()` before).
 
 Confusing? Good. This is an ancient API that's due for an overhaul. So this is a ***great example of
 learning just how to do it*** not how it works because its convoluted.
@@ -110,10 +111,9 @@ using var compressedStream = new MemoryStream();
 This `using` statement with out `parentheses` and with a line terminator `;` means that this `var 
 compressedStream` disposes AFTER the scope has finished, in this case, after return. This is a relatively
 new feature in C# since `v8.0`. This is super important to pay attention to: `using` statements with
-`Stream`. It is probably the reason why your `Stream` code often isn't working. You have either adjusted the `using` statement from an example on StackOverflow or
-copied it slightly differently, and now, nothing works. That's because - and I think this is a major flaw - 
-`Close()/Dispose()` on Streams performs finalization logic which means that in a `Stream` it is performing
-further operations on your buffer/output.
+`Stream`. It is probably the number 1 cause of why your `Stream` code isn't working. That's because - and
+I think this is a major flaw - `Close()/Dispose()` on Streams performs finalization logic which means
+that in a `Stream` it is performing further operations on your buffer/output.
 
 For example:
 ```csharp
