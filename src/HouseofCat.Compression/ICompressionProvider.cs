@@ -10,7 +10,7 @@ namespace HouseofCat.Compression
         ArraySegment<byte> Compress(ReadOnlyMemory<byte> data);
         ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data);
 
-        ValueTask<MemoryStream> CompressStreamAsync(Stream data);
+        ValueTask<MemoryStream> CompressStreamAsync(Stream data, bool leaveStreamOpen = false);
 
         MemoryStream CompressToStream(ReadOnlyMemory<byte> data);
         ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data);
@@ -18,8 +18,8 @@ namespace HouseofCat.Compression
 
         ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData);
         ValueTask<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData);
-        MemoryStream DecompressStream(Stream compressedStream);
-        ValueTask<MemoryStream> DecompressStreamAsync(Stream compressedStream);
+        MemoryStream DecompressStream(Stream compressedStream, bool leaveStreamOpen = false);
+        ValueTask<MemoryStream> DecompressStreamAsync(Stream compressedStream, bool leaveStreamOpen = false);
         MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData);
     }
 }

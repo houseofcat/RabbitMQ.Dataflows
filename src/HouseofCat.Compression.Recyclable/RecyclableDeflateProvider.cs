@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace HouseofCat.Compression
 {
-    public class DeflateProvider : ICompressionProvider
+    public class RecyclableDeflateProvider : ICompressionProvider
     {
         public string Type { get; } = "DEFLATE";
         public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
 
         public ArraySegment<byte> Compress(ReadOnlyMemory<byte> data)
         {
-            using var compressedStream = new MemoryStream();
-            using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, false))
+            var compressedStream = RecyclableManager.GetStream();
+            using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
             {
                 deflateStream.Write(data.Span);
             }
@@ -22,13 +22,18 @@ namespace HouseofCat.Compression
             if (compressedStream.TryGetBuffer(out var buffer))
             { return buffer; }
             else
-            { return compressedStream.ToArray(); }
+            {
+                using (compressedStream) // dispose stream after allocation.
+                {
+                    return compressedStream.ToArray();
+                }
+            }
         }
 
         public async ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data)
         {
-            using var compressedStream = new MemoryStream();
-            using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, false))
+            var compressedStream = RecyclableManager.GetStream();
+            using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
             {
                 await deflateStream
                     .WriteAsync(data)
@@ -38,7 +43,12 @@ namespace HouseofCat.Compression
             if (compressedStream.TryGetBuffer(out var buffer))
             { return buffer; }
             else
-            { return compressedStream.ToArray(); }
+            {
+                using (compressedStream) // dispose stream after allocation.
+                {
+                    return compressedStream.ToArray();
+                }
+            }
         }
 
         /// <summary>
@@ -50,7 +60,7 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public async ValueTask<MemoryStream> CompressStreamAsync(Stream data, bool leaveStreamOpen = false)
         {
-            var compressedStream = new MemoryStream();
+            var compressedStream = RecyclableManager.GetStream();
             using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
             {
                 await data
@@ -72,7 +82,7 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public MemoryStream CompressToStream(ReadOnlyMemory<byte> data)
         {
-            var compressedStream = new MemoryStream();
+            var compressedStream = RecyclableManager.GetStream();
             using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
             {
                 deflateStream.Write(data.Span);
@@ -91,7 +101,7 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data)
         {
-            var compressedStream = new MemoryStream();
+            var compressedStream = RecyclableManager.GetStream();
             using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
             {
                 await deflateStream
@@ -103,27 +113,23 @@ namespace HouseofCat.Compression
             return compressedStream;
         }
 
-        public unsafe ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
+        public ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
         {
-            fixed (byte* pBuffer = &compressedData.Span[0])
+            var uncompressedStream = RecyclableManager.GetStream();
+            using (var deflateStream = new DeflateStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
-                using var uncompressedStream = new MemoryStream();
-                using (var compressedStream = new UnmanagedMemoryStream(pBuffer, compressedData.Length))
-                using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress, false))
-                {
-                    deflateStream.CopyTo(uncompressedStream);
-                }
-
-                if (uncompressedStream.TryGetBuffer(out var buffer))
-                { return buffer; }
-                else
-                { return uncompressedStream.ToArray(); }
+                deflateStream.CopyTo(uncompressedStream);
             }
+
+            if (uncompressedStream.TryGetBuffer(out var buffer))
+            { return buffer; }
+            else
+            { return uncompressedStream.ToArray(); }
         }
 
         public async ValueTask<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
         {
-            using var uncompressedStream = new MemoryStream();
+            using var uncompressedStream = RecyclableManager.GetStream();
             using (var deflateStream = new DeflateStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 await deflateStream
@@ -138,14 +144,13 @@ namespace HouseofCat.Compression
         }
 
         /// <summary>
-        /// Returns a new <c>MemoryStream</c> that has decompressed data inside. The provided stream is optionally closed.
+        /// Returns a new MemoryStream() that has decompressed data inside. Original stream is closed/disposed.
         /// </summary>
-        /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
         /// <param name="compressedStream"></param>
         /// <returns></returns>
         public MemoryStream DecompressStream(Stream compressedStream, bool leaveStreamOpen = false)
         {
-            var uncompressedStream = new MemoryStream();
+            var uncompressedStream = RecyclableManager.GetStream();
             using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
                 deflateStream.CopyTo(uncompressedStream);
@@ -155,13 +160,13 @@ namespace HouseofCat.Compression
         }
 
         /// <summary>
-        /// Returns a new <c>MemoryStream</c> that has decompressed data inside. The provided stream is optionally closed.
+        /// Returns a new MemoryStream() that has decompressed data inside. Original stream is closed/disposed.
         /// </summary>
         /// <param name="compressedStream"></param>
         /// <returns></returns>
         public async ValueTask<MemoryStream> DecompressStreamAsync(Stream compressedStream, bool leaveStreamOpen = false)
         {
-            var uncompressedStream = new MemoryStream();
+            var uncompressedStream = RecyclableManager.GetStream();
             using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
                 await deflateStream
@@ -173,13 +178,13 @@ namespace HouseofCat.Compression
         }
 
         /// <summary>
-        /// Returns a new <c>MemoryStream</c> that has decompressed data inside.
+        /// Returns a new MemoryStream() that has decompressed data inside.
         /// </summary>
-        /// <param name="compressedData"></param>
-        /// <returns>A <c>new MemoryStream</c>.</returns>
+        /// <param name="compressedStream"></param>
+        /// <returns></returns>
         public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData)
         {
-            var uncompressedStream = new MemoryStream();
+            var uncompressedStream = RecyclableManager.GetStream();
             using (var deflateStream = new DeflateStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 deflateStream.CopyTo(uncompressedStream);

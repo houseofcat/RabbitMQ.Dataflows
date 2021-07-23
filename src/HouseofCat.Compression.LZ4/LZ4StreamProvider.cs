@@ -54,10 +54,10 @@ namespace HouseofCat.Compression
             { return compressedStream.ToArray(); }
         }
 
-        public async ValueTask<MemoryStream> CompressStreamAsync(Stream data)
+        public async ValueTask<MemoryStream> CompressStreamAsync(Stream data, bool leaveStreamOpen = false)
         {
             var compressedStream = new MemoryStream();
-            using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, true))
+            using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, leaveStreamOpen))
             {
                 await data
                     .CopyToAsync(lz4Stream)
@@ -133,10 +133,10 @@ namespace HouseofCat.Compression
         /// </summary>
         /// <param name="compressedStream"></param>
         /// <returns></returns>
-        public MemoryStream DecompressStream(Stream compressedStream)
+        public MemoryStream DecompressStream(Stream compressedStream, bool leaveStreamOpen = false)
         {
             var uncompressedStream = new MemoryStream();
-            using (var lz4Stream = LZ4Stream.Decode(compressedStream, _decoderSettings, true))
+            using (var lz4Stream = LZ4Stream.Decode(compressedStream, _decoderSettings, leaveStreamOpen))
             {
                 lz4Stream.CopyTo(uncompressedStream);
             }
@@ -149,10 +149,10 @@ namespace HouseofCat.Compression
         /// </summary>
         /// <param name="compressedStream"></param>
         /// <returns></returns>
-        public async ValueTask<MemoryStream> DecompressStreamAsync(Stream compressedStream)
+        public async ValueTask<MemoryStream> DecompressStreamAsync(Stream compressedStream, bool leaveStreamOpen = false)
         {
             var uncompressedStream = new MemoryStream();
-            using (var lz4Stream = LZ4Stream.Decode(compressedStream, _decoderSettings, true))
+            using (var lz4Stream = LZ4Stream.Decode(compressedStream, _decoderSettings, leaveStreamOpen))
             {
                 await lz4Stream
                     .CopyToAsync(uncompressedStream)
@@ -163,10 +163,10 @@ namespace HouseofCat.Compression
         }
 
         /// <summary>
-        /// Returns a new MemoryStream() that has decompressed data inside.
+        /// Returns a new <c>MemoryStream</c> that has decompressed data inside.
         /// </summary>
         /// <param name="compressedData"></param>
-        /// <returns></returns>
+        /// <returns>A <c>new MemoryStream</c>.</returns>
         public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData)
         {
             var uncompressedStream = new MemoryStream();

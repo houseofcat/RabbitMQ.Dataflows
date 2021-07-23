@@ -41,7 +41,14 @@ namespace HouseofCat.Compression
             { return compressedStream.ToArray(); }
         }
 
-        public async ValueTask<MemoryStream> CompressStreamAsync(Stream data)
+        /// <summary>
+        /// Retrieve a new <c>MemoryStream</c> object with the contents unzipped and copied from the provided
+        /// stream. The provided stream is optionally closed.
+        /// </summary>
+        /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public async ValueTask<MemoryStream> CompressStreamAsync(Stream data, bool leaveStreamOpen = false)
         {
             var compressedStream = new MemoryStream();
             using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
@@ -50,11 +57,19 @@ namespace HouseofCat.Compression
                     .CopyToAsync(gzipStream)
                     .ConfigureAwait(false);
             }
+            if (!leaveStreamOpen) { data.Close(); }
 
             compressedStream.Seek(0, SeekOrigin.Begin);
             return compressedStream;
         }
 
+        /// <summary>
+        /// Retrieve a new <c>MemoryStream</c> object with the contents contained zipped data writen from the unzipped
+        /// bytes in <c>ReadOnlyMemory&lt;byte&gt;</c>.
+        /// </summary>
+        /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public MemoryStream CompressToStream(ReadOnlyMemory<byte> data)
         {
             var compressedStream = new MemoryStream();
@@ -67,6 +82,13 @@ namespace HouseofCat.Compression
             return compressedStream;
         }
 
+        /// <summary>
+        /// Retrieve a new <c>MemoryStream</c> object with the contents contained zipped data writen from the unzipped
+        /// bytes in <c>ReadOnlyMemory&lt;byte&gt;</c>.
+        /// </summary>
+        /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data)
         {
             var compressedStream = new MemoryStream();
@@ -116,14 +138,15 @@ namespace HouseofCat.Compression
         }
 
         /// <summary>
-        /// Returns a new MemoryStream() that has decompressed data inside. Original stream is closed/disposed.
+        /// Returns a new <c>MemoryStream</c> that has decompressed data inside. The provided stream is optionally closed.
         /// </summary>
+        /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
         /// <param name="compressedStream"></param>
         /// <returns></returns>
-        public MemoryStream DecompressStream(Stream compressedStream)
+        public MemoryStream DecompressStream(Stream compressedStream, bool leaveStreamOpen = false)
         {
             var uncompressedStream = new MemoryStream();
-            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
+            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
                 gzipStream.CopyTo(uncompressedStream);
             }
@@ -132,14 +155,14 @@ namespace HouseofCat.Compression
         }
 
         /// <summary>
-        /// Returns a new MemoryStream() that has decompressed data inside. Original stream is closed/disposed.
+        /// Returns a new <c>MemoryStream</c> that has decompressed data inside. The provided stream is optionally closed.
         /// </summary>
         /// <param name="compressedStream"></param>
         /// <returns></returns>
-        public async ValueTask<MemoryStream> DecompressStreamAsync(Stream compressedStream)
+        public async ValueTask<MemoryStream> DecompressStreamAsync(Stream compressedStream, bool leaveStreamOpen = false)
         {
             var uncompressedStream = new MemoryStream();
-            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
+            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
                 await gzipStream
                     .CopyToAsync(uncompressedStream)
@@ -150,10 +173,10 @@ namespace HouseofCat.Compression
         }
 
         /// <summary>
-        /// Returns a new MemoryStream() that has decompressed data inside.
+        /// Returns a new <c>MemoryStream</c> that has decompressed data inside.
         /// </summary>
-        /// <param name="compressedStream"></param>
-        /// <returns></returns>
+        /// <param name="compressedData"></param>
+        /// <returns>A <c>new MemoryStream</c>.</returns>
         public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData)
         {
             var uncompressedStream = new MemoryStream();
