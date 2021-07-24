@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.RabbitMQ
+namespace RabbitMQ
 {
     public class ChannelPoolTests : IClassFixture<RabbitFixture>
     {
@@ -18,7 +18,7 @@ namespace IntegrationTests.RabbitMQ
             _fixture.Output = output;
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public void CreateChannelPoolWithLocalHost()
         {
             var options = new RabbitOptions();
@@ -29,7 +29,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(chanPool);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public void InitializeChannelPoolAsync()
         {
             var options = new RabbitOptions();
@@ -41,7 +41,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.True(chanPool.CurrentChannelId > 0);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task OverLoopThroughChannelPoolAsync()
         {
             var options = new RabbitOptions();

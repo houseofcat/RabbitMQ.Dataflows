@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.Hashing
+namespace Hashing
 {
     public class HashingTests
     {

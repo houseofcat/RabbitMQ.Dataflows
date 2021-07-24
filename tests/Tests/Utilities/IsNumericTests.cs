@@ -4,7 +4,7 @@ using HouseofCat.Extensions;
 using System;
 using Xunit;
 
-namespace HouseofCat.Tests.IntegrationTests.Utilities
+namespace Utilities
 {
     public class IsNumericTests
     {

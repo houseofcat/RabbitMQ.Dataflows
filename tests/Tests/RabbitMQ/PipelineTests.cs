@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.RabbitMQ
+namespace RabbitMQ
 {
     public class PipelineTests : IClassFixture<RabbitFixture>
     {
@@ -17,7 +17,7 @@ namespace IntegrationTests.RabbitMQ
             _fixture.Output = output;
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public void BuildSimplePipelineTest()
         {
             // Arrange

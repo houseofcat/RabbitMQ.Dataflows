@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.RabbitMQ
+namespace RabbitMQ
 {
     public class ConnectionPoolTests : IClassFixture<RabbitFixture>
     {
@@ -18,7 +18,7 @@ namespace IntegrationTests.RabbitMQ
             _fixture.Output = output;
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public void CreateConnectionPoolWithLocalHost()
         {
             var options = new RabbitOptions();
@@ -29,7 +29,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(connPool);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public void InitializeConnectionPoolAsync()
         {
             var options = new RabbitOptions();
@@ -40,7 +40,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(connPool);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task OverLoopThroughConnectionPoolAsync()
         {
             var options = new RabbitOptions();

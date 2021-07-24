@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.RabbitMQ
+namespace RabbitMQ
 {
     public class RabbitServiceTests : IClassFixture<RabbitFixture>
     {
@@ -15,7 +15,7 @@ namespace IntegrationTests.RabbitMQ
             _fixture.Output = output;
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task BuildRabbitService_AndTopology()
         {
             var rabbitService = new RabbitService(

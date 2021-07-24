@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.Encryption.BouncyCastle
+namespace Encryption.BouncyCastle
 {
     public class BouncyCastleEncryptionTests
     {

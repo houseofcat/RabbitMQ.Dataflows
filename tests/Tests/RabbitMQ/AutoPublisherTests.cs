@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.RabbitMQ
+namespace RabbitMQ
 {
     public class AutoPublisherTests : IClassFixture<RabbitFixture>
     {
@@ -17,7 +17,7 @@ namespace IntegrationTests.RabbitMQ
             _fixture.Output = output;
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public void CreateAutoPublisher()
         {
             var pub = new Publisher(
@@ -29,7 +29,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(pub);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateAutoPublisherAndStart()
         {
             var pub = new Publisher(
@@ -43,7 +43,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(pub);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateAutoPublisherAndPublish()
         {
             var pub = new Publisher(
@@ -56,7 +56,7 @@ namespace IntegrationTests.RabbitMQ
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await pub.QueueMessageAsync(letter));
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public void CreateAutoPublisherByOptions()
         {
             var pub = new Publisher(
@@ -68,7 +68,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(pub);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateAutoPublisherByConfigAndStart()
         {
             var pub = new Publisher(
@@ -82,7 +82,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(pub);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateAutoPublisherByConfigAndPublish()
         {
             var pub = new Publisher(
@@ -97,7 +97,7 @@ namespace IntegrationTests.RabbitMQ
             await pub.QueueMessageAsync(letter).ConfigureAwait(false);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateAutoPublisherByConfigQueueAndConcurrentPublish()
         {
             var pub = new Publisher(
@@ -128,7 +128,7 @@ namespace IntegrationTests.RabbitMQ
             await pub.StopAutoPublishAsync().ConfigureAwait(false);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateAutoPublisherQueueConcurrentPublishAndProcessReceipts()
         {
             var pub = new Publisher(

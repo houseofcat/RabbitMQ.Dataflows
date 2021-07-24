@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.Compression.LZ4
+namespace Compression.LZ4
 {
     public class LZ4StreamTests
     {

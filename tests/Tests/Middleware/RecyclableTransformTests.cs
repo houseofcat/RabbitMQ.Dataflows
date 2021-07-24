@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.Middleware
+namespace Middleware
 {
     public class RecyclableTransformTests
     {

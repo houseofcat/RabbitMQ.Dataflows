@@ -9,7 +9,7 @@ using HouseofCat.Utilities.File;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.RabbitMQ
+namespace RabbitMQ
 {
     public class RabbitFixture
     {

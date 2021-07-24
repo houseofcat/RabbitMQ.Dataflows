@@ -78,6 +78,11 @@ namespace HouseofCat.Recyclable
             return _manager.GetStream(tag, buffer) as RecyclableMemoryStream;
         }
 
+        public static RecyclableMemoryStream GetStream(string tag, Memory<byte> buffer, int start, int length)
+        {
+            return _manager.GetStream(tag, buffer.Slice(start, length)) as RecyclableMemoryStream;
+        }
+
         public static void ReturnStream(MemoryStream stream)
         {
             stream.Dispose();

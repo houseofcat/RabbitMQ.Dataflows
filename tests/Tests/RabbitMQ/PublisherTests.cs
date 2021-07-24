@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.RabbitMQ
+namespace RabbitMQ
 {
     public class PublisherTests : IClassFixture<RabbitFixture>
     {
@@ -20,7 +20,7 @@ namespace IntegrationTests.RabbitMQ
             _fixture.Output = output;
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public void CreatePublisher()
         {
             var options = new RabbitOptions();
@@ -35,7 +35,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(pub);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreatePublisherAndInitializeChannelPool()
         {
             var options = new RabbitOptions();
@@ -52,7 +52,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(pub);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public void CreatePublisherWithChannelPool()
         {
             var options = new RabbitOptions();
@@ -68,7 +68,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(pub);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task PublishToNonExistentQueueAsync()
         {
             var options = new RabbitOptions();
@@ -96,7 +96,7 @@ namespace IntegrationTests.RabbitMQ
                 .ThrowsAnyAsync<OperationCanceledException>(() => ReadReceiptAsync(tokenSource.Token));
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task PublishAsync()
         {
             var options = new RabbitOptions();
@@ -118,7 +118,7 @@ namespace IntegrationTests.RabbitMQ
                 .ConfigureAwait(false);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task PublishManyAsync()
         {
             var options = new RabbitOptions();
@@ -166,7 +166,7 @@ namespace IntegrationTests.RabbitMQ
             _fixture.Output.WriteLine($"Message Rate: {rate.ToString("0.###")} letters / sec, or {(dataRate / 1000.0).ToString("0.###")} MB/s");
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public void PublishBatchAsync()
         {
             //var options = new Options();

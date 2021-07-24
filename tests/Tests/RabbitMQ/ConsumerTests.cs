@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.RabbitMQ
+namespace RabbitMQ
 {
     public class ConsumerTests : IClassFixture<RabbitFixture>
     {
@@ -18,7 +18,7 @@ namespace IntegrationTests.RabbitMQ
             _fixture.Output = output;
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateConsumer()
         {
             var options = await JsonFileReader.ReadFileAsync<RabbitOptions>("TestConfig.json");
@@ -28,7 +28,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(con);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateConsumerAndInitializeChannelPool()
         {
             var options = await JsonFileReader.ReadFileAsync<RabbitOptions>("TestConfig.json");
@@ -38,7 +38,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(con);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateConsumerAndStart()
         {
             await _fixture.Topologer.CreateQueueAsync("TestConsumerQueue").ConfigureAwait(false);
@@ -46,7 +46,7 @@ namespace IntegrationTests.RabbitMQ
             await con.StartConsumerAsync().ConfigureAwait(false);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateConsumerStartAndStop()
         {
             var con = new Consumer(_fixture.ChannelPool, "TestMessageConsumer");
@@ -55,7 +55,7 @@ namespace IntegrationTests.RabbitMQ
             await con.StopConsumerAsync().ConfigureAwait(false);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateManyConsumersStartAndStop()
         {
             for (int i = 0; i < 1000; i++)
@@ -67,7 +67,7 @@ namespace IntegrationTests.RabbitMQ
             }
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task ConsumerStartAndStopTesting()
         {
             var consumer = _fixture.RabbitService.GetConsumer("TestMessageConsumer");
@@ -79,7 +79,7 @@ namespace IntegrationTests.RabbitMQ
             }
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task ConsumerPipelineStartAndStopTesting()
         {
             var consumerPipeline = _fixture.RabbitService.CreateConsumerPipeline<WorkState>("TestMessageConsumer", 100, false, BuildPipeline);

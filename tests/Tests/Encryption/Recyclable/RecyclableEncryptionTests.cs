@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.Encryption.Recyclable
+namespace Encryption.Recyclable
 {
     public class RecyclableEncryptionTests
     {

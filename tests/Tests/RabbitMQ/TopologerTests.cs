@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.RabbitMQ
+namespace RabbitMQ
 {
     public class TopologerTests : IClassFixture<RabbitFixture>
     {
@@ -18,7 +18,7 @@ namespace IntegrationTests.RabbitMQ
             _fixture.Output = output;
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public void CreateTopologer()
         {
             var options = new RabbitOptions();
@@ -29,7 +29,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(top);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public void CreateTopologerAndInitializeChannelPool()
         {
             var options = new RabbitOptions();
@@ -40,7 +40,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(top);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public void CreateTopologerWithChannelPool()
         {
             var options = new RabbitOptions();
@@ -52,7 +52,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.NotNull(top);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateQueueAsync()
         {
             var options = new RabbitOptions();
@@ -63,7 +63,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.False(error);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateAndDeleteQueueAsync()
         {
             var options = new RabbitOptions();
@@ -77,7 +77,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.False(error);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateExchangeAsync()
         {
             var options = new RabbitOptions();
@@ -88,7 +88,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.False(error);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateAndDeleteExchangeAsync()
         {
             var options = new RabbitOptions();
@@ -102,7 +102,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.False(error);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateAndBindQueueAsync()
         {
             var options = new RabbitOptions();
@@ -125,7 +125,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.False(error);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateAndBindExchangeAsync()
         {
             var options = new RabbitOptions();
@@ -148,7 +148,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.False(error);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateBindAndUnbindExchangeAsync()
         {
             var options = new RabbitOptions();
@@ -174,7 +174,7 @@ namespace IntegrationTests.RabbitMQ
             Assert.False(error);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateTopologyFromFileAsync()
         {
             var options = await JsonFileReader.ReadFileAsync<RabbitOptions>("TestConfig.json");
@@ -184,7 +184,7 @@ namespace IntegrationTests.RabbitMQ
                 .ConfigureAwait(false);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task CreateTopologyFromPartialFileAsync()
         {
             var options = await JsonFileReader.ReadFileAsync<RabbitOptions>("TestConfig.json");

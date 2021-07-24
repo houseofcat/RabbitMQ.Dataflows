@@ -63,7 +63,9 @@ namespace Benchmarks
             BenchmarkRunner.Run(
                 new[]
                 {
-                    BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableTransformBenchmark)),
+                    //BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableTransformBenchmark)),
+                    //BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableTransformBenchmark2)),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableTransformBenchmark3)),
                 });
         }
     }

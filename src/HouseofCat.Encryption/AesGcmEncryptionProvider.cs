@@ -77,7 +77,7 @@ namespace HouseofCat.Encryption
             return encryptedData;
         }
 
-        public MemoryStream Encrypt(Stream unencryptedStream)
+        public MemoryStream Encrypt(Stream unencryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
 
@@ -120,10 +120,13 @@ namespace HouseofCat.Encryption
             _pool.Return(nonce);
 
             encryptedStream.Seek(0, SeekOrigin.Begin);
+
+            if (!leaveStreamOpen) { unencryptedStream.Close(); }
+
             return encryptedStream;
         }
 
-        public async Task<MemoryStream> EncryptAsync(Stream unencryptedStream)
+        public async Task<MemoryStream> EncryptAsync(Stream unencryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
 
@@ -168,6 +171,9 @@ namespace HouseofCat.Encryption
             _pool.Return(nonce);
 
             encryptedStream.Seek(0, SeekOrigin.Begin);
+
+            if (!leaveStreamOpen) { unencryptedStream.Close(); }
+
             return encryptedStream;
         }
 
@@ -204,7 +210,7 @@ namespace HouseofCat.Encryption
             return decryptedBytes;
         }
 
-        public MemoryStream Decrypt(Stream encryptedStream)
+        public MemoryStream Decrypt(Stream encryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(encryptedStream, nameof(encryptedStream));
 
@@ -217,6 +223,8 @@ namespace HouseofCat.Encryption
             var decryptedBytes = new byte[encryptedBytes.Length];
 
             aes.Decrypt(nonce, encryptedBytes, tag, decryptedBytes);
+
+            if (!leaveStreamOpen) { encryptedStream.Close(); }
 
             return new MemoryStream(decryptedBytes);
         }

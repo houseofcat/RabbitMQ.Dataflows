@@ -1,7 +1,7 @@
 using HouseofCat.Utilities.Random;
 using Xunit;
 
-namespace HouseofCat.Tests.IntegrationTests.Utilities
+namespace Utilities
 {
     public class XorShiftTests
     {

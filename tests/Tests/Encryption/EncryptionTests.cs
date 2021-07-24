@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.Encryption
+namespace Encryption
 {
     public class EncryptionTests
     {

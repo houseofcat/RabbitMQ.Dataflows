@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IntegrationTests.RabbitMQ
+namespace RabbitMQ
 {
     public class ComplexTests : IClassFixture<RabbitFixture>
     {
@@ -31,7 +31,7 @@ namespace IntegrationTests.RabbitMQ
                 _fixture.CompressionProvider);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task PublishAndCountReceipts()
         {
             await _fixture.Topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
@@ -64,7 +64,7 @@ namespace IntegrationTests.RabbitMQ
                 .ConfigureAwait(false);
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task PublishAndConsume()
         {
             await _fixture.Topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);

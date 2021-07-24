@@ -3,6 +3,7 @@ using Microsoft.Toolkit.HighPerformance;
 using System;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace HouseofCat.Compression
@@ -138,7 +139,7 @@ namespace HouseofCat.Compression
 
         public ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
         {
-            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), GetUncompressedLength(compressedData));
             using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 gzipStream.CopyTo(uncompressedStream);
@@ -157,7 +158,7 @@ namespace HouseofCat.Compression
 
         public async ValueTask<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
         {
-            using var uncompressedStream = RecyclableManager.GetStream();
+            using var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), GetUncompressedLength(compressedData));
             using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 await gzipStream
@@ -183,7 +184,7 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public MemoryStream Decompress(Stream compressedStream, bool leaveStreamOpen = false)
         {
-            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), GetUncompressedLength(compressedStream));
             using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
                 gzipStream.CopyTo(uncompressedStream);
@@ -199,7 +200,7 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public async ValueTask<MemoryStream> DecompressAsync(Stream compressedStream, bool leaveStreamOpen = false)
         {
-            var uncompressedStream = RecyclableManager.GetStream();
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), GetUncompressedLength(compressedStream));
             using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
                 await gzipStream
@@ -217,13 +218,30 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData)
         {
-            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), GetUncompressedLength(compressedData));
             using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 gzipStream.CopyTo(uncompressedStream);
             }
 
             return uncompressedStream;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int GetUncompressedLength(ReadOnlyMemory<byte> data)
+        {
+            // Anticipate the uncompressed length of GZip to get adequate sized buffers.
+            return BitConverter.ToInt32(data.Slice(0, 4).Span);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int GetUncompressedLength(Stream stream)
+        {
+            // Anticipate the uncompressed length of GZip to get adequate sized buffers.
+            var size = new byte[4];
+            stream.Read(size, 0, 4);
+            stream.Seek(0, SeekOrigin.Begin);
+            return BitConverter.ToInt32(size);
         }
     }
 }

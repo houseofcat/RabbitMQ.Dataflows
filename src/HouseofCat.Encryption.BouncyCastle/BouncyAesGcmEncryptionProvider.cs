@@ -54,7 +54,7 @@ namespace HouseofCat.Encryption.BouncyCastle
             return EncryptToStream(unencryptedData).ToArray();
         }
 
-        public MemoryStream Encrypt(Stream unencryptedStream)
+        public MemoryStream Encrypt(Stream unencryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
 
@@ -84,10 +84,13 @@ namespace HouseofCat.Encryption.BouncyCastle
             _pool.Return(nonce);
 
             encryptedStream.Seek(0, SeekOrigin.Begin);
+
+            if (!leaveStreamOpen) { unencryptedStream.Close(); }
+
             return encryptedStream;
         }
 
-        public async Task<MemoryStream> EncryptAsync(Stream unencryptedStream)
+        public async Task<MemoryStream> EncryptAsync(Stream unencryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
 
@@ -119,6 +122,9 @@ namespace HouseofCat.Encryption.BouncyCastle
             _pool.Return(nonce);
 
             encryptedStream.Seek(0, SeekOrigin.Begin);
+
+            if (!leaveStreamOpen) { unencryptedStream.Close(); }
+
             return encryptedStream;
         }
 
@@ -168,7 +174,7 @@ namespace HouseofCat.Encryption.BouncyCastle
             return plainText;
         }
 
-        public MemoryStream Decrypt(Stream encryptedStream)
+        public MemoryStream Decrypt(Stream encryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(encryptedStream, nameof(encryptedStream));
 
@@ -184,6 +190,8 @@ namespace HouseofCat.Encryption.BouncyCastle
             { cipher.DoFinal(plainText, cipher.ProcessBytes(cipherText, 0, cipherText.Length, plainText, 0)); }
             catch (InvalidCipherTextException)
             { return null; }
+
+            if (!leaveStreamOpen) { encryptedStream.Close(); }
 
             return new MemoryStream(plainText);
         }
