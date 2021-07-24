@@ -8,9 +8,11 @@ namespace HouseofCat.Serialization
     {
         TOut Deserialize<TOut>(string input);
         TOut Deserialize<TOut>(ReadOnlyMemory<byte> input);
-        Task<TOut> DeserializeAsync<TOut>(Stream utf8Json);
+        TOut Deserialize<TOut>(Stream inputStream);
+        Task<TOut> DeserializeAsync<TOut>(Stream inputStream);
         byte[] Serialize<TIn>(TIn input);
-        Task SerializeAsync<TIn>(Stream utf8Json, TIn input);
+        void Serialize<TIn>(Stream outputStream, TIn input);
+        Task SerializeAsync<TIn>(Stream outputStream, TIn input);
         string SerializeToPrettyString<TIn>(TIn input);
         string SerializeToString<TIn>(TIn input);
     }

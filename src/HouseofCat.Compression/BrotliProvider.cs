@@ -14,9 +14,9 @@ namespace HouseofCat.Compression
         public ArraySegment<byte> Compress(ReadOnlyMemory<byte> data)
         {
             using var compressedStream = new MemoryStream();
-            using (var bstream = new BrotliStream(compressedStream, CompressionLevel, false))
+            using (var brotliStream = new BrotliStream(compressedStream, CompressionLevel, false))
             {
-                bstream.Write(data.Span);
+                brotliStream.Write(data.Span);
             }
 
             if (compressedStream.TryGetBuffer(out var buffer))
@@ -28,9 +28,9 @@ namespace HouseofCat.Compression
         public async ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data)
         {
             using var compressedStream = new MemoryStream();
-            using (var bstream = new BrotliStream(compressedStream, CompressionLevel, false))
+            using (var brotliStream = new BrotliStream(compressedStream, CompressionLevel, false))
             {
-                await bstream
+                await brotliStream
                     .WriteAsync(data)
                     .ConfigureAwait(false);
             }
@@ -48,13 +48,33 @@ namespace HouseofCat.Compression
         /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
         /// <param name="data"></param>
         /// <returns></returns>
-        public async ValueTask<MemoryStream> CompressStreamAsync(Stream data, bool leaveStreamOpen = false)
+        public MemoryStream Compress(Stream data, bool leaveStreamOpen = false)
         {
             var compressedStream = new MemoryStream();
-            using (var bstream = new BrotliStream(compressedStream, CompressionLevel, true))
+            using (var brotliStream = new BrotliStream(compressedStream, CompressionLevel, true))
+            {
+                data.CopyTo(brotliStream);
+            }
+            if (!leaveStreamOpen) { data.Close(); }
+
+            compressedStream.Seek(0, SeekOrigin.Begin);
+            return compressedStream;
+        }
+
+        /// <summary>
+        /// Retrieve a new <c>MemoryStream</c> object with the contents unzipped and copied from the provided
+        /// stream. The provided stream is optionally closed.
+        /// </summary>
+        /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public async ValueTask<MemoryStream> CompressAsync(Stream data, bool leaveStreamOpen = false)
+        {
+            var compressedStream = new MemoryStream();
+            using (var brotliStream = new BrotliStream(compressedStream, CompressionLevel, true))
             {
                 await data
-                    .CopyToAsync(bstream)
+                    .CopyToAsync(brotliStream)
                     .ConfigureAwait(false);
             }
             if (!leaveStreamOpen) { data.Close(); }
@@ -73,9 +93,9 @@ namespace HouseofCat.Compression
         public MemoryStream CompressToStream(ReadOnlyMemory<byte> data)
         {
             var compressedStream = new MemoryStream();
-            using (var bstream = new BrotliStream(compressedStream, CompressionLevel, true))
+            using (var brotliStream = new BrotliStream(compressedStream, CompressionLevel, true))
             {
-                bstream.Write(data.Span);
+                brotliStream.Write(data.Span);
             }
 
             compressedStream.Seek(0, SeekOrigin.Begin);
@@ -92,9 +112,9 @@ namespace HouseofCat.Compression
         public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data)
         {
             var compressedStream = new MemoryStream();
-            using (var bStream = new BrotliStream(compressedStream, CompressionLevel, true))
+            using (var brotliStream = new BrotliStream(compressedStream, CompressionLevel, true))
             {
-                await bStream
+                await brotliStream
                     .WriteAsync(data)
                     .ConfigureAwait(false);
             }
@@ -109,9 +129,9 @@ namespace HouseofCat.Compression
             {
                 using var uncompressedStream = new MemoryStream();
                 using (var compressedStream = new UnmanagedMemoryStream(pBuffer, compressedData.Length))
-                using (var bStream = new BrotliStream(compressedStream, CompressionMode.Decompress, false))
+                using (var brotliStream = new BrotliStream(compressedStream, CompressionMode.Decompress, false))
                 {
-                    bStream.CopyTo(uncompressedStream);
+                    brotliStream.CopyTo(uncompressedStream);
                 }
 
                 if (uncompressedStream.TryGetBuffer(out var buffer))
@@ -124,9 +144,9 @@ namespace HouseofCat.Compression
         public async ValueTask<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
         {
             using var uncompressedStream = new MemoryStream();
-            using (var bstream = new BrotliStream(compressedData.AsStream(), CompressionMode.Decompress, false))
+            using (var brotliStream = new BrotliStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
-                await bstream
+                await brotliStream
                     .CopyToAsync(uncompressedStream)
                     .ConfigureAwait(false);
             }
@@ -143,12 +163,12 @@ namespace HouseofCat.Compression
         /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
         /// <param name="compressedStream"></param>
         /// <returns></returns>
-        public MemoryStream DecompressStream(Stream compressedStream, bool leaveStreamOpen = false)
+        public MemoryStream Decompress(Stream compressedStream, bool leaveStreamOpen = false)
         {
             var uncompressedStream = new MemoryStream();
-            using (var bstream = new BrotliStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
+            using (var brotliStream = new BrotliStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
-                bstream.CopyTo(uncompressedStream);
+                brotliStream.CopyTo(uncompressedStream);
             }
 
             return uncompressedStream;
@@ -159,12 +179,12 @@ namespace HouseofCat.Compression
         /// </summary>
         /// <param name="compressedStream"></param>
         /// <returns></returns>
-        public async ValueTask<MemoryStream> DecompressStreamAsync(Stream compressedStream, bool leaveStreamOpen = false)
+        public async ValueTask<MemoryStream> DecompressAsync(Stream compressedStream, bool leaveStreamOpen = false)
         {
             var uncompressedStream = new MemoryStream();
-            using (var bstream = new BrotliStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
+            using (var brotliStream = new BrotliStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
-                await bstream
+                await brotliStream
                     .CopyToAsync(uncompressedStream)
                     .ConfigureAwait(false);
             }
@@ -180,9 +200,9 @@ namespace HouseofCat.Compression
         public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData)
         {
             var uncompressedStream = new MemoryStream();
-            using (var bStream = new BrotliStream(compressedData.AsStream(), CompressionMode.Decompress, false))
+            using (var brotliStream = new BrotliStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
-                bStream.CopyTo(uncompressedStream);
+                brotliStream.CopyTo(uncompressedStream);
             }
 
             return uncompressedStream;

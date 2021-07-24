@@ -111,6 +111,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Recyclable", "sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Encryption.Recyclable", "src\HouseofCat.Encryption.Recyclable\HouseofCat.Encryption.Recyclable.csproj", "{F2E7DA55-C7D8-405C-A6A8-937D1BE916CC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Data.Recyclable", "src\HouseofCat.Data.Recyclable\HouseofCat.Data.Recyclable.csproj", "{69F52489-3B63-437A-AA92-F651E2AB8273}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -305,6 +307,10 @@ Global
 		{F2E7DA55-C7D8-405C-A6A8-937D1BE916CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F2E7DA55-C7D8-405C-A6A8-937D1BE916CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2E7DA55-C7D8-405C-A6A8-937D1BE916CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69F52489-3B63-437A-AA92-F651E2AB8273}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69F52489-3B63-437A-AA92-F651E2AB8273}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69F52489-3B63-437A-AA92-F651E2AB8273}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69F52489-3B63-437A-AA92-F651E2AB8273}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -357,6 +363,7 @@ Global
 		{2B4A8274-83BB-49FD-9E7C-AE1EB5C56B3A} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 		{ADCD846A-B523-4D92-B71B-FFF2B499161D} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 		{F2E7DA55-C7D8-405C-A6A8-937D1BE916CC} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
+		{69F52489-3B63-437A-AA92-F651E2AB8273} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D7099845-267C-4232-8764-5DF25D6B2C79}

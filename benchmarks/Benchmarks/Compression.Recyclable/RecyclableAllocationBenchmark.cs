@@ -1,6 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using HouseofCat.Compression;
+using HouseofCat.Recyclable;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -28,7 +29,7 @@ namespace Benchmarks.Compression.Recyclable
             Enumerable.Repeat<byte>(0xAF, 1000).ToArray().CopyTo(Payload1, 3000);
             Enumerable.Repeat<byte>(0x01, 1000).ToArray().CopyTo(Payload1, 4000);
 
-            RecyclableManager.ConfigureStaticManagerWithDefaults();
+            RecyclableManager.ConfigureNewStaticManagerWithDefaults();
             RecyclableProvider = new RecyclableGzipProvider();
             CompressedPayload1 = RecyclableProvider.Compress(Payload1).ToArray();
         }
@@ -55,7 +56,7 @@ namespace Benchmarks.Compression.Recyclable
             for (var i = 0; i < x; i++)
             {
                 var compressedStream = RecyclableProvider.CompressToStream(Payload1);
-                using var decompressedStream = RecyclableProvider.DecompressStream(compressedStream, false);
+                using var decompressedStream = RecyclableProvider.Decompress(compressedStream, false);
             }
         }
     }

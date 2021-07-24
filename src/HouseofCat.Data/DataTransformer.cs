@@ -91,7 +91,7 @@ namespace HouseofCat.Data
             memoryStream.Seek(0, SeekOrigin.Begin);
 
             memoryStream = await _compressionProvider
-                .DecompressStreamAsync(memoryStream)
+                .DecompressAsync(memoryStream)
                 .ConfigureAwait(false);
 
             memoryStream.Seek(0, SeekOrigin.Begin);
@@ -181,7 +181,7 @@ namespace HouseofCat.Data
             memoryStream.Seek(0, SeekOrigin.Begin);
 
             memoryStream = await _compressionProvider
-                .CompressStreamAsync(memoryStream)
+                .CompressAsync(memoryStream)
                 .ConfigureAwait(false);
 
             memoryStream.Seek(0, SeekOrigin.Begin);
@@ -246,7 +246,7 @@ namespace HouseofCat.Data
             memoryStream.Seek(0, SeekOrigin.Begin);
 
             memoryStream = await _compressionProvider
-                .CompressStreamAsync(memoryStream)
+                .CompressAsync(memoryStream)
                 .ConfigureAwait(false);
 
             memoryStream.Seek(0, SeekOrigin.Begin);

@@ -16,26 +16,6 @@ namespace HouseofCat.Serialization
             _resolver = resolver ?? StandardResolver.Default;
         }
 
-        public byte[] Serialize<TIn>(TIn input)
-        {
-            return JsonSerializer.Serialize(input, _resolver);
-        }
-
-        public Task SerializeAsync<TIn>(Stream utf8Json, TIn input)
-        {
-            return JsonSerializer.SerializeAsync(utf8Json, input, _resolver);
-        }
-
-        public string SerializeToString<TIn>(TIn input)
-        {
-            return JsonSerializer.ToJsonString(input, _resolver);
-        }
-
-        public string SerializeToPrettyString<TIn>(TIn input)
-        {
-            return JsonSerializer.PrettyPrint(JsonSerializer.ToJsonString(input, _resolver));
-        }
-
         public TOut Deserialize<TOut>(ReadOnlyMemory<byte> input)
         {
             return JsonSerializer.Deserialize<TOut>(input.ToArray(), _resolver);
@@ -46,9 +26,41 @@ namespace HouseofCat.Serialization
             return JsonSerializer.Deserialize<TOut>(Encoding.UTF8.GetBytes(input));
         }
 
-        public async Task<TOut> DeserializeAsync<TOut>(Stream utf8Json)
+        public TOut Deserialize<TOut>(Stream inputStream)
         {
-            return await JsonSerializer.DeserializeAsync<TOut>(utf8Json).ConfigureAwait(false);
+            return JsonSerializer.Deserialize<TOut>(inputStream);
+        }
+
+        public async Task<TOut> DeserializeAsync<TOut>(Stream inputStream)
+        {
+            return await JsonSerializer.DeserializeAsync<TOut>(inputStream).ConfigureAwait(false);
+        }
+
+        public byte[] Serialize<TIn>(TIn input)
+        {
+            return JsonSerializer.Serialize(input, _resolver);
+        }
+
+        public void Serialize<TIn>(Stream outputStream, TIn input)
+        {
+            JsonSerializer.Serialize(outputStream, input, _resolver);
+            outputStream.Seek(0, SeekOrigin.Begin);
+        }
+
+        public async Task SerializeAsync<TIn>(Stream outputStream, TIn input)
+        {
+            await JsonSerializer.SerializeAsync(outputStream, input, _resolver);
+            outputStream.Seek(0, SeekOrigin.Begin);
+        }
+
+        public string SerializeToPrettyString<TIn>(TIn input)
+        {
+            return JsonSerializer.PrettyPrint(JsonSerializer.ToJsonString(input, _resolver));
+        }
+
+        public string SerializeToString<TIn>(TIn input)
+        {
+            return JsonSerializer.ToJsonString(input, _resolver);
         }
     }
 }

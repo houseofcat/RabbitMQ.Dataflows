@@ -2,9 +2,9 @@
 using BenchmarkDotNet.Jobs;
 using HouseofCat.Compression;
 using HouseofCat.Data;
+using HouseofCat.Data.Recyclable;
 using HouseofCat.Dataflows;
 using HouseofCat.Encryption;
-using HouseofCat.Encryption.BouncyCastle;
 using HouseofCat.Hashing;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Time;
@@ -19,9 +19,9 @@ namespace Benchmarks.Middleware
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
     [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
-    public class BouncyDataTransformBenchmark
+    public class RecyclableTransformBenchmark
     {
-        private DataTransformer _middleware;
+        private RecyclableTransformer _middleware;
 
         private const string Passphrase = "SuperNintendoHadTheBestZelda";
         private const string Salt = "SegaGenesisIsTheBestConsole";
@@ -29,7 +29,8 @@ namespace Benchmarks.Middleware
         private static byte[] _data = new byte[5000];
         private MyCustomClass MyClass = new MyCustomClass();
 
-        private static byte[] _serializedData;
+        private static ArraySegment<byte> _serializedData;
+        private static long _serializedLength;
 
         [GlobalSetup]
         public void Setup()
@@ -48,40 +49,26 @@ namespace Benchmarks.Middleware
                 .GetAwaiter()
                 .GetResult();
 
-            _middleware = new DataTransformer(
+            _middleware = new RecyclableTransformer(
                 new Utf8JsonProvider(),
-                new AesGcmEncryptionProvider(hashKey, hashingProvider.Type),
-                new GzipProvider());
+                new RecyclableAesGcmEncryptionProvider(hashKey, hashingProvider.Type),
+                new RecyclableGzipProvider());
 
-            _serializedData = _middleware
-                .SerializeAsync(MyClass)
-                .GetAwaiter()
-                .GetResult()
-                .ToArray();
+            (var buffer, var length) = _middleware.Input(MyClass);
+            _serializedData = buffer;
+            _serializedLength = length;
         }
 
         [Benchmark(Baseline = true)]
         public void Serialize_7KB()
         {
-            _middleware.Serialize(MyClass);
+            _middleware.Input(MyClass);
         }
 
         [Benchmark]
         public void Deserialize_7KB()
         {
-            _middleware.Deserialize<MyCustomClass>(_serializedData);
-        }
-
-        [Benchmark]
-        public async Task SerializeAsync_7KB()
-        {
-            await _middleware.SerializeAsync(MyClass);
-        }
-
-        [Benchmark]
-        public async Task DeserializeAsync_7KB()
-        {
-            await _middleware.DeserializeAsync<MyCustomClass>(_serializedData);
+            _middleware.Output<MyCustomClass>(_serializedData.ToArray());
         }
     }
 }

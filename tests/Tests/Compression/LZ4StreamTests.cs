@@ -101,7 +101,7 @@ namespace IntegrationTests.Compression.LZ4
         [Fact]
         public void DecompressStream()
         {
-            var decompressedStream = _provider.DecompressStream(new MemoryStream(_compressedData));
+            var decompressedStream = _provider.Decompress(new MemoryStream(_compressedData));
             var decompressedData = decompressedStream.ToArray();
 
             Assert.NotNull(decompressedData);
@@ -112,7 +112,7 @@ namespace IntegrationTests.Compression.LZ4
         [Fact]
         public async Task DecompressStreamAsync()
         {
-            var decompressedStream = await _provider.DecompressStreamAsync(new MemoryStream(_compressedData));
+            var decompressedStream = await _provider.DecompressAsync(new MemoryStream(_compressedData));
             var decompressedData = decompressedStream.ToArray();
 
             Assert.NotNull(decompressedData);
@@ -156,7 +156,7 @@ namespace IntegrationTests.Compression.LZ4
         public void CompressDecompressStream()
         {
             var compressedStream = _provider.CompressToStream(_data);
-            var decompressedStream = _provider.DecompressStream(compressedStream);
+            var decompressedStream = _provider.Decompress(compressedStream);
 
             var decompressedData = decompressedStream.ToArray();
 
@@ -169,7 +169,7 @@ namespace IntegrationTests.Compression.LZ4
         public async Task CompressDecompressStreamAsync()
         {
             var compressedStream = await _provider.CompressToStreamAsync(_data);
-            var decompressedStream = await _provider.DecompressStreamAsync(compressedStream);
+            var decompressedStream = await _provider.DecompressAsync(compressedStream);
 
             var decompressedData = decompressedStream.ToArray();
 

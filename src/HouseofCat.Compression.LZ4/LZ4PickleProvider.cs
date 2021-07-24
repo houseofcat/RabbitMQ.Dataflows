@@ -26,7 +26,12 @@ namespace HouseofCat.Compression
             throw new NotSupportedException();
         }
 
-        public ValueTask<MemoryStream> CompressStreamAsync(Stream data, bool leaveStreamOpen = true)
+        public MemoryStream Compress(Stream data, bool leaveStreamOpen = true)
+        {
+            throw new NotSupportedException();
+        }
+
+        public ValueTask<MemoryStream> CompressAsync(Stream data, bool leaveStreamOpen = true)
         {
             throw new NotSupportedException();
         }
@@ -51,12 +56,12 @@ namespace HouseofCat.Compression
             throw new NotSupportedException();
         }
 
-        public MemoryStream DecompressStream(Stream compressedStream, bool leaveStreamOpen = false)
+        public MemoryStream Decompress(Stream compressedStream, bool leaveStreamOpen = false)
         {
             throw new NotSupportedException();
         }
 
-        public ValueTask<MemoryStream> DecompressStreamAsync(Stream compressedStream, bool leaveStreamOpen = false)
+        public ValueTask<MemoryStream> DecompressAsync(Stream compressedStream, bool leaveStreamOpen = false)
         {
             throw new NotSupportedException();
         }

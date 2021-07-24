@@ -1,6 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using HouseofCat.Encryption;
+using HouseofCat.Encryption.BouncyCastle;
 using HouseofCat.Hashing;
 using HouseofCat.Utilities.Random;
 using System.Threading.Tasks;
@@ -48,7 +49,7 @@ namespace Benchmarks.Encryption
                 .GetAwaiter()
                 .GetResult();
 
-            EncryptionProvider = new HouseofCat.Encryption.BouncyCastle.AesGcmEncryptionProvider(HashKey, HashProvider.Type);
+            EncryptionProvider = new BouncyAesGcmEncryptionProvider(HashKey, HashProvider.Type);
             EncryptedPayload1 = EncryptionProvider.Encrypt(Payload1).ToArray();
             EncryptedPayload2 = EncryptionProvider.Encrypt(Payload2).ToArray();
             EncryptedPayload3 = EncryptionProvider.Encrypt(Payload3).ToArray();

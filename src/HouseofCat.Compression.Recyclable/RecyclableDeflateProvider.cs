@@ -60,7 +60,28 @@ namespace HouseofCat.Compression
         /// <param name="data"></param>
         /// <param name="leaveStreamOpen"></param>
         /// <returns></returns>
-        public async ValueTask<MemoryStream> CompressStreamAsync(Stream data, bool leaveStreamOpen = false)
+        public MemoryStream Compress(Stream data, bool leaveStreamOpen = false)
+        {
+            var compressedStream = RecyclableManager.GetStream(nameof(RecyclableDeflateProvider));
+            using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
+            {
+                data.CopyTo(deflateStream);
+            }
+            if (!leaveStreamOpen) { data.Close(); }
+
+            compressedStream.Seek(0, SeekOrigin.Begin);
+            return compressedStream;
+        }
+
+        /// <summary>
+        /// Retrieve a new <c>MemoryStream</c> object with the contents unzipped and copied from the provided
+        /// stream. The provided stream is optionally closed.
+        /// </summary>
+        /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
+        /// <param name="data"></param>
+        /// <param name="leaveStreamOpen"></param>
+        /// <returns></returns>
+        public async ValueTask<MemoryStream> CompressAsync(Stream data, bool leaveStreamOpen = false)
         {
             var compressedStream = RecyclableManager.GetStream(nameof(RecyclableDeflateProvider));
             using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
@@ -150,7 +171,7 @@ namespace HouseofCat.Compression
         /// </summary>
         /// <param name="compressedStream"></param>
         /// <returns></returns>
-        public MemoryStream DecompressStream(Stream compressedStream, bool leaveStreamOpen = false)
+        public MemoryStream Decompress(Stream compressedStream, bool leaveStreamOpen = false)
         {
             var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableDeflateProvider));
             using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
@@ -166,7 +187,7 @@ namespace HouseofCat.Compression
         /// </summary>
         /// <param name="compressedStream"></param>
         /// <returns></returns>
-        public async ValueTask<MemoryStream> DecompressStreamAsync(Stream compressedStream, bool leaveStreamOpen = false)
+        public async ValueTask<MemoryStream> DecompressAsync(Stream compressedStream, bool leaveStreamOpen = false)
         {
             var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableDeflateProvider));
             using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))

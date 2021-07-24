@@ -72,7 +72,7 @@ namespace Benchmarks.Compression.Recyclable
             for (var i = 0; i < x; i++)
             {
                 var compressedStream = CompressionProvider.CompressToStream(Payload1);
-                using var decompressedStream = CompressionProvider.DecompressStream(compressedStream, false);
+                using var decompressedStream = CompressionProvider.Decompress(compressedStream, false);
             }
         }
 
@@ -100,7 +100,7 @@ namespace Benchmarks.Compression.Recyclable
             for (var i = 0; i < x; i++)
             {
                 var compressedStream = RecyclableProvider.CompressToStream(Payload1);
-                using var decompressedStream = RecyclableProvider.DecompressStream(compressedStream, false);
+                using var decompressedStream = RecyclableProvider.Decompress(compressedStream, false);
             }
         }
 

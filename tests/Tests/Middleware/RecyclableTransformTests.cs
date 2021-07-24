@@ -1,5 +1,6 @@
 using HouseofCat.Compression;
 using HouseofCat.Data;
+using HouseofCat.Data.Recyclable;
 using HouseofCat.Dataflows;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
@@ -17,10 +18,10 @@ using Xunit.Abstractions;
 
 namespace IntegrationTests.Middleware
 {
-    public class DataTransformTests
+    public class RecyclableTransformTests
     {
         private readonly ITestOutputHelper _output;
-        private readonly DataTransformer _middleware;
+        private readonly RecyclableTransformer _middleware;
 
         private const string Passphrase = "SuperNintendoHadTheBestZelda";
         private const string Salt = "SegaGenesisIsTheBestConsole";
@@ -29,9 +30,11 @@ namespace IntegrationTests.Middleware
         private MyCustomClass MyClass = new MyCustomClass();
 
         private static int _originalSize;
-        private static byte[] _serializedData;
 
-        public DataTransformTests(ITestOutputHelper output)
+        private static ArraySegment<byte> _serializedData;
+        private static long _serializedLength;
+
+        public RecyclableTransformTests(ITestOutputHelper output)
         {
             _output = output;
             Enumerable.Repeat<byte>(0xFF, 1000).ToArray().CopyTo(_data, 0);
@@ -51,16 +54,12 @@ namespace IntegrationTests.Middleware
             var serializationProvider = new Utf8JsonProvider();
             _originalSize = serializationProvider.Serialize(MyClass).Length;
 
-            _middleware = new DataTransformer(
+            _middleware = new RecyclableTransformer(
                 serializationProvider,
-                new AesGcmEncryptionProvider(hashKey, hashingProvider.Type),
-                new GzipProvider());
+                new RecyclableAesGcmEncryptionProvider(hashKey, hashingProvider.Type),
+                new RecyclableGzipProvider());
 
-            _serializedData = _middleware
-                .SerializeAsync(MyClass)
-                .GetAwaiter()
-                .GetResult()
-                .ToArray();
+            (_serializedData, _serializedLength) = _middleware.Input(MyClass);
         }
 
         #region MyCustomObject
@@ -107,37 +106,37 @@ namespace IntegrationTests.Middleware
         [Fact]
         public void Serialize()
         {
-            var serializedData = _middleware.Serialize(MyClass).ToArray();
+            (var serializedData, var length) = _middleware.Input(MyClass);
 
             Assert.NotNull(serializedData);
-            Assert.Equal(serializedData.Length, _serializedData.Length);
+            Assert.Equal(_serializedLength, serializedData.ToArray().Length);
         }
 
         [Fact]
         public void Deserialize()
         {
-            var myCustomClass = _middleware.Deserialize<MyCustomClass>(_serializedData);
+            var myCustomClass = _middleware.Output<MyCustomClass>(_serializedData.ToArray());
 
             Assert.NotNull(myCustomClass);
-            Assert.Equal(myCustomClass.ByteData.Length, _data.Length);
+            Assert.Equal(_data.Length, myCustomClass.ByteData.Length);
         }
 
         [Fact]
         public async Task SerializeAsync()
         {
-            var serializedData = (await _middleware.SerializeAsync(MyClass)).ToArray();
+            (var serializedData, var length) = await _middleware.InputAsync(MyClass);
 
             Assert.NotNull(serializedData);
-            Assert.Equal(serializedData.Length, _serializedData.Length);
+            Assert.Equal(_serializedLength, serializedData.ToArray().Length);
         }
 
         [Fact]
         public async Task DeserializeAsync()
         {
-            var myCustomClass = await _middleware.DeserializeAsync<MyCustomClass>(_serializedData);
+            var myCustomClass = await _middleware.OutputAsync<MyCustomClass>(_serializedData);
 
             Assert.NotNull(myCustomClass);
-            Assert.Equal(myCustomClass.ByteData.Length, _data.Length);
+            Assert.Equal(_data.Length, myCustomClass.ByteData.Length);
         }
     }
 }

@@ -69,13 +69,13 @@ namespace Benchmarks.Compression.Recyclable
         [Benchmark]
         public void Decompress5KBytesFromStream()
         {
-            CompressionProvider.DecompressStream(new MemoryStream(CompressedPayload1));
+            CompressionProvider.Decompress(new MemoryStream(CompressedPayload1));
         }
 
         [Benchmark]
         public async Task Decompress5KBytesFromStreamAsync()
         {
-            await CompressionProvider.DecompressStreamAsync(new MemoryStream(CompressedPayload1));
+            await CompressionProvider.DecompressAsync(new MemoryStream(CompressedPayload1));
         }
     }
 }
