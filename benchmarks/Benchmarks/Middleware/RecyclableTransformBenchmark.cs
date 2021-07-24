@@ -55,7 +55,7 @@ namespace Benchmarks.Middleware
                 new RecyclableGzipProvider());
 
             (var buffer, var length) = _middleware.Input(MyClass);
-            _serializedData = buffer;
+            _serializedData = buffer.ToArray();
             _serializedLength = length;
         }
 
@@ -68,7 +68,7 @@ namespace Benchmarks.Middleware
         [Benchmark]
         public void Deserialize_7KB()
         {
-            _middleware.Output<MyCustomClass>(_serializedData.ToArray());
+            _middleware.Output<MyCustomClass>(_serializedData);
         }
     }
 }
