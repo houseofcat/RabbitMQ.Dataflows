@@ -12,9 +12,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
+    <ProjectReference Include="..\HouseofCat.Compression.Recyclable\HouseofCat.Compression.Recyclable.csproj" />
     <ProjectReference Include="..\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
     <ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
     <ProjectReference Include="..\HouseofCat.Metrics\HouseofCat.Metrics.csproj" />
+    <ProjectReference Include="..\HouseofCat.Recyclable\HouseofCat.Recyclable.csproj" />
     <ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
     <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
   </ItemGroup>
