@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Benchmarks.Compression
+namespace Benchmarks.Compression
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]

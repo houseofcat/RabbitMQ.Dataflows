@@ -5,7 +5,7 @@ using HouseofCat.Hashing;
 using HouseofCat.Utilities.Random;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Benchmarks.Encryption
+namespace Benchmarks.Encryption
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]

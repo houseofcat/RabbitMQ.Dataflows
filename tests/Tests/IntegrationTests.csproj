@@ -34,8 +34,9 @@
     <ProjectReference Include="..\..\src\HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Data\HouseofCat.Data.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Dataflows\HouseofCat.Dataflows.csproj" />
-    <ProjectReference Include="..\..\src\HouseofCat.Encryption.BouncyCastle\HouseofCat.Encryption.BouncyCastle.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.Encryption.BouncyCastle\HouseofCat.Encryption.BouncyCastle.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.Encryption.Recyclable\HouseofCat.Encryption.Recyclable.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ.Pipelines\HouseofCat.RabbitMQ.Pipelines.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ.Services\HouseofCat.RabbitMQ.Services.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
@@ -46,13 +47,10 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Update="IntegrationTests\RabbitMQ\Config.json">
+    <None Update="RabbitMQ\TestPartialTopologyConfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="IntegrationTests\RabbitMQ\TestPartialTopologyConfig.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="IntegrationTests\RabbitMQ\TestTopologyConfig.json">
+    <None Update="RabbitMQ\TestTopologyConfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

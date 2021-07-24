@@ -1,8 +1,9 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using HouseofCat.Compression;
+using HouseofCat.Data;
 using HouseofCat.Dataflows;
-using HouseofCat.Encryption.BouncyCastle;
+using HouseofCat.Encryption;
 using HouseofCat.Hashing;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Time;
@@ -12,14 +13,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Benchmarks.Middleware
+namespace Benchmarks.Middleware
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
     [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
-    public class BouncyMiddlewareBenchmark
+    public class DataTransformerBenchmark
     {
-        private TransformMiddleware _middleware;
+        private DataTransformer _middleware;
 
         private const string Passphrase = "SuperNintendoHadTheBestZelda";
         private const string Salt = "SegaGenesisIsTheBestConsole";
@@ -46,7 +47,7 @@ namespace HouseofCat.Benchmarks.Middleware
                 .GetAwaiter()
                 .GetResult();
 
-            _middleware = new TransformMiddleware(
+            _middleware = new DataTransformer(
                 new Utf8JsonProvider(),
                 new AesGcmEncryptionProvider(hashKey, hashingProvider.Type),
                 new GzipProvider());

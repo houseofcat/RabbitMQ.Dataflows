@@ -45,7 +45,22 @@ namespace IntegrationTests.Encryption
         }
 
         [Fact]
-        public async Task Aes256_GCM_Stream()
+        public void Aes256_GCM_Stream()
+        {
+            var hashKey = _hashingProvider.GetHashKey(Passphrase, Salt, 32);
+
+            _output.WriteLine(Encoding.UTF8.GetString(hashKey));
+            _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
+
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptedStream = encryptionProvider.Encrypt(new MemoryStream(_data));
+            var decryptedStream = encryptionProvider.Decrypt(encryptedStream);
+
+            Assert.Equal(_data, decryptedStream.ToArray());
+        }
+
+        [Fact]
+        public async Task Aes256_GCM_StreamAsync()
         {
             var hashKey = await _hashingProvider
                 .GetHashKeyAsync(Passphrase, Salt, 32)
@@ -84,7 +99,23 @@ namespace IntegrationTests.Encryption
         }
 
         [Fact]
-        public async Task Aes192_GCM_Stream()
+        public void Aes192_GCM_Stream()
+        {
+            var hashKey = _hashingProvider
+                .GetHashKey(Passphrase, Salt, 24);
+
+            _output.WriteLine(Encoding.UTF8.GetString(hashKey));
+            _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
+
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptedStream = encryptionProvider.Encrypt(new MemoryStream(_data));
+            var decryptedStream = encryptionProvider.Decrypt(encryptedStream);
+
+            Assert.Equal(_data, decryptedStream.ToArray());
+        }
+
+        [Fact]
+        public async Task Aes192_GCM_StreamAsync()
         {
             var hashKey = await _hashingProvider
                 .GetHashKeyAsync(Passphrase, Salt, 24)
@@ -123,7 +154,22 @@ namespace IntegrationTests.Encryption
         }
 
         [Fact]
-        public async Task Aes128_GCM_Stream()
+        public void Aes128_GCM_Stream()
+        {
+            var hashKey = _hashingProvider.GetHashKey(Passphrase, Salt, 16);
+
+            _output.WriteLine(Encoding.UTF8.GetString(hashKey));
+            _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
+
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptedStream = encryptionProvider.Encrypt(new MemoryStream(_data));
+            var decryptedStream = encryptionProvider.Decrypt(encryptedStream);
+
+            Assert.Equal(_data, decryptedStream.ToArray());
+        }
+
+        [Fact]
+        public async Task Aes128_GCM_StreamAsync()
         {
             var hashKey = await _hashingProvider
                 .GetHashKeyAsync(Passphrase, Salt, 16)

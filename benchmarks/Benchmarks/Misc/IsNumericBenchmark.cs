@@ -1,4 +1,4 @@
-namespace HouseofCat.Benchmarks.Misc
+namespace Benchmarks.Misc
 {
     using BenchmarkDotNet.Attributes;
     using BenchmarkDotNet.Jobs;

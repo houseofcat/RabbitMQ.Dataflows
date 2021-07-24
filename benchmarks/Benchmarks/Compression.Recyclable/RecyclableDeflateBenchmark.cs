@@ -1,14 +1,16 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using HouseofCat.Compression;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
-namespace Benchmarks.Compression
+namespace Benchmarks.Compression.Recyclable
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
     [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
-    public class LZ4PickleBenchmark
+    public class RecyclableDeflateBenchmark
     {
         private ICompressionProvider CompressionProvider;
 
@@ -24,7 +26,7 @@ namespace Benchmarks.Compression
             Enumerable.Repeat<byte>(0xAF, 1000).ToArray().CopyTo(Payload1, 3000);
             Enumerable.Repeat<byte>(0x01, 1000).ToArray().CopyTo(Payload1, 4000);
 
-            CompressionProvider = new LZ4PickleProvider();
+            CompressionProvider = new RecyclableDeflateProvider();
             CompressedPayload1 = CompressionProvider.Compress(Payload1).ToArray();
         }
 
@@ -35,9 +37,45 @@ namespace Benchmarks.Compression
         }
 
         [Benchmark]
+        public async Task Compress5KBytesAsync()
+        {
+            await CompressionProvider.CompressAsync(Payload1);
+        }
+
+        [Benchmark]
+        public void Compress5KBytesToStream()
+        {
+            CompressionProvider.CompressToStream(Payload1);
+        }
+
+        [Benchmark]
+        public async Task Compress5KBytesToStreamAsync()
+        {
+            await CompressionProvider.CompressToStreamAsync(Payload1);
+        }
+
+        [Benchmark]
         public void Decompress5KBytes()
         {
             CompressionProvider.Decompress(CompressedPayload1);
+        }
+
+        [Benchmark]
+        public async Task Decompress5KBytesAsync()
+        {
+            await CompressionProvider.DecompressAsync(CompressedPayload1);
+        }
+
+        [Benchmark]
+        public void Decompress5KBytesFromStream()
+        {
+            CompressionProvider.DecompressStream(new MemoryStream(CompressedPayload1));
+        }
+
+        [Benchmark]
+        public async Task Decompress5KBytesFromStreamAsync()
+        {
+            await CompressionProvider.DecompressStreamAsync(new MemoryStream(CompressedPayload1));
         }
     }
 }

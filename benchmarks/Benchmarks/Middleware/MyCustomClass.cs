@@ -1,7 +1,7 @@
 ﻿using HouseofCat.Utilities.Time;
 using System.Collections.Generic;
 
-namespace HouseofCat.Benchmarks.Middleware
+namespace Benchmarks.Middleware
 {
     public class MyCustomClass
     {

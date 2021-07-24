@@ -7,12 +7,12 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Benchmarks.Compression
+namespace Benchmarks.Compression.Recyclable
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
     [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
-    public class GzipBenchmark
+    public class RecyclableGzipBenchmark
     {
         private ICompressionProvider CompressionProvider;
 
@@ -28,7 +28,7 @@ namespace Benchmarks.Compression
             Enumerable.Repeat<byte>(0xAF, 1000).ToArray().CopyTo(Payload1, 3000);
             Enumerable.Repeat<byte>(0x01, 1000).ToArray().CopyTo(Payload1, 4000);
 
-            CompressionProvider = new GzipProvider();
+            CompressionProvider = new RecyclableGzipProvider();
             CompressedPayload1 = CompressionProvider.Compress(Payload1).ToArray();
         }
 

@@ -1,7 +1,8 @@
 ﻿using BenchmarkDotNet.Running;
-using HouseofCat.Benchmarks.Compression;
+using Benchmarks.Compression;
+using Benchmarks.Compression.Recyclable;
 
-namespace HouseofCat.Benchmarks
+namespace Benchmarks
 {
     public static class Program
     {
@@ -20,21 +21,30 @@ namespace HouseofCat.Benchmarks
             //        BenchmarkConverter.TypeToBenchmarks(typeof(BouncyEncryptBenchmark))
             //    });
 
+            //BenchmarkRunner.Run(
+            //    new[]
+            //    {
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(GzipBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableGzipBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(BrotliBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableBrotliBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(DeflateBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableDeflateBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(LZ4PickleBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(LZ4StreamBenchmark))
+            //    });
+
             BenchmarkRunner.Run(
                 new[]
                 {
-                    BenchmarkConverter.TypeToBenchmarks(typeof(GzipBenchmark)),
-            //        BenchmarkConverter.TypeToBenchmarks(typeof(BrotliBenchmark)),
-            //        BenchmarkConverter.TypeToBenchmarks(typeof(DeflateBenchmark)),
-            //        BenchmarkConverter.TypeToBenchmarks(typeof(LZ4PickleBenchmark)),
-            //        BenchmarkConverter.TypeToBenchmarks(typeof(LZ4StreamBenchmark))
+                    BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableAllocationBenchmark)),
                 });
 
             //BenchmarkRunner.Run(
             //    new[]
             //    {
-            //        BenchmarkConverter.TypeToBenchmarks(typeof(TransformMiddlewareBenchmark)),
-            //        BenchmarkConverter.TypeToBenchmarks(typeof(BouncyMiddlewareBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(DataTransformerBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(BouncyDataTransformBenchmark)),
             //    });
 
             //BenchmarkRunner.Run(
