@@ -1,4 +1,5 @@
-﻿using Org.BouncyCastle.Crypto;
+﻿using HouseofCat.Utilities.Errors;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace HouseofCat.Encryption.BouncyCastle
 {
-    public class AesGcmEncryptionProvider : IEncryptionProvider
+    public class BouncyAesGcmEncryptionProvider : IEncryptionProvider
     {
         /// <summary>
         /// Safer way of generating random bytes.
@@ -26,8 +27,10 @@ namespace HouseofCat.Encryption.BouncyCastle
         private readonly int _nonceSize;
         public string Type { get; private set; }
 
-        public AesGcmEncryptionProvider(byte[] key, string hashType, AesEncryptionOptions options = null)
+        public BouncyAesGcmEncryptionProvider(byte[] key, string hashType, AesEncryptionOptions options = null)
         {
+            Guard.AgainstNullOrEmpty(key, nameof(key));
+
             if (!Constants.Aes.ValidKeySizes.Contains(key.Length)) throw new ArgumentException("Keysize is an invalid length.");
 
             _options = options;
@@ -45,17 +48,19 @@ namespace HouseofCat.Encryption.BouncyCastle
             if (!string.IsNullOrWhiteSpace(hashType)) { Type = $"{hashType}-{Type}"; }
         }
 
-        public ArraySegment<byte> Encrypt(ReadOnlyMemory<byte> data)
+        public ArraySegment<byte> Encrypt(ReadOnlyMemory<byte> unencryptedData)
         {
-            return EncryptToStream(data).ToArray();
+            Guard.AgainstEmpty(unencryptedData, nameof(unencryptedData));
+            return EncryptToStream(unencryptedData).ToArray();
         }
 
-        public async Task<MemoryStream> EncryptAsync(Stream data)
+        public MemoryStream Encrypt(Stream unencryptedStream)
         {
-            var buffer = _pool.Rent((int)data.Length);
-            var bytesRead = await data
-                .ReadAsync(buffer.AsMemory(0, (int)data.Length))
-                .ConfigureAwait(false);
+            Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
+
+            var length = (int)unencryptedStream.Length;
+            var buffer = _pool.Rent(length);
+            var bytesRead = unencryptedStream.Read(buffer.AsSpan(0, length));
 
             if (bytesRead == 0) throw new InvalidDataException();
 
@@ -64,9 +69,9 @@ namespace HouseofCat.Encryption.BouncyCastle
 
             var cipher = GetGcmBlockCipher(true, nonce.AsSpan().Slice(0, _nonceSize));
 
-            var cipherLength = cipher.GetOutputSize((int)data.Length);
+            var cipherLength = cipher.GetOutputSize(length);
             var cipherText = new byte[cipherLength];
-            cipher.DoFinal(cipherText, cipher.ProcessBytes(buffer, 0, (int)data.Length, cipherText, 0));
+            cipher.DoFinal(cipherText, cipher.ProcessBytes(buffer, 0, length, cipherText, 0));
 
             var encryptedStream = new MemoryStream();
             using (var bw = new BinaryWriter(encryptedStream, Encoding.UTF8, true))
@@ -82,16 +87,54 @@ namespace HouseofCat.Encryption.BouncyCastle
             return encryptedStream;
         }
 
-        public MemoryStream EncryptToStream(ReadOnlyMemory<byte> data)
+        public async Task<MemoryStream> EncryptAsync(Stream unencryptedStream)
         {
+            Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
+
+            var length = (int)unencryptedStream.Length;
+            var buffer = _pool.Rent(length);
+            var bytesRead = await unencryptedStream
+                .ReadAsync(buffer.AsMemory(0, length))
+                .ConfigureAwait(false);
+
+            if (bytesRead == 0) throw new InvalidDataException();
+
+            var nonce = _pool.Rent(_nonceSize);
+            _rng.GetNonZeroBytes(nonce);
+
+            var cipher = GetGcmBlockCipher(true, nonce.AsSpan().Slice(0, _nonceSize));
+
+            var cipherLength = cipher.GetOutputSize(length);
+            var cipherText = new byte[cipherLength];
+            cipher.DoFinal(cipherText, cipher.ProcessBytes(buffer, 0, length, cipherText, 0));
+
+            var encryptedStream = new MemoryStream();
+            using (var bw = new BinaryWriter(encryptedStream, Encoding.UTF8, true))
+            {
+                bw.Write(nonce, 0, _nonceSize);
+                bw.Write(cipherText);
+            }
+
+            _pool.Return(buffer);
+            _pool.Return(nonce);
+
+            encryptedStream.Seek(0, SeekOrigin.Begin);
+            return encryptedStream;
+        }
+
+        public MemoryStream EncryptToStream(ReadOnlyMemory<byte> unencryptedData)
+        {
+            Guard.AgainstEmpty(unencryptedData, nameof(unencryptedData));
+
+            var bytes = unencryptedData.ToArray();
             var nonce = new byte[_nonceSize];
             _rng.GetNonZeroBytes(nonce);
 
             var cipher = GetGcmBlockCipher(true, nonce);
 
-            var cipherLength = cipher.GetOutputSize(data.Length);
+            var cipherLength = cipher.GetOutputSize(bytes.Length);
             var cipherText = new byte[cipherLength];
-            cipher.DoFinal(cipherText, cipher.ProcessBytes(data.ToArray(), 0, data.Length, cipherText, 0));
+            cipher.DoFinal(cipherText, cipher.ProcessBytes(bytes, 0, bytes.Length, cipherText, 0));
 
             var encryptedStream = new MemoryStream();
             using (var bw = new BinaryWriter(encryptedStream, Encoding.UTF8, true))
@@ -106,6 +149,8 @@ namespace HouseofCat.Encryption.BouncyCastle
 
         public ArraySegment<byte> Decrypt(ReadOnlyMemory<byte> encryptedData)
         {
+            Guard.AgainstEmpty(encryptedData, nameof(encryptedData));
+
             using var cipherStream = new MemoryStream(encryptedData.ToArray());
             using var cipherReader = new BinaryReader(cipherStream);
 
@@ -123,14 +168,16 @@ namespace HouseofCat.Encryption.BouncyCastle
             return plainText;
         }
 
-        public MemoryStream Decrypt(Stream encryptedData)
+        public MemoryStream Decrypt(Stream encryptedStream)
         {
-            using var binaryReader = new BinaryReader(encryptedData);
+            Guard.AgainstNullOrEmpty(encryptedStream, nameof(encryptedStream));
+
+            using var binaryReader = new BinaryReader(encryptedStream);
 
             var nonce = binaryReader.ReadBytes(_nonceSize);
             var cipher = GetGcmBlockCipher(false, nonce);
 
-            var cipherText = binaryReader.ReadBytes((int)encryptedData.Length - nonce.Length);
+            var cipherText = binaryReader.ReadBytes((int)encryptedStream.Length - nonce.Length);
             var plainText = new byte[cipher.GetOutputSize(cipherText.Length)];
 
             try
@@ -143,6 +190,8 @@ namespace HouseofCat.Encryption.BouncyCastle
 
         public MemoryStream DecryptToStream(ReadOnlyMemory<byte> encryptedData)
         {
+            Guard.AgainstEmpty(encryptedData, nameof(encryptedData));
+
             return new MemoryStream(Decrypt(encryptedData).ToArray());
         }
 

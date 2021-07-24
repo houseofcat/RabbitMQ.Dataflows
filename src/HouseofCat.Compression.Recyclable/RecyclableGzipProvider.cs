@@ -1,4 +1,5 @@
-﻿using Microsoft.Toolkit.HighPerformance;
+﻿using HouseofCat.Recyclable;
+using Microsoft.Toolkit.HighPerformance;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -13,7 +14,7 @@ namespace HouseofCat.Compression
 
         public ArraySegment<byte> Compress(ReadOnlyMemory<byte> data)
         {
-            var compressedStream = RecyclableManager.GetStream();
+            var compressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
             using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
             {
                 gzipStream.Write(data.Span);
@@ -32,7 +33,7 @@ namespace HouseofCat.Compression
 
         public async ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data)
         {
-            var compressedStream = RecyclableManager.GetStream();
+            var compressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
             using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
             {
                 await gzipStream
@@ -57,10 +58,11 @@ namespace HouseofCat.Compression
         /// </summary>
         /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
         /// <param name="data"></param>
+        /// <param name="leaveStreamOpen"></param>
         /// <returns></returns>
         public async ValueTask<MemoryStream> CompressStreamAsync(Stream data, bool leaveStreamOpen = false)
         {
-            var compressedStream = RecyclableManager.GetStream();
+            var compressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
             using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
             {
                 await data
@@ -82,7 +84,7 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public MemoryStream CompressToStream(ReadOnlyMemory<byte> data)
         {
-            var compressedStream = RecyclableManager.GetStream();
+            var compressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
             using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
             {
                 gzipStream.Write(data.Span);
@@ -101,7 +103,7 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data)
         {
-            var compressedStream = RecyclableManager.GetStream();
+            var compressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
             using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
             {
                 await gzipStream
@@ -115,7 +117,7 @@ namespace HouseofCat.Compression
 
         public ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
         {
-            var uncompressedStream = RecyclableManager.GetStream();
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
             using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 gzipStream.CopyTo(uncompressedStream);
@@ -160,7 +162,7 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public MemoryStream DecompressStream(Stream compressedStream, bool leaveStreamOpen = false)
         {
-            var uncompressedStream = RecyclableManager.GetStream();
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
             using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
                 gzipStream.CopyTo(uncompressedStream);
@@ -194,7 +196,7 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData)
         {
-            var uncompressedStream = RecyclableManager.GetStream();
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
             using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 gzipStream.CopyTo(uncompressedStream);

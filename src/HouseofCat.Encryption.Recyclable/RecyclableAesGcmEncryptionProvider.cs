@@ -1,4 +1,5 @@
-﻿using HouseofCat.Utilities.Errors;
+﻿using HouseofCat.Recyclable;
+using HouseofCat.Utilities.Errors;
 using Microsoft.Toolkit.HighPerformance;
 using System;
 using System.Buffers;
@@ -9,10 +10,7 @@ using System.Threading.Tasks;
 
 namespace HouseofCat.Encryption
 {
-    // Sources:
-    // https://docs.microsoft.com/en-us/dotnet/standard/security/cross-platform-cryptography
-    // 
-    public class AesGcmEncryptionProvider : IEncryptionProvider
+    public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
     {
         /// <summary>
         /// Safer way of generating random bytes.
@@ -25,7 +23,7 @@ namespace HouseofCat.Encryption
 
         public string Type { get; private set; }
 
-        public AesGcmEncryptionProvider(byte[] key, string hashType)
+        public RecyclableAesGcmEncryptionProvider(byte[] key, string hashType)
         {
             Guard.AgainstNullOrEmpty(key, nameof(key));
 
@@ -106,7 +104,10 @@ namespace HouseofCat.Encryption
             // Prefix ciphertext with nonce and tag, since they are fixed length and it will simplify decryption.
             // Our pattern: Nonce Tag Cipher
             // Other patterns people use: Nonce Cipher Tag // couldn't find a solid source.
-            var encryptedStream = new MemoryStream(new byte[AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize + length]);
+            var encryptedStream = RecyclableManager.GetStream(
+                nameof(RecyclableAesGcmEncryptionProvider),
+                AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize + length);
+
             using (var binaryWriter = new BinaryWriter(encryptedStream, Encoding.UTF8, true))
             {
                 binaryWriter.Write(nonce, 0, AesGcm.NonceByteSizes.MaxSize);
@@ -154,7 +155,10 @@ namespace HouseofCat.Encryption
             // Prefix ciphertext with nonce and tag, since they are fixed length and it will simplify decryption.
             // Our pattern: Nonce Tag Cipher
             // Other patterns people use: Nonce Cipher Tag // couldn't find a solid source.
-            var encryptedStream = new MemoryStream(new byte[AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize + length]);
+            var encryptedStream = RecyclableManager.GetStream(
+                nameof(RecyclableAesGcmEncryptionProvider),
+                AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize + length);
+
             using (var binaryWriter = new BinaryWriter(encryptedStream, Encoding.UTF8, true))
             {
                 binaryWriter.Write(nonce, 0, AesGcm.NonceByteSizes.MaxSize);
@@ -175,7 +179,7 @@ namespace HouseofCat.Encryption
         {
             Guard.AgainstEmpty(unencryptedData, nameof(unencryptedData));
 
-            return new MemoryStream(Encrypt(unencryptedData).ToArray());
+            return RecyclableManager.GetStream(nameof(RecyclableAesGcmEncryptionProvider), Encrypt(unencryptedData));
         }
 
         public ArraySegment<byte> Decrypt(ReadOnlyMemory<byte> encryptedData)
@@ -218,14 +222,14 @@ namespace HouseofCat.Encryption
 
             aes.Decrypt(nonce, encryptedBytes, tag, decryptedBytes);
 
-            return new MemoryStream(decryptedBytes);
+            return RecyclableManager.GetStream(nameof(RecyclableAesGcmEncryptionProvider), decryptedBytes);
         }
 
         public MemoryStream DecryptToStream(ReadOnlyMemory<byte> encryptedData)
         {
             Guard.AgainstEmpty(encryptedData, nameof(encryptedData));
 
-            return new MemoryStream(Decrypt(encryptedData).ToArray());
+            return RecyclableManager.GetStream(nameof(RecyclableAesGcmEncryptionProvider), Decrypt(encryptedData));
         }
     }
 }

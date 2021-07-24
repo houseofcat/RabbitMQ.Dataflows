@@ -19,11 +19,5 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.1.2" />
-    <PackageReference Include="Microsoft.Toolkit.HighPerformance" Version="7.0.2" />
-    <PackageReference Include="System.Memory" Version="4.5.4" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
-    <ProjectReference Include="..\HouseofCat.Recyclable\HouseofCat.Recyclable.csproj" />
   </ItemGroup>
 </Project>

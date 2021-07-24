@@ -11,6 +11,7 @@ namespace HouseofCat.Encryption
         MemoryStream Decrypt(Stream data);
         MemoryStream DecryptToStream(ReadOnlyMemory<byte> data);
         ArraySegment<byte> Encrypt(ReadOnlyMemory<byte> data);
+        MemoryStream Encrypt(Stream data);
         Task<MemoryStream> EncryptAsync(Stream data);
         MemoryStream EncryptToStream(ReadOnlyMemory<byte> data);
     }

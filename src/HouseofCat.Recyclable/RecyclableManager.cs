@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 
-namespace HouseofCat.Compression
+namespace HouseofCat.Recyclable
 {
     public static class RecyclableManager
     {
@@ -17,7 +17,7 @@ namespace HouseofCat.Compression
         /// <param name="useExponentialLargeBuffer"></param>
         /// <param name="maximumSmallPoolFreeBytes"></param>
         /// <param name="maximumLargePoolFreeBytes"></param>
-        public static void ConfigureStaticManager(
+        public static void ConfigureNewStaticManager(
             int blockSize,
             int largeBufferMultiple,
             int maximumBufferSize,
@@ -32,9 +32,9 @@ namespace HouseofCat.Compression
         /// ConfigureStaticManagerWithDefaults completely rebuilds the <c>RecyclableMemoryStreamManager</c> so try to call it only once, and on startup.
         /// </summary>
         /// <param name="useExponentialLargeBuffer"></param>
-        public static void ConfigureStaticManagerWithDefaults(bool useExponentialLargeBuffer = false)
+        public static void ConfigureNewStaticManagerWithDefaults(bool useExponentialLargeBuffer = false)
         {
-            var blockSize = 512;
+            var blockSize = 1024;
             var largeBufferMultiple = 4 * blockSize * blockSize;
             var maximumBufferSize = 2 * largeBufferMultiple;
             var maximumFreeLargePoolBytes = 32 * maximumBufferSize;
@@ -53,14 +53,34 @@ namespace HouseofCat.Compression
             _manager.GenerateCallStacks = input;
         }
 
-        public static MemoryStream GetStream()
+        public static RecyclableMemoryStream GetStream()
         {
-            return _manager.GetStream();
+            return _manager.GetStream() as RecyclableMemoryStream;
         }
 
-        public static MemoryStream GetStream(Memory<byte> buffer)
+        public static RecyclableMemoryStream GetStream(string tag)
         {
-            return _manager.GetStream(buffer);
+            return _manager.GetStream(tag) as RecyclableMemoryStream;
+        }
+
+        public static RecyclableMemoryStream GetStream(string tag, int desiredSize)
+        {
+            return _manager.GetStream(tag, desiredSize) as RecyclableMemoryStream;
+        }
+
+        public static RecyclableMemoryStream GetStream(Memory<byte> buffer)
+        {
+            return _manager.GetStream(buffer) as RecyclableMemoryStream;
+        }
+
+        public static RecyclableMemoryStream GetStream(string tag, Memory<byte> buffer)
+        {
+            return _manager.GetStream(tag, buffer) as RecyclableMemoryStream;
+        }
+
+        public static void ReturnStream(MemoryStream stream)
+        {
+            stream.Dispose();
         }
     }
 }

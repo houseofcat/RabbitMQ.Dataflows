@@ -1,4 +1,5 @@
-﻿using Microsoft.Toolkit.HighPerformance;
+﻿using HouseofCat.Recyclable;
+using Microsoft.Toolkit.HighPerformance;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -13,7 +14,7 @@ namespace HouseofCat.Compression
 
         public ArraySegment<byte> Compress(ReadOnlyMemory<byte> data)
         {
-            var compressedStream = RecyclableManager.GetStream();
+            var compressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
             using (var brotliStream = new BrotliStream(compressedStream, CompressionLevel, true))
             {
                 brotliStream.Write(data.Span);
@@ -32,7 +33,7 @@ namespace HouseofCat.Compression
 
         public async ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data)
         {
-            var compressedStream = RecyclableManager.GetStream();
+            var compressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
             using (var brotliStream = new BrotliStream(compressedStream, CompressionLevel, true))
             {
                 await brotliStream
@@ -57,10 +58,11 @@ namespace HouseofCat.Compression
         /// </summary>
         /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
         /// <param name="data"></param>
+        /// <param name="leaveStreamOpen"></param>
         /// <returns></returns>
         public async ValueTask<MemoryStream> CompressStreamAsync(Stream data, bool leaveStreamOpen = false)
         {
-            var compressedStream = RecyclableManager.GetStream();
+            var compressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
             using (var brotliStream = new BrotliStream(compressedStream, CompressionLevel, true))
             {
                 await data
@@ -82,7 +84,7 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public MemoryStream CompressToStream(ReadOnlyMemory<byte> data)
         {
-            var compressedStream = RecyclableManager.GetStream();
+            var compressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
             using (var brotliStream = new BrotliStream(compressedStream, CompressionLevel, true))
             {
                 brotliStream.Write(data.Span);
@@ -101,7 +103,7 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data)
         {
-            var compressedStream = RecyclableManager.GetStream();
+            var compressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
             using (var brotliStream = new BrotliStream(compressedStream, CompressionLevel, true))
             {
                 await brotliStream
@@ -115,7 +117,7 @@ namespace HouseofCat.Compression
 
         public ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
         {
-            var uncompressedStream = RecyclableManager.GetStream();
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
             using (var brotliStream = new BrotliStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 brotliStream.CopyTo(uncompressedStream);
@@ -135,7 +137,7 @@ namespace HouseofCat.Compression
 
         public async ValueTask<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
         {
-            using var uncompressedStream = RecyclableManager.GetStream();
+            using var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
             using (var brotliStream = new BrotliStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 await brotliStream
@@ -157,12 +159,14 @@ namespace HouseofCat.Compression
 
         /// <summary>
         /// Returns a new MemoryStream() that has decompressed data inside. Original stream is closed/disposed.
+        /// <para>Use <c>RecyclableManager.ReturnStream()</c> to return the <c>MemoryStream</c> when you are ready to dispose of it.</para>
         /// </summary>
         /// <param name="compressedStream"></param>
+        /// <param name="leaveStreamOpen"></param>
         /// <returns></returns>
         public MemoryStream DecompressStream(Stream compressedStream, bool leaveStreamOpen = false)
         {
-            var uncompressedStream = RecyclableManager.GetStream();
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
             using (var brotliStream = new BrotliStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
                 brotliStream.CopyTo(uncompressedStream);
@@ -172,13 +176,14 @@ namespace HouseofCat.Compression
         }
 
         /// <summary>
-        /// Returns a new MemoryStream() that has decompressed data inside. Original stream is closed/disposed.
+        /// Returns a new <c>MemoryStream</c> that has decompressed data inside. The provided stream is optionally closed.
         /// </summary>
         /// <param name="compressedStream"></param>
+        /// <param name="leaveStreamOpen"></param>
         /// <returns></returns>
         public async ValueTask<MemoryStream> DecompressStreamAsync(Stream compressedStream, bool leaveStreamOpen = false)
         {
-            var uncompressedStream = RecyclableManager.GetStream();
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
             using (var brotliStream = new BrotliStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
                 await brotliStream
@@ -190,13 +195,14 @@ namespace HouseofCat.Compression
         }
 
         /// <summary>
-        /// Returns a new MemoryStream() that has decompressed data inside.
+        /// Returns a new <c>MemoryStream</c> that has decompressed data inside.
         /// </summary>
         /// <param name="compressedStream"></param>
-        /// <returns></returns>
+        /// <param name="leaveStreamOpen"></param>
+        /// <returns>A <c>new MemoryStream</c>.</returns>
         public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData)
         {
-            var uncompressedStream = RecyclableManager.GetStream();
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
             using (var brotliStream = new BrotliStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 brotliStream.CopyTo(uncompressedStream);
