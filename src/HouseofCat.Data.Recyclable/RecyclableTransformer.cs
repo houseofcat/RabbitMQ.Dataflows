@@ -40,8 +40,8 @@ namespace HouseofCat.Data.Recyclable
             using var serializedStream = RecyclableManager.GetStream(nameof(RecyclableTransformer));
             SerializationProvider.Serialize(serializedStream, input);
 
-            using var compressedStream = CompressionProvider.Compress(serializedStream, true);
-            var encryptedStream = EncryptionProvider.Encrypt(compressedStream, true);
+            using var compressedStream = CompressionProvider.Compress(serializedStream, false);
+            var encryptedStream = EncryptionProvider.Encrypt(compressedStream, false);
 
             var length = encryptedStream.Length;
             if (encryptedStream.TryGetBuffer(out var buffer))
@@ -64,11 +64,11 @@ namespace HouseofCat.Data.Recyclable
                 .ConfigureAwait(false);
 
             using var compressedStream = await CompressionProvider
-                .CompressAsync(serializedStream, true)
+                .CompressAsync(serializedStream, false)
                 .ConfigureAwait(false);
 
             var encryptedStream = await EncryptionProvider
-                .EncryptAsync(compressedStream, true)
+                .EncryptAsync(compressedStream, false)
                 .ConfigureAwait(false);
 
             var length = encryptedStream.Length;
@@ -83,9 +83,9 @@ namespace HouseofCat.Data.Recyclable
             using var serializedStream = RecyclableManager.GetStream(nameof(RecyclableTransformer));
             SerializationProvider.Serialize(serializedStream, input);
 
-            using var compressedStream = CompressionProvider.Compress(serializedStream, true);
+            using var compressedStream = CompressionProvider.Compress(serializedStream, false);
 
-            return EncryptionProvider.Encrypt(compressedStream, true);
+            return EncryptionProvider.Encrypt(compressedStream, false);
         }
 
         public async Task<MemoryStream> TransformToStreamAsync<TIn>(TIn input)
@@ -96,45 +96,38 @@ namespace HouseofCat.Data.Recyclable
                 .ConfigureAwait(false);
 
             using var compressedStream = await CompressionProvider
-                .CompressAsync(serializedStream, true)
+                .CompressAsync(serializedStream, false)
                 .ConfigureAwait(false);
 
             return await EncryptionProvider
-                .EncryptAsync(compressedStream, true)
+                .EncryptAsync(compressedStream, false)
                 .ConfigureAwait(false);
         }
 
         public TOut Restore<TOut>(ReadOnlyMemory<byte> data)
         {
-            var memoryStream = EncryptionProvider.DecryptToStream(data);
-            memoryStream = CompressionProvider.Decompress(memoryStream, true);
-            using (memoryStream)
-            {
-                return SerializationProvider.Deserialize<TOut>(memoryStream);
-            }
+            using var decryptStream = EncryptionProvider.DecryptToStream(data);
+            using var decompressStream = CompressionProvider.Decompress(decryptStream, false);
+            return SerializationProvider.Deserialize<TOut>(decompressStream);
         }
 
         public TOut Restore<TOut>(Stream data)
         {
             using var decryptedStream = EncryptionProvider.Decrypt(data);
-            using var decompressedStream = CompressionProvider.Decompress(decryptedStream, true);
+            using var decompressedStream = CompressionProvider.Decompress(decryptedStream, false);
             return SerializationProvider.Deserialize<TOut>(decompressedStream);
         }
 
         public async Task<TOut> RestoreAsync<TOut>(ReadOnlyMemory<byte> data)
         {
-            var memoryStream = EncryptionProvider.DecryptToStream(data);
-
-            memoryStream = await CompressionProvider
-                .DecompressAsync(memoryStream, true)
+            using var decryptedStream = EncryptionProvider.DecryptToStream(data);
+            using var compressionStream = await CompressionProvider
+                .DecompressAsync(decryptedStream, false)
                 .ConfigureAwait(false);
 
-            using (memoryStream)
-            {
-                return await SerializationProvider
-                    .DeserializeAsync<TOut>(memoryStream)
-                    .ConfigureAwait(false);
-            }
+            return await SerializationProvider
+                .DeserializeAsync<TOut>(compressionStream)
+                .ConfigureAwait(false);
         }
     }
 }

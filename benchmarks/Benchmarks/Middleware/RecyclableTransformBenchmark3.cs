@@ -48,70 +48,60 @@ namespace Benchmarks.Middleware
             RecyclableManager.ConfigureNewStaticManagerWithDefaults();
 
             _middleware = new RecyclableTransformer(
-                new JsonProvider(),
-                new RecyclableAesGcmEncryptionProvider(hashKey, hashingProvider.Type),
-                new RecyclableGzipProvider());
+                new Utf8JsonProvider(),
+                new RecyclableGzipProvider(),
+                new RecyclableAesGcmEncryptionProvider(hashKey, hashingProvider.Type));
         }
 
         [Benchmark(Baseline = true)]
         [Arguments(10)]
         [Arguments(100)]
-        [Arguments(1_000)]
-        [Arguments(10_000)]
-        public void Serialize_10KB(int x)
+        public void Serialize_12KB(int x)
         {
             for (var i = 0; i < x; i++)
             {
-                _middleware.Input(MyClass);
+                _middleware.Transform(MyClass);
             }
         }
 
         [Benchmark]
         [Arguments(10)]
         [Arguments(100)]
-        [Arguments(1_000)]
-        [Arguments(10_000)]
         public void Serialize_Deserialize_12KB(int x)
         {
             for (var i = 0; i < x; i++)
             {
-                (var buffer, var length) = _middleware.Input(MyClass);
-                _middleware.Output<MyCustomClass>(buffer.ToArray());
+                (var buffer, var length) = _middleware.Transform(MyClass);
+                _middleware.Restore<MyCustomClass2>(buffer.ToArray());
             }
         }
 
         [Benchmark]
         [Arguments(10)]
         [Arguments(100)]
-        [Arguments(1_000)]
-        [Arguments(10_000)]
         public void Serialize_Stream_12KB(int x)
         {
             for (var i = 0; i < x; i++)
             {
-                using var transformedStream = _middleware.InputToStream(MyClass);
+                using var transformedStream = _middleware.TransformToStream(MyClass);
             }
         }
 
         [Benchmark]
         [Arguments(10)]
         [Arguments(100)]
-        [Arguments(1_000)]
-        [Arguments(10_000)]
         public void Serialize_Deserialize_Stream_12KB(int x)
         {
             for (var i = 0; i < x; i++)
             {
-                using var transformedStream = _middleware.InputToStream(MyClass);
-                _middleware.Output<MyCustomClass>(transformedStream);
+                using var transformedStream = _middleware.TransformToStream(MyClass);
+                _middleware.Restore<MyCustomClass2>(transformedStream);
             }
         }
 
         [Benchmark]
         [Arguments(10)]
         [Arguments(100)]
-        [Arguments(1_000)]
-        [Arguments(10_000)]
         public void Middleware_Serialize(int x)
         {
             for (var i = 0; i < x; i++)
@@ -128,8 +118,6 @@ namespace Benchmarks.Middleware
         [Benchmark]
         [Arguments(10)]
         [Arguments(100)]
-        [Arguments(1_000)]
-        [Arguments(10_000)]
         public void Middleware_Input1(int x)
         {
             for (var i = 0; i < x; i++)
@@ -147,8 +135,6 @@ namespace Benchmarks.Middleware
         [Benchmark]
         [Arguments(10)]
         [Arguments(100)]
-        [Arguments(1_000)]
-        [Arguments(10_000)]
         public void Middleware_Input2(int x)
         {
             for (var i = 0; i < x; i++)
@@ -169,8 +155,6 @@ namespace Benchmarks.Middleware
         [Benchmark]
         [Arguments(10)]
         [Arguments(100)]
-        [Arguments(1_000)]
-        [Arguments(10_000)]
         public void Middleware_Input3(int x)
         {
             for (var i = 0; i < x; i++)
@@ -195,16 +179,9 @@ namespace Benchmarks.Middleware
         }
 
         [Benchmark]
-        [Arguments(10)]
-        [Arguments(100)]
-        [Arguments(1_000)]
-        [Arguments(10_000)]
-        public void Middleware_InputToStream1(int x)
+        public void Middleware_InputToStream1()
         {
-            for (var i = 0; i < x; i++)
-            {
-                Middleware_InputToStream1(MyClass);
-            }
+            Middleware_InputToStream1(MyClass);
         }
 
         public void Middleware_InputToStream1<TIn>(TIn input)
@@ -214,16 +191,9 @@ namespace Benchmarks.Middleware
         }
 
         [Benchmark]
-        [Arguments(10)]
-        [Arguments(100)]
-        [Arguments(1_000)]
-        [Arguments(10_000)]
-        public void Middleware_InputToStream2(int x)
+        public void Middleware_InputToStream2()
         {
-            for (var i = 0; i < x; i++)
-            {
-                Middleware_InputToStream2(MyClass);
-            }
+            Middleware_InputToStream2(MyClass);
         }
 
         public void Middleware_InputToStream2<TIn>(TIn input)
@@ -235,16 +205,9 @@ namespace Benchmarks.Middleware
         }
 
         [Benchmark]
-        [Arguments(10)]
-        [Arguments(100)]
-        [Arguments(1_000)]
-        [Arguments(10_000)]
-        public void Middleware_InputToStream3(int x)
+        public void Middleware_InputToStream3()
         {
-            for (var i = 0; i < x; i++)
-            {
-                Middleware_InputToStream3(MyClass);
-            }
+            Middleware_InputToStream3(MyClass);
         }
 
         public MemoryStream Middleware_InputToStream3<TIn>(TIn input)

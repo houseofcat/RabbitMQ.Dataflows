@@ -49,8 +49,8 @@ namespace Benchmarks.Middleware
 
             _middleware = new RecyclableTransformer(
                 new Utf8JsonProvider(),
-                new RecyclableAesGcmEncryptionProvider(hashKey, hashingProvider.Type),
-                new RecyclableGzipProvider());
+                new RecyclableGzipProvider(),
+                new RecyclableAesGcmEncryptionProvider(hashKey, hashingProvider.Type));
         }
 
         [Benchmark(Baseline = true)]
@@ -63,7 +63,7 @@ namespace Benchmarks.Middleware
         {
             for (var i = 0; i < x; i++)
             {
-                using var transformedStream = _middleware.InputToStream(MyClass);
+                using var transformedStream = _middleware.TransformToStream(MyClass);
             }
         }
 
@@ -77,8 +77,8 @@ namespace Benchmarks.Middleware
         {
             for (var i = 0; i < x; i++)
             {
-                (var buffer, var length) = _middleware.Input(MyClass);
-                _middleware.Output<MyCustomClass>(buffer.ToArray());
+                (var buffer, var length) = _middleware.Transform(MyClass);
+                _middleware.Restore<MyCustomClass>(buffer.ToArray());
             }
         }
 
@@ -92,7 +92,7 @@ namespace Benchmarks.Middleware
         {
             for (var i = 0; i < x; i++)
             {
-                using var transformedStream = _middleware.InputToStream(MyClass);
+                using var transformedStream = _middleware.TransformToStream(MyClass);
             }
         }
 
@@ -106,8 +106,8 @@ namespace Benchmarks.Middleware
         {
             for (var i = 0; i < x; i++)
             {
-                using var transformedStream = _middleware.InputToStream(MyClass);
-                _middleware.Output<MyCustomClass>(transformedStream);
+                using var transformedStream = _middleware.TransformToStream(MyClass);
+                _middleware.Restore<MyCustomClass>(transformedStream);
             }
         }
     }

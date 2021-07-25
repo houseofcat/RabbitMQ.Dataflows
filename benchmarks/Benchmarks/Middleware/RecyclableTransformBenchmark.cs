@@ -1,18 +1,12 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using HouseofCat.Compression;
-using HouseofCat.Data;
 using HouseofCat.Data.Recyclable;
-using HouseofCat.Dataflows;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
 using HouseofCat.Serialization;
-using HouseofCat.Utilities.Time;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Benchmarks.Middleware
 {
@@ -51,10 +45,10 @@ namespace Benchmarks.Middleware
 
             _middleware = new RecyclableTransformer(
                 new Utf8JsonProvider(),
-                new RecyclableAesGcmEncryptionProvider(hashKey, hashingProvider.Type),
-                new RecyclableGzipProvider());
+                new RecyclableGzipProvider(),
+                new RecyclableAesGcmEncryptionProvider(hashKey, hashingProvider.Type));
 
-            (var buffer, var length) = _middleware.Input(MyClass);
+            (var buffer, var length) = _middleware.Transform(MyClass);
             _serializedData = buffer.ToArray();
             _serializedLength = length;
         }
@@ -62,13 +56,13 @@ namespace Benchmarks.Middleware
         [Benchmark(Baseline = true)]
         public void Serialize_7KB()
         {
-            _middleware.Input(MyClass);
+            _middleware.Transform(MyClass);
         }
 
         [Benchmark]
         public void Deserialize_7KB()
         {
-            _middleware.Output<MyCustomClass>(_serializedData);
+            _middleware.Restore<MyCustomClass>(_serializedData);
         }
     }
 }
