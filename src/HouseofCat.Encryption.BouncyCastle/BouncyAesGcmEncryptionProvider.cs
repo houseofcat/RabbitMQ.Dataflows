@@ -58,6 +58,8 @@ namespace HouseofCat.Encryption.BouncyCastle
         {
             Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
 
+            if (unencryptedStream.Position == unencryptedStream.Length) { unencryptedStream.Seek(0, SeekOrigin.Begin); }
+
             var length = (int)unencryptedStream.Length;
             var buffer = _pool.Rent(length);
             var bytesRead = unencryptedStream.Read(buffer.AsSpan(0, length));
@@ -93,6 +95,8 @@ namespace HouseofCat.Encryption.BouncyCastle
         public async Task<MemoryStream> EncryptAsync(Stream unencryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
+
+            if (unencryptedStream.Position == unencryptedStream.Length) { unencryptedStream.Seek(0, SeekOrigin.Begin); }
 
             var length = (int)unencryptedStream.Length;
             var buffer = _pool.Rent(length);
@@ -177,6 +181,8 @@ namespace HouseofCat.Encryption.BouncyCastle
         public MemoryStream Decrypt(Stream encryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(encryptedStream, nameof(encryptedStream));
+
+            if (encryptedStream.Position == encryptedStream.Length) { encryptedStream.Seek(0, SeekOrigin.Begin); }
 
             using var binaryReader = new BinaryReader(encryptedStream);
 

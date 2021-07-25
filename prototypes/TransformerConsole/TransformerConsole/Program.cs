@@ -5,6 +5,7 @@ using HouseofCat.Hashing;
 using HouseofCat.Serialization;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace TransformerConsole
 {
@@ -20,21 +21,21 @@ namespace TransformerConsole
 
         private static ArraySegment<byte> _serializedData;
 
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             Setup();
 
-            Serialize_7KB();
+            await Serialize_7KB_Async();
             Deserialize_7KB();
 
             Console.ReadKey();
         }
 
-        public static void Serialize_7KB()
+        public static async Task Serialize_7KB_Async()
         {
             for (var i = 0; i < 200; i++)
             {
-                _middleware.Input(MyClass);
+                await _middleware.InputAsync(MyClass);
             }
         }
 
@@ -57,17 +58,14 @@ namespace TransformerConsole
             MyClass.ByteData = _data;
 
             var hashingProvider = new Argon2IDHasher();
-            var hashKey = hashingProvider
-                .GetHashKeyAsync(Passphrase, Salt, 32)
-                .GetAwaiter()
-                .GetResult();
+            var hashKey = hashingProvider.GetHashKey(Passphrase, Salt, 32);
 
             _middleware = new RecyclableTransformer(
-                new Utf8JsonProvider(),
+                new NewtonsoftJsonProvider(),
                 new RecyclableAesGcmEncryptionProvider(hashKey, hashingProvider.Type),
                 new RecyclableGzipProvider());
 
-            (var buffer, var length) = _middleware.Input(MyClass);
+            (var buffer, _) = _middleware.Input(MyClass);
             _serializedData = buffer.ToArray();
         }
     }

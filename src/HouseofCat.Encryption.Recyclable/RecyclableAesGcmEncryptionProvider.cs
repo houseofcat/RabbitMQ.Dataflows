@@ -79,6 +79,8 @@ namespace HouseofCat.Encryption
         {
             Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
 
+            if (unencryptedStream.Position == unencryptedStream.Length) { unencryptedStream.Seek(0, SeekOrigin.Begin); }
+
             using var aes = new AesGcm(_key);
 
             var length = (int)unencryptedStream.Length;
@@ -130,6 +132,8 @@ namespace HouseofCat.Encryption
         public async Task<MemoryStream> EncryptAsync(Stream unencryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
+
+            if (unencryptedStream.Position == unencryptedStream.Length) { unencryptedStream.Seek(0, SeekOrigin.Begin); }
 
             using var aes = new AesGcm(_key);
 
@@ -217,6 +221,8 @@ namespace HouseofCat.Encryption
         public MemoryStream Decrypt(Stream encryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(encryptedStream, nameof(encryptedStream));
+
+            if (encryptedStream.Position == encryptedStream.Length) { encryptedStream.Seek(0, SeekOrigin.Begin); }
 
             using var aes = new AesGcm(_key);
             using var binaryReader = new BinaryReader(encryptedStream);

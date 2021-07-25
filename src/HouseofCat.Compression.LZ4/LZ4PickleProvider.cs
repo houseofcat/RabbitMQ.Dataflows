@@ -1,4 +1,5 @@
-﻿using K4os.Compression.LZ4;
+﻿using HouseofCat.Utilities.Errors;
+using K4os.Compression.LZ4;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -16,38 +17,42 @@ namespace HouseofCat.Compression
             _level = level ?? LZ4Level.L00_FAST;
         }
 
-        public ArraySegment<byte> Compress(ReadOnlyMemory<byte> data)
+        public ArraySegment<byte> Compress(ReadOnlyMemory<byte> inputData)
         {
-            return LZ4Pickler.Pickle(data.Span, _level);
+            Guard.AgainstEmpty(inputData, nameof(inputData));
+
+            return LZ4Pickler.Pickle(inputData.Span, _level);
         }
 
-        public ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data)
-        {
-            throw new NotSupportedException();
-        }
-
-        public MemoryStream Compress(Stream data, bool leaveStreamOpen = true)
+        public ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> inputData)
         {
             throw new NotSupportedException();
         }
 
-        public ValueTask<MemoryStream> CompressAsync(Stream data, bool leaveStreamOpen = true)
+        public MemoryStream Compress(Stream inputStream, bool leaveStreamOpen = true)
         {
             throw new NotSupportedException();
         }
 
-        public MemoryStream CompressToStream(ReadOnlyMemory<byte> data)
+        public ValueTask<MemoryStream> CompressAsync(Stream inputStream, bool leaveStreamOpen = true)
         {
             throw new NotSupportedException();
         }
 
-        public ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data)
+        public MemoryStream CompressToStream(ReadOnlyMemory<byte> dinputDataata)
+        {
+            throw new NotSupportedException();
+        }
+
+        public ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> inputData)
         {
             throw new NotSupportedException();
         }
 
         public unsafe ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
         {
+            Guard.AgainstEmpty(compressedData, nameof(compressedData));
+
             return LZ4Pickler.Unpickle(compressedData.Span);
         }
 

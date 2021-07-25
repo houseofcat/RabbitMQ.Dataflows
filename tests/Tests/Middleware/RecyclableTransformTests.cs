@@ -51,15 +51,15 @@ namespace Middleware
                 .GetAwaiter()
                 .GetResult();
 
-            var serializationProvider = new Utf8JsonProvider();
+            var serializationProvider = new NewtonsoftJsonProvider();
             _originalSize = serializationProvider.Serialize(MyClass).Length;
 
             _middleware = new RecyclableTransformer(
                 serializationProvider,
-                new RecyclableAesGcmEncryptionProvider(hashKey, hashingProvider.Type),
-                new RecyclableGzipProvider());
+                new RecyclableGzipProvider(),
+                new RecyclableAesGcmEncryptionProvider(hashKey, hashingProvider.Type));
 
-            (_serializedData, _serializedLength) = _middleware.Input(MyClass);
+            (_serializedData, _serializedLength) = _middleware.Transform(MyClass);
         }
 
         #region MyCustomObject
@@ -104,36 +104,55 @@ namespace Middleware
         #endregion
 
         [Fact]
-        public void Serialize()
+        public void Transform()
         {
-            (var serializedData, var length) = _middleware.Input(MyClass);
+            (var transformedData, var length) = _middleware.Transform(MyClass);
 
-            Assert.NotNull(serializedData);
-            Assert.Equal(_serializedLength, serializedData.ToArray().Length);
+            Assert.NotNull(transformedData);
+            Assert.Equal(_serializedLength, transformedData.ToArray().Length);
         }
 
         [Fact]
-        public void Deserialize()
+        public void TransformToStream()
         {
-            var myCustomClass = _middleware.Output<MyCustomClass>(_serializedData.ToArray());
+            var transformedStream = _middleware.TransformToStream(MyClass);
+
+            Assert.NotNull(transformedStream);
+            Assert.Equal(_serializedLength, transformedStream.ToArray().Length);
+        }
+
+        [Fact]
+        public async Task TransformAsync()
+        {
+            (var transformedData, var length) = await _middleware.TransformAsync(MyClass);
+
+            Assert.NotNull(transformedData);
+            Assert.Equal(_serializedLength, transformedData.ToArray().Length);
+        }
+
+        [Fact]
+        public async Task TransformToStreamAsync()
+        {
+            var transformedStream = await _middleware.TransformToStreamAsync(MyClass);
+
+            Assert.NotNull(transformedStream);
+            Assert.Equal(_serializedLength, transformedStream.ToArray().Length);
+        }
+
+        [Fact]
+        public void RestoreFromStream()
+        {
+            var transformedStream = _middleware.TransformToStream(MyClass);
+            var myCustomClass = _middleware.Restore<MyCustomClass>(transformedStream);
 
             Assert.NotNull(myCustomClass);
             Assert.Equal(_data.Length, myCustomClass.ByteData.Length);
         }
 
         [Fact]
-        public async Task SerializeAsync()
+        public async Task RestoreAsync()
         {
-            (var serializedData, var length) = await _middleware.InputAsync(MyClass);
-
-            Assert.NotNull(serializedData);
-            Assert.Equal(_serializedLength, serializedData.ToArray().Length);
-        }
-
-        [Fact]
-        public async Task DeserializeAsync()
-        {
-            var myCustomClass = await _middleware.OutputAsync<MyCustomClass>(_serializedData);
+            var myCustomClass = await _middleware.RestoreAsync<MyCustomClass>(_serializedData);
 
             Assert.NotNull(myCustomClass);
             Assert.Equal(_data.Length, myCustomClass.ByteData.Length);

@@ -8,14 +8,14 @@ namespace HouseofCat.Compression
     {
         string Type { get; }
 
-        ArraySegment<byte> Compress(ReadOnlyMemory<byte> data);
-        MemoryStream Compress(Stream data, bool leaveStreamOpen = false);
+        ArraySegment<byte> Compress(ReadOnlyMemory<byte> inputData);
+        MemoryStream Compress(Stream inputStream, bool leaveStreamOpen = false);
 
-        ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data);
-        ValueTask<MemoryStream> CompressAsync(Stream data, bool leaveStreamOpen = false);
+        ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> inputData);
+        ValueTask<MemoryStream> CompressAsync(Stream inputStream, bool leaveStreamOpen = false);
 
-        MemoryStream CompressToStream(ReadOnlyMemory<byte> data);
-        ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data);
+        MemoryStream CompressToStream(ReadOnlyMemory<byte> inputData);
+        ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> inputData);
 
         ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData);
         MemoryStream Decompress(Stream compressedStream, bool leaveStreamOpen = false);

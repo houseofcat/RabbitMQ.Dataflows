@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HouseofCat.Utilities.Errors;
+using System;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -14,29 +15,42 @@ namespace HouseofCat.Serialization
         {
             _options = options;
         }
+
         public TOut Deserialize<TOut>(string input)
         {
+            Guard.AgainstNullOrEmpty(input, nameof(input));
+
             return JsonSerializer.Deserialize<TOut>(Encoding.UTF8.GetBytes(input), _options);
         }
 
         public TOut Deserialize<TOut>(ReadOnlyMemory<byte> input)
         {
+            Guard.AgainstEmpty(input, nameof(input));
+
             return JsonSerializer.Deserialize<TOut>(input.Span, _options);
         }
 
         public TOut Deserialize<TOut>(Stream inputStream)
         {
+            Guard.AgainstNullOrEmpty(inputStream, nameof(inputStream));
+
+            if (inputStream.Position == inputStream.Length) { inputStream.Seek(0, SeekOrigin.Begin); }
+
             var length = (int)inputStream.Length;
-            var buffer = new byte[length];
-            var bytesRead = inputStream.Read(buffer.AsSpan(0, length));
+            var buffer = new Span<byte>(new byte[length]);
+            var bytesRead = inputStream.Read(buffer);
             if (bytesRead == 0) throw new InvalidDataException();
 
-            var utf8Reader = new Utf8JsonReader(buffer.AsSpan());
+            var utf8Reader = new Utf8JsonReader(buffer);
             return JsonSerializer.Deserialize<TOut>(ref utf8Reader, _options);
         }
 
         public async Task<TOut> DeserializeAsync<TOut>(Stream inputStream)
         {
+            Guard.AgainstNullOrEmpty(inputStream, nameof(inputStream));
+
+            if (inputStream.Position == inputStream.Length) { inputStream.Seek(0, SeekOrigin.Begin); }
+
             return await JsonSerializer.DeserializeAsync<TOut>(inputStream, _options).ConfigureAwait(false);
         }
 
@@ -51,9 +65,9 @@ namespace HouseofCat.Serialization
             outputStream.Seek(0, SeekOrigin.Begin);
         }
 
-        public Task SerializeAsync<TIn>(Stream outputStream, TIn input)
+        public async Task SerializeAsync<TIn>(Stream outputStream, TIn input)
         {
-            return JsonSerializer.SerializeAsync(outputStream, input, _options);
+            await JsonSerializer.SerializeAsync(outputStream, input, _options).ConfigureAwait(false);
         }
 
         public string SerializeToPrettyString<TIn>(TIn input)

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HouseofCat.Utilities.Errors;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,21 +19,33 @@ namespace HouseofCat.Serialization
 
         public TOut Deserialize<TOut>(ReadOnlyMemory<byte> input)
         {
+            Guard.AgainstEmpty(input, nameof(input));
+
             return JsonSerializer.Deserialize<TOut>(input.ToArray(), _resolver);
         }
 
         public TOut Deserialize<TOut>(string input)
         {
+            Guard.AgainstNullOrEmpty(input, nameof(input));
+
             return JsonSerializer.Deserialize<TOut>(Encoding.UTF8.GetBytes(input));
         }
 
         public TOut Deserialize<TOut>(Stream inputStream)
         {
+            Guard.AgainstNullOrEmpty(inputStream, nameof(inputStream));
+
+            if (inputStream.Position == inputStream.Length) { inputStream.Seek(0, SeekOrigin.Begin); }
+
             return JsonSerializer.Deserialize<TOut>(inputStream);
         }
 
         public async Task<TOut> DeserializeAsync<TOut>(Stream inputStream)
         {
+            Guard.AgainstNullOrEmpty(inputStream, nameof(inputStream));
+
+            if (inputStream.Position == inputStream.Length) { inputStream.Seek(0, SeekOrigin.Begin); }
+
             return await JsonSerializer.DeserializeAsync<TOut>(inputStream).ConfigureAwait(false);
         }
 

@@ -5,6 +5,7 @@ using HouseofCat.Utilities.Time;
 using MessagePack;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -142,6 +143,26 @@ namespace Serialization
         }
 
         [Fact]
+        public void DefaultJsonProvider_SerializeDeserialize_Stream()
+        {
+            var customObject = new MyCustomClass();
+
+            var memoryStream = new MemoryStream();
+            _defaultJsonProvider.Serialize(memoryStream, customObject);
+            Assert.False(memoryStream.Length == 0);
+
+            var deserializedObject = _defaultJsonProvider.Deserialize<MyCustomClass>(memoryStream);
+            Assert.NotNull(deserializedObject);
+
+            // Spot Check
+            Assert.Equal(customObject.MyString, deserializedObject.MyString);
+            Assert.Equal(customObject.EmbeddedClass.HappyByte, deserializedObject.EmbeddedClass.HappyByte);
+            //Assert.Equal(customObject.Data["TestKey"], deserializedObject.Data["TestKey"]); // Not Supported Yet
+            //Assert.Equal(customObject.AbstractData["TestKey2"], deserializedObject.AbstractData["TestKey2"]); // Not Supported Yet
+            Assert.Equal(customObject.SubClass.Ints.ElementAt(3), deserializedObject.SubClass.Ints.ElementAt(3));
+        }
+
+        [Fact]
         public void NewtonsoftJsonProvider_SerializeDeserialize()
         {
             var customObject = new MyCustomClass();
@@ -162,15 +183,59 @@ namespace Serialization
         }
 
         [Fact]
+        public void NewtonsoftJsonProvider_SerializeDeserialize_Stream()
+        {
+            var customObject = new MyCustomClass();
+
+            var memoryStream = new MemoryStream();
+            _newtonsoftProvider.Serialize(memoryStream, customObject);
+            Assert.False(memoryStream.Length == 0);
+
+            var deserializedObject = _newtonsoftProvider.Deserialize<MyCustomClass>(memoryStream);
+            Assert.NotNull(deserializedObject);
+
+            // Spot Check
+            Assert.Equal(customObject.MyString, deserializedObject.MyString);
+            Assert.Equal(customObject.EmbeddedClass.HappyByte, deserializedObject.EmbeddedClass.HappyByte);
+            //Assert.Equal(customObject.Data["TestKey"], deserializedObject.Data["TestKey"]); // Not Supported Yet
+            //Assert.Equal(customObject.AbstractData["TestKey2"], deserializedObject.AbstractData["TestKey2"]); // Not Supported Yet
+            Assert.Equal(customObject.SubClass.Ints.ElementAt(3), deserializedObject.SubClass.Ints.ElementAt(3));
+        }
+
+        [Fact]
         public void Utf8JsonProvider_SerializeDeserialize()
         {
             var customObject = new MyCustomClass();
 
-            var data = _utf8JsonProvider.Serialize(customObject);
-            Assert.NotNull(data);
-            Assert.False(data.Length == 0);
+            var memoryStream = new MemoryStream();
+            _newtonsoftProvider.Serialize(memoryStream, customObject);
+             _utf8JsonProvider.Serialize(memoryStream, customObject);
 
-            var deserializedObject = _utf8JsonProvider.Deserialize<MyCustomClass>(data);
+            Assert.NotNull(memoryStream);
+            Assert.False(memoryStream.Length == 0);
+
+            var deserializedObject = _utf8JsonProvider.Deserialize<MyCustomClass>(memoryStream);
+            Assert.NotNull(deserializedObject);
+
+            // Spot Check
+            Assert.Equal(customObject.MyString, deserializedObject.MyString);
+            Assert.Equal(customObject.EmbeddedClass.HappyByte, deserializedObject.EmbeddedClass.HappyByte);
+            Assert.Equal(customObject.Data["TestKey"], Convert.ToInt32(deserializedObject.Data["TestKey"])); // deserialized int32 (as object) to double
+            Assert.Equal(customObject.AbstractData["TestKey2"], deserializedObject.AbstractData["TestKey2"]);
+            Assert.Equal(customObject.SubClass.Ints.ElementAt(3), deserializedObject.SubClass.Ints.ElementAt(3));
+        }
+
+        [Fact]
+        public void Utf8JsonProvider_SerializeDeserialize_Stream()
+        {
+            var customObject = new MyCustomClass();
+            var memoryStream = new MemoryStream();
+            _utf8JsonProvider.Serialize(memoryStream, customObject);
+
+            Assert.NotNull(memoryStream);
+            Assert.False(memoryStream.Length == 0);
+
+            var deserializedObject = _utf8JsonProvider.Deserialize<MyCustomClass>(memoryStream);
             Assert.NotNull(deserializedObject);
 
             // Spot Check

@@ -1,4 +1,5 @@
-﻿using K4os.Compression.LZ4;
+﻿using HouseofCat.Utilities.Errors;
+using K4os.Compression.LZ4;
 using K4os.Compression.LZ4.Streams;
 using Microsoft.Toolkit.HighPerformance;
 using System;
@@ -24,12 +25,32 @@ namespace HouseofCat.Compression
             _decoderSettings = decoderSettings ?? new LZ4DecoderSettings();
         }
 
-        public ArraySegment<byte> Compress(ReadOnlyMemory<byte> data)
+        public ArraySegment<byte> Compress(ReadOnlyMemory<byte> inputData)
         {
+            Guard.AgainstEmpty(inputData, nameof(inputData));
+
             using var compressedStream = new MemoryStream();
             using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, false))
             {
-                lz4Stream.Write(data.Span);
+                lz4Stream.Write(inputData.Span);
+            }
+
+            if (compressedStream.TryGetBuffer(out var buffer))
+            { return buffer; }
+            else
+            { return compressedStream.ToArray(); }
+        }
+
+        public async ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> inputData)
+        {
+            Guard.AgainstEmpty(inputData, nameof(inputData));
+
+            using var compressedStream = new MemoryStream();
+            using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, false))
+            {
+                await lz4Stream
+                    .WriteAsync(inputData)
+                    .ConfigureAwait(false);
             }
 
             if (compressedStream.TryGetBuffer(out var buffer))
@@ -45,68 +66,86 @@ namespace HouseofCat.Compression
         /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
         /// <param name="data"></param>
         /// <returns></returns>
-        public MemoryStream Compress(Stream data, bool leaveStreamOpen = false)
+        public MemoryStream Compress(Stream inputStream, bool leaveStreamOpen = false)
         {
+            Guard.AgainstNullOrEmpty(inputStream, nameof(inputStream));
+
+            if (inputStream.Position == inputStream.Length) { inputStream.Seek(0, SeekOrigin.Begin); }
+
             var compressedStream = new MemoryStream();
             using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, true))
             {
-                data.CopyTo(lz4Stream);
+                inputStream.CopyTo(lz4Stream);
             }
-            if (!leaveStreamOpen) { data.Close(); }
+            if (!leaveStreamOpen) { inputStream.Close(); }
 
             compressedStream.Seek(0, SeekOrigin.Begin);
             return compressedStream;
         }
 
-        public async ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data)
+        /// <summary>
+        /// Retrieve a new <c>MemoryStream</c> object with the contents unzipped and copied from the provided
+        /// stream. The provided stream is optionally closed.
+        /// </summary>
+        /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public async ValueTask<MemoryStream> CompressAsync(Stream inputStream, bool leaveStreamOpen = false)
         {
-            using var compressedStream = new MemoryStream();
-            using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, false))
-            {
-                await lz4Stream
-                    .WriteAsync(data)
-                    .ConfigureAwait(false);
-            }
+            Guard.AgainstNullOrEmpty(inputStream, nameof(inputStream));
 
-            if (compressedStream.TryGetBuffer(out var buffer))
-            { return buffer; }
-            else
-            { return compressedStream.ToArray(); }
-        }
+            if (inputStream.Position == inputStream.Length) { inputStream.Seek(0, SeekOrigin.Begin); }
 
-        public async ValueTask<MemoryStream> CompressAsync(Stream data, bool leaveStreamOpen = false)
-        {
             var compressedStream = new MemoryStream();
-            using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, leaveStreamOpen))
+            using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, true))
             {
-                await data
+                await inputStream
                     .CopyToAsync(lz4Stream)
                     .ConfigureAwait(false);
             }
+            if (!leaveStreamOpen) { inputStream.Close(); }
 
             compressedStream.Seek(0, SeekOrigin.Begin);
             return compressedStream;
         }
 
-        public MemoryStream CompressToStream(ReadOnlyMemory<byte> data)
+        /// <summary>
+        /// Retrieve a new <c>MemoryStream</c> object with the contents contained zipped data writen from the unzipped
+        /// bytes in <c>ReadOnlyMemory&lt;byte&gt;</c>.
+        /// </summary>
+        /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public MemoryStream CompressToStream(ReadOnlyMemory<byte> inputData)
         {
+            Guard.AgainstEmpty(inputData, nameof(inputData));
+
             var compressedStream = new MemoryStream();
             using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, true))
             {
-                lz4Stream.Write(data.Span);
+                lz4Stream.Write(inputData.Span);
             }
 
             compressedStream.Seek(0, SeekOrigin.Begin);
             return compressedStream;
         }
 
-        public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data)
+        /// <summary>
+        /// Retrieve a new <c>MemoryStream</c> object with the contents contained zipped data writen from the unzipped
+        /// bytes in <c>ReadOnlyMemory&lt;byte&gt;</c>.
+        /// </summary>
+        /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> inputData)
         {
+            Guard.AgainstEmpty(inputData, nameof(inputData));
+
             var compressedStream = new MemoryStream();
             using (var lz4Stream = LZ4Stream.Encode(compressedStream, _encoderSettings, true))
             {
                 await lz4Stream
-                    .WriteAsync(data)
+                    .WriteAsync(inputData)
                     .ConfigureAwait(false);
             }
 
@@ -114,26 +153,26 @@ namespace HouseofCat.Compression
             return compressedStream;
         }
 
-        public unsafe ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
+        public ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
         {
-            fixed (byte* pBuffer = &compressedData.Span[0])
-            {
-                using var uncompressedStream = new MemoryStream();
-                using (var compressedStream = new UnmanagedMemoryStream(pBuffer, compressedData.Length))
-                using (var lz4Stream = LZ4Stream.Decode(compressedStream, _decoderSettings, false))
-                {
-                    lz4Stream.CopyTo(uncompressedStream);
-                }
+            Guard.AgainstEmpty(compressedData, nameof(compressedData));
 
-                if (uncompressedStream.TryGetBuffer(out var buffer))
-                { return buffer; }
-                else
-                { return uncompressedStream.ToArray(); }
+            using var uncompressedStream = new MemoryStream();
+            using (var lz4Stream = LZ4Stream.Decode(compressedData.AsStream(), _decoderSettings, false))
+            {
+                lz4Stream.CopyTo(uncompressedStream);
             }
+
+            if (uncompressedStream.TryGetBuffer(out var buffer))
+            { return buffer; }
+            else
+            { return uncompressedStream.ToArray(); }
         }
 
         public async ValueTask<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
         {
+            Guard.AgainstEmpty(compressedData, nameof(compressedData));
+
             using var uncompressedStream = new MemoryStream();
             using (var lz4Stream = LZ4Stream.Decode(compressedData.AsStream(), _decoderSettings, false))
             {
@@ -149,12 +188,17 @@ namespace HouseofCat.Compression
         }
 
         /// <summary>
-        /// Returns a new MemoryStream() that has decompressed data inside. Original stream is closed/disposed.
+        /// Returns a new <c>MemoryStream</c> that has decompressed data inside. The provided stream is optionally closed.
         /// </summary>
+        /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
         /// <param name="compressedStream"></param>
         /// <returns></returns>
         public MemoryStream Decompress(Stream compressedStream, bool leaveStreamOpen = false)
         {
+            Guard.AgainstNullOrEmpty(compressedStream, nameof(compressedStream));
+
+            if (compressedStream.Position == compressedStream.Length) { compressedStream.Seek(0, SeekOrigin.Begin); }
+
             var uncompressedStream = new MemoryStream();
             using (var lz4Stream = LZ4Stream.Decode(compressedStream, _decoderSettings, leaveStreamOpen))
             {
@@ -165,12 +209,16 @@ namespace HouseofCat.Compression
         }
 
         /// <summary>
-        /// Returns a new MemoryStream() that has decompressed data inside. Original stream is closed/disposed.
+        /// Returns a new <c>MemoryStream</c> that has decompressed data inside. The provided stream is optionally closed.
         /// </summary>
         /// <param name="compressedStream"></param>
         /// <returns></returns>
         public async ValueTask<MemoryStream> DecompressAsync(Stream compressedStream, bool leaveStreamOpen = false)
         {
+            Guard.AgainstNullOrEmpty(compressedStream, nameof(compressedStream));
+
+            if (compressedStream.Position == compressedStream.Length) { compressedStream.Seek(0, SeekOrigin.Begin); }
+
             var uncompressedStream = new MemoryStream();
             using (var lz4Stream = LZ4Stream.Decode(compressedStream, _decoderSettings, leaveStreamOpen))
             {
@@ -190,7 +238,7 @@ namespace HouseofCat.Compression
         public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData)
         {
             var uncompressedStream = new MemoryStream();
-            using (var lz4Stream = LZ4Stream.Decode(compressedData.AsStream(), _decoderSettings, true))
+            using (var lz4Stream = LZ4Stream.Decode(compressedData.AsStream(), _decoderSettings, false))
             {
                 lz4Stream.CopyTo(uncompressedStream);
             }

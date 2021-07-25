@@ -1,4 +1,5 @@
-﻿using Microsoft.Toolkit.HighPerformance;
+﻿using HouseofCat.Utilities.Errors;
+using Microsoft.Toolkit.HighPerformance;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -11,12 +12,14 @@ namespace HouseofCat.Compression
         public string Type { get; } = "DEFLATE";
         public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
 
-        public ArraySegment<byte> Compress(ReadOnlyMemory<byte> data)
+        public ArraySegment<byte> Compress(ReadOnlyMemory<byte> inputData)
         {
+            Guard.AgainstEmpty(inputData, nameof(inputData));
+
             using var compressedStream = new MemoryStream();
             using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, false))
             {
-                deflateStream.Write(data.Span);
+                deflateStream.Write(inputData.Span);
             }
 
             if (compressedStream.TryGetBuffer(out var buffer))
@@ -25,13 +28,15 @@ namespace HouseofCat.Compression
             { return compressedStream.ToArray(); }
         }
 
-        public async ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> data)
+        public async ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> inputData)
         {
+            Guard.AgainstEmpty(inputData, nameof(inputData));
+
             using var compressedStream = new MemoryStream();
             using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, false))
             {
                 await deflateStream
-                    .WriteAsync(data)
+                    .WriteAsync(inputData)
                     .ConfigureAwait(false);
             }
 
@@ -48,14 +53,18 @@ namespace HouseofCat.Compression
         /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
         /// <param name="data"></param>
         /// <returns></returns>
-        public MemoryStream Compress(Stream data, bool leaveStreamOpen = false)
+        public MemoryStream Compress(Stream inputStream, bool leaveStreamOpen = false)
         {
+            Guard.AgainstNullOrEmpty(inputStream, nameof(inputStream));
+
+            if (inputStream.Position == inputStream.Length) { inputStream.Seek(0, SeekOrigin.Begin); }
+
             var compressedStream = new MemoryStream();
             using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
             {
-                data.CopyTo(deflateStream);
+                inputStream.CopyTo(deflateStream);
             }
-            if (!leaveStreamOpen) { data.Close(); }
+            if (!leaveStreamOpen) { inputStream.Close(); }
 
             compressedStream.Seek(0, SeekOrigin.Begin);
             return compressedStream;
@@ -68,16 +77,20 @@ namespace HouseofCat.Compression
         /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
         /// <param name="data"></param>
         /// <returns></returns>
-        public async ValueTask<MemoryStream> CompressAsync(Stream data, bool leaveStreamOpen = false)
+        public async ValueTask<MemoryStream> CompressAsync(Stream inputStream, bool leaveStreamOpen = false)
         {
+            Guard.AgainstNullOrEmpty(inputStream, nameof(inputStream));
+
+            if (inputStream.Position == inputStream.Length) { inputStream.Seek(0, SeekOrigin.Begin); }
+
             var compressedStream = new MemoryStream();
             using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
             {
-                await data
+                await inputStream
                     .CopyToAsync(deflateStream)
                     .ConfigureAwait(false);
             }
-            if (!leaveStreamOpen) { data.Close(); }
+            if (!leaveStreamOpen) { inputStream.Close(); }
 
             compressedStream.Seek(0, SeekOrigin.Begin);
             return compressedStream;
@@ -90,12 +103,14 @@ namespace HouseofCat.Compression
         /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
         /// <param name="data"></param>
         /// <returns></returns>
-        public MemoryStream CompressToStream(ReadOnlyMemory<byte> data)
+        public MemoryStream CompressToStream(ReadOnlyMemory<byte> inputData)
         {
+            Guard.AgainstEmpty(inputData, nameof(inputData));
+
             var compressedStream = new MemoryStream();
             using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
             {
-                deflateStream.Write(data.Span);
+                deflateStream.Write(inputData.Span);
             }
 
             compressedStream.Seek(0, SeekOrigin.Begin);
@@ -109,13 +124,15 @@ namespace HouseofCat.Compression
         /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
         /// <param name="data"></param>
         /// <returns></returns>
-        public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> data)
+        public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> compressedData)
         {
+            Guard.AgainstEmpty(compressedData, nameof(compressedData));
+
             var compressedStream = new MemoryStream();
             using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
             {
                 await deflateStream
-                    .WriteAsync(data)
+                    .WriteAsync(compressedData)
                     .ConfigureAwait(false);
             }
 
@@ -123,26 +140,26 @@ namespace HouseofCat.Compression
             return compressedStream;
         }
 
-        public unsafe ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
+        public ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
         {
-            fixed (byte* pBuffer = &compressedData.Span[0])
-            {
-                using var uncompressedStream = new MemoryStream();
-                using (var compressedStream = new UnmanagedMemoryStream(pBuffer, compressedData.Length))
-                using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress, false))
-                {
-                    deflateStream.CopyTo(uncompressedStream);
-                }
+            Guard.AgainstEmpty(compressedData, nameof(compressedData));
 
-                if (uncompressedStream.TryGetBuffer(out var buffer))
-                { return buffer; }
-                else
-                { return uncompressedStream.ToArray(); }
+            using var uncompressedStream = new MemoryStream();
+            using (var deflateStream = new DeflateStream(compressedData.AsStream(), CompressionMode.Decompress, false))
+            {
+                deflateStream.CopyTo(uncompressedStream);
             }
+
+            if (uncompressedStream.TryGetBuffer(out var buffer))
+            { return buffer; }
+            else
+            { return uncompressedStream.ToArray(); }
         }
 
         public async ValueTask<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
         {
+            Guard.AgainstEmpty(compressedData, nameof(compressedData));
+
             using var uncompressedStream = new MemoryStream();
             using (var deflateStream = new DeflateStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
@@ -165,6 +182,10 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public MemoryStream Decompress(Stream compressedStream, bool leaveStreamOpen = false)
         {
+            Guard.AgainstNullOrEmpty(compressedStream, nameof(compressedStream));
+
+            if (compressedStream.Position == compressedStream.Length) { compressedStream.Seek(0, SeekOrigin.Begin); }
+
             var uncompressedStream = new MemoryStream();
             using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
@@ -181,6 +202,10 @@ namespace HouseofCat.Compression
         /// <returns></returns>
         public async ValueTask<MemoryStream> DecompressAsync(Stream compressedStream, bool leaveStreamOpen = false)
         {
+            Guard.AgainstNullOrEmpty(compressedStream, nameof(compressedStream));
+
+            if (compressedStream.Position == compressedStream.Length) { compressedStream.Seek(0, SeekOrigin.Begin); }
+
             var uncompressedStream = new MemoryStream();
             using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
