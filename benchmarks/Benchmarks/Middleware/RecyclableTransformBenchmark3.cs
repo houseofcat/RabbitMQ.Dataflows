@@ -31,6 +31,8 @@ namespace Benchmarks.Middleware
         private static byte[] _data = new byte[10_000];
         private MyCustomClass2 MyClass = new MyCustomClass2();
 
+        private static ArraySegment<byte> _serializedData;
+
         [GlobalSetup]
         public void Setup()
         {
@@ -45,18 +47,21 @@ namespace Benchmarks.Middleware
             var hashingProvider = new Argon2IDHasher();
             var hashKey = hashingProvider.GetHashKey(Passphrase, Salt, 32);
 
-            RecyclableManager.ConfigureNewStaticManagerWithDefaults();
+            //RecyclableManager.ConfigureNewStaticManagerWithDefaults();
 
             _middleware = new RecyclableTransformer(
                 new Utf8JsonProvider(),
                 new RecyclableGzipProvider(),
                 new RecyclableAesGcmEncryptionProvider(hashKey, hashingProvider.Type));
+
+            (var buffer, _) = _middleware.Transform(MyClass);
+            _serializedData = buffer.ToArray();
         }
 
         [Benchmark(Baseline = true)]
         [Arguments(10)]
         [Arguments(100)]
-        public void Serialize_12KB(int x)
+        public void Transform_12KB(int x)
         {
             for (var i = 0; i < x; i++)
             {
@@ -67,7 +72,18 @@ namespace Benchmarks.Middleware
         [Benchmark]
         [Arguments(10)]
         [Arguments(100)]
-        public void Serialize_Deserialize_12KB(int x)
+        public void Restore_12KB(int x)
+        {
+            for (var i = 0; i < x; i++)
+            {
+                _middleware.Restore<MyCustomClass2>(_serializedData);
+            }
+        }
+
+        [Benchmark]
+        [Arguments(10)]
+        [Arguments(100)]
+        public void TransformRestore_12KB(int x)
         {
             for (var i = 0; i < x; i++)
             {
@@ -79,7 +95,7 @@ namespace Benchmarks.Middleware
         [Benchmark]
         [Arguments(10)]
         [Arguments(100)]
-        public void Serialize_Stream_12KB(int x)
+        public void TransformToStream_12KB(int x)
         {
             for (var i = 0; i < x; i++)
             {
@@ -90,7 +106,7 @@ namespace Benchmarks.Middleware
         [Benchmark]
         [Arguments(10)]
         [Arguments(100)]
-        public void Serialize_Deserialize_Stream_12KB(int x)
+        public void TransformToStreamRestore_12KB(int x)
         {
             for (var i = 0; i < x; i++)
             {
@@ -179,45 +195,57 @@ namespace Benchmarks.Middleware
         }
 
         [Benchmark]
-        public void Middleware_InputToStream1()
+        [Arguments(10)]
+        [Arguments(100)]
+        public void Middleware_InputOutput1(int x)
         {
-            Middleware_InputToStream1(MyClass);
+            for (var i = 0; i < x; i++)
+            {
+                Middleware_Input3(MyClass);
+                Middleware_Output1(_serializedData);
+            }
         }
 
-        public void Middleware_InputToStream1<TIn>(TIn input)
+        public void Middleware_Output1(ReadOnlyMemory<byte> data)
         {
-            using var serializedStream = RecyclableManager.GetStream(nameof(RecyclableTransformer));
-            _middleware.SerializationProvider.Serialize(serializedStream, input);
-        }
-
-        [Benchmark]
-        public void Middleware_InputToStream2()
-        {
-            Middleware_InputToStream2(MyClass);
-        }
-
-        public void Middleware_InputToStream2<TIn>(TIn input)
-        {
-            using var serializedStream = RecyclableManager.GetStream(nameof(RecyclableTransformer));
-            _middleware.SerializationProvider.Serialize(serializedStream, input);
-
-            using var compressedStream = _middleware.CompressionProvider.Compress(serializedStream, false);
+            using var decryptStream = _middleware.EncryptionProvider.DecryptToStream(data);
         }
 
         [Benchmark]
-        public void Middleware_InputToStream3()
+        [Arguments(10)]
+        [Arguments(100)]
+        public void Middleware_InputOutput2(int x)
         {
-            Middleware_InputToStream3(MyClass);
+            for (var i = 0; i < x; i++)
+            {
+                Middleware_Input3(MyClass);
+                Middleware_Output2(_serializedData);
+            }
         }
 
-        public MemoryStream Middleware_InputToStream3<TIn>(TIn input)
+        public void Middleware_Output2(ReadOnlyMemory<byte> data)
         {
-            using var serializedStream = RecyclableManager.GetStream(nameof(RecyclableTransformer));
-            _middleware.SerializationProvider.Serialize(serializedStream, input);
+            using var decryptStream = _middleware.EncryptionProvider.DecryptToStream(data);
+            using var decompressStream = _middleware.CompressionProvider.Decompress(decryptStream, false);
+        }
 
-            using var compressedStream = _middleware.CompressionProvider.Compress(serializedStream, false);
+        [Benchmark]
+        [Arguments(10)]
+        [Arguments(100)]
+        public void Middleware_InputOutput3(int x)
+        {
+            for (var i = 0; i < x; i++)
+            {
+                Middleware_Input3(MyClass);
+                Middleware_Output3<MyCustomClass2>(_serializedData);
+            }
+        }
 
-            return _middleware.EncryptionProvider.Encrypt(compressedStream, true);
+        public TOut Middleware_Output3<TOut>(ReadOnlyMemory<byte> data)
+        {
+            using var decryptStream = _middleware.EncryptionProvider.DecryptToStream(data);
+            using var decompressStream = _middleware.CompressionProvider.Decompress(decryptStream, false);
+            return _middleware.SerializationProvider.Deserialize<TOut>(decompressStream);
         }
     }
 }
