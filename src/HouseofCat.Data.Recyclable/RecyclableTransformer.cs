@@ -90,7 +90,7 @@ namespace HouseofCat.Data.Recyclable
 
         public async Task<MemoryStream> TransformToStreamAsync<TIn>(TIn input)
         {
-            using var serializedStream = RecyclableManager.GetStream();
+            using var serializedStream = RecyclableManager.GetStream(nameof(RecyclableTransformer));
             await SerializationProvider
                 .SerializeAsync(serializedStream, input)
                 .ConfigureAwait(false);
