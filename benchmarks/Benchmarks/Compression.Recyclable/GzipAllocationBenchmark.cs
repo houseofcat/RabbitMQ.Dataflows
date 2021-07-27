@@ -17,7 +17,7 @@ namespace Benchmarks.Compression.Recyclable
         private ICompressionProvider CompressionProvider;
         private ICompressionProvider RecyclableProvider;
 
-        private byte[] Payload1 { get; set; } = new byte[10_000];
+        private byte[] Payload1 { get; set; } = new byte[5_000];
         private byte[] CompressedPayload1 { get; set; }
 
         [GlobalSetup]
@@ -39,7 +39,7 @@ namespace Benchmarks.Compression.Recyclable
         [Arguments(100)]
         [Arguments(500)]
         [Arguments(1_000)]
-        public void BasicCompressDecompress_10KBytes(int x)
+        public void BasicCompressDecompress_5KBytes(int x)
         {
             for (var i = 0; i < x; i++)
             {
@@ -53,7 +53,7 @@ namespace Benchmarks.Compression.Recyclable
         [Arguments(100)]
         [Arguments(500)]
         [Arguments(1_000)]
-        public void GzipProvider_10KBytes(int x)
+        public void GzipProvider_5KBytes(int x)
         {
             for (var i = 0; i < x; i++)
             {
@@ -67,7 +67,7 @@ namespace Benchmarks.Compression.Recyclable
         [Arguments(100)]
         [Arguments(500)]
         [Arguments(1_000)]
-        public void GzipProviderStream_10KBytes(int x)
+        public void GzipProviderStream_5KBytes(int x)
         {
             for (var i = 0; i < x; i++)
             {
@@ -81,7 +81,7 @@ namespace Benchmarks.Compression.Recyclable
         [Arguments(100)]
         [Arguments(500)]
         [Arguments(1_000)]
-        public void RecylableGzipProvider_10KBytes(int x)
+        public void RecylableGzipProvider_5KBytes(int x)
         {
             for (var i = 0; i < x; i++)
             {
@@ -95,7 +95,7 @@ namespace Benchmarks.Compression.Recyclable
         [Arguments(100)]
         [Arguments(500)]
         [Arguments(1_000)]
-        public void RecyclableGzipProviderStream_10KBytes(int x)
+        public void RecyclableGzipProviderStream_5KBytes(int x)
         {
             for (var i = 0; i < x; i++)
             {

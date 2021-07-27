@@ -10,25 +10,34 @@ Byte structure is straight forward if you need to use alternative decryption mec
 ```ini
 // * Summary *
 
-BenchmarkDotNet=v0.13.0, OS=Windows 10.0.18363.1556 (1909/November2019Update/19H2)
-Intel Core i7-9850H CPU 2.60GHz, 1 CPU, 12 logical and 6 physical cores
-.NET SDK=5.0.203
-  [Host]     : .NET 5.0.6 (5.0.621.22011), X64 RyuJIT
-  Job-ADZLQM : .NET 5.0.6 (5.0.621.22011), X64 RyuJIT
-  .NET 5.0   : .NET 5.0.6 (5.0.621.22011), X64 RyuJIT
+BenchmarkDotNet=v0.13.0, OS=Windows 10.0.19042.1110 (20H2/October2020Update)
+Intel Core i9-10900KF CPU 3.70GHz, 1 CPU, 20 logical and 10 physical cores
+.NET SDK=5.0.302
+  [Host]   : .NET 5.0.8 (5.0.821.31504), X64 RyuJIT
+  .NET 5.0 : .NET 5.0.8 (5.0.821.31504), X64 RyuJIT
 
-Runtime=.NET 5.0
+Job=.NET 5.0  Runtime=.NET 5.0
 
-|                  Method |        Job | IterationCount |          Mean |         Error |        StdDev |        Median | Ratio | RatioSD |     Gen 0 |    Gen 1 |    Gen 2 | Allocated |
-|------------------------ |----------- |--------------- |--------------:|--------------:|--------------:|--------------:|------:|--------:|----------:|---------:|---------:|----------:|
-|          Encrypt1KBytes |   .NET 5.0 |        Default |      1.512 us |     0.0298 us |     0.0398 us |      1.504 us |  1.00 |    0.00 |    0.1926 |        - |        - |      1 KB |
-|          Encrypt2KBytes |   .NET 5.0 |        Default |      1.965 us |     0.0382 us |     0.0408 us |      1.951 us |  1.30 |    0.04 |    0.3548 |        - |        - |      2 KB |
-|          Encrypt4kBytes |   .NET 5.0 |        Default |      2.946 us |     0.0583 us |     0.0942 us |      2.948 us |  1.96 |    0.07 |    0.6828 |        - |        - |      4 KB |
-|          Encrypt8KBytes |   .NET 5.0 |        Default |      4.630 us |     0.0826 us |     0.0733 us |      4.631 us |  3.09 |    0.08 |    1.3351 |        - |        - |      8 KB |
-|          Decrypt1KBytes |   .NET 5.0 |        Default |      1.234 us |     0.0247 us |     0.0338 us |      1.216 us |  0.82 |    0.03 |    0.1869 |        - |        - |      1 KB |
-|          Decrypt2KBytes |   .NET 5.0 |        Default |      1.644 us |     0.0328 us |     0.0378 us |      1.630 us |  1.09 |    0.04 |    0.3510 |        - |        - |      2 KB |
-|          Decrypt4kBytes |   .NET 5.0 |        Default |      2.462 us |     0.0274 us |     0.0214 us |      2.460 us |  1.64 |    0.04 |    0.6752 |        - |        - |      4 KB |
-|          Decrypt8KBytes |   .NET 5.0 |        Default |      4.167 us |     0.0828 us |     0.1016 us |      4.179 us |  2.76 |    0.12 |    1.3275 |        - |        - |      8 KB |
+|                     Method |     Mean |     Error |    StdDev | Ratio | RatioSD |  Gen 0 |  Gen 1 |  Gen 2 | Allocated |
+|--------------------------- |---------:|----------:|----------:|------:|--------:|-------:|-------:|-------:|----------:|
+|                Encrypt_1KB | 1.416 us | 0.0049 us | 0.0043 us |  1.00 |    0.00 | 0.1144 |      - |      - |      1 KB |
+|                Encrypt_2KB | 1.766 us | 0.0063 us | 0.0059 us |  1.25 |    0.01 | 0.2136 |      - |      - |      2 KB |
+|                Encrypt_4KB | 2.448 us | 0.0117 us | 0.0110 us |  1.73 |    0.01 | 0.4082 |      - |      - |      4 KB |
+|                Encrypt_8KB | 3.682 us | 0.0113 us | 0.0106 us |  2.60 |    0.01 | 0.8011 |      - |      - |      8 KB |
+|        EncryptToStream_1KB | 2.128 us | 0.0400 us | 0.0428 us |  1.50 |    0.04 | 0.1526 | 0.0725 | 0.0038 |      2 KB |
+|        EncryptToStream_2KB | 2.506 us | 0.0501 us | 0.0557 us |  1.75 |    0.03 | 0.2480 | 0.1221 |      - |      3 KB |
+|        EncryptToStream_4KB | 3.276 us | 0.0134 us | 0.0118 us |  2.31 |    0.01 | 0.4463 | 0.2213 |      - |      5 KB |
+|        EncryptToStream_8KB | 4.730 us | 0.0907 us | 0.0848 us |  3.34 |    0.06 | 0.8392 | 0.4120 |      - |      9 KB |
+|                Decrypt_1KB | 1.205 us | 0.0035 us | 0.0033 us |  0.85 |    0.00 | 0.1125 |      - |      - |      1 KB |
+|                Decrypt_2KB | 1.520 us | 0.0059 us | 0.0049 us |  1.07 |    0.00 | 0.2098 |      - |      - |      2 KB |
+|                Decrypt_4KB | 2.151 us | 0.0063 us | 0.0059 us |  1.52 |    0.01 | 0.4044 |      - |      - |      4 KB |
+|                Decrypt_8KB | 3.383 us | 0.0082 us | 0.0076 us |  2.39 |    0.01 | 0.7973 |      - |      - |      8 KB |
+|        DecryptToStream_1KB | 1.894 us | 0.0372 us | 0.0470 us |  1.35 |    0.04 | 0.1488 | 0.0725 |      - |      2 KB |
+|        DecryptToStream_2KB | 2.294 us | 0.0421 us | 0.0374 us |  1.62 |    0.03 | 0.2480 | 0.1183 |      - |      3 KB |
+|        DecryptToStream_4KB | 2.983 us | 0.0099 us | 0.0077 us |  2.11 |    0.01 | 0.4425 | 0.2213 |      - |      5 KB |
+|        DecryptToStream_8KB | 4.347 us | 0.0417 us | 0.0326 us |  3.07 |    0.03 | 0.8392 | 0.4196 |      - |      9 KB |
+|       EncryptDecryptTo_8KB | 7.082 us | 0.0234 us | 0.0219 us |  5.00 |    0.02 | 1.5945 |      - |      - |     16 KB |
+| EncryptDecryptToStream_8KB | 9.144 us | 0.0543 us | 0.0481 us |  6.46 |    0.04 | 1.6785 | 0.5493 |      - |     17 KB |
 ```
 
 ### Older Reference Code

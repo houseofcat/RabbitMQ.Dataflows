@@ -56,51 +56,113 @@ namespace Benchmarks.Encryption
         }
 
         [Benchmark(Baseline = true)]
-        public void Encrypt1KBytes()
+        public void Encrypt_1KB()
         {
             EncryptionProvider.Encrypt(Payload1);
         }
 
         [Benchmark]
-        public void Encrypt2KBytes()
+        public void Encrypt_2KB()
         {
             EncryptionProvider.Encrypt(Payload2);
         }
 
         [Benchmark]
-        public void Encrypt4KBytes()
+        public void Encrypt_4KB()
         {
             EncryptionProvider.Encrypt(Payload3);
         }
 
         [Benchmark]
-        public void Encrypt8KBytes()
+        public void Encrypt_8KB()
         {
             EncryptionProvider.Encrypt(Payload4);
         }
 
         [Benchmark]
-        public void Decrypt1KBytes()
+        public void EncryptToStream_1KB()
+        {
+            EncryptionProvider.EncryptToStream(Payload1);
+        }
+
+        [Benchmark]
+        public void EncryptToStream_2KB()
+        {
+            EncryptionProvider.EncryptToStream(Payload2);
+        }
+
+        [Benchmark]
+        public void EncryptToStream_4KB()
+        {
+            EncryptionProvider.EncryptToStream(Payload3);
+        }
+
+        [Benchmark]
+        public void EncryptToStream_8KB()
+        {
+            EncryptionProvider.EncryptToStream(Payload4);
+        }
+
+        [Benchmark]
+        public void Decrypt_1KB()
         {
             EncryptionProvider.Decrypt(EncryptedPayload1);
         }
 
         [Benchmark]
-        public void Decrypt2KBytes()
+        public void Decrypt_2KB()
         {
             EncryptionProvider.Decrypt(EncryptedPayload2);
         }
 
         [Benchmark]
-        public void Decrypt4KBytes()
+        public void Decrypt_4KB()
         {
             EncryptionProvider.Decrypt(EncryptedPayload3);
         }
 
         [Benchmark]
-        public void Decrypt8KBytes()
+        public void Decrypt_8KB()
         {
             EncryptionProvider.Decrypt(EncryptedPayload4);
+        }
+
+        [Benchmark]
+        public void DecryptToStream_1KB()
+        {
+            EncryptionProvider.DecryptToStream(EncryptedPayload1);
+        }
+
+        [Benchmark]
+        public void DecryptToStream_2KB()
+        {
+            EncryptionProvider.DecryptToStream(EncryptedPayload2);
+        }
+
+        [Benchmark]
+        public void DecryptToStream_4KB()
+        {
+            EncryptionProvider.DecryptToStream(EncryptedPayload3);
+        }
+
+        [Benchmark]
+        public void DecryptToStream_8KB()
+        {
+            EncryptionProvider.DecryptToStream(EncryptedPayload4);
+        }
+
+        [Benchmark]
+        public void EncryptDecryptTo_8KB()
+        {
+            var encrypted = EncryptionProvider.Encrypt(Payload4);
+            var decrypted = EncryptionProvider.Decrypt(encrypted);
+        }
+
+        [Benchmark]
+        public void EncryptDecryptToStream_8KB()
+        {
+            var encryptedStream = EncryptionProvider.EncryptToStream(Payload4);
+            var decryptedStream = EncryptionProvider.Decrypt(encryptedStream);
         }
     }
 }

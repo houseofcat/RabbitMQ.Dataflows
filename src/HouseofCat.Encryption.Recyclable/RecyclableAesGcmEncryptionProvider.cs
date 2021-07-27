@@ -225,14 +225,35 @@ namespace HouseofCat.Encryption
             if (encryptedStream.Position == encryptedStream.Length) { encryptedStream.Seek(0, SeekOrigin.Begin); }
 
             using var aes = new AesGcm(_key);
-            using var binaryReader = new BinaryReader(encryptedStream);
 
-            var nonce = binaryReader.ReadBytes(AesGcm.NonceByteSizes.MaxSize);
-            var tag = binaryReader.ReadBytes(AesGcm.TagByteSizes.MaxSize);
-            var encryptedBytes = binaryReader.ReadBytes((int)binaryReader.BaseStream.Length - AesGcm.NonceByteSizes.MaxSize - AesGcm.TagByteSizes.MaxSize);
-            var decryptedBytes = new byte[encryptedBytes.Length];
+            var encryptedByteLength = (int)encryptedStream.Length - AesGcm.NonceByteSizes.MaxSize - AesGcm.TagByteSizes.MaxSize;
+            var encryptedBufferBytes = _pool.Rent(encryptedByteLength);
+            var tagBytes = _pool.Rent(AesGcm.TagByteSizes.MaxSize);
+            var nonceBytes = _pool.Rent(AesGcm.NonceByteSizes.MaxSize);
 
+            encryptedStream.Read(nonceBytes, 0, AesGcm.NonceByteSizes.MaxSize);
+            encryptedStream.Read(tagBytes, 0, AesGcm.TagByteSizes.MaxSize);
+            encryptedStream.Read(encryptedBufferBytes, 0, encryptedByteLength);
+
+            // Slicing Version
+            var nonce = nonceBytes
+                .AsSpan()
+                .Slice(0, AesGcm.NonceByteSizes.MaxSize);
+
+            var tag = tagBytes
+                .AsSpan()
+                .Slice(0, AesGcm.TagByteSizes.MaxSize);
+
+            var encryptedBytes = encryptedBufferBytes
+                .AsSpan()
+                .Slice(0, encryptedByteLength);
+
+            var decryptedBytes = new byte[encryptedByteLength];
             aes.Decrypt(nonce, encryptedBytes, tag, decryptedBytes);
+
+            _pool.Return(encryptedBufferBytes);
+            _pool.Return(tagBytes);
+            _pool.Return(nonceBytes);
 
             if (!leaveStreamOpen) { encryptedStream.Close(); }
 

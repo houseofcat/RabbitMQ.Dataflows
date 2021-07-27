@@ -185,7 +185,35 @@ namespace HouseofCat.Encryption
         {
             Guard.AgainstEmpty(unencryptedData, nameof(unencryptedData));
 
-            return new MemoryStream(Encrypt(unencryptedData).ToArray());
+            using var aes = new AesGcm(_key);
+
+            // Slicing Version
+            // Rented arrays sizes are minimums, not guarantees.
+            // Need to perform extra work managing slices to keep the byte sizes correct but the memory allocations are lower by 200%
+            var encryptedBytes = _pool.Rent(unencryptedData.Length);
+            var tag = _pool.Rent(AesGcm.TagByteSizes.MaxSize); // MaxSize = 16
+            var nonce = _pool.Rent(AesGcm.NonceByteSizes.MaxSize); // MaxSize = 12
+            _rng.GetBytes(nonce, 0, AesGcm.NonceByteSizes.MaxSize);
+
+            aes.Encrypt(
+                nonce.AsSpan().Slice(0, AesGcm.NonceByteSizes.MaxSize),
+                unencryptedData.Span,
+                encryptedBytes.AsSpan().Slice(0, unencryptedData.Length),
+                tag.AsSpan().Slice(0, AesGcm.TagByteSizes.MaxSize));
+
+            // Prefix ciphertext with nonce and tag, since they are fixed length and it will simplify decryption.
+            // Our pattern: Nonce Tag Cipher
+            // Other patterns people use: Nonce Cipher Tag // couldn't find a solid source.
+            var encryptedData = new byte[AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize + unencryptedData.Length];
+            Buffer.BlockCopy(nonce, 0, encryptedData, 0, AesGcm.NonceByteSizes.MaxSize);
+            Buffer.BlockCopy(tag, 0, encryptedData, AesGcm.NonceByteSizes.MaxSize, AesGcm.TagByteSizes.MaxSize);
+            Buffer.BlockCopy(encryptedBytes, 0, encryptedData, AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize, unencryptedData.Length);
+
+            _pool.Return(encryptedBytes);
+            _pool.Return(tag);
+            _pool.Return(nonce);
+
+            return new MemoryStream(encryptedData);
         }
 
         public ArraySegment<byte> Decrypt(ReadOnlyMemory<byte> encryptedData)
@@ -221,14 +249,35 @@ namespace HouseofCat.Encryption
             if (encryptedStream.Position == encryptedStream.Length) { encryptedStream.Seek(0, SeekOrigin.Begin); }
 
             using var aes = new AesGcm(_key);
-            using var binaryReader = new BinaryReader(encryptedStream);
 
-            var nonce = binaryReader.ReadBytes(AesGcm.NonceByteSizes.MaxSize);
-            var tag = binaryReader.ReadBytes(AesGcm.TagByteSizes.MaxSize);
-            var encryptedBytes = binaryReader.ReadBytes((int)binaryReader.BaseStream.Length - AesGcm.NonceByteSizes.MaxSize - AesGcm.TagByteSizes.MaxSize);
-            var decryptedBytes = new byte[encryptedBytes.Length];
+            var encryptedByteLength = (int)encryptedStream.Length - AesGcm.NonceByteSizes.MaxSize - AesGcm.TagByteSizes.MaxSize;
+            var encryptedBufferBytes = _pool.Rent(encryptedByteLength);
+            var tagBytes = _pool.Rent(AesGcm.TagByteSizes.MaxSize);
+            var nonceBytes = _pool.Rent(AesGcm.NonceByteSizes.MaxSize);
 
+            encryptedStream.Read(nonceBytes, 0, AesGcm.NonceByteSizes.MaxSize);
+            encryptedStream.Read(tagBytes, 0, AesGcm.TagByteSizes.MaxSize);
+            encryptedStream.Read(encryptedBufferBytes, 0, encryptedByteLength);
+
+            // Slicing Version
+            var nonce = nonceBytes
+                .AsSpan()
+                .Slice(0, AesGcm.NonceByteSizes.MaxSize);
+
+            var tag = tagBytes
+                .AsSpan()
+                .Slice(0, AesGcm.TagByteSizes.MaxSize);
+
+            var encryptedBytes = encryptedBufferBytes
+                .AsSpan()
+                .Slice(0, encryptedByteLength);
+
+            var decryptedBytes = new byte[encryptedByteLength];
             aes.Decrypt(nonce, encryptedBytes, tag, decryptedBytes);
+
+            _pool.Return(encryptedBufferBytes);
+            _pool.Return(tagBytes);
+            _pool.Return(nonceBytes);
 
             if (!leaveStreamOpen) { encryptedStream.Close(); }
 
@@ -239,7 +288,26 @@ namespace HouseofCat.Encryption
         {
             Guard.AgainstEmpty(encryptedData, nameof(encryptedData));
 
-            return new MemoryStream(Decrypt(encryptedData).ToArray());
+            using var aes = new AesGcm(_key);
+
+            // Slicing Version
+            var nonce = encryptedData
+                .Slice(0, AesGcm.NonceByteSizes.MaxSize)
+                .Span;
+
+            var tag = encryptedData
+                .Slice(AesGcm.NonceByteSizes.MaxSize, AesGcm.TagByteSizes.MaxSize)
+                .Span;
+
+            var encryptedBytes = encryptedData
+                .Slice(AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize)
+                .Span;
+
+            var decryptedBytes = new byte[encryptedBytes.Length];
+
+            aes.Decrypt(nonce, encryptedBytes, tag, decryptedBytes);
+
+            return new MemoryStream(decryptedBytes);
         }
     }
 }

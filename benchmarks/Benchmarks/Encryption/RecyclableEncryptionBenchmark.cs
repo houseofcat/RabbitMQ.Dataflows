@@ -1,7 +1,7 @@
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Diagnostics.Windows.Configs;
 using BenchmarkDotNet.Jobs;
 using HouseofCat.Encryption;
-using HouseofCat.Encryption.BouncyCastle;
 using HouseofCat.Hashing;
 using HouseofCat.Utilities.Random;
 using System.Threading.Tasks;
@@ -11,7 +11,7 @@ namespace Benchmarks.Encryption
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
     [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
-    public class BouncyEncryptBenchmark
+    public class RecyclableEncryptionBenchmark
     {
         private XorShift XorShift;
         private IHashingProvider HashProvider;
@@ -49,7 +49,7 @@ namespace Benchmarks.Encryption
                 .GetAwaiter()
                 .GetResult();
 
-            EncryptionProvider = new BouncyAesGcmEncryptionProvider(HashKey, HashProvider.Type);
+            EncryptionProvider = new RecyclableAesGcmEncryptionProvider(HashKey, HashProvider.Type);
             EncryptedPayload1 = EncryptionProvider.Encrypt(Payload1).ToArray();
             EncryptedPayload2 = EncryptionProvider.Encrypt(Payload2).ToArray();
             EncryptedPayload3 = EncryptionProvider.Encrypt(Payload3).ToArray();
