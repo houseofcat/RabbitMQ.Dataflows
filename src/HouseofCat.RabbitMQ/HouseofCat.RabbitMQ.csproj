@@ -1,17 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
-
   <PropertyGroup>
-    <Version>1.1.5</Version>
-    <AssemblyVersion>1.1.5</AssemblyVersion>
-    <FileVersion>1.1.5</FileVersion>
     <PackageTags>C# RabbitMQ Cooked Rabbit CookedRabbit NetCore HouseofCat</PackageTags>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="RabbitMQ.Client" Version="6.2.2" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
     <ProjectReference Include="..\HouseofCat.Dataflows\HouseofCat.Dataflows.csproj" />
@@ -21,5 +15,4 @@
     <ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
     <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
   </ItemGroup>
-
 </Project>

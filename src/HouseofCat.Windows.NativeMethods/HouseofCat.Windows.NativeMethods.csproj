@@ -2,9 +2,5 @@
   <Import Project="..\..\common.props" />
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net5.0-windows</TargetFrameworks>
-    <Version>1.0.2</Version>
-    <AssemblyVersion>1.0.2</AssemblyVersion>
-    <FileVersion>1.0.2</FileVersion>
-    <RootNamespace>HouseofCat.Windows</RootNamespace>
   </PropertyGroup>
 </Project>

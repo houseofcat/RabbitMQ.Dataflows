@@ -49,7 +49,7 @@ namespace HouseofCat.Compression
             throw new NotSupportedException();
         }
 
-        public unsafe ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
+        public ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
         {
             Guard.AgainstEmpty(compressedData, nameof(compressedData));
 

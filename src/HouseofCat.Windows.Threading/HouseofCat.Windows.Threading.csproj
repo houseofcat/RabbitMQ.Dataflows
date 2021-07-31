@@ -2,10 +2,6 @@
   <Import Project="..\..\common.props" />
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net5.0-windows</TargetFrameworks>
-    <Version>1.0.1</Version>
-    <AssemblyVersion>1.0.1</AssemblyVersion>
-    <FileVersion>1.0.1</FileVersion>
-    <RootNamespace>HouseofCat.Windows</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Windows.NativeMethods\HouseofCat.Windows.NativeMethods.csproj" />

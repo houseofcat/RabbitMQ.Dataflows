@@ -1,10 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
-  <PropertyGroup>
-    <Version>1.0.6</Version>
-    <AssemblyVersion>1.0.6</AssemblyVersion>
-    <FileVersion>1.0.6</FileVersion>
-  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Windows.Threading\HouseofCat.Windows.Threading.csproj" />
     <ProjectReference Include="..\HouseofCat.Windows.WMI\HouseofCat.Windows.WMI.csproj" />

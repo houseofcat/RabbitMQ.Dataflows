@@ -1,11 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
-  <PropertyGroup>
-    <Version>1.0.3</Version>
-    <AssemblyVersion>1.0.3</AssemblyVersion>
-    <FileVersion>1.0.3</FileVersion>
-    <RootNamespace>HouseofCat.Gremlins</RootNamespace>
-  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
   </ItemGroup>

@@ -1,10 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
-  <PropertyGroup>
-    <Version>1.1.6</Version>
-    <AssemblyVersion>1.1.6</AssemblyVersion>
-    <FileVersion>1.1.6</FileVersion>
-  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Dataflows.Pipelines\HouseofCat.Dataflows.Pipelines.csproj" />
     <ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
