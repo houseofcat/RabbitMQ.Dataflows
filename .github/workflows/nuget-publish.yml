@@ -9,6 +9,7 @@ on:
         default: 'warning'
       tags:
         description: 'Manual Publish'
+        required: true
   push:
     branches: [ 'nuget/publish' ]
   pull_request:
@@ -47,6 +48,12 @@ jobs:
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Compression.LZ4/HouseofCat.Compression.LZ4.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Compression.Recyclable
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Compression.Recyclable/HouseofCat.Compression.Recyclable.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Dapper
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -64,6 +71,18 @@ jobs:
       continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Dapper.SqlServer/HouseofCat.Dapper.SqlServer.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Data
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Data/HouseofCat.Data.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Data.Recyclable
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Data.Recylable/HouseofCat.Data.Recyclable.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Dataflows
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -88,6 +107,12 @@ jobs:
       continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.Encryption.BouncyCastle/HouseofCat.Encryption.BouncyCastle.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Encryption.Recyclable
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Encryption.Recyclable/HouseofCat.Encryption.Recyclable.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Extensions
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -208,6 +233,12 @@ jobs:
       continue-on-error: true
       with:
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.WorkState/HouseofCat.RabbitMQ.WorkState.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+    - name: Publish HouseofCat.Recyclable
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          PROJECT_FILE_PATH: src/HouseofCat.Recyclable/HouseofCat.Recyclable.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
     - name: Publish HouseofCat.Reflection
       uses: brandedoutcast/publish-nuget@v2.5.2

@@ -72,7 +72,7 @@ A library that has a collection of algorithms as I have time to learn and play w
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Compression.svg)](https://www.nuget.org/packages/HouseofCat.Compression/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Compression.svg)](https://www.nuget.org/packages/HouseofCat.Compression/)  
 
-A library that has a collection of builtin and 3rd party compression providers.  
+A library that has a collection of builtin NetCore compression providers.  
 
 
 ## HouseofCat.Compression.LZ4
@@ -80,6 +80,13 @@ A library that has a collection of builtin and 3rd party compression providers.
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Compression.LZ4.svg)](https://www.nuget.org/packages/HouseofCat.Compression.LZ4/)  
 
 A library that focuses on implementing the LZ4 compression provider.  
+
+
+## HouseofCat.Compression.Recyclable
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Compression.Recyclable.svg)](https://www.nuget.org/packages/HouseofCat.Compression.Recyclable/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Compression.Recyclable.svg)](https://www.nuget.org/packages/HouseofCat.Compression.Recyclable/)  
+
+A library that has a collection of builtin NetCore compression providers that uses object pools and RecyclableMemoryStreams. 
 
 
 ## HouseofCat.Dapper
@@ -103,6 +110,20 @@ A library that provides a standard System.Data.SqlClient implementation.
 A library that provides a standard Microsoft.Data.SqlClient implementation.  
 
 
+## HouseofCat.Data
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Data.svg)](https://www.nuget.org/packages/HouseofCat.Data/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Data.svg)](https://www.nuget.org/packages/HouseofCat.Data/)  
+
+A library that provides the provides helper classes for data manipulation and transformation. 
+
+
+## HouseofCat.Data.Recyclable
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Data.Recyclable.svg)](https://www.nuget.org/packages/HouseofCat.Data.Recyclable/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Data.Recyclable.svg)](https://www.nuget.org/packages/HouseofCat.Data.Recyclable/)  
+
+A library that provides the provides helper classes for data manipulation and transformation that uses object pooling and RecyclableMemoryStreams.
+
+
 ## HouseofCat.Dataflows
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.Dataflows/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.Dataflows/)  
@@ -121,7 +142,7 @@ A library that provides the base magic Pipelines for Tesseract.
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Encryption.svg)](https://www.nuget.org/packages/HouseofCat.Encryption/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Encryption.svg)](https://www.nuget.org/packages/HouseofCat.Encryption/)  
 
-A library that provides encryption contracts.  
+A library that provides encryption contracts and a base AesGCM NetCore provider. 
 
 
 ## HouseofCat.Encryption.BouncyCastle
@@ -129,6 +150,13 @@ A library that provides encryption contracts.
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Encryption.BouncyCastle.svg)](https://www.nuget.org/packages/HouseofCat.Encryption.BouncyCastle/)  
 
 A library that provides encryption from the BouncyCastle provider.  
+
+
+## HouseofCat.Encryption.Recyclable
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Encryption.Recyclable.svg)](https://www.nuget.org/packages/HouseofCat.Encryption.Recyclable/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Encryption.Recyclable.svg)](https://www.nuget.org/packages/HouseofCat.Encryption.Recyclable/)  
+
+A library that provides encryption from base AesGcm class in NetCore but with ArrayPools and RecyclableMemoryStreams.
 
 
 ## HouseofCat.Extensions
@@ -264,6 +292,13 @@ A library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio (SM
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.WorkState.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.WorkState/)  
 
 A library that creates the shared WorkState classes for HouseofCat.RabbitMQ.
+
+
+## HouseofCat.Recyclable
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Recyclable.svg)](https://www.nuget.org/packages/HouseofCat.Recyclable/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Recyclable.svg)](https://www.nuget.org/packages/HouseofCat.Recyclable/)  
+
+A library that focuses on Recyclable classes and pooling. 
 
 
 ## HouseofCat.Reflection
