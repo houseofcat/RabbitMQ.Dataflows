@@ -1,6 +1,4 @@
 ﻿using BenchmarkDotNet.Running;
-using Benchmarks.Compression;
-using Benchmarks.Compression.Recyclable;
 using Benchmarks.Encryption;
 using Benchmarks.Middleware;
 
@@ -62,12 +60,20 @@ namespace Benchmarks
             //        BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableAllocationBenchmark)),
             //    });
 
+            //BenchmarkRunner.Run(
+            //    new[]
+            //    {
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableTransformBenchmark)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableTransformBenchmark2)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableTransformBenchmark3)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableTransformBenchmark4)),
+            //    });
+
             BenchmarkRunner.Run(
                 new[]
                 {
-                    //BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableTransformBenchmark)),
-                    //BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableTransformBenchmark2)),
                     BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableTransformBenchmark3)),
+                    //BenchmarkConverter.TypeToBenchmarks(typeof(AllocationEncryptionBenchmark)),
                 });
         }
     }

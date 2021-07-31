@@ -1,5 +1,6 @@
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,15 +20,13 @@ namespace Encryption
         public EncryptionTests(ITestOutputHelper output)
         {
             _output = output;
-            _hashingProvider = new Argon2IDHasher();
+            _hashingProvider = new Argon2ID_HashingProvider();
         }
 
         [Fact]
-        public async Task Aes256_GCM()
+        public void Aes256_GCM()
         {
-            var hashKey = await _hashingProvider
-                .GetHashKeyAsync(Passphrase, Salt, 32)
-                .ConfigureAwait(false);
+            var hashKey = _hashingProvider.GetHashKey(Passphrase, Salt, 32);
 
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
@@ -77,11 +76,9 @@ namespace Encryption
         }
 
         [Fact]
-        public async Task Aes192_GCM()
+        public void Aes192_GCM()
         {
-            var hashKey = await _hashingProvider
-                .GetHashKeyAsync(Passphrase, Salt, 24)
-                .ConfigureAwait(false);
+            var hashKey = _hashingProvider.GetHashKey(Passphrase, Salt, 24);
 
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
@@ -101,8 +98,7 @@ namespace Encryption
         [Fact]
         public void Aes192_GCM_Stream()
         {
-            var hashKey = _hashingProvider
-                .GetHashKey(Passphrase, Salt, 24);
+            var hashKey = _hashingProvider.GetHashKey(Passphrase, Salt, 24);
 
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
@@ -132,11 +128,9 @@ namespace Encryption
         }
 
         [Fact]
-        public async Task Aes128_GCM()
+        public void Aes128_GCM()
         {
-            var hashKey = await _hashingProvider
-                .GetHashKeyAsync(Passphrase, Salt, 16)
-                .ConfigureAwait(false);
+            var hashKey = _hashingProvider.GetHashKey(Passphrase, Salt, 16);
 
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");

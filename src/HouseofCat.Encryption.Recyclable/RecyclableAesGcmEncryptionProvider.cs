@@ -1,4 +1,5 @@
-﻿using HouseofCat.Recyclable;
+﻿using HouseofCat.Extensions;
+using HouseofCat.Recyclable;
 using HouseofCat.Utilities.Errors;
 using Microsoft.Toolkit.HighPerformance;
 using System;
@@ -12,20 +13,20 @@ namespace HouseofCat.Encryption
 {
     public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
     {
+        public string Type { get; private set; }
+
         /// <summary>
         /// Safer way of generating random bytes.
         /// https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.rngcryptoserviceprovider?redirectedfrom=MSDN&view=net-5.0
         /// </summary>
         private readonly RNGCryptoServiceProvider _rng = new RNGCryptoServiceProvider();
-        private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Create();
+        private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
 
-        private readonly byte[] _key;
+        private readonly ReadOnlyMemory<byte> _key;
 
-        public string Type { get; private set; }
-
-        public RecyclableAesGcmEncryptionProvider(byte[] key, string hashType)
+        public RecyclableAesGcmEncryptionProvider(ReadOnlyMemory<byte> key, string hashType)
         {
-            Guard.AgainstNullOrEmpty(key, nameof(key));
+            Guard.AgainstEmpty(key, nameof(key));
 
             if (!Constants.Aes.ValidKeySizes.Contains(key.Length)) throw new ArgumentException("Keysize is an invalid length.");
             _key = key;
@@ -44,7 +45,7 @@ namespace HouseofCat.Encryption
         {
             Guard.AgainstEmpty(unencryptedData, nameof(unencryptedData));
 
-            using var aes = new AesGcm(_key);
+            using var aes = new AesGcm(_key.Span);
 
             // Slicing Version
             // Rented arrays sizes are minimums, not guarantees.
@@ -75,19 +76,14 @@ namespace HouseofCat.Encryption
             return encryptedData;
         }
 
-        public MemoryStream Encrypt(Stream unencryptedStream, bool leaveStreamOpen = false)
+        public MemoryStream Encrypt(MemoryStream unencryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
 
-            if (unencryptedStream.Position == unencryptedStream.Length) { unencryptedStream.Seek(0, SeekOrigin.Begin); }
-
-            using var aes = new AesGcm(_key);
+            using var aes = new AesGcm(_key.Span);
 
             var length = (int)unencryptedStream.Length;
-            var buffer = _pool.Rent(length);
-            var bytesRead = unencryptedStream.Read(buffer.AsSpan(0, length));
-
-            if (bytesRead == 0) throw new InvalidDataException();
+            (var buffer, var returnBuffer) = unencryptedStream.GetSafeBuffer(length);
 
             // Slicing Version
             // Rented arrays sizes are minimums, not guarantees.
@@ -117,7 +113,9 @@ namespace HouseofCat.Encryption
                 binaryWriter.Write(encryptedBytes, 0, length);
             }
 
-            _pool.Return(buffer);
+            if (returnBuffer)
+            { _pool.Return(buffer.Array); }
+
             _pool.Return(encryptedBytes);
             _pool.Return(tag);
             _pool.Return(nonce);
@@ -129,21 +127,14 @@ namespace HouseofCat.Encryption
             return encryptedStream;
         }
 
-        public async Task<MemoryStream> EncryptAsync(Stream unencryptedStream, bool leaveStreamOpen = false)
+        public async Task<MemoryStream> EncryptAsync(MemoryStream unencryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
 
-            if (unencryptedStream.Position == unencryptedStream.Length) { unencryptedStream.Seek(0, SeekOrigin.Begin); }
-
-            using var aes = new AesGcm(_key);
+            using var aes = new AesGcm(_key.Span);
 
             var length = (int)unencryptedStream.Length;
-            var buffer = _pool.Rent(length);
-            var bytesRead = await unencryptedStream
-                .ReadAsync(buffer.AsMemory(0, length))
-                .ConfigureAwait(false);
-
-            if (bytesRead == 0) throw new InvalidDataException();
+            (var buffer, var returnTobuffer) = await unencryptedStream.GetSafeBufferAsync(length);
 
             // Slicing Version
             // Rented arrays sizes are minimums, not guarantees.
@@ -155,7 +146,7 @@ namespace HouseofCat.Encryption
 
             aes.Encrypt(
                 nonce.AsSpan().Slice(0, AesGcm.NonceByteSizes.MaxSize),
-                buffer.AsSpan().Slice(0, length),
+                buffer.Slice(0, length),
                 encryptedBytes.AsSpan().Slice(0, length),
                 tag.AsSpan().Slice(0, AesGcm.TagByteSizes.MaxSize));
 
@@ -173,7 +164,9 @@ namespace HouseofCat.Encryption
                 binaryWriter.Write(encryptedBytes, 0, length);
             }
 
-            _pool.Return(buffer);
+            if (returnTobuffer)
+            { _pool.Return(buffer.Array); }
+            
             _pool.Return(encryptedBytes);
             _pool.Return(tag);
             _pool.Return(nonce);
@@ -196,7 +189,7 @@ namespace HouseofCat.Encryption
         {
             Guard.AgainstEmpty(encryptedData, nameof(encryptedData));
 
-            using var aes = new AesGcm(_key);
+            using var aes = new AesGcm(_key.Span);
 
             // Slicing Version
             var nonce = encryptedData
@@ -218,13 +211,13 @@ namespace HouseofCat.Encryption
             return decryptedBytes;
         }
 
-        public MemoryStream Decrypt(Stream encryptedStream, bool leaveStreamOpen = false)
+        public MemoryStream Decrypt(MemoryStream encryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(encryptedStream, nameof(encryptedStream));
 
             if (encryptedStream.Position == encryptedStream.Length) { encryptedStream.Seek(0, SeekOrigin.Begin); }
 
-            using var aes = new AesGcm(_key);
+            using var aes = new AesGcm(_key.Span);
 
             var encryptedByteLength = (int)encryptedStream.Length - AesGcm.NonceByteSizes.MaxSize - AesGcm.TagByteSizes.MaxSize;
             var encryptedBufferBytes = _pool.Rent(encryptedByteLength);

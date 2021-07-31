@@ -111,9 +111,9 @@ namespace HouseofCat.Data.Recyclable
             return SerializationProvider.Deserialize<TOut>(decompressStream);
         }
 
-        public TOut Restore<TOut>(Stream data)
+        public TOut Restore<TOut>(MemoryStream data)
         {
-            using var decryptedStream = EncryptionProvider.Decrypt(data);
+            using var decryptedStream = EncryptionProvider.Decrypt(data, false);
             using var decompressedStream = CompressionProvider.Decompress(decryptedStream, false);
             return SerializationProvider.Deserialize<TOut>(decompressedStream);
         }

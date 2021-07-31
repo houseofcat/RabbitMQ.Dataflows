@@ -1,4 +1,5 @@
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -16,7 +17,7 @@ namespace Hashing
         public HashingTests(ITestOutputHelper output)
         {
             _output = output;
-            _provider = new Argon2IDHasher();
+            _provider = new Argon2ID_HashingProvider();
         }
 
         [Fact]

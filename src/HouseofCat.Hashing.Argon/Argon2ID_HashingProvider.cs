@@ -3,28 +3,25 @@ using Konscious.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Hashing
+namespace HouseofCat.Hashing.Argon
 {
-    public class Argon2IDHasher : IHashingProvider
+    public class Argon2ID_HashingProvider : IHashingProvider
     {
-        private readonly ArgonHashOptions _options;
-
-        private readonly int _maxDoP;
+        private readonly int _degreesofParallelism;
         private readonly int _memorySize;
         private readonly int _iterations;
 
         public string Type { get; } = "ARGON2ID";
 
-        public Argon2IDHasher(ArgonHashOptions options = null)
+        public Argon2ID_HashingProvider(ArgonHashOptions options = null)
         {
-            _options = options;
-            _maxDoP = options?.DoP ?? Constants.Argon.DoP;
+            _degreesofParallelism = options?.DoP ?? Constants.Argon.DoP;
             _memorySize = options?.MemorySize ?? Constants.Argon.MemorySize;
             _iterations = options?.Iterations ?? Constants.Argon.Iterations;
         }
 
         /// <summary>
-        /// Create a Hash byte array using Argon2id.
+        /// Create a Hash byte array using Argon2ID.
         /// </summary>
         /// <param name="passphrase"></param>
         /// <param name="salt"></param>
@@ -87,7 +84,7 @@ namespace HouseofCat.Hashing
         {
             return new Argon2id(passphrase)
             {
-                DegreeOfParallelism = _maxDoP,
+                DegreeOfParallelism = _degreesofParallelism,
                 MemorySize = _memorySize,
                 Salt = salt,
                 Iterations = _iterations

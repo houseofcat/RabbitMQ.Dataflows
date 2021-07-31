@@ -1,4 +1,4 @@
-﻿namespace HouseofCat.Hashing
+﻿namespace HouseofCat.Hashing.Argon
 {
     public class ArgonHashOptions
     {

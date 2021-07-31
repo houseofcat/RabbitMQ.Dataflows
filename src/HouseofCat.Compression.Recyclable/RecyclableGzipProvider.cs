@@ -275,10 +275,10 @@ namespace HouseofCat.Compression
         private static int GetUncompressedLength(Stream stream)
         {
             // Anticipate the uncompressed length of GZip to get adequate sized buffers.
-            var size = new byte[4];
-            stream.Read(size, 0, 4);
+            Span<byte> uncompressedLength = stackalloc byte[4];
+            stream.Read(uncompressedLength);
             stream.Seek(0, SeekOrigin.Begin);
-            return BitConverter.ToInt32(size);
+            return BitConverter.ToInt32(uncompressedLength);
         }
     }
 }

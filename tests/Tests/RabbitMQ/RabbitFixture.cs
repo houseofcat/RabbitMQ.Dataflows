@@ -1,6 +1,7 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.RabbitMQ.Services;
@@ -32,8 +33,8 @@ namespace RabbitMQ
         public RabbitFixture()
         {
             CompressionProvider = new GzipProvider();
-            HashingProvider = new Argon2IDHasher();
-            HashKey = HashingProvider.GetHashKeyAsync(Passphrase, Salt, 32).GetAwaiter().GetResult();
+            HashingProvider = new Argon2ID_HashingProvider();
+            HashKey = HashingProvider.GetHashKey(Passphrase, Salt, 32);
             EncryptionProvider = new AesGcmEncryptionProvider(HashKey, HashingProvider.Type);
             SerializationProvider = new Utf8JsonProvider();
 

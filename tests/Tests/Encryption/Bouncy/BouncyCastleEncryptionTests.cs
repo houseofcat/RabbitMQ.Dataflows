@@ -1,5 +1,6 @@
 using HouseofCat.Encryption.BouncyCastle;
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace Encryption.BouncyCastle
         public BouncyCastleEncryptionTests(ITestOutputHelper output)
         {
             _output = output;
-            _hashingProvider = new Argon2IDHasher();
+            _hashingProvider = new Argon2ID_HashingProvider();
         }
 
 

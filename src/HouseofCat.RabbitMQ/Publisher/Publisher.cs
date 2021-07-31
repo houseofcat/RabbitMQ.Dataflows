@@ -60,6 +60,7 @@ namespace HouseofCat.RabbitMQ
         Task PublishManyAsBatchAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true);
         Task PublishManyAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true);
         ValueTask QueueMessageAsync(IMessage message);
+        void StartAutoPublish(Func<IPublishReceipt, ValueTask> processReceiptAsync = null);
         Task StartAutoPublishAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null);
         Task StopAutoPublishAsync(bool immediately = false);
     }
@@ -151,31 +152,41 @@ namespace HouseofCat.RabbitMQ
             _waitForConfirmation = TimeSpan.FromMilliseconds(Options.PublisherOptions.WaitForConfirmationTimeoutInMilliseconds);
         }
 
+        public void StartAutoPublish(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
+        {
+            _pubLock.Wait();
+
+            try { SetupPublisher(processReceiptAsync); }
+            finally { _pubLock.Release(); }
+        }
+
         public async Task StartAutoPublishAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
         {
             await _pubLock.WaitAsync().ConfigureAwait(false);
 
-            try
-            {
-                _messageQueue = Channel.CreateBounded<IMessage>(
-                    new BoundedChannelOptions(Options.PublisherOptions.LetterQueueBufferSize)
-                    {
-                        FullMode = Options.PublisherOptions.BehaviorWhenFull
-                    });
-
-                _publishingTask = ProcessMessagesAsync(_messageQueue.Reader);
-
-                if (processReceiptAsync == null)
-                { processReceiptAsync = ProcessReceiptAsync; }
-
-                if (_processReceiptsAsync == null)
-                {
-                    _processReceiptsAsync = ProcessReceiptsAsync(processReceiptAsync);
-                }
-
-                AutoPublisherStarted = true;
-            }
+            try { SetupPublisher(processReceiptAsync); }
             finally { _pubLock.Release(); }
+        }
+
+        private void SetupPublisher(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
+        {
+            _messageQueue = Channel.CreateBounded<IMessage>(
+            new BoundedChannelOptions(Options.PublisherOptions.LetterQueueBufferSize)
+            {
+                FullMode = Options.PublisherOptions.BehaviorWhenFull
+            });
+
+            _publishingTask = ProcessMessagesAsync(_messageQueue.Reader);
+
+            if (processReceiptAsync == null)
+            { processReceiptAsync = ProcessReceiptAsync; }
+
+            if (_processReceiptsAsync == null)
+            {
+                _processReceiptsAsync = ProcessReceiptsAsync(processReceiptAsync);
+            }
+
+            AutoPublisherStarted = true;
         }
 
         public async Task StopAutoPublishAsync(bool immediately = false)

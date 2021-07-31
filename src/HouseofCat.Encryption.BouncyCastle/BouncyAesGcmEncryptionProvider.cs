@@ -54,7 +54,7 @@ namespace HouseofCat.Encryption.BouncyCastle
             return EncryptToStream(unencryptedData).ToArray();
         }
 
-        public MemoryStream Encrypt(Stream unencryptedStream, bool leaveStreamOpen = false)
+        public MemoryStream Encrypt(MemoryStream unencryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
 
@@ -92,7 +92,7 @@ namespace HouseofCat.Encryption.BouncyCastle
             return encryptedStream;
         }
 
-        public async Task<MemoryStream> EncryptAsync(Stream unencryptedStream, bool leaveStreamOpen = false)
+        public async Task<MemoryStream> EncryptAsync(MemoryStream unencryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
 
@@ -178,7 +178,7 @@ namespace HouseofCat.Encryption.BouncyCastle
             return plainText;
         }
 
-        public MemoryStream Decrypt(Stream encryptedStream, bool leaveStreamOpen = false)
+        public MemoryStream Decrypt(MemoryStream encryptedStream, bool leaveStreamOpen = false)
         {
             Guard.AgainstNullOrEmpty(encryptedStream, nameof(encryptedStream));
 
