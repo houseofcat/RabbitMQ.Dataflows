@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <!-- Global Version -->
+    <Version>1.2.0</Version>
+    <AssemblyVersion>1.2.0</AssemblyVersion>
+    <FileVersion>1.2.0</FileVersion>
+  </PropertyGroup>
+</Project>

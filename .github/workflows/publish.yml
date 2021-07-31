@@ -39,7 +39,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Algorithms/HouseofCat.Algorithms.csproj   
           
     - name: Publish HouseofCat.Compression
@@ -47,7 +47,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Compression/HouseofCat.Compression.csproj
 
     - name: Publish HouseofCat.Compression.LZ4
@@ -55,7 +55,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Compression.LZ4/HouseofCat.Compression.LZ4.csproj
 
     - name: Publish HouseofCat.Compression.Recyclable
@@ -63,7 +63,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Compression.Recyclable/HouseofCat.Compression.Recyclable.csproj
 
     - name: Publish HouseofCat.Dapper
@@ -71,7 +71,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Dapper/HouseofCat.Dapper.csproj
 
     - name: Publish HouseofCat.Dapper.LegacySqlServer
@@ -79,7 +79,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Dapper.LegacySqlServer/HouseofCat.Dapper.LegacySqlServer.csproj
 
     - name: Publish HouseofCat.Dapper.SqlServer
@@ -87,7 +87,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Dapper.SqlServer/HouseofCat.Dapper.SqlServer.csproj
 
     - name: Publish HouseofCat.Data
@@ -95,7 +95,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Data/HouseofCat.Data.csproj
 
     - name: Publish HouseofCat.Data.Recyclable
@@ -103,7 +103,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Data.Recylable/HouseofCat.Data.Recyclable.csproj
 
     - name: Publish HouseofCat.Dataflows
@@ -111,7 +111,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Dataflows/HouseofCat.Dataflows.csproj
 
     - name: Publish HouseofCat.Dataflows.Pipelines
@@ -119,7 +119,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Dataflows.Pipelines/HouseofCat.Dataflows.Pipelines.csproj
 
     - name: Publish HouseofCat.Encryption
@@ -127,7 +127,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Encryption/HouseofCat.Encryption.csproj
 
     - name: Publish HouseofCat.Encryption.BouncyCastle
@@ -135,7 +135,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Encryption.BouncyCastle/HouseofCat.Encryption.BouncyCastle.csproj
 
     - name: Publish HouseofCat.Encryption.Recyclable
@@ -143,7 +143,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Encryption.Recyclable/HouseofCat.Encryption.Recyclable.csproj
 
     - name: Publish HouseofCat.Extensions
@@ -158,7 +158,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Extensions.Dataflows/HouseofCat.Extensions.Dataflows.csproj
 
     - name: Publish HouseofCat.Extensions.Host.SerilogSqlServer
@@ -166,7 +166,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Extensions.Host.Serilog/HouseofCat.Extensions.Host.Serilog.csproj
 
     - name: Publish HouseofCat.Framing
@@ -174,7 +174,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Framing/HouseofCat.Framing.csproj
 
     - name: Publish HouseofCat.Gremlins
@@ -182,7 +182,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Gremlins/HouseofCat.Gremlins.csproj
 
     - name: Publish HouseofCat.Gremlins.SqlServer
@@ -190,7 +190,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Gremlins.SqlServer/HouseofCat.Gremlins.SqlServer.csproj
 
     - name: Publish HouseofCat.Hashing
@@ -198,7 +198,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Hashing/HouseofCat.Hashing.csproj
 
     - name: Publish HouseofCat.Hashing.Argon
@@ -206,7 +206,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Hashing.Argon/HouseofCat.Hashing.Argon.csproj
 
     - name: Publish HouseofCat.Logger
@@ -220,7 +220,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Metrics/HouseofCat.Metrics.csproj
 
     - name: Publish HouseofCat.Metrics.Prometheus
@@ -234,7 +234,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Network/HouseofCat.Network.csproj
 
     - name: Publish HouseofCat.RabbitMQ
@@ -249,7 +249,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Dataflows/HouseofCat.RabbitMQ.Dataflows.csproj
 
     - name: Publish HouseofCat.RabbitMQ.Pipelines
@@ -257,7 +257,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Pipelines/HouseofCat.RabbitMQ.Pipelines.csproj
 
     - name: Publish HouseofCat.RabbitMQ.Services
@@ -271,7 +271,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Services.Mailkit/HouseofCat.RabbitMQ.Services.Mailkit.csproj
 
     - name: Publish HouseofCat.RabbitMQ.Services.Twilio
@@ -279,7 +279,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Services.Twilio/HouseofCat.RabbitMQ.Services.Twilio.csproj
 
     - name: Publish HouseofCat.RabbitMQ.WorkState
@@ -287,7 +287,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.WorkState/HouseofCat.RabbitMQ.WorkState.csproj
 
     - name: Publish HouseofCat.Recyclable
@@ -295,7 +295,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Recyclable/HouseofCat.Recyclable.csproj
 
     - name: Publish HouseofCat.Reflection
@@ -303,7 +303,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Reflection/HouseofCat.Reflection.csproj
 
     - name: Publish HouseofCat.Serialization
@@ -311,7 +311,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Serialization/HouseofCat.Serialization.csproj
 
     - name: Publish HouseofCat.Serialization.Json.Newtonsoft
@@ -319,7 +319,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Serialization.Json.Newtonsoft/HouseofCat.Serialization.Json.Newtonsoft.csproj
 
     - name: Publish HouseofCat.Serialization.Json.Utf8Json
@@ -327,7 +327,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Serialization.Json.Utf8Json/HouseofCat.Serialization.Json.Utf8Json.csproj
 
     - name: Publish HouseofCat.Serialization.MessagePack
@@ -335,7 +335,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Serialization.MessagePack/HouseofCat.Serialization.MessagePack.csproj
 
     - name: Publish HouseofCat.Sockets
@@ -343,7 +343,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Sockets/HouseofCat.Sockets.csproj
 
     - name: Publish HouseofCat.Sockets.Utf8Json
@@ -357,7 +357,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Utilities/HouseofCat.Utilities.csproj
 
     - name: Publish HouseofCat.Windows.Keyboard
@@ -371,7 +371,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Windows.NativeMethods/HouseofCat.Windows.NativeMethods.csproj
 
     - name: Publish HouseofCat.Windows.Threading
@@ -379,7 +379,7 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Windows.Threading/HouseofCat.Windows.Threading.csproj
 
     - name: Publish HouseofCat.Windows.WMI
@@ -387,5 +387,5 @@ jobs:
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: ../../common.props
+          VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Windows.WMI/HouseofCat.Windows.WMI.csproj

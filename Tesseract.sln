@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.github\workflows\master-build.yml = .github\workflows\master-build.yml
 		.github\workflows\publish.yml = .github\workflows\publish.yml
 		README.md = README.md
+		version.props = version.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4FCA30F5-D19B-4756-BC68-6BA7E668F786}"
