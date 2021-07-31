@@ -4,6 +4,7 @@ using HouseofCat.Compression;
 using HouseofCat.Data.Recyclable;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using HouseofCat.Serialization;
 using System;
 using System.Linq;
@@ -37,11 +38,8 @@ namespace Benchmarks.Middleware
 
             MyClass.ByteData = _data;
 
-            var hashingProvider = new Argon2IDHasher();
-            var hashKey = hashingProvider
-                .GetHashKeyAsync(Passphrase, Salt, 32)
-                .GetAwaiter()
-                .GetResult();
+            var hashingProvider = new Argon2ID_HashingProvider();
+            var hashKey = hashingProvider.GetHashKey(Passphrase, Salt, 32);
 
             _middleware = new RecyclableTransformer(
                 new Utf8JsonProvider(),

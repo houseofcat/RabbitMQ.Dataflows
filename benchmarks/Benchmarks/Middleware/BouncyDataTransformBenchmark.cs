@@ -6,6 +6,7 @@ using HouseofCat.Dataflows;
 using HouseofCat.Encryption;
 using HouseofCat.Encryption.BouncyCastle;
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Time;
 using System;
@@ -42,11 +43,8 @@ namespace Benchmarks.Middleware
 
             MyClass.ByteData = _data;
 
-            var hashingProvider = new Argon2IDHasher();
-            var hashKey = hashingProvider
-                .GetHashKeyAsync(Passphrase, Salt, 32)
-                .GetAwaiter()
-                .GetResult();
+            var hashingProvider = new Argon2ID_HashingProvider();
+            var hashKey = hashingProvider.GetHashKey(Passphrase, Salt, 32);
 
             _middleware = new DataTransformer(
                 new Utf8JsonProvider(),

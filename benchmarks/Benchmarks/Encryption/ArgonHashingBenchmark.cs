@@ -2,6 +2,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using HouseofCat.Utilities.Random;
 using System.Threading.Tasks;
 
@@ -22,7 +23,7 @@ namespace Benchmarks.Encryption
         [GlobalSetup]
         public void Setup()
         {
-            HashProvider = new Argon2IDHasher();
+            HashProvider = new Argon2ID_HashingProvider();
         }
 
         [Benchmark(Baseline = true)]

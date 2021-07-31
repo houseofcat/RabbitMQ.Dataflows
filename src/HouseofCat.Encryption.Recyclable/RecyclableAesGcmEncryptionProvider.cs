@@ -15,10 +15,6 @@ namespace HouseofCat.Encryption
     {
         public string Type { get; private set; }
 
-        /// <summary>
-        /// Safer way of generating random bytes.
-        /// https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.rngcryptoserviceprovider?redirectedfrom=MSDN&view=net-5.0
-        /// </summary>
         private readonly RNGCryptoServiceProvider _rng = new RNGCryptoServiceProvider();
         private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
 
@@ -33,12 +29,12 @@ namespace HouseofCat.Encryption
 
             switch (_key.Length)
             {
-                case 16: Type = "AES128"; break;
-                case 24: Type = "AES192"; break;
-                case 32: Type = "AES256"; break;
+                case 16: Type = "AESGCM_128"; break;
+                case 24: Type = "AESGCM_192"; break;
+                case 32: Type = "AESGCM_256"; break;
             }
 
-            if (!string.IsNullOrWhiteSpace(hashType)) { Type = $"{hashType}-{Type}"; }
+            if (!string.IsNullOrWhiteSpace(hashType)) { Type = $"HOC_{hashType}-{Type}"; }
         }
 
         public ArraySegment<byte> Encrypt(ReadOnlyMemory<byte> unencryptedData)

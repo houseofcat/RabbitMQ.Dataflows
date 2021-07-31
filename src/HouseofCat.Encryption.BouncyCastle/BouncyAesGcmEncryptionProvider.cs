@@ -14,35 +14,36 @@ namespace HouseofCat.Encryption.BouncyCastle
 {
     public class BouncyAesGcmEncryptionProvider : IEncryptionProvider
     {
+        public string Type { get; private set; }
+
         /// <summary>
         /// Safer way of generating random bytes.
         /// https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.rngcryptoserviceprovider?redirectedfrom=MSDN&view=net-5.0
         /// </summary>
         private readonly RNGCryptoServiceProvider _rng = new RNGCryptoServiceProvider();
-        private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Create();
+        private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
         private readonly AesEncryptionOptions _options;
 
         private readonly KeyParameter _keyParameter;
         private readonly int _macBitSize;
         private readonly int _nonceSize;
-        public string Type { get; private set; }
 
-        public BouncyAesGcmEncryptionProvider(byte[] key, string hashType, AesEncryptionOptions options = null)
+        public BouncyAesGcmEncryptionProvider(ReadOnlyMemory<byte> key, string hashType, AesEncryptionOptions options = null)
         {
-            Guard.AgainstNullOrEmpty(key, nameof(key));
+            Guard.AgainstEmpty(key, nameof(key));
 
             if (!Constants.Aes.ValidKeySizes.Contains(key.Length)) throw new ArgumentException("Keysize is an invalid length.");
 
             _options = options;
-            _keyParameter = new KeyParameter(key);
+            _keyParameter = new KeyParameter(key.ToArray());
             _macBitSize = _options?.MacBitSize ?? Constants.Aes.MacBitSize;
             _nonceSize = _options?.NonceSize ?? Constants.Aes.NonceSize;
 
             switch (key.Length)
             {
-                case 16: Type = "AES128"; break;
-                case 24: Type = "AES192"; break;
-                case 32: Type = "AES256"; break;
+                case 16: Type = "BC_AESGCM_128"; break;
+                case 24: Type = "BC_AESGCM_192"; break;
+                case 32: Type = "BC_AESGCM_256"; break;
             }
 
             if (!string.IsNullOrWhiteSpace(hashType)) { Type = $"{hashType}-{Type}"; }

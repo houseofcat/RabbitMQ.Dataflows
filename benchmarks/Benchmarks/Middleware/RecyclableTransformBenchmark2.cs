@@ -6,6 +6,7 @@ using HouseofCat.Data.Recyclable;
 using HouseofCat.Dataflows;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using HouseofCat.Recyclable;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Time;
@@ -42,7 +43,7 @@ namespace Benchmarks.Middleware
 
             MyClass.ByteData = _data;
 
-            var hashingProvider = new Argon2IDHasher();
+            var hashingProvider = new Argon2ID_HashingProvider();
             var hashKey = hashingProvider.GetHashKey(Passphrase, Salt, 32);
 
             RecyclableManager.ConfigureNewStaticManagerWithDefaults();

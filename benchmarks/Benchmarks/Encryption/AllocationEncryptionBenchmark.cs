@@ -3,6 +3,7 @@ using BenchmarkDotNet.Diagnostics.Windows.Configs;
 using BenchmarkDotNet.Jobs;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using HouseofCat.Recyclable;
 using HouseofCat.Utilities.Random;
 using System.Threading.Tasks;
@@ -35,7 +36,7 @@ namespace Benchmarks.Encryption
             XorShift = new XorShift(true);
             Payload = XorShift.GetRandomBytes(1024);
 
-            HashProvider = new Argon2IDHasher();
+            HashProvider = new Argon2ID_HashingProvider();
 
             HashKey = HashProvider.GetHashKey(Passphrase, Salt, KeySize);
 

@@ -2,6 +2,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using HouseofCat.Utilities.Random;
 using System.Threading.Tasks;
 
@@ -41,12 +42,9 @@ namespace Benchmarks.Encryption
             Payload3 = XorShift.GetRandomBytes(4096);
             Payload4 = XorShift.GetRandomBytes(8192);
 
-            HashProvider = new Argon2IDHasher();
+            HashProvider = new Argon2ID_HashingProvider();
 
-            HashKey = HashProvider
-                .GetHashKeyAsync(Passphrase, Salt, KeySize)
-                .GetAwaiter()
-                .GetResult();
+            HashKey = HashProvider.GetHashKey(Passphrase, Salt, KeySize);
 
             EncryptionProvider = new AesGcmEncryptionProvider(HashKey, HashProvider.Type);
             EncryptedPayload1 = EncryptionProvider.Encrypt(Payload1).ToArray();

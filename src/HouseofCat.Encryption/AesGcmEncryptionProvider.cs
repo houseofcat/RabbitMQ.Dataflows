@@ -35,12 +35,12 @@ namespace HouseofCat.Encryption
 
             switch (_key.Length)
             {
-                case 16: Type = "AES128"; break;
-                case 24: Type = "AES192"; break;
-                case 32: Type = "AES256"; break;
+                case 16: Type = "AESGCM_128"; break;
+                case 24: Type = "AESGCM_192"; break;
+                case 32: Type = "AESGCM_256"; break;
             }
 
-            if (!string.IsNullOrWhiteSpace(hashType)) { Type = $"{hashType}-{Type}"; }
+            if (!string.IsNullOrWhiteSpace(hashType)) { Type = $"HOC_{hashType}_{Type}"; }
         }
 
         public ArraySegment<byte> Encrypt(ReadOnlyMemory<byte> unencryptedData)
