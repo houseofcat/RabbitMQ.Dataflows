@@ -150,8 +150,9 @@ jobs:
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
-          PROJECT_FILE_PATH: src/HouseofCat.Extensions/HouseofCat.Extensions.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_FILE_PATH: version.props
+          PROJECT_FILE_PATH: src/HouseofCat.Extensions/HouseofCat.Extensions.csproj
     
     - name: Publish HouseofCat.Extensions.Dataflows
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -213,8 +214,10 @@ jobs:
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
-          PROJECT_FILE_PATH: src/HouseofCat.Logger/HouseofCat.Logger.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_FILE_PATH: version.props
+          PROJECT_FILE_PATH: src/HouseofCat.Logger/HouseofCat.Logger.csproj
+
     - name: Publish HouseofCat.Metrics
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -227,8 +230,10 @@ jobs:
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
-          PROJECT_FILE_PATH: src/HouseofCat.Metrics.Prometheus/HouseofCat.Metrics.Prometheus.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_FILE_PATH: version.props
+          PROJECT_FILE_PATH: src/HouseofCat.Metrics.Prometheus/HouseofCat.Metrics.Prometheus.csproj
+
     - name: Publish HouseofCat.Network
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -241,8 +246,9 @@ jobs:
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
-          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ/HouseofCat.RabbitMQ.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_FILE_PATH: version.props
+          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ/HouseofCat.RabbitMQ.csproj
 
     - name: Publish HouseofCat.RabbitMQ.Dataflows
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -264,8 +270,10 @@ jobs:
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
-          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Services/HouseofCat.RabbitMQ.Services.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_FILE_PATH: version.props
+          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Services/HouseofCat.RabbitMQ.Services.csproj
+
     - name: Publish HouseofCat.RabbitMQ.Services.Mailkit
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -350,8 +358,10 @@ jobs:
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
-          PROJECT_FILE_PATH: src/HouseofCat.Sockets.Utf8Json/HouseofCat.Sockets.Utf8Json.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_FILE_PATH: version.props
+          PROJECT_FILE_PATH: src/HouseofCat.Sockets.Utf8Json/HouseofCat.Sockets.Utf8Json.csproj
+
     - name: Publish HouseofCat.Utilities
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -364,8 +374,10 @@ jobs:
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
-          PROJECT_FILE_PATH: src/HouseofCat.Windows.Keyboard/HouseofCat.Windows.Keyboard.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_FILE_PATH: version.props
+          PROJECT_FILE_PATH: src/HouseofCat.Windows.Keyboard/HouseofCat.Windows.Keyboard.csproj
+
     - name: Publish HouseofCat.Windows.NativeMethods
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
