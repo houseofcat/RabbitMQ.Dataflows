@@ -104,7 +104,7 @@ jobs:
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Data.Recylable/HouseofCat.Data.Recyclable.csproj
+          PROJECT_FILE_PATH: src/HouseofCat.Data.Recyclable/HouseofCat.Data.Recyclable.csproj
 
     - name: Publish HouseofCat.Dataflows
       uses: brandedoutcast/publish-nuget@v2.5.2
