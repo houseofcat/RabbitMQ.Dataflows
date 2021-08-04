@@ -31,8 +31,7 @@ namespace ConsumerDataflowMetrics
 
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
 
-            var metricsProvider = new PrometheusMetricsProvider()
-                .AddDotNetRuntimeStats();
+            var metricsProvider = new PrometheusMetricsProvider();
 
             var serializationProvider = new Utf8JsonProvider();
             var hashingProvider = new Argon2IDHasher();
