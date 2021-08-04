@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Running;
 using Benchmarks.Encryption;
 using Benchmarks.Middleware;
+using Benchmarks.Misc;
 
 namespace Benchmarks
 {
@@ -69,11 +70,17 @@ namespace Benchmarks
             //        BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableTransformBenchmark4)),
             //    });
 
+            //BenchmarkRunner.Run(
+            //    new[]
+            //    {
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableTransformBenchmark3)),
+            //        BenchmarkConverter.TypeToBenchmarks(typeof(AllocationEncryptionBenchmark)),
+            //    });
+
             BenchmarkRunner.Run(
                 new[]
                 {
-                    BenchmarkConverter.TypeToBenchmarks(typeof(RecyclableTransformBenchmark3)),
-                    //BenchmarkConverter.TypeToBenchmarks(typeof(AllocationEncryptionBenchmark)),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(ChannelBufferBenchmark)),
                 });
         }
     }
