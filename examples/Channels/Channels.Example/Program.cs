@@ -15,11 +15,11 @@ namespace Channels.Example
         {
             await Console.Out.WriteLineAsync("Channel Example says Hello!");
 
-            //var writer = Task.Run(WriteDataAsync);
-            //var reader = Task.Run(ReadDataAsync);
+            var writer = Task.Run(WriteDataAsync);
+            var reader = Task.Run(ReadDataAsync);
 
-            //await writer;
-            //await reader;
+            await writer;
+            await reader;
 
             await Console.Out.WriteLineAsync("We are finished with Channel! Starting BufferBlock...");
 
