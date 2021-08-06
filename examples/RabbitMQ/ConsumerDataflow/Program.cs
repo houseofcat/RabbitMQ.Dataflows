@@ -1,6 +1,7 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using HouseofCat.Metrics;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Dataflows;
@@ -104,7 +105,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel));
             _logger = loggerFactory.CreateLogger<ConsumerDataflow<WorkState>>();
 
-            _hashingProvider = new Argon2IDHasher();
+            _hashingProvider = new Argon2ID_HashingProvider();
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
             _metricsProvider = new NullMetricsProvider();

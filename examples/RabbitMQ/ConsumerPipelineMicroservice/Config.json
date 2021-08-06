@@ -96,7 +96,7 @@
   "ConsumerOptions": {
     "ConsumerFromConfig": {
       "Enabled": true,
-      "GlobalSettings": "AggressiveSettings",
+      "GlobalSettings": "ModerateSettings",
       "ConsumerName": "ConsumerFromConfig",
       "QueueName": "TestRabbitServiceQueue"
     }

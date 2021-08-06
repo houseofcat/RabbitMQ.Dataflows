@@ -79,7 +79,7 @@
     },
     "SingleThreaded": {
       "ErrorSuffix": "Error",
-      "BatchSize": 1,
+      "BatchSize": 32,
       "BehaviorWhenFull": 0,
       "SleepOnIdleInterval": 0,
       "UseTransientChannels": true,
@@ -96,7 +96,7 @@
   "ConsumerOptions": {
     "ConsumerFromConfig": {
       "Enabled": true,
-      "GlobalSettings": "LightSettings",
+      "GlobalSettings": "SingleThreaded",
       "ConsumerName": "ConsumerFromConfig",
       "QueueName": "TestRabbitServiceQueue"
     }

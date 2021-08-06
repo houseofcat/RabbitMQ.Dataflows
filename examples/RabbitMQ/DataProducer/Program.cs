@@ -1,6 +1,7 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
@@ -18,7 +19,7 @@ namespace Examples.RabbitMQ.DataProducer
         private static IEncryptionProvider _encryptionProvider;
         private static IRabbitService _rabbitService;
 
-        public static long GlobalCount = 1_000_000;
+        public static long GlobalCount = 500_000;
         public static LogLevel LogLevel = LogLevel.Information;
 
         public static async Task Main()
@@ -47,7 +48,7 @@ namespace Examples.RabbitMQ.DataProducer
         {
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel));
 
-            _hashingProvider = new Argon2IDHasher();
+            _hashingProvider = new Argon2ID_HashingProvider();
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
             _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
@@ -74,8 +75,9 @@ namespace Examples.RabbitMQ.DataProducer
             for (var i = 0L; i < GlobalCount; i++)
             {
                 var letter = letterTemplate.Clone();
-                letter.Body = _serializationProvider.Serialize(new Message { StringMessage = $"Sensitive ReceivedLetter {i}", MessageId = i });
                 letter.MessageId = Guid.NewGuid().ToString();
+                letter.Body = _serializationProvider.Serialize(new Message { StringMessage = $"Sensitive ReceivedLetter {i}", MessageId = letter.MessageId });
+
                 await _rabbitService
                     .Publisher
                     .QueueMessageAsync(letter)
@@ -85,7 +87,7 @@ namespace Examples.RabbitMQ.DataProducer
 
         public class Message
         {
-            public long MessageId { get; set; }
+            public string MessageId { get; set; }
             public string StringMessage { get; set; }
         }
     }

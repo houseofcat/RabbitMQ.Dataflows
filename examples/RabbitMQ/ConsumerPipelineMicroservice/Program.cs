@@ -2,6 +2,7 @@
 using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.RabbitMQ.Services;
@@ -21,16 +22,16 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
     public static class Program
     {
         public static Stopwatch Stopwatch;
-        public static LogLevel LogLevel = LogLevel.Information;
-        public static long GlobalCount = 10000;
+        public static LogLevel LogLevel = LogLevel.Error;
+        public static long GlobalCount = 200_000;
         public static bool EnsureOrdered = false; // use with simulate IO delay to determine if ensuring order is causing delays
-        public static bool SimulateIODelay = false;
+        public static bool SimulateIODelay = true;
         public static int MinIODelay = 50;
         public static int MaxIODelay = 100;
         public static bool AwaitShutdown = true;
         public static bool LogOutcome = false;
         public static bool UseStreamPipeline = false;
-        public static int MaxDoP = 16;
+        public static int MaxDoP = 64;
         public static Random Rand = new Random();
 
         public static async Task Main()
@@ -107,7 +108,7 @@ namespace Examples.RabbitMQ.ConsumerPipelineMicroservice
 
         private async Task<RabbitService> SetupAsync()
         {
-            _hashingProvider = new Argon2IDHasher();
+            _hashingProvider = new Argon2ID_HashingProvider();
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
             _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);

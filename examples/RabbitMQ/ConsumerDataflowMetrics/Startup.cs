@@ -1,7 +1,7 @@
 using ConsumerDataflowMetrics.Services;
 using HouseofCat.Compression;
 using HouseofCat.Encryption;
-using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using HouseofCat.Metrics;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
@@ -34,7 +34,7 @@ namespace ConsumerDataflowMetrics
             var metricsProvider = new PrometheusMetricsProvider();
 
             var serializationProvider = new Utf8JsonProvider();
-            var hashingProvider = new Argon2IDHasher();
+            var hashingProvider = new Argon2ID_HashingProvider();
             var hashKey = hashingProvider
                 .GetHashKeyAsync("passwordforencryption", "saltforencryption", 32)
                 .GetAwaiter()

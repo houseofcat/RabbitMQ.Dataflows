@@ -25,9 +25,9 @@ namespace ConsumerDataflowMetrics.Services
         private readonly IEncryptionProvider _encryptionProvider;
         private readonly IMetricsProvider _metricsProvider;
 
-        private bool _simulateIODelay = false;
-        private int _minIODelay = 40;
-        private int _maxIODelay = 60;
+        private bool _simulateIODelay = true;
+        private int _minIODelay = 50;
+        private int _maxIODelay = 100;
         private bool _logStepOutcomes = false;
         private Random _rand = new Random();
 

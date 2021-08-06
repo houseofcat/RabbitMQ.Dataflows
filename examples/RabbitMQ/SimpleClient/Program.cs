@@ -1,6 +1,7 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
@@ -21,7 +22,7 @@ namespace Examples.RabbitMQ.SimpleClient
 
         public static async Task Main()
         {
-            _hashingProvider = new Argon2IDHasher();
+            _hashingProvider = new Argon2ID_HashingProvider();
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
             _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
@@ -124,7 +125,7 @@ namespace Examples.RabbitMQ.SimpleClient
                 .StartConsumerAsync()
                 .ConfigureAwait(false);
 
-            _ = Task.Run(() => consumer.DataflowExecutionEngineAsync(ConsumerWorkerAsync, 7));
+            _ = Task.Run(() => consumer.DataflowExecutionEngineAsync(ConsumerWorkerAsync, 7, true, 1000));
 
             await Console.In.ReadLineAsync().ConfigureAwait(false);
         }

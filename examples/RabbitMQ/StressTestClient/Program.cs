@@ -1,6 +1,7 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
+using HouseofCat.Hashing.Argon;
 using HouseofCat.Logger;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
@@ -41,7 +42,7 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
 
         public static async Task Main()
         {
-            _hashingProvider = new Argon2IDHasher();
+            _hashingProvider = new Argon2ID_HashingProvider();
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
             _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
