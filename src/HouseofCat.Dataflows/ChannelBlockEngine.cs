@@ -1,49 +1,72 @@
 ﻿using HouseofCat.Logger;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
 namespace HouseofCat.Dataflows
 {
-    public class DataflowEngine<TIn, TOut>
+    public class ChannelBlockEngine<TIn, TOut>
     {
-        private readonly ILogger<DataflowEngine<TIn, TOut>> _logger;
-        private readonly BufferBlock<TIn> _bufferBlock;
+        private readonly ILogger<ChannelBlockEngine<TIn, TOut>> _logger;
+        private readonly ChannelBlock<TIn> _channelBlock;
         private readonly ActionBlock<TIn> _workBlock;
-        private readonly Func<TIn, Task<TIn>> _preWorkBodyAsync;
         private readonly Func<TIn, Task<TOut>> _workBodyAsync;
         private readonly Func<TOut, Task> _postWorkBodyAsync;
 
-        public DataflowEngine(
+        public ChannelBlockEngine(
             Func<TIn, Task<TOut>> workBodyAsync,
             int maxDegreeOfParallelism,
             bool ensureOrdered,
-            Func<TIn, Task<TIn>> preWorkBodyAsync = null,
             Func<TOut, Task> postWorkBodyAsync = null,
             int boundedCapacity = 1000,
             TaskScheduler taskScheduler = null) : this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, boundedCapacity, taskScheduler)
         {
-            _preWorkBodyAsync = preWorkBodyAsync;
             _postWorkBodyAsync = postWorkBodyAsync;
         }
 
-        public DataflowEngine(
+        public ChannelBlockEngine(
             Func<TIn, Task<TOut>> workBodyAsync,
             int maxDegreeOfParallelism,
             bool ensureOrdered,
             int boundedCapacity = 1000,
+            TaskScheduler taskScheduler = null) : this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
+        {
+            if (boundedCapacity > 0)
+            { _channelBlock = new ChannelBlock<TIn>(new BoundedChannelOptions(boundedCapacity)); }
+            else
+            { _channelBlock = new ChannelBlock<TIn>(new UnboundedChannelOptions()); }
+        }
+
+        public ChannelBlockEngine(
+            Func<TIn, Task<TOut>> workBodyAsync,
+            int maxDegreeOfParallelism,
+            bool ensureOrdered,
+            BoundedChannelOptions options,
+            TaskScheduler taskScheduler = null) : this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
+        {
+            _channelBlock = new ChannelBlock<TIn>(options);
+        }
+
+        public ChannelBlockEngine(
+            Func<TIn, Task<TOut>> workBodyAsync,
+            int maxDegreeOfParallelism,
+            bool ensureOrdered,
+            UnboundedChannelOptions options,
+            TaskScheduler taskScheduler = null) : this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
+        {
+            _channelBlock = new ChannelBlock<TIn>(options);
+        }
+
+        private ChannelBlockEngine(
+            Func<TIn, Task<TOut>> workBodyAsync,
+            int maxDegreeOfParallelism,
+            bool ensureOrdered,
             TaskScheduler taskScheduler = null)
         {
-            _logger = LogHelper.GetLogger<DataflowEngine<TIn, TOut>>();
+            _logger = LogHelper.GetLogger<ChannelBlockEngine<TIn, TOut>>();
             _workBodyAsync = workBodyAsync ?? throw new ArgumentNullException(nameof(workBodyAsync));
-
-            _bufferBlock = new BufferBlock<TIn>(
-                new DataflowBlockOptions
-                {
-                    BoundedCapacity = boundedCapacity,
-                    TaskScheduler = taskScheduler ?? TaskScheduler.Current
-                });
 
             var executeOptions = new ExecutionDataflowBlockOptions
             {
@@ -57,19 +80,12 @@ namespace HouseofCat.Dataflows
             _workBlock = new ActionBlock<TIn>(
                 ExecuteWorkBodyAsync,
                 executeOptions);
-
-            _bufferBlock.LinkTo(_workBlock);
         }
 
         private async Task ExecuteWorkBodyAsync(TIn data)
         {
             try
             {
-                if (_preWorkBodyAsync != null)
-                {
-                    data = await _preWorkBodyAsync(data).ConfigureAwait(false);
-                }
-
                 if (_postWorkBodyAsync != null)
                 {
                     var output = await _workBodyAsync(data).ConfigureAwait(false);
@@ -91,7 +107,7 @@ namespace HouseofCat.Dataflows
 
         public async ValueTask EnqueueWorkAsync(TIn data)
         {
-            await _bufferBlock
+            await _channelBlock
                 .SendAsync(data)
                 .ConfigureAwait(false);
         }

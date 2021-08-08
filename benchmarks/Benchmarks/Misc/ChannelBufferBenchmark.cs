@@ -23,7 +23,7 @@ namespace Benchmarks.Misc
         [Arguments(1_000)]
         [Arguments(10_000)]
         [Arguments(100_000)]
-        [Arguments(10_000_000)]
+        [Arguments(1_000_000)]
         public async Task Channel_ReadThenWrite(int x)
         {
             ChannelWriter<int> writer = _channel.Writer;
@@ -42,7 +42,6 @@ namespace Benchmarks.Misc
         [Arguments(10_000)]
         [Arguments(100_000)]
         [Arguments(1_000_000)]
-        [Arguments(10_000_000)]
         public async Task BufferBlock_ReadThenWrite(int x)
         {
             for (int i = 0; i < x; i++)
@@ -58,7 +57,7 @@ namespace Benchmarks.Misc
         [Arguments(1_000)]
         [Arguments(10_000)]
         [Arguments(100_000)]
-        [Arguments(10_000_000)]
+        [Arguments(1_000_000)]
         public async Task BoundedChannel_ReadThenWrite(int x)
         {
             ChannelWriter<int> writer = _channel.Writer;
@@ -77,7 +76,6 @@ namespace Benchmarks.Misc
         [Arguments(10_000)]
         [Arguments(100_000)]
         [Arguments(1_000_000)]
-        [Arguments(10_000_000)]
         public async Task BoundedBufferBlock_ReadThenWrite(int x)
         {
             for (int i = 0; i < x; i++)

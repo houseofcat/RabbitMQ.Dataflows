@@ -13,9 +13,9 @@ namespace HouseofCat.RabbitMQ.Dataflows
         public Task Completion { get; }
 
         private readonly ILogger<ConsumerBlock<TOut>> _logger;
-        private readonly IConsumer<TOut> _consumer;
-        private readonly ITargetBlock<TOut> _bufferBlock;
-        private readonly ISourceBlock<TOut> _sourceBufferBlock;
+        protected readonly IConsumer<TOut> _consumer;
+        protected readonly ITargetBlock<TOut> _bufferBlock;
+        protected readonly ISourceBlock<TOut> _sourceBufferBlock;
 
         private CancellationTokenSource _cts;
         private Task _bufferProcessor;
@@ -81,7 +81,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
         }
 
         // Fast
-        private async Task PushToBufferAsync(CancellationToken token = default)
+        protected virtual async Task PushToBufferAsync(CancellationToken token = default)
         {
             try
             {
@@ -102,7 +102,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
         }
 
         // Slow - leave for testing purposes (CPU utilization is lower here).
-        private async Task StreamToBufferAsync(CancellationToken token = default)
+        protected virtual async Task StreamToBufferAsync(CancellationToken token = default)
         {
             try
             {
