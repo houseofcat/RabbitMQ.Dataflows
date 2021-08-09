@@ -59,6 +59,16 @@ namespace HouseofCat.Dataflows
             _channelBlock = new ChannelBlock<TIn>(options);
         }
 
+        public ChannelBlockEngine(
+            Channel<TIn> channel,
+            Func<TIn, Task<TOut>> workBodyAsync,
+            int maxDegreeOfParallelism,
+            bool ensureOrdered,
+            TaskScheduler taskScheduler = null) : this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
+        {
+            _channelBlock = new ChannelBlock<TIn>(channel);
+        }
+
         private ChannelBlockEngine(
             Func<TIn, Task<TOut>> workBodyAsync,
             int maxDegreeOfParallelism,

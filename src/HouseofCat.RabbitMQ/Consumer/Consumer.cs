@@ -38,6 +38,15 @@ namespace HouseofCat.RabbitMQ
             TaskScheduler taskScheduler = null,
             CancellationToken token = default);
 
+        public Task ChannelExecutionEngineAsync(
+            Func<ReceivedData, Task<bool>> workBodyAsync,
+            int maxDoP = 4,
+            bool ensureOrdered = true,
+            Func<bool, Task> postWorkBodyAsync = null,
+            int boundedCapacity = 1000,
+            TaskScheduler taskScheduler = null,
+            CancellationToken token = default);
+
         ChannelReader<TFromQueue> GetConsumerBuffer();
         ValueTask<TFromQueue> ReadAsync();
         Task<IEnumerable<TFromQueue>> ReadUntilEmptyAsync();
@@ -51,10 +60,10 @@ namespace HouseofCat.RabbitMQ
     {
         private readonly ILogger<Consumer> _logger;
         private readonly SemaphoreSlim _conLock = new SemaphoreSlim(1, 1);
-        private readonly SemaphoreSlim _dataFlowExecLock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _executionLock = new SemaphoreSlim(1, 1);
         private IChannelHost _chanHost;
         private bool _disposedValue;
-        private Channel<ReceivedData> _dataBuffer;
+        private Channel<ReceivedData> _consumerChannel;
         private bool _shutdown;
 
         public RabbitOptions Options { get; }
@@ -99,7 +108,7 @@ namespace HouseofCat.RabbitMQ
                 {
                     await SetChannelHostAsync().ConfigureAwait(false);
                     _shutdown = false;
-                    _dataBuffer = Channel.CreateBounded<ReceivedData>(
+                    _consumerChannel = Channel.CreateBounded<ReceivedData>(
                         new BoundedChannelOptions(ConsumerOptions.BatchSize!.Value)
                         {
                             FullMode = ConsumerOptions.BehaviorWhenFull!.Value
@@ -135,14 +144,14 @@ namespace HouseofCat.RabbitMQ
                 if (Started)
                 {
                     _shutdown = true;
-                    _dataBuffer.Writer.Complete();
+                    _consumerChannel.Writer.Complete();
 
                     if (immediate)
                     {
                         _chanHost.Close();
                     }
 
-                    await _dataBuffer
+                    await _consumerChannel
                         .Reader
                         .Completion
                         .ConfigureAwait(false);
@@ -320,11 +329,11 @@ namespace HouseofCat.RabbitMQ
 
         protected async ValueTask<bool> HandleMessage(BasicDeliverEventArgs bdea)
         {
-            if (!await _dataBuffer.Writer.WaitToWriteAsync().ConfigureAwait(false)) return false;
+            if (!await _consumerChannel.Writer.WaitToWriteAsync().ConfigureAwait(false)) return false;
 
             try
             {
-                await _dataBuffer
+                await _consumerChannel
                     .Writer
                     .WriteAsync(new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false)))
                     .ConfigureAwait(false);
@@ -369,13 +378,13 @@ namespace HouseofCat.RabbitMQ
             }
         }
 
-        public ChannelReader<ReceivedData> GetConsumerBuffer() => _dataBuffer.Reader;
+        public ChannelReader<ReceivedData> GetConsumerBuffer() => _consumerChannel.Reader;
 
         public async ValueTask<ReceivedData> ReadAsync()
         {
-            if (!await _dataBuffer.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
+            if (!await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
 
-            return await _dataBuffer
+            return await _consumerChannel
                 .Reader
                 .ReadAsync()
                 .ConfigureAwait(false);
@@ -383,11 +392,11 @@ namespace HouseofCat.RabbitMQ
 
         public async Task<IEnumerable<ReceivedData>> ReadUntilEmptyAsync()
         {
-            if (!await _dataBuffer.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
+            if (!await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
 
             var list = new List<ReceivedData>();
-            await _dataBuffer.Reader.WaitToReadAsync().ConfigureAwait(false);
-            while (_dataBuffer.Reader.TryRead(out var message))
+            await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false);
+            while (_consumerChannel.Reader.TryRead(out var message))
             {
                 if (message == null) { break; }
                 list.Add(message);
@@ -398,10 +407,10 @@ namespace HouseofCat.RabbitMQ
 
         public async IAsyncEnumerable<ReceivedData> StreamOutUntilEmptyAsync()
         {
-            if (!await _dataBuffer.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
+            if (!await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
 
-            await _dataBuffer.Reader.WaitToReadAsync().ConfigureAwait(false);
-            while (_dataBuffer.Reader.TryRead(out var message))
+            await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false);
+            while (_consumerChannel.Reader.TryRead(out var message))
             {
                 if (message == null) { break; }
                 yield return message;
@@ -410,9 +419,9 @@ namespace HouseofCat.RabbitMQ
 
         public async IAsyncEnumerable<ReceivedData> StreamOutUntilClosedAsync()
         {
-            if (!await _dataBuffer.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
+            if (!await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
 
-            await foreach (var receivedData in _dataBuffer.Reader.ReadAllAsync())
+            await foreach (var receivedData in _consumerChannel.Reader.ReadAllAsync())
             {
                 yield return receivedData;
             }
@@ -426,44 +435,9 @@ namespace HouseofCat.RabbitMQ
             TaskScheduler taskScheduler = null,
             CancellationToken token = default)
         {
-            await _dataFlowExecLock.WaitAsync(2000, token).ConfigureAwait(false);
+            var dataflowEngine = new DataflowEngine<ReceivedData, bool>(workBodyAsync, maxDoP, ensureOrdered, null, null, boundedCapacity, taskScheduler);
 
-            try
-            {
-                var dataflowEngine = new DataflowEngine<ReceivedData, bool>(workBodyAsync, maxDoP, ensureOrdered, null, null, boundedCapacity, taskScheduler);
-
-                while (await _dataBuffer.Reader.WaitToReadAsync(token).ConfigureAwait(false))
-                {
-                    while (_dataBuffer.Reader.TryRead(out var receivedData))
-                    {
-                        if (receivedData != null)
-                        {
-                            _logger.LogDebug(
-                                LogMessages.Consumers.ConsumerDataflowQueueing,
-                                ConsumerOptions.ConsumerName,
-                                receivedData.DeliveryTag);
-
-                            await dataflowEngine
-                                .EnqueueWorkAsync(receivedData)
-                                .ConfigureAwait(false);
-                        }
-                    }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning(
-                    LogMessages.Consumers.ConsumerDataflowActionCancelled,
-                    ConsumerOptions.ConsumerName);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    LogMessages.Consumers.ConsumerDataflowError,
-                    ConsumerOptions.ConsumerName,
-                    ex.Message);
-            }
-            finally { _dataFlowExecLock.Release(); }
+            await TransferDataToDataflowEngine(dataflowEngine, token);
         }
 
         public async Task DataflowExecutionEngineAsync(
@@ -476,22 +450,29 @@ namespace HouseofCat.RabbitMQ
             TaskScheduler taskScheduler = null,
             CancellationToken token = default)
         {
-            await _dataFlowExecLock.WaitAsync(2000, token).ConfigureAwait(false);
+            var dataflowEngine = new DataflowEngine<ReceivedData, bool>(
+                workBodyAsync,
+                maxDoP,
+                ensureOrdered,
+                preWorkBodyAsync,
+                postWorkBodyAsync,
+                boundedCapacity,
+                taskScheduler);
+
+            await TransferDataToDataflowEngine(dataflowEngine, token);
+        }
+
+        private async Task TransferDataToDataflowEngine(
+            DataflowEngine<ReceivedData, bool> dataflowEngine,
+            CancellationToken token = default)
+        {
+            await _executionLock.WaitAsync(2000, token).ConfigureAwait(false);
 
             try
             {
-                var dataflowEngine = new DataflowEngine<ReceivedData, bool>(
-                    workBodyAsync,
-                    maxDoP,
-                    ensureOrdered,
-                    preWorkBodyAsync,
-                    postWorkBodyAsync,
-                    boundedCapacity,
-                    taskScheduler);
-
-                while (await _dataBuffer.Reader.WaitToReadAsync(token).ConfigureAwait(false))
+                while (await _consumerChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false))
                 {
-                    while (_dataBuffer.Reader.TryRead(out var receivedData))
+                    while (_consumerChannel.Reader.TryRead(out var receivedData))
                     {
                         if (receivedData != null)
                         {
@@ -520,7 +501,67 @@ namespace HouseofCat.RabbitMQ
                     ConsumerOptions.ConsumerName,
                     ex.Message);
             }
-            finally { _dataFlowExecLock.Release(); }
+            finally { _executionLock.Release(); }
+        }
+
+        public async Task ChannelExecutionEngineAsync(
+            Func<ReceivedData, Task<bool>> workBodyAsync,
+            int maxDoP = 4,
+            bool ensureOrdered = true,
+            Func<bool, Task> postWorkBodyAsync = null,
+            int boundedCapacity = 1000,
+            TaskScheduler taskScheduler = null,
+            CancellationToken token = default)
+        {
+            var channelBlockEngine = new ChannelBlockEngine<ReceivedData, bool>(
+                workBodyAsync,
+                maxDoP,
+                ensureOrdered,
+                postWorkBodyAsync,
+                boundedCapacity,
+                taskScheduler);
+
+            await TransferDataToChannelBlockEngine(channelBlockEngine, token);
+        }
+
+        private async Task TransferDataToChannelBlockEngine(
+            ChannelBlockEngine<ReceivedData, bool> channelBlockEngine,
+            CancellationToken token = default)
+        {
+            await _executionLock.WaitAsync(2000, token).ConfigureAwait(false);
+
+            try
+            {
+                while (await _consumerChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false))
+                {
+                    var receivedData = await _consumerChannel.Reader.ReadAsync(token);
+                    if (receivedData != null)
+                    {
+                        _logger.LogDebug(
+                            LogMessages.Consumers.ConsumerDataflowQueueing,
+                            ConsumerOptions.ConsumerName,
+                            receivedData.DeliveryTag);
+
+                        await channelBlockEngine
+                            .EnqueueWorkAsync(receivedData)
+                            .ConfigureAwait(false);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning(
+                    LogMessages.Consumers.ConsumerDataflowActionCancelled,
+                    ConsumerOptions.ConsumerName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    LogMessages.Consumers.ConsumerDataflowError,
+                    ConsumerOptions.ConsumerName,
+                    ex.Message);
+            }
+            finally { _executionLock.Release(); }
         }
 
         protected virtual void Dispose(bool disposing)
@@ -529,11 +570,11 @@ namespace HouseofCat.RabbitMQ
             {
                 if (disposing)
                 {
-                    _dataFlowExecLock.Dispose();
+                    _executionLock.Dispose();
                     _conLock.Dispose();
                 }
 
-                _dataBuffer = null;
+                _consumerChannel = null;
                 _chanHost = null;
                 _disposedValue = true;
             }
