@@ -21,7 +21,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
         private CancellationTokenSource _cts;
         private Task _bufferProcessor;
 
-        private ConsumerBlock()
+        public ConsumerBlock()
         {
             _logger = LogHelper.LoggerFactory.CreateLogger<ConsumerBlock<TOut>>();
             _bufferBlock = new BufferBlock<TOut>();

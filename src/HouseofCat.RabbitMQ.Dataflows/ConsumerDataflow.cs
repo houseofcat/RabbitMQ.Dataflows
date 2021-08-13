@@ -150,7 +150,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
 
         public virtual Task StartAsync() => StartAsync<ConsumerBlock<ReceivedData>>();
 
-        protected async Task StartAsync<TConsumerBlock>() where TConsumerBlock : ConsumerBlock<ReceivedData>
+        protected async Task StartAsync<TConsumerBlock>() where TConsumerBlock : ConsumerBlock<ReceivedData>, new()
         {
             BuildLinkages<TConsumerBlock>();
 
