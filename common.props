@@ -1,11 +1,6 @@
 <Project>
   <Import Project="version.props" />
-  <PropertyGroup>
-    <!-- Global Version -->
-    <Version>1.2.0</Version>
-    <AssemblyVersion>1.2.0</AssemblyVersion>
-    <FileVersion>1.2.0</FileVersion>
-    
+  <PropertyGroup>  
     <!-- Shared Project Properties -->
     <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>

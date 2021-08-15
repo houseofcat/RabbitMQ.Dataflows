@@ -11,6 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\HouseofCat.Extensions.Host.Serilog\HouseofCat.Extensions.Host.Serilog.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Extensions.Host.Serilog\HouseofCat.Extensions.Host.Serilog.csproj" />
   </ItemGroup>
 </Project>

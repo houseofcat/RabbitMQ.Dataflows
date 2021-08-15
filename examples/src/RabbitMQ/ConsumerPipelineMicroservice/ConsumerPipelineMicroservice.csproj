@@ -11,15 +11,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\HouseofCat.RabbitMQ.Pipelines\HouseofCat.RabbitMQ.Pipelines.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.RabbitMQ.Services\HouseofCat.RabbitMQ.Services.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Encryption.BouncyCastle\HouseofCat.Encryption.BouncyCastle.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Hashing\HouseofCat.Hashing.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Hashing.Argon\HouseofCat.Hashing.Argon.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Compression\HouseofCat.Compression.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Serialization.Json.Utf8Json\HouseofCat.Serialization.Json.Utf8Json.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.RabbitMQ.Pipelines\HouseofCat.RabbitMQ.Pipelines.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.RabbitMQ.Services\HouseofCat.RabbitMQ.Services.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Encryption.BouncyCastle\HouseofCat.Encryption.BouncyCastle.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Hashing\HouseofCat.Hashing.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Hashing.Argon\HouseofCat.Hashing.Argon.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Compression\HouseofCat.Compression.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Serialization.Json.Utf8Json\HouseofCat.Serialization.Json.Utf8Json.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -10,13 +10,12 @@ using HouseofCat.Utilities.File;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using Utf8Json.Resolvers;
 
 namespace Examples.RabbitMQ.StressAndStabilityConsole
 {
-    public static class Program
+    public static class Legacy
     {
         private static ISerializationProvider _serializationProvider;
         private static IHashingProvider _hashingProvider;
@@ -41,18 +40,57 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
         private const int MessageCount = 250_000;
         private const int MessageSize = 1_000;
 
-        public static async Task Main()
-        {
-            await StartupAsync();
-        }
-
         private static async Task StartupAsync()
         {
             _hashingProvider = new Argon2ID_HashingProvider();
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
-            _encryptionProvider = new RecyclableAesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
-            _compressionProvider = new RecyclableGzipProvider();
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            _compressionProvider = new GzipProvider();
+            _serializationProvider = new Utf8JsonProvider(StandardResolver.Default);
+
+            LogHelper.LoggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
+            await Console.Out.WriteLineAsync("CookedRabbit.Core StressTest v1.00").ConfigureAwait(false);
+            await Console.Out.WriteLineAsync("- StressTest setting everything up...").ConfigureAwait(false);
+
+            var setupFailed = false;
+            try
+            { await SetupAsync().ConfigureAwait(false); }
+            catch (Exception ex)
+            {
+                setupFailed = true;
+                await Console.Out.WriteLineAsync($"- StressTest failed with exception {ex.Message}.").ConfigureAwait(false);
+            }
+
+            if (!setupFailed)
+            {
+                await Console.Out.WriteLineAsync("- StressTest starting!").ConfigureAwait(false);
+
+                try
+                {
+                    await StartStressTestAsync()
+                        .ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                { await Console.Out.WriteLineAsync($"- StressTest failed with exception {ex.Message}.").ConfigureAwait(false); }
+            }
+
+            await Console.Out.WriteLineAsync($"- Press any key to begin shutdown.").ConfigureAwait(false);
+            Console.ReadKey();
+
+            await ShutdownAsync();
+
+            await Console.Out.WriteLineAsync($"- Press any key to close.").ConfigureAwait(false);
+            Console.ReadKey();
+        }
+
+        private static async Task StartupLegacyAsync()
+        {
+            _hashingProvider = new Argon2ID_HashingProvider();
+            var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
+
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            _compressionProvider = new GzipProvider();
             _serializationProvider = new Utf8JsonProvider(StandardResolver.Default);
 
             LogHelper.LoggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
@@ -156,24 +194,24 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
                 .ConfigureAwait(false);
         }
 
-        private static async Task ShutdownAsync()
-        {
-            await channelPool.ShutdownAsync();
-        }
-
         private static async Task StartStressTestAsync()
         {
             var sw = Stopwatch.StartNew();
-            var pubSubTask1 = StartPubSubTestAsync(apub1, con1);
-            var pubSubTask2 = StartPubSubTestAsync(apub2, con2);
-            var pubSubTask3 = StartPubSubTestAsync(apub3, con3);
-            var pubSubTask4 = StartPubSubTestAsync(apub4, con4);
+            var pubSubTask1 = StartLegacyPubSubTestAsync(apub1, con1);
+            var pubSubTask2 = StartLegacyPubSubTestAsync(apub2, con2);
+            var pubSubTask3 = StartLegacyPubSubTestAsync(apub3, con3);
+            var pubSubTask4 = StartLegacyPubSubTestAsync(apub4, con4);
 
             await Task
                 .WhenAll(pubSubTask1, pubSubTask2, pubSubTask3, pubSubTask4)
                 .ConfigureAwait(false);
 
             await Console.Out.WriteLineAsync($"- All tests finished in {sw.ElapsedMilliseconds / 60_000.0} minutes!").ConfigureAwait(false);
+        }
+
+        private static async Task ShutdownAsync()
+        {
+            await channelPool.ShutdownAsync();
         }
 
         private static async Task StartPubSubTestAsync(Publisher autoPublisher, Consumer consumer)
@@ -183,56 +221,40 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
             var consumeMessagesTask = ConsumeMessagesAsync(consumer, MessageCount);
 
             while (!publishLettersTask.IsCompleted)
-            { await Task.Delay(5).ConfigureAwait(false); }
+            { await Task.Delay(1).ConfigureAwait(false); }
 
             while (!processReceiptsTask.IsCompleted)
-            { await Task.Delay(5).ConfigureAwait(false); }
+            { await Task.Delay(1).ConfigureAwait(false); }
 
             await autoPublisher.StopAutoPublishAsync().ConfigureAwait(false);
 
             while (!consumeMessagesTask.IsCompleted)
-            { await Task.Delay(5).ConfigureAwait(false); }
+            { await Task.Delay(1).ConfigureAwait(false); }
 
             await consumer.StopConsumerAsync();
             await Console.Out.WriteLineAsync($"- Consumer ({consumer.ConsumerOptions.ConsumerName}) stopped.").ConfigureAwait(false);
         }
 
-        private static long messageCount = 0;
-
-        private static async Task ConsumeMessagesAsync(Consumer consumer, long count)
+        private static async Task StartLegacyPubSubTestAsync(Publisher autoPublisher, Consumer consumer)
         {
-            await consumer
-                .StartConsumerAsync()
-                .ConfigureAwait(false);
+            var publishLettersTask = PublishLettersAsync(autoPublisher, consumer.ConsumerOptions.QueueName, MessageCount);
+            var processReceiptsTask = ProcessReceiptsAsync(autoPublisher, MessageCount);
+            var consumeMessagesTask = ConsumeMessagesAsync(consumer, MessageCount);
 
-            _ = consumer.DirectChannelExecutionEngineAsync(
-                ProcessMessageAsync,
-                4,
-                true,
-                null);
+            while (!publishLettersTask.IsCompleted)
+            { await Task.Delay(1).ConfigureAwait(false); }
 
-            var sw = Stopwatch.StartNew();
-            var errorCount = 0L;
-            while (messageCount < count)
-            {
-                try
-                { await Task.Delay(20); }
-                catch
-                { errorCount++; break; }
+            while (!processReceiptsTask.IsCompleted)
+            { await Task.Delay(1).ConfigureAwait(false); }
 
-                if (messageCount + errorCount >= count)
-                { break; }
-            }
-            sw.Stop();
+            await autoPublisher.StopAutoPublishAsync().ConfigureAwait(false);
 
-            await Console.Out.WriteLineAsync($"- Finished consuming messages.\r\nMessageCount: {messageCount} in {sw.ElapsedMilliseconds / 60_000.0} minutes.\r\nErrorCount: {errorCount}").ConfigureAwait(false);
+            while (!consumeMessagesTask.IsCompleted)
+            { await Task.Delay(1).ConfigureAwait(false); }
+
+            await consumer.StopConsumerAsync();
+            await Console.Out.WriteLineAsync($"- Consumer ({consumer.ConsumerOptions.ConsumerName}) stopped.").ConfigureAwait(false);
         }
-
-private static Task<bool> ProcessMessageAsync(ReceivedData data)
-{
-    Interlocked.Increment(ref messageCount);
-    return Task.FromResult(data.AckMessage());
-}
 
         private static async Task PublishLettersAsync(Publisher apub, string queueName, int count)
         {
@@ -287,6 +309,41 @@ private static Task<bool> ProcessMessageAsync(ReceivedData data)
             sw.Stop();
 
             await Console.Out.WriteLineAsync($"- Finished getting receipts.\r\nReceiptCount: {receiptCount} in {sw.ElapsedMilliseconds / 60_000.0} minutes.\r\nErrorCount: {errorCount}").ConfigureAwait(false);
+        }
+
+        private static async Task ConsumeMessagesAsync(Consumer consumer, ulong count)
+        {
+            var messageCount = 0ul;
+            var errorCount = 0ul;
+
+            await consumer
+                .StartConsumerAsync()
+                .ConfigureAwait(false);
+
+            var sw = Stopwatch.StartNew();
+            try
+            {
+                while (await consumer.GetConsumerBuffer().WaitToReadAsync()) // TODO: Possible Infinite loop on lost messages.
+                {
+                    while (consumer.GetConsumerBuffer().TryRead(out var message))
+                    {
+                        if (message.Ackable)
+                        { message.AckMessage(); }
+
+                        //await Task.Delay(1).ConfigureAwait(false);
+
+                        messageCount++;
+                    }
+
+                    if (messageCount + errorCount >= count)
+                    { break; }
+                }
+            }
+            catch
+            { errorCount++; }
+            sw.Stop();
+
+            await Console.Out.WriteLineAsync($"- Finished consuming messages.\r\nMessageCount: {messageCount} in {sw.ElapsedMilliseconds / 60_000.0} minutes.\r\nErrorCount: {errorCount}").ConfigureAwait(false);
         }
     }
 }

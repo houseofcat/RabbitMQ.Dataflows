@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\HouseofCat.Metrics\HouseofCat.Metrics.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Metrics.Prometheus\HouseofCat.Metrics.Prometheus.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Metrics\HouseofCat.Metrics.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Metrics.Prometheus\HouseofCat.Metrics.Prometheus.csproj" />
   </ItemGroup>
 
 </Project>

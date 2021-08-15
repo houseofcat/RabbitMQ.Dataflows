@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\HouseofCat.Windows.Keyboard\HouseofCat.Windows.Keyboard.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Windows.NativeMethods\HouseofCat.Windows.NativeMethods.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Windows.Keyboard\HouseofCat.Windows.Keyboard.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Windows.NativeMethods\HouseofCat.Windows.NativeMethods.csproj" />
   </ItemGroup>
 
 </Project>

@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\HouseofCat.Sockets\HouseofCat.Sockets.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Sockets.Utf8Json\HouseofCat.Sockets.Utf8Json.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Framing\HouseofCat.Framing.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Sockets\HouseofCat.Sockets.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Sockets.Utf8Json\HouseofCat.Sockets.Utf8Json.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Framing\HouseofCat.Framing.csproj" />
   </ItemGroup>
 
 </Project>

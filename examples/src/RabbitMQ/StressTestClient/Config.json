@@ -51,14 +51,14 @@
       "ErrorSuffix": "Error",
       "BatchSize": 48,
       "BehaviorWhenFull": 0,
-      "SleepOnIdleInterval": 100,
+      "SleepOnIdleInterval": 1,
       "UseTransientChannels": true,
       "AutoAck": false,
       "NoLocal": false,
       "Exclusive": false,
       "GlobalConsumerPipelineOptions": {
-        "WaitForCompletion": true,
-        "MaxDegreesOfParallelism": 24,
+        "WaitForCompletion": false,
+        "MaxDegreesOfParallelism": 4,
         "EnsureOrdered": false
       }
     },
@@ -66,7 +66,7 @@
       "ErrorSuffix": "Error",
       "BatchSize": 8,
       "BehaviorWhenFull": 0,
-      "SleepOnIdleInterval": 100,
+      "SleepOnIdleInterval": 1,
       "UseTransientChannels": true,
       "AutoAck": false,
       "NoLocal": false,

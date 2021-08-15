@@ -92,7 +92,7 @@ namespace RabbitMQ
             }
         }
 
-        [Fact]
+        [Fact(Skip = "only manual")]
         public async Task ConsumerChannelBlockTesting()
         {
             var consumer = _fixture.RabbitService.GetConsumer("TestMessageConsumer");
@@ -106,6 +106,26 @@ namespace RabbitMQ
                 });
 
             await consumer.ChannelExecutionEngineAsync(
+                ProcessMessageAsync,
+                4,
+                true,
+                null);
+        }
+
+        [Fact(Skip = "only manual")]
+        public async Task ConsumerDirectChannelBlockTesting()
+        {
+            var consumer = _fixture.RabbitService.GetConsumer("TestMessageConsumer");
+            await consumer.StartConsumerAsync();
+
+            _ = Task.Run(
+                async () =>
+                {
+                    await Task.Delay(1000);
+                    await consumer.StopConsumerAsync();
+                });
+
+            await consumer.DirectChannelExecutionEngineAsync(
                 ProcessMessageAsync,
                 4,
                 true,

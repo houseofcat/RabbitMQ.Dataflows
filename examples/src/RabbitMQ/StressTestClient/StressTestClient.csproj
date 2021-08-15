@@ -12,14 +12,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\HouseofCat.Logger\HouseofCat.Logger.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Encryption.BouncyCastle\HouseofCat.Encryption.BouncyCastle.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Hashing\HouseofCat.Hashing.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Hashing.Argon\HouseofCat.Hashing.Argon.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Compression\HouseofCat.Compression.csproj" />
-    <ProjectReference Include="..\..\..\src\HouseofCat.Serialization.Json.Utf8Json\HouseofCat.Serialization.Json.Utf8Json.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Compression\HouseofCat.Compression.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Compression.Recyclable\HouseofCat.Compression.Recyclable.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Compression.LZ4\HouseofCat.Compression.LZ4.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Data\HouseofCat.Data.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Data.Recyclable\HouseofCat.Data.Recyclable.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Dataflows\HouseofCat.Dataflows.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Encryption.BouncyCastle\HouseofCat.Encryption.BouncyCastle.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Encryption.Recyclable\HouseofCat.Encryption.Recyclable.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Logger\HouseofCat.Logger.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Hashing\HouseofCat.Hashing.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Hashing.Argon\HouseofCat.Hashing.Argon.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\..\..\src\HouseofCat.Serialization.Json.Utf8Json\HouseofCat.Serialization.Json.Utf8Json.csproj" />
   </ItemGroup>
 
   <ItemGroup>
