@@ -2,6 +2,7 @@ using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.RabbitMQ;
 using HouseofCat.Utilities.File;
 using System;
+using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -89,6 +90,32 @@ namespace RabbitMQ
                 await consumerPipeline.StartAsync(true);
                 await consumerPipeline.StopAsync();
             }
+        }
+
+        [Fact]
+        public async Task ConsumerChannelBlockTesting()
+        {
+            var consumer = _fixture.RabbitService.GetConsumer("TestMessageConsumer");
+            await consumer.StartConsumerAsync();
+
+            _ = Task.Run(
+                async () =>
+                {
+                    await Task.Delay(12000);
+                    await consumer.StopConsumerAsync();
+                });
+
+            await consumer.ChannelExecutionEngineAsync(
+                ProcessMessageAsync,
+                4,
+                true,
+                null);
+        }
+
+        public async Task<bool> ProcessMessageAsync(ReceivedData data)
+        {
+            await Console.Out.WriteLineAsync(Encoding.UTF8.GetString(data.Data));
+            return data.AckMessage();
         }
 
         private IPipeline<ReceivedData, WorkState> BuildPipeline(int maxDoP, bool? ensureOrdered = null)

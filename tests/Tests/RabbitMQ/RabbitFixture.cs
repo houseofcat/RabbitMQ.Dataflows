@@ -38,7 +38,7 @@ namespace RabbitMQ
             EncryptionProvider = new AesGcmEncryptionProvider(HashKey, HashingProvider.Type);
             SerializationProvider = new Utf8JsonProvider();
 
-            Options = JsonFileReader.ReadFileAsync<RabbitOptions>("TestConfig.json").GetAwaiter().GetResult();
+            Options = JsonFileReader.ReadFileAsync<RabbitOptions>("RabbitMQ\\TestConfig.json").GetAwaiter().GetResult();
 
             RabbitService = new RabbitService(
                 Options,

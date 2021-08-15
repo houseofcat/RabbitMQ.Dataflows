@@ -7,7 +7,7 @@ using System.Threading.Tasks.Dataflow;
 
 namespace HouseofCat.Dataflows
 {
-    public class ChannelBlockEngine<TIn, TOut>
+    public class ChannelBlockEngine<TIn, TOut> : IDataBlockEngine<TIn>
     {
         private readonly ILogger<ChannelBlockEngine<TIn, TOut>> _logger;
         private readonly ChannelBlock<TIn> _channelBlock;
@@ -37,6 +37,9 @@ namespace HouseofCat.Dataflows
             { _channelBlock = new ChannelBlock<TIn>(new BoundedChannelOptions(boundedCapacity)); }
             else
             { _channelBlock = new ChannelBlock<TIn>(new UnboundedChannelOptions()); }
+
+            _channelBlock.LinkTo(_workBlock);
+            _channelBlock.StartReadChannel();
         }
 
         public ChannelBlockEngine(
@@ -47,6 +50,8 @@ namespace HouseofCat.Dataflows
             TaskScheduler taskScheduler = null) : this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
         {
             _channelBlock = new ChannelBlock<TIn>(options);
+            _channelBlock.LinkTo(_workBlock);
+            _channelBlock.StartReadChannel();
         }
 
         public ChannelBlockEngine(
@@ -57,6 +62,8 @@ namespace HouseofCat.Dataflows
             TaskScheduler taskScheduler = null) : this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
         {
             _channelBlock = new ChannelBlock<TIn>(options);
+            _channelBlock.LinkTo(_workBlock);
+            _channelBlock.StartReadChannel();
         }
 
         public ChannelBlockEngine(
@@ -67,6 +74,8 @@ namespace HouseofCat.Dataflows
             TaskScheduler taskScheduler = null) : this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
         {
             _channelBlock = new ChannelBlock<TIn>(channel);
+            _channelBlock.LinkTo(_workBlock);
+            _channelBlock.StartReadChannel();
         }
 
         private ChannelBlockEngine(

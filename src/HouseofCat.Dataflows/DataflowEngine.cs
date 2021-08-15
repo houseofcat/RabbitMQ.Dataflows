@@ -6,7 +6,7 @@ using System.Threading.Tasks.Dataflow;
 
 namespace HouseofCat.Dataflows
 {
-    public class DataflowEngine<TIn, TOut>
+    public class DataflowEngine<TIn, TOut> : IDataBlockEngine<TIn>
     {
         private readonly ILogger<DataflowEngine<TIn, TOut>> _logger;
         private readonly BufferBlock<TIn> _bufferBlock;

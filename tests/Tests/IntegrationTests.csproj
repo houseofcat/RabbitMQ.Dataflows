@@ -49,6 +49,9 @@
   </ItemGroup>
   
   <ItemGroup>
+    <None Update="RabbitMQ\TestConfig.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="RabbitMQ\TestPartialTopologyConfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

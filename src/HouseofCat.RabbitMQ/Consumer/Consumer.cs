@@ -38,12 +38,19 @@ namespace HouseofCat.RabbitMQ
             TaskScheduler taskScheduler = null,
             CancellationToken token = default);
 
-        public Task ChannelExecutionEngineAsync(
+        Task ChannelExecutionEngineAsync(
             Func<ReceivedData, Task<bool>> workBodyAsync,
             int maxDoP = 4,
             bool ensureOrdered = true,
             Func<bool, Task> postWorkBodyAsync = null,
             int boundedCapacity = 1000,
+            TaskScheduler taskScheduler = null,
+            CancellationToken token = default);
+
+        Task DirectChannelExecutionEngineAsync(
+            Func<ReceivedData, Task<bool>> workBodyAsync,
+            int maxDoP = 4,
+            bool ensureOrdered = true,
             TaskScheduler taskScheduler = null,
             CancellationToken token = default);
 
@@ -522,6 +529,45 @@ namespace HouseofCat.RabbitMQ
                 taskScheduler);
 
             await TransferDataToChannelBlockEngine(channelBlockEngine, token);
+        }
+
+        public async Task DirectChannelExecutionEngineAsync(
+            Func<ReceivedData, Task<bool>> workBodyAsync,
+            int maxDoP = 4,
+            bool ensureOrdered = true,
+            TaskScheduler taskScheduler = null,
+            CancellationToken token = default)
+        {
+            _ = new ChannelBlockEngine<ReceivedData, bool>(
+                _consumerChannel,
+                workBodyAsync,
+                maxDoP,
+                ensureOrdered,
+                taskScheduler);
+
+            await _executionLock.WaitAsync(2000, token).ConfigureAwait(false);
+
+            try
+            {
+                while (await _consumerChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false))
+                {
+                    await Task.Delay(4); // sleep until channel is finished.
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning(
+                    LogMessages.Consumers.ConsumerDataflowActionCancelled,
+                    ConsumerOptions.ConsumerName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    LogMessages.Consumers.ConsumerDataflowError,
+                    ConsumerOptions.ConsumerName,
+                    ex.Message);
+            }
+            finally { _executionLock.Release(); }
         }
 
         private async Task TransferDataToChannelBlockEngine(
