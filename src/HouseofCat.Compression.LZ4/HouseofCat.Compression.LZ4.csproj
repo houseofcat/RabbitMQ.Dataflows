@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
   <ItemGroup>
-    <PackageReference Include="K4os.Compression.LZ4.Streams" Version="1.2.6" />
+    <PackageReference Include="K4os.Compression.LZ4.Streams" Version="1.2.12" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
