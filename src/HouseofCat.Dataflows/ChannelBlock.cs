@@ -15,12 +15,12 @@ namespace HouseofCat.Dataflows
         public Task Completion { get; }
 
         private readonly ILogger<ChannelBlock<TOut>> _logger;
-        protected readonly Channel<TOut> _channel;
-        protected readonly ITargetBlock<TOut> _targetBlock;
-        protected readonly ISourceBlock<TOut> _sourceFromTargetBlock;
+        protected Channel<TOut> _channel;
+        protected ITargetBlock<TOut> _targetBlock;
+        protected ISourceBlock<TOut> _sourceFromTargetBlock;
 
-        private CancellationTokenSource _cts;
-        private Task _channelProcessing;
+        protected CancellationTokenSource _cts;
+        protected Task _channelProcessing;
 
         public ChannelBlock(BoundedChannelOptions options, Func<TOut, TOut> optionalfirstStep = null)
         {
@@ -76,7 +76,7 @@ namespace HouseofCat.Dataflows
             _channelProcessing = ReadChannelAsync(_cts.Token);
         }
 
-        public async Task StopChannelAsync(bool immediate = false)
+        public async Task StopChannelAsync()
         {
             _channel.Writer.Complete();
             _cts.Cancel();

@@ -10,10 +10,10 @@ namespace HouseofCat.Dataflows
     public class ChannelBlockEngine<TIn, TOut> : IDataBlockEngine<TIn>
     {
         private readonly ILogger<ChannelBlockEngine<TIn, TOut>> _logger;
-        private readonly ChannelBlock<TIn> _channelBlock;
-        private readonly ActionBlock<TIn> _workBlock;
-        private readonly Func<TIn, Task<TOut>> _workBodyAsync;
-        private readonly Func<TOut, Task> _postWorkBodyAsync;
+        protected ChannelBlock<TIn> _channelBlock;
+        protected ActionBlock<TIn> _workBlock;
+        protected Func<TIn, Task<TOut>> _workBodyAsync;
+        protected Func<TOut, Task> _postWorkBodyAsync;
 
         public ChannelBlockEngine(
             Func<TIn, Task<TOut>> workBodyAsync,
@@ -101,13 +101,13 @@ namespace HouseofCat.Dataflows
                 executeOptions);
         }
 
-        private async Task ExecuteWorkBodyAsync(TIn data)
+        protected virtual async Task ExecuteWorkBodyAsync(TIn data)
         {
             try
             {
                 if (_postWorkBodyAsync != null)
                 {
-                    var output = await _workBodyAsync(data).ConfigureAwait(false);
+                    var output = await _workBodyAsync(data);
                     if (output != null)
                     {
                         await _postWorkBodyAsync(output).ConfigureAwait(false);
@@ -124,7 +124,7 @@ namespace HouseofCat.Dataflows
             }
         }
 
-        public async ValueTask EnqueueWorkAsync(TIn data)
+        public virtual async ValueTask EnqueueWorkAsync(TIn data)
         {
             await _channelBlock
                 .SendAsync(data)

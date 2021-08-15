@@ -9,11 +9,11 @@ namespace HouseofCat.Dataflows
     public class DataflowEngine<TIn, TOut> : IDataBlockEngine<TIn>
     {
         private readonly ILogger<DataflowEngine<TIn, TOut>> _logger;
-        private readonly BufferBlock<TIn> _bufferBlock;
-        private readonly ActionBlock<TIn> _workBlock;
-        private readonly Func<TIn, Task<TIn>> _preWorkBodyAsync;
-        private readonly Func<TIn, Task<TOut>> _workBodyAsync;
-        private readonly Func<TOut, Task> _postWorkBodyAsync;
+        protected BufferBlock<TIn> _bufferBlock;
+        protected ActionBlock<TIn> _workBlock;
+        protected Func<TIn, Task<TIn>> _preWorkBodyAsync;
+        protected Func<TIn, Task<TOut>> _workBodyAsync;
+        protected Func<TOut, Task> _postWorkBodyAsync;
 
         public DataflowEngine(
             Func<TIn, Task<TOut>> workBodyAsync,
@@ -61,7 +61,7 @@ namespace HouseofCat.Dataflows
             _bufferBlock.LinkTo(_workBlock);
         }
 
-        private async Task ExecuteWorkBodyAsync(TIn data)
+        protected virtual async Task ExecuteWorkBodyAsync(TIn data)
         {
             try
             {
@@ -89,7 +89,7 @@ namespace HouseofCat.Dataflows
             }
         }
 
-        public async ValueTask EnqueueWorkAsync(TIn data)
+        public virtual async ValueTask EnqueueWorkAsync(TIn data)
         {
             await _bufferBlock
                 .SendAsync(data)
