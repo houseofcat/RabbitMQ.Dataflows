@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\HouseofCat.Compression\HouseofCat.Compression.csproj" />
+    <ProjectReference Include="..\..\..\src\HouseofCat.Compression.Recyclable\HouseofCat.Compression.Recyclable.csproj" />
+    <ProjectReference Include="..\..\..\src\HouseofCat.Data\HouseofCat.Data.csproj" />
+    <ProjectReference Include="..\..\..\src\HouseofCat.Data.Recyclable\HouseofCat.Data.Recyclable.csproj" />
+    <ProjectReference Include="..\..\..\src\HouseofCat.Serialization.Json.Newtonsoft\HouseofCat.Serialization.Json.Newtonsoft.csproj" />
+    <ProjectReference Include="..\..\..\src\HouseofCat.Serialization.Json.Utf8Json\HouseofCat.Serialization.Json.Utf8Json.csproj" />
+    <ProjectReference Include="..\..\..\src\HouseofCat.Serialization.MessagePack\HouseofCat.Serialization.MessagePack.csproj" />
+    <ProjectReference Include="..\..\..\src\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
+  </ItemGroup>
+  
+</Project>

@@ -3,72 +3,74 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30320.27
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataflowBlocks", "DataflowBlocks", "{8D3B4E4E-A3C0-40B8-978E-13B77F2D005A}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RabbitMQ", "RabbitMQ", "{7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerPipelineMicroservice", "RabbitMQ\ConsumerPipelineMicroservice\ConsumerPipelineMicroservice.csproj", "{20C70D17-BFC3-4FD6-AC63-94F8838FA0B9}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleClient", "RabbitMQ\SimpleClient\SimpleClient.csproj", "{0F1B61A2-FC9E-466F-B199-31A696E37DAA}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StressTestClient", "RabbitMQ\StressTestClient\StressTestClient.csproj", "{46D0EB76-9918-422A-8750-33261921EAD8}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "01_ActionBlockDemo", "DataflowBlocks\01_ActionBlockDemo\01_ActionBlockDemo.csproj", "{29744AFE-3AE1-45CD-B13A-3091F337EEE0}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "02_TransformBlockDemo", "DataflowBlocks\02_TransformBlockDemo\02_TransformBlockDemo.csproj", "{B08BF214-929D-480A-9F5D-D4C20F8BCDC0}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "03_BatchBlockDemo", "DataflowBlocks\03_BatchBlockDemo\03_BatchBlockDemo.csproj", "{CE29A3C2-3D77-4BDF-8C88-7F4B529C7FC9}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "04_TransformManyBlockDemo", "DataflowBlocks\04_TransformManyBlockDemo\04_TransformManyBlockDemo.csproj", "{359B0618-D4BA-4E0D-8E1A-BED9CF334F06}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "05_BufferBlockDemo", "DataflowBlocks\05_BufferBlockDemo\05_BufferBlockDemo.csproj", "{8B0AD78A-833D-4FC2-836D-415E18E4BFE3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "06_PubSubBufferBlockDemo", "DataflowBlocks\06_PubSubBufferBlockDemo\06_PubSubBufferBlockDemo.csproj", "{7E2A7D1D-7D80-4B79-BC37-71EE655676D6}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "07_BoundedPubSubBufferBlockDemo", "DataflowBlocks\07_BoundedPubSubBufferBlockDemo\07_BoundedPubSubBufferBlockDemo.csproj", "{5D1C8CAC-51F7-40B7-A511-7BBB2B8278A6}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "08_BroadcastBlockDemo", "DataflowBlocks\08_BroadcastBlockDemo\08_BroadcastBlockDemo.csproj", "{2A442D3E-2938-4EB1-A17F-406306647B00}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "09_BufferedBroadcastBlockDemo", "DataflowBlocks\09_BufferedBroadcastBlockDemo\09_BufferedBroadcastBlockDemo.csproj", "{4D070463-7117-4C45-A5CE-12D878B019D6}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "10_JoinBlockDemo", "DataflowBlocks\10_JoinBlockDemo\10_JoinBlockDemo.csproj", "{59129637-4400-4A5C-B902-8211B29DD6BB}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "11_BatchJoinBlockDemo", "DataflowBlocks\11_BatchJoinBlockDemo\11_BatchJoinBlockDemo.csproj", "{2D4F734C-0028-48D1-BB59-AC87622DE3F4}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "12_WriteOnceBlockDemo", "DataflowBlocks\12_WriteOnceBlockDemo\12_WriteOnceBlockDemo.csproj", "{6918FBA6-43AE-487C-ADDD-247257AB04A4}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Channels", "Channels", "{83456CB6-1C5D-4C04-B2B9-44EA03C69D86}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Windows", "Windows", "{2AB15392-A5ED-4F45-B319-A5D3F9CBD09A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Channels.Example", "Channels\Channels.Example\Channels.Example.csproj", "{AF84F5AB-3652-4381-B5E4-ECA7D8C523EF}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Windows.NetCoreService", "Windows\Windows.NetCoreService\Windows.NetCoreService.csproj", "{A9F56CB3-8042-43C9-93DF-C7BFB9503EDE}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Windows.KeyRecorder", "Windows\Windows.KeyRecorder\Windows.KeyRecorder.csproj", "{8D0C7165-87BC-42E1-B010-DEFFBE350059}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0ECC0D41-3C31-4896-914A-6F097E68CB69}"
 	ProjectSection(SolutionItems) = preProject
 		Note.txt = Note.txt
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickSocket.Client", "Channels\QuickSocket.Client\QuickSocket.Client.csproj", "{7D4D2BA9-47B0-436B-A456-08D7A6D7E64B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataflowBlocks", "DataflowBlocks", "{8D3B4E4E-A3C0-40B8-978E-13B77F2D005A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickSocket.Server", "Channels\QuickSocket.Server\QuickSocket.Server.csproj", "{6B077376-985B-4AA9-A3E4-9D005FAC5E82}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RabbitMQ", "RabbitMQ", "{7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerDataflow", "RabbitMQ\ConsumerDataflow\ConsumerDataflow.csproj", "{71F4A3C4-7FD8-43B4-80B4-EB679E7D2F23}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Channels", "Channels", "{83456CB6-1C5D-4C04-B2B9-44EA03C69D86}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Windows", "Windows", "{2AB15392-A5ED-4F45-B319-A5D3F9CBD09A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ArrayPool", "ArrayPool", "{EBB3DF28-CA88-4BAC-A061-5F670BBDE272}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArrayPoolChannel", "ArrayPool\ArrayPoolChannel\ArrayPoolChannel.csproj", "{41ABA723-C6A0-43A2-9588-83494D1C5801}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataProducer", "RabbitMQ\DataProducer\DataProducer.csproj", "{CF6A7DAA-6F49-466B-B7E5-59129B91F651}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerDataflowMetrics", "RabbitMQ\ConsumerDataflowMetrics\ConsumerDataflowMetrics.csproj", "{42900843-4BD5-4FBB-81AF-319D029E0FAF}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Metrics", "Metrics", "{19F29E4F-BBF7-4C51-95AA-DEE315C599A5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleWithMetrics", "Metrics\ConsoleWithMetrics\ConsoleWithMetrics.csproj", "{F266BC74-DD9F-4140-999B-C351BBD9513B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerPipelineMicroservice", "src\RabbitMQ\ConsumerPipelineMicroservice\ConsumerPipelineMicroservice.csproj", "{20C70D17-BFC3-4FD6-AC63-94F8838FA0B9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleClient", "src\RabbitMQ\SimpleClient\SimpleClient.csproj", "{0F1B61A2-FC9E-466F-B199-31A696E37DAA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StressTestClient", "src\RabbitMQ\StressTestClient\StressTestClient.csproj", "{46D0EB76-9918-422A-8750-33261921EAD8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "01_ActionBlockDemo", "src\DataflowBlocks\01_ActionBlockDemo\01_ActionBlockDemo.csproj", "{29744AFE-3AE1-45CD-B13A-3091F337EEE0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "02_TransformBlockDemo", "src\DataflowBlocks\02_TransformBlockDemo\02_TransformBlockDemo.csproj", "{B08BF214-929D-480A-9F5D-D4C20F8BCDC0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "03_BatchBlockDemo", "src\DataflowBlocks\03_BatchBlockDemo\03_BatchBlockDemo.csproj", "{CE29A3C2-3D77-4BDF-8C88-7F4B529C7FC9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "04_TransformManyBlockDemo", "src\DataflowBlocks\04_TransformManyBlockDemo\04_TransformManyBlockDemo.csproj", "{359B0618-D4BA-4E0D-8E1A-BED9CF334F06}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "05_BufferBlockDemo", "src\DataflowBlocks\05_BufferBlockDemo\05_BufferBlockDemo.csproj", "{8B0AD78A-833D-4FC2-836D-415E18E4BFE3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "06_PubSubBufferBlockDemo", "src\DataflowBlocks\06_PubSubBufferBlockDemo\06_PubSubBufferBlockDemo.csproj", "{7E2A7D1D-7D80-4B79-BC37-71EE655676D6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "07_BoundedPubSubBufferBlockDemo", "src\DataflowBlocks\07_BoundedPubSubBufferBlockDemo\07_BoundedPubSubBufferBlockDemo.csproj", "{5D1C8CAC-51F7-40B7-A511-7BBB2B8278A6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "08_BroadcastBlockDemo", "src\DataflowBlocks\08_BroadcastBlockDemo\08_BroadcastBlockDemo.csproj", "{2A442D3E-2938-4EB1-A17F-406306647B00}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "09_BufferedBroadcastBlockDemo", "src\DataflowBlocks\09_BufferedBroadcastBlockDemo\09_BufferedBroadcastBlockDemo.csproj", "{4D070463-7117-4C45-A5CE-12D878B019D6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "10_JoinBlockDemo", "src\DataflowBlocks\10_JoinBlockDemo\10_JoinBlockDemo.csproj", "{59129637-4400-4A5C-B902-8211B29DD6BB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "11_BatchJoinBlockDemo", "src\DataflowBlocks\11_BatchJoinBlockDemo\11_BatchJoinBlockDemo.csproj", "{2D4F734C-0028-48D1-BB59-AC87622DE3F4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "12_WriteOnceBlockDemo", "src\DataflowBlocks\12_WriteOnceBlockDemo\12_WriteOnceBlockDemo.csproj", "{6918FBA6-43AE-487C-ADDD-247257AB04A4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Channels.Example", "src\Channels\Channels.Example\Channels.Example.csproj", "{AF84F5AB-3652-4381-B5E4-ECA7D8C523EF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Windows.NetCoreService", "src\Windows\Windows.NetCoreService\Windows.NetCoreService.csproj", "{A9F56CB3-8042-43C9-93DF-C7BFB9503EDE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Windows.KeyRecorder", "src\Windows\Windows.KeyRecorder\Windows.KeyRecorder.csproj", "{8D0C7165-87BC-42E1-B010-DEFFBE350059}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickSocket.Client", "src\Channels\QuickSocket.Client\QuickSocket.Client.csproj", "{7D4D2BA9-47B0-436B-A456-08D7A6D7E64B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickSocket.Server", "src\Channels\QuickSocket.Server\QuickSocket.Server.csproj", "{6B077376-985B-4AA9-A3E4-9D005FAC5E82}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerDataflow", "src\RabbitMQ\ConsumerDataflow\ConsumerDataflow.csproj", "{71F4A3C4-7FD8-43B4-80B4-EB679E7D2F23}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArrayPoolChannel", "src\ArrayPool\ArrayPoolChannel\ArrayPoolChannel.csproj", "{41ABA723-C6A0-43A2-9588-83494D1C5801}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataProducer", "src\RabbitMQ\DataProducer\DataProducer.csproj", "{CF6A7DAA-6F49-466B-B7E5-59129B91F651}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerDataflowMetrics", "src\RabbitMQ\ConsumerDataflowMetrics\ConsumerDataflowMetrics.csproj", "{42900843-4BD5-4FBB-81AF-319D029E0FAF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleWithMetrics", "src\Metrics\ConsoleWithMetrics\ConsoleWithMetrics.csproj", "{F266BC74-DD9F-4140-999B-C351BBD9513B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1912546B-AB56-477B-8E6E-24484EA50BB0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -181,6 +183,12 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{8D3B4E4E-A3C0-40B8-978E-13B77F2D005A} = {1912546B-AB56-477B-8E6E-24484EA50BB0}
+		{7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5} = {1912546B-AB56-477B-8E6E-24484EA50BB0}
+		{83456CB6-1C5D-4C04-B2B9-44EA03C69D86} = {1912546B-AB56-477B-8E6E-24484EA50BB0}
+		{2AB15392-A5ED-4F45-B319-A5D3F9CBD09A} = {1912546B-AB56-477B-8E6E-24484EA50BB0}
+		{EBB3DF28-CA88-4BAC-A061-5F670BBDE272} = {1912546B-AB56-477B-8E6E-24484EA50BB0}
+		{19F29E4F-BBF7-4C51-95AA-DEE315C599A5} = {1912546B-AB56-477B-8E6E-24484EA50BB0}
 		{20C70D17-BFC3-4FD6-AC63-94F8838FA0B9} = {7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}
 		{0F1B61A2-FC9E-466F-B199-31A696E37DAA} = {7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}
 		{46D0EB76-9918-422A-8750-33261921EAD8} = {7B1FA82A-32AF-4BFB-BD5C-F32B5DF2AFC5}
