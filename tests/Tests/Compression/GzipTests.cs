@@ -181,7 +181,7 @@ namespace Compression
         }
 
         [Fact]
-        public void VerifyLengthCalculationAsync()
+        public void VerifyLengthCalculation()
         {
             var lastFour = _compressedData.AsSpan(_compressedData.Length - 4, 4);
             var length = BitConverter.ToInt32(lastFour);
@@ -194,6 +194,7 @@ namespace Compression
 
             var compressedStream = _provider.CompressToStreamAsync(_data).GetAwaiter().GetResult();
             var lengthFromCompressedStream = GetUncompressedLength(compressedStream);
+
             Assert.Equal(_data.Length, lengthFromCompressedStream);
         }
 
