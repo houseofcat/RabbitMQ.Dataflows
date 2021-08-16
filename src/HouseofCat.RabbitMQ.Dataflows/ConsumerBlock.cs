@@ -15,24 +15,32 @@ namespace HouseofCat.RabbitMQ.Dataflows
 
         private readonly ILogger<ConsumerBlock<TOut>> _logger;
         private IConsumer<TOut> _consumer;
-        protected readonly ITargetBlock<TOut> _bufferBlock;
-        protected readonly ISourceBlock<TOut> _sourceBufferBlock;
+        private readonly ITargetBlock<TOut> _bufferBlock;
+        private readonly ISourceBlock<TOut> _sourceBufferBlock;
 
         private CancellationTokenSource _cts;
         private Task _bufferProcessor;
 
-        public ConsumerBlock()
+        public ConsumerBlock() : this(new BufferBlock<TOut>())
         {
-            _logger = LogHelper.LoggerFactory.CreateLogger<ConsumerBlock<TOut>>();
-            _bufferBlock = new BufferBlock<TOut>();
-            _sourceBufferBlock = (ISourceBlock<TOut>)_bufferBlock;
-            Completion = _bufferBlock.Completion;
         }
         
         public ConsumerBlock(IConsumer<TOut> consumer) : this()
         {
             Guard.AgainstNull(consumer, nameof(consumer));
             _consumer = consumer;
+        }
+
+        protected ConsumerBlock(ITargetBlock<TOut> bufferBlock) : this(bufferBlock, (ISourceBlock<TOut>)bufferBlock)
+        {
+        }
+
+        protected ConsumerBlock(ITargetBlock<TOut> bufferBlock, ISourceBlock<TOut> sourceBufferBlock)
+        {
+            _logger = LogHelper.LoggerFactory.CreateLogger<ConsumerBlock<TOut>>();
+            _bufferBlock = bufferBlock;
+            _sourceBufferBlock = sourceBufferBlock;
+            Completion = _bufferBlock.Completion;
         }
 
         public async Task StartConsumingAsync()
