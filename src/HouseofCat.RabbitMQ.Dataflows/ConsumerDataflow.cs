@@ -29,25 +29,25 @@ namespace HouseofCat.RabbitMQ.Dataflows
 
         // Main Flow - Ingestion
         private readonly List<ConsumerBlock<ReceivedData>> _consumerBlocks;
-        private BufferBlock<ReceivedData> _inputBuffer;
+        protected ITargetBlock<ReceivedData> _inputBuffer;
         private TransformBlock<ReceivedData, TState> _buildStateBlock;
         private TransformBlock<TState, TState> _createSendLetter;
         protected TransformBlock<TState, TState> _decryptBlock;
         protected TransformBlock<TState, TState> _decompressBlock;
 
         // Main Flow - User Defined/Supplied Steps
-        protected BufferBlock<TState> _readyBuffer;
+        protected ITargetBlock<TState> _readyBuffer;
         protected readonly List<TransformBlock<TState, TState>> _suppliedTransforms = new List<TransformBlock<TState, TState>>();
 
         // Main Flow - PostProcessing
-        protected BufferBlock<TState> _postProcessingBuffer;
+        protected ITargetBlock<TState> _postProcessingBuffer;
         protected TransformBlock<TState, TState> _compressBlock;
         protected TransformBlock<TState, TState> _encryptBlock;
         protected TransformBlock<TState, TState> _sendLetterBlock;
         protected ActionBlock<TState> _finalization;
 
         // Error/Fault Flow
-        protected BufferBlock<TState> _errorBuffer;
+        protected ITargetBlock<TState> _errorBuffer;
         protected ActionBlock<TState> _errorAction;
 
         public ConsumerDataflow(
@@ -218,6 +218,15 @@ namespace HouseofCat.RabbitMQ.Dataflows
 
         #region Step Adders
 
+        protected virtual ITargetBlock<TState> CreateTargetBlock(
+            int boundedCapacity, TaskScheduler taskScheduler = null) => 
+            new BufferBlock<TState>(
+                new DataflowBlockOptions
+                {
+                    BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000,
+                    TaskScheduler = taskScheduler ?? _taskScheduler                    
+                });
+
         public ConsumerDataflow<TState> WithErrorHandling(
             Action<TState> action,
             int boundedCapacity,
@@ -228,7 +237,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
             Guard.AgainstNull(action, nameof(action));
             if (_errorBuffer == null)
             {
-                _errorBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
+                _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
                 var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
                 _errorAction = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler", false);
             }
@@ -245,25 +254,18 @@ namespace HouseofCat.RabbitMQ.Dataflows
             Guard.AgainstNull(action, nameof(action));
             if (_errorBuffer == null)
             {
-                _errorBuffer = new BufferBlock<TState>(new DataflowBlockOptions { BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000 });
+                _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
                 var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
                 _errorAction = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler", false);
             }
             return this;
         }
-
-        public ConsumerDataflow<TState> WithReadyToProcessBuffer(
-            int boundedCapacity,
-            TaskScheduler taskScheduler = null)
+        
+        public ConsumerDataflow<TState> WithReadyToProcessBuffer(int boundedCapacity, TaskScheduler taskScheduler = null)
         {
             if (_readyBuffer == null)
             {
-                _readyBuffer = new BufferBlock<TState>(
-                    new DataflowBlockOptions
-                    {
-                        BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000,
-                        TaskScheduler = taskScheduler ?? _taskScheduler
-                    });
+                _readyBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
             }
             return this;
         }
@@ -303,21 +305,15 @@ namespace HouseofCat.RabbitMQ.Dataflows
         }
 
         public ConsumerDataflow<TState> WithPostProcessingBuffer(
-            int boundedCapacity,
-            TaskScheduler taskScheduler = null)
+            int boundedCapacity, TaskScheduler taskScheduler = null)
         {
             if (_postProcessingBuffer == null)
             {
-                _postProcessingBuffer = new BufferBlock<TState>(
-                    new DataflowBlockOptions
-                    {
-                        BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000,
-                        TaskScheduler = taskScheduler ?? _taskScheduler
-                    });
+                _postProcessingBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
             }
             return this;
         }
-
+        
         public ConsumerDataflow<TState> WithFinalization(
             Action<TState> action,
             int? maxDoP = null,
@@ -496,7 +492,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
 
         #region Step Linking
 
-        private void BuildLinkages<TConsumerBlock>(DataflowLinkOptions overrideOptions = null)
+        protected virtual void BuildLinkages<TConsumerBlock>(DataflowLinkOptions overrideOptions = null)
             where TConsumerBlock : ConsumerBlock<ReceivedData>
         {
             Guard.AgainstNull(_buildStateBlock, nameof(_buildStateBlock)); // Create State Is Mandatory
@@ -533,7 +529,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
                 }
             }
 
-            _inputBuffer.LinkTo(_buildStateBlock, overrideOptions ?? _linkStepOptions);
+            ((ISourceBlock<ReceivedData>)_inputBuffer).LinkTo(_buildStateBlock, overrideOptions ?? _linkStepOptions);
             _buildStateBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x == null);
             SetCurrentSourceBlock(_buildStateBlock);
 
@@ -541,7 +537,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
             LinkSuppliedSteps(overrideOptions);
             LinkPostProcessing(overrideOptions);
 
-            _errorBuffer.LinkTo(_errorAction, overrideOptions ?? _linkStepOptions);
+            ((ISourceBlock<TState>)_errorBuffer).LinkTo(_errorAction, overrideOptions ?? _linkStepOptions);
             Completion = _currentBlock.Completion;
         }
 
