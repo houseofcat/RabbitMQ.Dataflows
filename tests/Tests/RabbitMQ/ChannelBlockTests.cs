@@ -138,10 +138,10 @@ namespace RabbitMQ
             return error;
         }
 
-        public async Task<bool> ProcessMessageAsync(ReceivedData data)
+        public Task<bool> ProcessMessageAsync(ReceivedData data)
         {
             messageCount++;
-            return data.AckMessage();
+            return Task.FromResult(data.AckMessage());
         }
     }
 }
