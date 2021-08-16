@@ -119,7 +119,7 @@ your situation. You must figure that out for yourself based on your systems and 
 while reading their guide on RecyclableMemoryStream *sucked shit* in terms of allocations and performance - over just default - when
 benchmarking. It's possible that its just improved over time.
 
-I have included my default setup, but this one primarily only worked well for a segment of message sizes I was dealing with.
+I have included my default setup, but this one only worked well for a segment of message sizes I was dealing with.
 It's a specific use case and I am not convinced about even keeping this.
 
 #### Important!  
@@ -245,7 +245,7 @@ out the `Stream` that you can then dispose of afterwards.
 If you are using the Recyclable classes from my library, you will want an implementation that looks like this. I have included one
 under Houseofcat.Data.Recyclable called the `RecyclableTransformer`.
 
-This a snippet of it under the hood.
+This is a snippet of it under the hood.
 
 ```csharp
 using HouseofCat.Compression;
@@ -321,8 +321,9 @@ namespace HouseofCat.Data.Recyclable
 }
 ```
 
-My HouseofCat libraries really are meant to streamline taking an object `<TIn>` and outputting serialized, compressed, and encrypted
-bytes and then the ability to `Restore` that back to the original object!
+A couple of my HouseofCat libraries really are meant to streamline taking an object `<TIn>` and outputting serialized, compressed,
+and encrypted bytes and then the ability to `Restore` that back to the original object! You should check them out if you are in
+the market for streamlining portions of system.
 
 ### Benchmarks
 There is always room for improvement, but this seems pretty damn good as an out-of-the-box improvement!
@@ -371,14 +372,15 @@ Job=.NET 5.0  Runtime=.NET 5.0
 
 ### Conclusion
 Memory allocation optimizations can be a huge boon to plain-ole throughput. When you start reaching the scale of thousands of requests,
-maybe tens of thousands of requests a second, you start finding these issues fast. Speaking in generality, most devs/managers/product
-owners start talking about scaling up immediately. I know, I know, Cloud hardware solves are often cheaper than devs, but costs can
-be just as prohibitive and back in the day you couldn't easily throw hardware at your problems. This is basically just leaving free
-performance on the table.
+maybe tens of thousands of requests a second, you start finding these issues quickly. Speaking in generality, most devs/managers/product
+owners start talking about scaling up immediately. I know, I know, Cloud hardware solves are often cheaper than devs, but those costs can
+be just as prohibitive. Back in the day you couldn't easily throw hardware at your problems. Considering how easy it is to basically,
+just leaving free performance on the table.
 
-There is nothing special about these three guides or code snippets. The only potential secret sauce was taking something mundane like
-Compression, something you may have see on StackOverflow answered a thousand times and just not taking the first popularly upvoted
-answer. Instead, challenging oneself with some interesting constraints.
+There isn't anything special about these three Compression guides or code snippets. The only potential secret sauce was taking
+something mundane like Compression, something you may have see on StackOverflow answered a thousand times and just not taking the first popularly upvoted
+answer. Instead, I challenged myself with some interesting constraints.
 
-In this particular use case, I was working on my library and I wanted it to be as lean and clean as humanly possible so devs
-can get more free/out-of-the-box performance. I hope you found it useful expedition regardless!
+In my actual use case, I was working on my library and I wanted it to be as lean and clean as humanly possible so devs
+can get more free/out-of-the-box performance. I hope you found it useful expedition regardless and helped exposed you to some of the
+newer tricks coming out of C#/NetCore land in recent years!
