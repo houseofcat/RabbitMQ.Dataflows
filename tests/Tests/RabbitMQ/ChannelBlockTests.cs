@@ -1,10 +1,4 @@
-using HouseofCat.Compression;
-using HouseofCat.Encryption;
-using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ;
-using HouseofCat.RabbitMQ.Pools;
-using HouseofCat.Serialization;
-using HouseofCat.Utilities.File;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
