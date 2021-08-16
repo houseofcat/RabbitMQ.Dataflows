@@ -112,6 +112,23 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Encryption.Recyc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Data.Recyclable", "src\HouseofCat.Data.Recyclable\HouseofCat.Data.Recyclable.csproj", "{69F52489-3B63-437A-AA92-F651E2AB8273}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "guides", "guides", "{1AB5E832-AD36-40AF-A7E9-A105A778116C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "csharp", "csharp", "{018DB970-F843-4D69-AAE1-C3CDF5FC7093}"
+	ProjectSection(SolutionItems) = preProject
+		guides\csharp\Compression.md = guides\csharp\Compression.md
+		guides\csharp\CompressionNumeroTres.md = guides\csharp\CompressionNumeroTres.md
+		guides\csharp\CompressionPartDeux.md = guides\csharp\CompressionPartDeux.md
+		guides\csharp\ParallelForEachAsync.md = guides\csharp\ParallelForEachAsync.md
+		guides\csharp\TasksBranchExecution.md = guides\csharp\TasksBranchExecution.md
+		guides\csharp\TopLevel.md = guides\csharp\TopLevel.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "golang", "golang", "{824F178C-4D64-4944-8C18-1B460F83F5C3}"
+	ProjectSection(SolutionItems) = preProject
+		guides\golang\GoDependencyPatch.md = guides\golang\GoDependencyPatch.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -358,6 +375,9 @@ Global
 		{ADCD846A-B523-4D92-B71B-FFF2B499161D} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 		{F2E7DA55-C7D8-405C-A6A8-937D1BE916CC} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 		{69F52489-3B63-437A-AA92-F651E2AB8273} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
+		{1AB5E832-AD36-40AF-A7E9-A105A778116C} = {29F4C0CA-2EA4-433C-8112-9A1336392E52}
+		{018DB970-F843-4D69-AAE1-C3CDF5FC7093} = {1AB5E832-AD36-40AF-A7E9-A105A778116C}
+		{824F178C-4D64-4944-8C18-1B460F83F5C3} = {1AB5E832-AD36-40AF-A7E9-A105A778116C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D7099845-267C-4232-8764-5DF25D6B2C79}

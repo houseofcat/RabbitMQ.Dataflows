@@ -168,7 +168,7 @@ namespace HouseofCat.Compression
             else
             {
                 // dispose stream after allocation.
-                using (uncompressedStream) 
+                using (uncompressedStream)
                 {
                     return uncompressedStream.ToArray();
                 }

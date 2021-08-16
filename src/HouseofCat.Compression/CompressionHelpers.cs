@@ -14,7 +14,7 @@ namespace HouseofCat.Compression
         }
 
         // RFC GZIP Last 8 Bytes
-        // https://datatracker.ietf.org/doc/html/rfc1952#section-2.2
+        // https://datatracker.ietf.org/doc/html/rfc1952
         // [ 0 , 1 , 2 , 3 , 4 , 5 , 6 , 7 ]
         // +---+---+---+---+---+---+---+---+
         // |     CRC32     |     ISIZE     |
