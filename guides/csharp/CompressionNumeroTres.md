@@ -8,7 +8,7 @@
 #### Intro
 Let's continue our work from the last [guide](https://houseofcat.io/guides/csharp/net/compressionpartdeux).
 
-We will be taking those well done examples and bring in something used in high performance systems.
+We will be taking those well-done examples and bring in something used in high performance systems.
 
 The `RecyclableMemoryStream`.
 
@@ -116,8 +116,8 @@ public static class RecyclableManager
 }
 ```
 
-I am definitely not going to tell you exactly what works on the blockSize, bufferSize, maxes, mins, etc. I wouldn't know what works for
-your code. You have to figure that out for yourself based on your systems and payloads. I will say, every articles' numbers I copied
+I am not going to tell you exactly what works on the blockSize, bufferSize, maxes, mins, etc. I wouldn't know what works for
+your code. You must figure that out for yourself based on your systems and payloads. I will say, every article's numbers I copied
 while reading their guide *sucked shit* in terms of allocations and performance over just default when benchmarking.
 
 I have included my own default one but this one primarily only works well for a segment of message sizes I was dealing with.
@@ -170,7 +170,7 @@ as efficient as signaling a `RecyclableMemoryStream.Dispose()`.
 In addition, from time to time under pressure, `TrytGetBuffer()` may indeed fail. In that scenario, we want to make sure that we immediately
 `Dispose()` the `Stream` we `rented` from the `RecyclableManager` as we don't need it after using the `.ToArray()` method.
 
-This function, while still good for creating `MemoryStreams` backed by a buffer pool, is the second best choice for lower memory allocations.
+This function, while still good for creating `MemoryStreams` backed by a buffer pool, is the second-best choice for lower memory allocations.
 
 That would be using `Stream`.
 
@@ -241,7 +241,7 @@ public MemoryStream Decompress(Stream compressedStream, bool leaveStreamOpen = f
 The Decompress method has the same weakness as the first Compress method. To get the lowest allocations, you have to be returning out the
 `Stream` that you can then dispose of afterwards.
 
-### Code Detour 2 - Optimal Implemenation
+### Code Detour 2 - Optimal Implementation
 If you are using the Recyclable classes, you will want an implementation that looks like this.
 
 ```csharp
@@ -318,12 +318,12 @@ namespace HouseofCat.Example
 }
 ```
 
-My HouseofCat libraries really streamlined taking an object `<TIn>` and outputing serialized, compressed, and encrypted bytes in a `Stream`
+My HouseofCat libraries really streamlined taking an object `<TIn>` and outputting serialized, compressed, and encrypted bytes in a `Stream`
 or `bytes` and then the ability to `Restore` that back to the object!
 
 ### Benchmarks
 Now I always think that there is always room for improvement, but this seems pretty darn good at for an out of the box improvement!
-This relatively painless implemenation, on average, amounted to an 88% reduction in byte allocations for non-random data (xml, json, plaintext,
+This relatively painless implementation, on average, amounted to an 88% reduction in byte allocations for non-random data (xml, json, plaintext,
 etc.) Amounts/variance will occur on how compressible an item is of course so your mileage will vary (be sure to test!)
 
 ```ini
@@ -371,8 +371,8 @@ Cloud hardware is cheaper, but costs can be prohibitive and back in the day you 
 exist in the capacities we take for granted.
 
 There is nothing special about these three guides or code snippets. The only potential secret sauce was taking something mundane you may see on
-Stackoverflow answered a thousand times and just not taking the first popularly upvoted answer. Instead, challenging myself with some interesting
-constraints. In this particular use case, I was working on a library and I want my library to be as lean and clean as humanly possible so devs
+StackOverflow answered a thousand times and just not taking the first popularly upvoted answer. Instead, challenging myself with some interesting
+constraints. In this particular use case, I was working on a library and I want my it to be as lean and clean as humanly possible so devs
 can get more free/out-of-the-box.
 
 I hope you found it useful!
