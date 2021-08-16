@@ -6,11 +6,9 @@
 2) Go nuts
 
 #### Intro
-Let's continue our work from the last [guide](https://houseofcat.io/guides/csharp/net/compressionpartdeux).
+Let's continue our work from the last [guide (part-two)](https://houseofcat.io/guides/csharp/net/compressionpartdeux).
 
-We will be taking those well-done examples and bring in something used in high performance systems.
-
-The `RecyclableMemoryStream`.
+We will be taking those well-done examples and bring in something used in high performance systems, the `RecyclableMemoryStream`.
 
 Let's go ahead and acquire package
 ```csharp
@@ -22,8 +20,8 @@ Microsoft.IO.RecyclableMemoryStream
 using Microsoft.IO;
 ```
 
-Let's begin with a global static wrapper I used around RecyclableMemoryStreamManager. This isn't super necessary for you to do but
-since I have a copy of one lying around, let's snag it.
+I am going to begin with a global static wrapper I used around RecyclableMemoryStreamManager. This isn't super necessary for you to
+do but since I have a copy of one already lying around, let's snag it.
 
 ```csharp
 using Microsoft.IO;
@@ -116,11 +114,12 @@ public static class RecyclableManager
 }
 ```
 
-I am not going to tell you exactly what works on the blockSize, bufferSize, maxes, mins, etc. I wouldn't know what works for
-your code. You must figure that out for yourself based on your systems and payloads. I will say, every article's numbers I copied
-while reading their guide *sucked shit* in terms of allocations and performance over just default when benchmarking.
+I am not going to tell you exactly what works on the blockSize, bufferSize, maxes, mins, etc. because I wouldn't know what works for
+your situation. You must figure that out for yourself based on your systems and payloads. I will say, every article's numbers I copied
+while reading their guide on RecyclableMemoryStream *sucked shit* in terms of allocations and performance - over just default - when
+benchmarking. It's possible that its just improved over time.
 
-I have included my own default one but this one primarily only works well for a segment of message sizes I was dealing with.
+I have included my default setup, but this one primarily only worked well for a segment of message sizes I was dealing with.
 It's a specific use case and I am not convinced about even keeping this.
 
 #### Important!  
@@ -143,6 +142,7 @@ public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optima
 
 public ArraySegment<byte> Compress(ReadOnlyMemory<byte> inputData)
 {
+    // replaced
     //using var compressedStream = new MemoryStream();
     var compressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
     using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, false))
@@ -163,16 +163,16 @@ public ArraySegment<byte> Compress(ReadOnlyMemory<byte> inputData)
 ```
 
 ### Code Detour 1 - Right Out The Gate
-Because we are adhering to the signature, we lost an advantage here. We extract the buffer from the `MemoryStream`, which is then
-used by the developer, meaning it can be returned to the buffer pool. It will get discarded eventually but that isn't
-as efficient as signaling a `RecyclableMemoryStream.Dispose()`.
+Because we are adhering to the signature, we lost a bit of an advantage here. We extract the buffer from the `MemoryStream`, which
+is then used by the developer, meaning it can be returned to the buffer pool. It will get discarded eventually but that isn't as
+efficient as signaling a `RecyclableMemoryStream.Dispose()`.
 
-In addition, from time to time under pressure, `TrytGetBuffer()` may indeed fail. In that scenario, we want to make sure that we immediately
-`Dispose()` the `Stream` we `rented` from the `RecyclableManager` as we don't need it after using the `.ToArray()` method.
+In addition, from time to time under pressure, `TrytGetBuffer()` may indeed fail. In that scenario, we want to make sure that we
+immediately `Dispose()` the `Stream` we `rented` from the `RecyclableManager` as we don't need it after using the `.ToArray()`
+method.
 
-This function, while still good for creating `MemoryStreams` backed by a buffer pool, is the second-best choice for lower memory allocations.
-
-That would be using `Stream`.
+This function, while still good for creating `MemoryStreams` backed by a buffer pool, is the second-best choice for lower memory
+allocations. The first would be using `Stream`.
 
 ```csharp
 public MemoryStream Compress(Stream inputStream, bool leaveStreamOpen = false)
@@ -197,7 +197,7 @@ The return now is the `MemoryStream` built from the `RecyclableMemoryStreamManag
 
 Two important notes to remember.
  1. It can be cast to RecyclableMemoryStream.
- 2. When finished with it, you have to remember to _**dispose**_ the `Stream`!
+ 2. When finished with it, you have to remember to _**dispose**_ this `Stream`!
 
 The disposable portion is super important to keep allocations low, as this (underneath the
 covers) returns the buffer to the buffer pool.
@@ -238,11 +238,14 @@ public MemoryStream Decompress(Stream compressedStream, bool leaveStreamOpen = f
 }
 ```
 
-The Decompress method has the same weakness as the first Compress method. To get the lowest allocations, you have to be returning out the
-`Stream` that you can then dispose of afterwards.
+The Decompress method has the same weakness as the first Compress method. To get the lowest allocations, you have to be returning
+out the `Stream` that you can then dispose of afterwards.
 
 ### Code Detour 2 - Optimal Implementation
-If you are using the Recyclable classes, you will want an implementation that looks like this.
+If you are using the Recyclable classes from my library, you will want an implementation that looks like this. I have included one
+under Houseofcat.Data.Recyclable called the `RecyclableTransformer`.
+
+This a snippet of it under the hood.
 
 ```csharp
 using HouseofCat.Compression;
@@ -254,7 +257,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Example
+namespace HouseofCat.Data.Recyclable
 {
     public class RecyclableTransformer
     {
@@ -318,13 +321,15 @@ namespace HouseofCat.Example
 }
 ```
 
-My HouseofCat libraries really streamlined taking an object `<TIn>` and outputting serialized, compressed, and encrypted bytes in a `Stream`
-or `bytes` and then the ability to `Restore` that back to the object!
+My HouseofCat libraries really are meant to streamline taking an object `<TIn>` and outputting serialized, compressed, and encrypted
+bytes and then the ability to `Restore` that back to the original object!
 
 ### Benchmarks
-Now I always think that there is always room for improvement, but this seems pretty darn good at for an out of the box improvement!
-This relatively painless implementation, on average, amounted to an 88% reduction in byte allocations for non-random data (xml, json, plaintext,
-etc.) Amounts/variance will occur on how compressible an item is of course so your mileage will vary (be sure to test!)
+There is always room for improvement, but this seems pretty damn good as an out-of-the-box improvement!
+
+It's relatively painless to implement and on average, led to an 88% reduction in byte allocations for
+non-random data (xml, json, plaintext, etc.) Amounts/variance will occur on how compressible an item
+is of course so your mileage will vary (be sure to test!)
 
 ```ini
 // * Summary *
@@ -365,14 +370,15 @@ Job=.NET 5.0  Runtime=.NET 5.0
 ```
 
 ### Conclusion
-Memory allocation optimizations can be a huge boon in terms of plain-ole throughput. When you start reaching the scale of thousands of requests,
-maybe tens of thousands of requests a second, you start finding these issues fast. Speaking in generality, most devs/managers/product owners start
-scaling up immediately. I know, I know, Cloud hardware solves are often cheaper than devs, but costs can be prohibitive and back in the day you
-couldn't easily throw hardware at problems because it frankly didn't exist in the capacities we take for granted.
+Memory allocation optimizations can be a huge boon to plain-ole throughput. When you start reaching the scale of thousands of requests,
+maybe tens of thousands of requests a second, you start finding these issues fast. Speaking in generality, most devs/managers/product
+owners start talking about scaling up immediately. I know, I know, Cloud hardware solves are often cheaper than devs, but costs can
+be just as prohibitive and back in the day you couldn't easily throw hardware at your problems. This is basically just leaving free
+performance on the table.
 
-There is nothing special about these three guides or code snippets. The only potential secret sauce was taking something mundane you may see on
-StackOverflow answered a thousand times and just not taking the first popularly upvoted answer. Instead, challenging oneself with some interesting
-constraints. In this particular use case, I was working on a library and I want my it to be as lean and clean as humanly possible so devs
-can get more free/out-of-the-box.
+There is nothing special about these three guides or code snippets. The only potential secret sauce was taking something mundane like
+Compression, something you may have see on StackOverflow answered a thousand times and just not taking the first popularly upvoted
+answer. Instead, challenging oneself with some interesting constraints.
 
-I hope you found it useful expedition!
+In this particular use case, I was working on a library and I want my it to be as lean and clean as humanly possible so devs
+can get more free/out-of-the-box performance. I hope you found it useful expedition regardless!

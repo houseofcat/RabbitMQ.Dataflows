@@ -5,7 +5,7 @@
 1) Continue to use `Stream` as a core mechanic.
 
 #### Intro
-Let's continue our work from the last [guide](https://houseofcat.io/guides/csharp/net/compression).
+Let's continue our work from the last [guide (part one)](https://houseofcat.io/guides/csharp/net/compression).
 
 We will be taking those basic examples and finding ways to improve them in terms of memory allocation
 and general performance.
@@ -119,15 +119,14 @@ public ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
     { return uncompressedStream.ToArray(); }
 }
 ```
-The best part is that its not just for `Microsoft/Windows` as I confirmed it working on `*nix` OS.
+The best part is that its not just for `Microsoft/Windows` as I confirmed it would be, and is, working on `*nix` OS.
 
-Next up we are going to improve performance on decompress by using an old Gzip trick by finding the original uncompressed
+Next, we are going to improve performance on decompress by using an old Gzip of grabbing the original uncompressed
 data length. Now this one won't improve performance for a single call, but it will for thousands of decompressions.
 
-We are going to look at the last `8 bytes` of `Gzipped` data, which is appended after the Compressed data payload. The
-first `4 bytes` (of 8) are used for [CRC32](https://en.wikipedia.org/wiki/Cyclic_redundancy_check). The last `4 bytes`
+Let's look at the last `8 bytes` of `Gzipped` data, which is appended after the Compressed data payload. The first
+`4 bytes` (of 8) are used for [CRC32](https://en.wikipedia.org/wiki/Cyclic_redundancy_check). The last `4 bytes`
 is the `ISIZE`, a little endian integer of the original payload size.
-
 
 ```csharp
 // RFC GZIP - The Last 8 Bytes
@@ -146,10 +145,9 @@ is the `ISIZE`, a little endian integer of the original payload size.
 // var length = BitConverter.ToInt32(lastFour); // not sure why this works, must internally check
 ```
 
-So let's write some of our own helper methods that allow us to anticipate the Gzip compressed size. There are
+Armed with that knowledge, let's write our own helper methods that extract the original payload length. There are
 some gotchas to this but they most likely aren't going to apply at this level or to the general use case. Some notable
-ones are file size limitations (2^32) and will not work without modification for archive/cab/library systems
-(i.e. WinRAR file breakup.)
+ones are file size limitations (2^32) and this setup will not work for archive/cab/library systems (i.e. WinRAR file breakup.)
 
 ```csharp
 using System;
@@ -227,7 +225,7 @@ public ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
 }
 ```
 
-Let's create a Stream based Compress/Decompress too! This time around let's allow the function the option to close the
+Now, let's create a Stream based Compress/Decompress too! This time around let's allow the function the option to close the
 Stream and guard against a Stream being given to us with the Position at the wrong place (in this example, the position was
 at the end already.) The Stream being at the end is one of the most common head scratching issues I run into with
 developers. There is no error, but they basically end up compressing 0 bytes and no one way to tell what's wrong at first
@@ -298,9 +296,8 @@ Job=.NET 5.0  Runtime=.NET 5.0
 ```
 
 ### Conclusion
-There you have it, some significant reductions in byte allocations by making some tweaks. You maybe wondering... whats the gain over the last articles numbers? Full disclosure,
-I wasn't going to do this guide as separate piece... but I saw the length was getting longer than expected. I also didn't want to really remove any content as it was exposing
-some really handy dandy informations.
+There you have it, some significant reductions in byte allocations by making some tweaks. You maybe wondering... what's the gain over
+the last articles numbers? 
 
-I changed my mind and decided not to combine the above with `RecyclableMemoryStream` how-to. Thus I didn't get those number differences and frankly... it won't matter to you
-after the next set of improvments... so head there now if you want me to throw down the gauntlet!
+I don't know... since I changed my mind and decided not combine `RecyclableMemoryStream` with this how-to. Go straight to the third guide
+to see some really awesome lower allocation counts though combined with the numbers above for reference.
