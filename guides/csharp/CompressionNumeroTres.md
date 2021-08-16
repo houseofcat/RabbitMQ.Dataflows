@@ -380,5 +380,5 @@ There is nothing special about these three guides or code snippets. The only pot
 Compression, something you may have see on StackOverflow answered a thousand times and just not taking the first popularly upvoted
 answer. Instead, challenging oneself with some interesting constraints.
 
-In this particular use case, I was working on a library and I want my it to be as lean and clean as humanly possible so devs
+In this particular use case, I was working on my library and I wanted it to be as lean and clean as humanly possible so devs
 can get more free/out-of-the-box performance. I hope you found it useful expedition regardless!
