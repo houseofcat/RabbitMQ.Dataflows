@@ -23,7 +23,6 @@ namespace HouseofCat.RabbitMQ.Dataflows
 
         public ConsumerBlock() : this(new BufferBlock<TOut>())
         {
-            _logger = LogHelper.LoggerFactory.CreateLogger<ConsumerBlock<TOut>>();
         }
         
         public ConsumerBlock(IConsumer<TOut> consumer) : this()
@@ -38,6 +37,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
 
         protected ConsumerBlock(ITargetBlock<TOut> bufferBlock, ISourceBlock<TOut> sourceBufferBlock)
         {
+            _logger = LogHelper.LoggerFactory.CreateLogger<ConsumerBlock<TOut>>();
             _bufferBlock = bufferBlock;
             _sourceBufferBlock = sourceBufferBlock;
             Completion = _bufferBlock.Completion;
