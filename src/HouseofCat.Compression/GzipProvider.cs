@@ -144,7 +144,7 @@ namespace HouseofCat.Compression
         {
             Guard.AgainstEmpty(compressedData, nameof(compressedData));
 
-            using var uncompressedStream = new MemoryStream();
+            using var uncompressedStream = new MemoryStream(CompressionHelpers.GetGzipUncompressedLength(compressedData));
             using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 gzipStream.CopyTo(uncompressedStream);
@@ -160,7 +160,7 @@ namespace HouseofCat.Compression
         {
             Guard.AgainstEmpty(compressedData, nameof(compressedData));
 
-            using var uncompressedStream = new MemoryStream();
+            using var uncompressedStream = new MemoryStream(CompressionHelpers.GetGzipUncompressedLength(compressedData));
             using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 await gzipStream
@@ -186,7 +186,7 @@ namespace HouseofCat.Compression
 
             if (compressedStream.Position == compressedStream.Length) { compressedStream.Seek(0, SeekOrigin.Begin); }
 
-            var uncompressedStream = new MemoryStream();
+            var uncompressedStream = new MemoryStream(CompressionHelpers.GetGzipUncompressedLength(compressedStream));
             using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
                 gzipStream.CopyTo(uncompressedStream);
@@ -206,7 +206,7 @@ namespace HouseofCat.Compression
 
             if (compressedStream.Position == compressedStream.Length) { compressedStream.Seek(0, SeekOrigin.Begin); }
 
-            var uncompressedStream = new MemoryStream();
+            var uncompressedStream = new MemoryStream(CompressionHelpers.GetGzipUncompressedLength(compressedStream));
             using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
                 await gzipStream
@@ -224,7 +224,7 @@ namespace HouseofCat.Compression
         /// <returns>A <c>new MemoryStream</c>.</returns>
         public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData)
         {
-            var uncompressedStream = new MemoryStream();
+            var uncompressedStream = new MemoryStream(CompressionHelpers.GetGzipUncompressedLength(compressedData));
             using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 gzipStream.CopyTo(uncompressedStream);

@@ -1,6 +1,8 @@
 using HouseofCat.Compression;
+using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -176,6 +178,35 @@ namespace Compression
             Assert.NotNull(decompressedData);
             Assert.Equal(decompressedData.Length, _data.Length);
             Assert.Equal(decompressedData.ToArray(), _data);
+        }
+
+        [Fact]
+        public void VerifyLengthCalculation()
+        {
+            var lastFour = _compressedData.AsSpan(_compressedData.Length - 4, 4);
+            var length = BitConverter.ToInt32(lastFour);
+            var littleEndianLengthCalculation = (lastFour[3] << 24) | (lastFour[2] << 24) + (lastFour[1] << 8) + lastFour[0];
+            var altLittleEndianLengthCalculation = (((((lastFour[3] << 8) | lastFour[2]) << 8) | lastFour[1]) << 8) | lastFour[0];
+
+            Assert.Equal(_data.Length, length);
+            Assert.Equal(_data.Length, littleEndianLengthCalculation);
+            Assert.Equal(_data.Length, altLittleEndianLengthCalculation);
+
+            var compressedStream = _provider.CompressToStreamAsync(_data).GetAwaiter().GetResult();
+            var lengthFromCompressedStream = GetUncompressedLength(compressedStream);
+
+            Assert.Equal(_data.Length, lengthFromCompressedStream);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetUncompressedLength(Stream stream)
+        {
+            // Anticipate the uncompressed length of GZip to get adequate sized buffers.
+            Span<byte> uncompressedLength = stackalloc byte[4];
+            stream.Position = stream.Length - 4;
+            stream.Read(uncompressedLength);
+            stream.Seek(0, SeekOrigin.Begin);
+            return BitConverter.ToInt32(uncompressedLength);
         }
     }
 }

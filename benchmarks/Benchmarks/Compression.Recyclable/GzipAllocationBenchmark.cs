@@ -81,7 +81,7 @@ namespace Benchmarks.Compression.Recyclable
         [Arguments(100)]
         [Arguments(500)]
         [Arguments(1_000)]
-        public void RecylableGzipProvider_5KBytes(int x)
+        public void RecyclableGzipProvider_5KBytes(int x)
         {
             for (var i = 0; i < x; i++)
             {

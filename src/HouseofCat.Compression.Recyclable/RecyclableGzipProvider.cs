@@ -4,7 +4,6 @@ using Microsoft.Toolkit.HighPerformance;
 using System;
 using System.IO;
 using System.IO.Compression;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace HouseofCat.Compression
@@ -158,7 +157,7 @@ namespace HouseofCat.Compression
         {
             Guard.AgainstEmpty(compressedData, nameof(compressedData));
 
-            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), GetUncompressedLength(compressedData));
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), CompressionHelpers.GetGzipUncompressedLength(compressedData));
             using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 gzipStream.CopyTo(uncompressedStream);
@@ -180,7 +179,7 @@ namespace HouseofCat.Compression
         {
             Guard.AgainstEmpty(compressedData, nameof(compressedData));
 
-            using var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), GetUncompressedLength(compressedData));
+            using var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), CompressionHelpers.GetGzipUncompressedLength(compressedData));
             using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 await gzipStream
@@ -213,7 +212,7 @@ namespace HouseofCat.Compression
 
             if (compressedStream.Position == compressedStream.Length) { compressedStream.Seek(0, SeekOrigin.Begin); }
 
-            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), GetUncompressedLength(compressedStream));
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), CompressionHelpers.GetGzipUncompressedLength(compressedStream));
             using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
                 gzipStream.CopyTo(uncompressedStream);
@@ -234,7 +233,7 @@ namespace HouseofCat.Compression
 
             if (compressedStream.Position == compressedStream.Length) { compressedStream.Seek(0, SeekOrigin.Begin); }
 
-            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), GetUncompressedLength(compressedStream));
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), CompressionHelpers.GetGzipUncompressedLength(compressedStream));
             using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
             {
                 await gzipStream
@@ -255,30 +254,13 @@ namespace HouseofCat.Compression
         {
             Guard.AgainstEmpty(compressedData, nameof(compressedData));
 
-            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), GetUncompressedLength(compressedData));
+            var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), CompressionHelpers.GetGzipUncompressedLength(compressedData));
             using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
             {
                 gzipStream.CopyTo(uncompressedStream);
             }
 
             return uncompressedStream;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetUncompressedLength(ReadOnlyMemory<byte> data)
-        {
-            // Anticipate the uncompressed length of GZip to get adequate sized buffers.
-            return BitConverter.ToInt32(data.Slice(0, 4).Span);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetUncompressedLength(Stream stream)
-        {
-            // Anticipate the uncompressed length of GZip to get adequate sized buffers.
-            Span<byte> uncompressedLength = stackalloc byte[4];
-            stream.Read(uncompressedLength);
-            stream.Seek(0, SeekOrigin.Begin);
-            return BitConverter.ToInt32(uncompressedLength);
         }
     }
 }

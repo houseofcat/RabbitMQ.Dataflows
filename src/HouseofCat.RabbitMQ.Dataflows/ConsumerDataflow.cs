@@ -148,9 +148,11 @@ namespace HouseofCat.RabbitMQ.Dataflows
             _consumerBlocks = new List<ConsumerBlock<ReceivedData>>();
         }
 
-        public async Task StartAsync()
+        public virtual Task StartAsync() => StartAsync<ConsumerBlock<ReceivedData>>();
+
+        protected async Task StartAsync<TConsumerBlock>() where TConsumerBlock : ConsumerBlock<ReceivedData>, new()
         {
-            BuildLinkages();
+            BuildLinkages<TConsumerBlock>();
 
             foreach (var consumerBlock in _consumerBlocks)
             {
@@ -494,7 +496,8 @@ namespace HouseofCat.RabbitMQ.Dataflows
 
         #region Step Linking
 
-        private void BuildLinkages(DataflowLinkOptions overrideOptions = null)
+        private void BuildLinkages<TConsumerBlock>(DataflowLinkOptions overrideOptions = null)
+            where TConsumerBlock : ConsumerBlock<ReceivedData>
         {
             Guard.AgainstNull(_buildStateBlock, nameof(_buildStateBlock)); // Create State Is Mandatory
             Guard.AgainstNull(_finalization, nameof(_finalization)); // Leaving The Workflow Is Mandatory
@@ -513,9 +516,9 @@ namespace HouseofCat.RabbitMQ.Dataflows
             {
                 for (var i = 0; i < _consumerCount; i++)
                 {
-
-                    var consumer = new Consumer(_rabbitService.ChannelPool, _consumerName);
-                    _consumerBlocks.Add(new ConsumerBlock<ReceivedData>(consumer));
+                    var consumerBlock = New<TConsumerBlock>.Instance.Invoke();
+                    consumerBlock.Consumer = new Consumer(_rabbitService.ChannelPool, _consumerName);
+                    _consumerBlocks.Add(consumerBlock);
                     _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
                 }
             }
@@ -523,7 +526,9 @@ namespace HouseofCat.RabbitMQ.Dataflows
             {
                 for (var i = 0; i < _consumers.Count; i++)
                 {
-                    _consumerBlocks.Add(new ConsumerBlock<ReceivedData>(_consumers.ElementAt(i)));
+                    var consumerBlock = New<TConsumerBlock>.Instance.Invoke();
+                    consumerBlock.Consumer = _consumers.ElementAt(i);
+                    _consumerBlocks.Add(consumerBlock);
                     _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
                 }
             }

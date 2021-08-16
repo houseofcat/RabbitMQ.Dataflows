@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
+using Benchmarks.Compression.Recyclable;
 using Benchmarks.Encryption;
 using Benchmarks.Middleware;
 using Benchmarks.Misc;
@@ -80,7 +81,7 @@ namespace Benchmarks
             BenchmarkRunner.Run(
                 new[]
                 {
-                    BenchmarkConverter.TypeToBenchmarks(typeof(ChannelBufferBenchmark)),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(GzipAllocationBenchmark)),
                 });
         }
     }
