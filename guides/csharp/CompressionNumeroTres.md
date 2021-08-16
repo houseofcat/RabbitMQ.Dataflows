@@ -336,7 +336,6 @@ AMD Ryzen 9 5950X, 1 CPU, 32 logical and 16 physical cores
   .NET 5.0 : .NET 5.0.8 (5.0.821.31504), X64 RyuJIT
 
 Job=.NET 5.0  Runtime=.NET 5.0
-```
 
 |                               Method |    x |        Mean |     Error |      StdDev |      Median | Ratio | RatioSD |    Gen 0 |   Gen 1 | Gen 2 | Allocated | Decrease |
 |------------------------------------- |----- |------------:|----------:|------------:|------------:|------:|--------:|---------:|--------:|------:|----------:|---------:|
@@ -363,16 +362,17 @@ Job=.NET 5.0  Runtime=.NET 5.0
 |           GzipProviderStream_5KBytes | 1000 | 20,491.4 us | 440.79 us | 1,299.68 us | 20,990.3 us |  1.00 |    0.05 | 343.7500 |       - |     - |  5,828 KB | 46.641 % |
 |       RecyclableGzipProvider_5KBytes | 1000 | 18,568.1 us |  42.56 us |    33.23 us | 18,570.2 us |  0.94 |    0.05 |  62.5000 | 31.2500 |     - |  1,271 KB | 88.313 % |
 | RecyclableGzipProviderStream_5KBytes | 1000 | 18,192.9 us | 120.91 us |   134.40 us | 18,188.5 us |  0.96 |    0.07 |  62.5000 |       - |     - |  1,258 KB | 88.432 % |
+```
 
 ### Conclusion
 Memory allocation optimizations can be a huge boon in terms of plain-ole throughput. When you start reaching the scale of thousands of requests,
-maybe tens of thousands of requests a second, you start finding these issues fast. Most people start scaling up immediately. I know, I know,
-Cloud hardware is cheaper, but costs can be prohibitive and back in the day you couldn't throw hardware at problems because it frankly didn't
-exist in the capacities we take for granted.
+maybe tens of thousands of requests a second, you start finding these issues fast. Speaking in generality, most devs/managers/product owners start
+scaling up immediately. I know, I know, Cloud hardware solves are often cheaper than devs, but costs can be prohibitive and back in the day you
+couldn't easily throw hardware at problems because it frankly didn't exist in the capacities we take for granted.
 
 There is nothing special about these three guides or code snippets. The only potential secret sauce was taking something mundane you may see on
-StackOverflow answered a thousand times and just not taking the first popularly upvoted answer. Instead, challenging myself with some interesting
+StackOverflow answered a thousand times and just not taking the first popularly upvoted answer. Instead, challenging oneself with some interesting
 constraints. In this particular use case, I was working on a library and I want my it to be as lean and clean as humanly possible so devs
 can get more free/out-of-the-box.
 
-I hope you found it useful!
+I hope you found it useful expedition!

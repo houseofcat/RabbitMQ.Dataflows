@@ -95,7 +95,7 @@ What works better is this NuGet package (document links at the bottom).
 using Microsoft.Toolkit.HighPerformance;
 ```
 
-The library has awesome pre-coded helpers for these "stuck between a rock and a hard place" scenario. Specifically, for our
+The library has awesome pre-coded helpers for these "stuck between a rock and a hard place" scenarios. Specifically, for our
 needs though, you need to visit the `ReadOnlyMemory<T>` extensions section. It gives us this beauty.
 ```csharp
 ReadOnlyMemory<byte> compressedData;
@@ -277,7 +277,6 @@ AMD Ryzen 9 5950X, 1 CPU, 32 logical and 16 physical cores
   .NET 5.0 : .NET 5.0.8 (5.0.821.31504), X64 RyuJIT
 
 Job=.NET 5.0  Runtime=.NET 5.0
-```
 
 |                               Method |    x |        Mean |     Error |      StdDev |      Median | Ratio | RatioSD |    Gen 0 |   Gen 1 | Gen 2 | Allocated | Decrease |
 |------------------------------------- |----- |------------:|----------:|------------:|------------:|------:|--------:|---------:|--------:|------:|----------:|---------:|
@@ -296,6 +295,7 @@ Job=.NET 5.0  Runtime=.NET 5.0
 |      BasicCompressDecompress_5KBytes | 1000 | 20,582.4 us | 422.06 us | 1,237.82 us | 21,169.3 us |  1.00 |    0.00 | 656.2500 |       - |     - | 10,875 KB |      - % |
 |                 GzipProvider_5KBytes | 1000 | 20,492.8 us | 481.45 us | 1,419.57 us | 21,292.6 us |  1.00 |    0.07 | 343.7500 |       - |     - |  5,875 KB | 45.977 % |
 |           GzipProviderStream_5KBytes | 1000 | 20,491.4 us | 440.79 us | 1,299.68 us | 20,990.3 us |  1.00 |    0.05 | 343.7500 |       - |     - |  5,828 KB | 46.641 % |
+```
 
 ### Conclusion
 There you have it, some significant reductions in byte allocations by making some tweaks. You maybe wondering... whats the gain over the last articles numbers? Full disclosure,
