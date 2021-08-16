@@ -11,24 +11,28 @@ namespace HouseofCat.RabbitMQ.Dataflows
     public class ConsumerBlock<TOut> : ISourceBlock<TOut>
     {
         public Task Completion { get; }
+        internal IConsumer<TOut> Consumer { set => _consumer = value; }
 
         private readonly ILogger<ConsumerBlock<TOut>> _logger;
-        protected readonly IConsumer<TOut> _consumer;
+        private IConsumer<TOut> _consumer;
         protected readonly ITargetBlock<TOut> _bufferBlock;
         protected readonly ISourceBlock<TOut> _sourceBufferBlock;
 
         private CancellationTokenSource _cts;
         private Task _bufferProcessor;
 
-        public ConsumerBlock(IConsumer<TOut> consumer)
+        public ConsumerBlock()
         {
-            Guard.AgainstNull(consumer, nameof(consumer));
             _logger = LogHelper.LoggerFactory.CreateLogger<ConsumerBlock<TOut>>();
-            _consumer = consumer;
-
             _bufferBlock = new BufferBlock<TOut>();
             _sourceBufferBlock = (ISourceBlock<TOut>)_bufferBlock;
             Completion = _bufferBlock.Completion;
+        }
+        
+        public ConsumerBlock(IConsumer<TOut> consumer) : this()
+        {
+            Guard.AgainstNull(consumer, nameof(consumer));
+            _consumer = consumer;
         }
 
         public async Task StartConsumingAsync()
@@ -89,7 +93,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
                 {
                     while (_consumer.GetConsumerBuffer().TryRead(out var message))
                     {
-                        await _bufferBlock.SendAsync(message).ConfigureAwait(false);
+                        await _bufferBlock.SendAsync(message, token).ConfigureAwait(false);
                     }
 
                     if (token.IsCancellationRequested) return;
@@ -108,7 +112,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
             {
                 await foreach (var message in _consumer.GetConsumerBuffer().ReadAllAsync(token).ConfigureAwait(false))
                 {
-                    await _bufferBlock.SendAsync(message).ConfigureAwait(false);
+                    await _bufferBlock.SendAsync(message, token).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)
