@@ -374,7 +374,7 @@ Job=.NET 5.0  Runtime=.NET 5.0
 Memory allocation optimizations can be a huge boon to plain-ole throughput. When you start reaching the scale of thousands of requests,
 maybe tens of thousands of requests a second, you start finding these issues quickly. Speaking in generality, most devs/managers/product
 owners start talking about scaling up immediately. I know, I know, Cloud hardware solves are often cheaper than devs, but those costs can
-be just as prohibitive. Back in the day you couldn't easily throw hardware at your problems. Considering how easy it is to basically,
+be just as prohibitive. Back in the day you couldn't easily throw hardware at your problems. Considering how easy it is to implement, basically
 just leaving free performance on the table.
 
 There isn't anything special about these three Compression guides or code snippets. The only potential secret sauce was taking
