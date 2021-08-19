@@ -148,7 +148,7 @@ namespace HouseofCat.Dataflows
                 while (await reader.WaitToReadAsync(token).ConfigureAwait(false))
                 {
                     var message = await _channel.Reader.ReadAsync(token);
-                    await _targetBlock.SendAsync(message, token).ConfigureAwait(false);
+                    if (message != null) await _targetBlock.SendAsync(message, token).ConfigureAwait(false);
 
                     if (token.IsCancellationRequested) return;
                 }
