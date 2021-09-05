@@ -1,0 +1,29 @@
+version: '3'
+services:
+  package:
+    build:
+      context: .
+    environment:
+      VERSION: ${VERSION}
+    user: root
+    container_name: packager      
+  test:
+    build:
+      context: .
+      target: tests
+    environment:
+      MESSAGING_RABBIT_HOST: rabbitmq
+      MESSAGING_RABBIT_PASSWORD: guest
+    depends_on:
+      - rabbitmq
+    networks:
+      - suzukiwa
+    user: root
+    container_name: tests
+  rabbitmq:
+    image: rabbitmq:3.8-management-alpine
+    networks:
+      - suzukiwa
+networks:
+  suzukiwa:
+    driver: bridge

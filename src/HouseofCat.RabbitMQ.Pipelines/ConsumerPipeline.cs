@@ -3,6 +3,7 @@ using HouseofCat.RabbitMQ.WorkState;
 using HouseofCat.Dataflows.Pipelines;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using static HouseofCat.RabbitMQ.Pipelines.Constants;
@@ -16,7 +17,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
         bool Started { get; }
 
         Task AwaitCompletionAsync();
-        Task StartAsync(bool useStream);
+        Task StartAsync(bool useStream, CancellationToken cancellationToken = default);
         Task StopAsync(bool immediate = false);
     }
 
@@ -51,9 +52,9 @@ namespace HouseofCat.RabbitMQ.Pipelines
                 : "Unknown";
         }
 
-        public async Task StartAsync(bool useStream)
+        public async Task StartAsync(bool useStream, CancellationToken cancellationToken = default)
         {
-            await _cpLock.WaitAsync().ConfigureAwait(false);
+            await _cpLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
@@ -72,19 +73,23 @@ namespace HouseofCat.RabbitMQ.Pipelines
                         {
                             FeedPipelineWithDataTasks = Task.Run(
                                 () =>
-                                PipelineStreamEngineAsync(
-                                    Pipeline,
-                                    ConsumerOptions.ConsumerPipelineOptions.WaitForCompletion!.Value,
-                                    _cancellationTokenSource.Token));
+                                    PipelineStreamEngineAsync(
+                                        Pipeline,
+                                        ConsumerOptions.ConsumerPipelineOptions.WaitForCompletion!.Value,
+                                        cancellationToken.Equals(default)
+                                            ? _cancellationTokenSource.Token
+                                            : cancellationToken));
                         }
                         else
                         {
                             FeedPipelineWithDataTasks = Task.Run(
                                 () =>
-                                PipelineExecutionEngineAsync(
-                                    Pipeline,
-                                    ConsumerOptions.ConsumerPipelineOptions.WaitForCompletion!.Value,
-                                    _cancellationTokenSource.Token));
+                                    PipelineExecutionEngineAsync(
+                                        Pipeline,
+                                        ConsumerOptions.ConsumerPipelineOptions.WaitForCompletion!.Value,
+                                        cancellationToken.Equals(default)
+                                            ? _cancellationTokenSource.Token
+                                            : cancellationToken));
                         }
 
                         Started = true;
