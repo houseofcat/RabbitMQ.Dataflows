@@ -50,7 +50,6 @@ namespace HouseofCat.RabbitMQ.Pools
         {
             var cf = new ConnectionFactory
             {
-                Uri = Options.FactoryOptions.Uri,
                 AutomaticRecoveryEnabled = true,
                 TopologyRecoveryEnabled = Options.FactoryOptions.TopologyRecovery,
                 NetworkRecoveryInterval = TimeSpan.FromSeconds(Options.FactoryOptions.NetRecoveryTimeout),
@@ -59,6 +58,22 @@ namespace HouseofCat.RabbitMQ.Pools
                 RequestedChannelMax = Options.FactoryOptions.MaxChannelsPerConnection,
                 DispatchConsumersAsync = Options.FactoryOptions.EnableDispatchConsumersAsync,
             };
+
+            if (Options.FactoryOptions.Uri != null)
+            {
+                cf.Uri = Options.FactoryOptions.Uri;
+            }
+            else
+            {
+                cf.VirtualHost = Options.FactoryOptions.VirtualHost;
+                cf.HostName = Options.FactoryOptions.HostName;
+                cf.UserName = Options.FactoryOptions.UserName;
+                cf.Password = Options.FactoryOptions.Password;
+                if (Options.FactoryOptions.Port != AmqpTcpEndpoint.UseDefaultPort)
+                {
+                    cf.Port = Options.FactoryOptions.Port;
+                }
+            }
 
             if (Options.FactoryOptions.SslOptions.EnableSsl)
             {
