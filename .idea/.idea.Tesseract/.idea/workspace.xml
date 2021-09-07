@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="4bcd2444-3765-4793-84a0-383b3bb5aea5" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/24D4299B-CA85-4601-8995-26CB0941EC4F/E/TransformBlock.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/C69DBAF1-53EC-4108-89DC-945EA1348972/F/ConnectionFactory.cs" root0="SKIP_HIGHLIGHTING" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <changedPaths>
+      <option value="$PROJECT_DIR$/src/HouseofCat.Dataflows.Pipelines/Pipeline.cs" />
+      <option value="$PROJECT_DIR$/src/HouseofCat.RabbitMQ.Pipelines/ConsumerPipeline.cs" />
+      <option value="$PROJECT_DIR$/src/HouseofCat.RabbitMQ/Options/FactoryOptions.cs" />
+      <option value="$PROJECT_DIR$/src/HouseofCat.RabbitMQ/Pools/ConnectionPool.cs" />
+    </changedPaths>
+  </component>
+  <component name="ProjectId" id="1xdG4k61weegtXKExdLitf0TJfp" />
+  <component name="ProjectViewState">
+    <option name="autoscrollToSource" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="vue.rearranger.settings.migration" value="true" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="4bcd2444-3765-4793-84a0-383b3bb5aea5" name="Default Changelist" comment="" />
+      <created>1630677366581</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1630677366581</updated>
+      <workItem from="1630677383360" duration="1437000" />
+      <workItem from="1630844973392" duration="2541000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
+  <component name="UnityUnitTestConfiguration" currentTestLauncher="NUnit" />
+  <component name="VcsManagerConfiguration">
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+</project>

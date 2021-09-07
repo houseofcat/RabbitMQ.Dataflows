@@ -3,7 +3,6 @@ using HouseofCat.RabbitMQ.WorkState;
 using HouseofCat.Dataflows.Pipelines;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using static HouseofCat.RabbitMQ.Pipelines.Constants;
