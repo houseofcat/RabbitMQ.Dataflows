@@ -19,20 +19,18 @@ namespace HouseofCat.Dapper
             _reader = reader;
         }
 
-        public async Task<T> GetAsync<T>() where T : class, new()
+        public Task<T> GetAsync<T>() where T : class, new()
         {
-            if (!IsReaderConsumed)
-            { return await _reader.ReadSingleAsync<T>().ConfigureAwait(false); }
+            if (IsReaderConsumed) throw new InvalidOperationException();
 
-            throw new InvalidOperationException();
+            return _reader.ReadSingleAsync<T>();
         }
 
-        public async Task<IEnumerable<T>> GetManyAsync<T>(bool buffered = true) where T : class, new()
+        public Task<IEnumerable<T>> GetManyAsync<T>(bool buffered = true) where T : class, new()
         {
-            if (!IsReaderConsumed)
-            { return await _reader.ReadAsync<T>(buffered).ConfigureAwait(false); }
+            if (IsReaderConsumed) throw new InvalidOperationException();
 
-            throw new InvalidOperationException();
+            return _reader.ReadAsync<T>(buffered);
         }
 
         private bool _disposedValue;

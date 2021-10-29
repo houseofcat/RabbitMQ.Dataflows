@@ -34,22 +34,22 @@ namespace HouseofCat.Data
         /// <typeparam name="TOut"></typeparam>
         /// <param name="data"></param>
         /// <returns></returns>
-        public async Task<TOut> DeserializeAsync<TOut>(ReadOnlyMemory<byte> data)
+        public Task<TOut> DeserializeAsync<TOut>(ReadOnlyMemory<byte> data)
         {
             if (_encryptionProvider != null && _compressionProvider != null)
             {
-                return await DecryptDecompressDeserializeAsync<TOut>(data);
+                return DecryptDecompressDeserializeAsync<TOut>(data);
             }
             else if (_encryptionProvider != null)
             {
-                return await DecryptDeserializeAsync<TOut>(data);
+                return DecryptDeserializeAsync<TOut>(data);
             }
             else if (_compressionProvider != null)
             {
-                return await DecompressDeserializeAsync<TOut>(data);
+                return DecompressDeserializeAsync<TOut>(data);
             }
 
-            return await _serializationProvider.DeserializeAsync<TOut>(data.AsStream());
+            return _serializationProvider.DeserializeAsync<TOut>(data.AsStream());
         }
 
         /// <summary>
