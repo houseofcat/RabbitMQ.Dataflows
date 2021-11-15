@@ -162,7 +162,7 @@ namespace HouseofCat.Encryption
 
             if (returnTobuffer)
             { _pool.Return(buffer.Array); }
-            
+
             _pool.Return(encryptedBytes);
             _pool.Return(tag);
             _pool.Return(nonce);

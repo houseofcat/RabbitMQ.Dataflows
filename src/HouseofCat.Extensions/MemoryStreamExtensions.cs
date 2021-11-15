@@ -8,7 +8,7 @@ namespace HouseofCat.Extensions
 {
     public static class MemoryStreamExtensions
     {
-        private static ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
+        private static readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
 
         /// <summary>
         /// Reset sets the Streams position and attempts to get the underlying Streams buffer. On failure, it rents a byte buffer from shared <c>ArrayPool&lt;byte&gt;</c> and indicates if
