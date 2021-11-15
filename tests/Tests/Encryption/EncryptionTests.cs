@@ -178,5 +178,41 @@ namespace Encryption
 
             Assert.Equal(_data, decryptedStream.ToArray());
         }
+
+        [Fact]
+        public async Task Aes256_StreamAsync()
+        {
+            // Arrange
+            var hashKey = await _hashingProvider
+                .GetHashKeyAsync(Passphrase, Salt, 32)
+                .ConfigureAwait(false);
+
+            var encryptionProvider = new AesStreamEncryptionProvider(hashKey, _hashingProvider.Type);
+            var message = "Hello World!";
+            var fileNamePath = "./test_enc.txt";
+
+            if (File.Exists(fileNamePath))
+            { File.Delete(fileNamePath); }
+
+            // Act
+            using (var encFileStream = File.Open(fileNamePath, FileMode.OpenOrCreate))
+            using (var cryptoStream1 = encryptionProvider.GetEncryptStream(encFileStream))
+            {
+                await cryptoStream1.WriteAsync(Encoding.UTF8.GetBytes(message));
+                await cryptoStream1.FlushFinalBlockAsync();
+            }
+
+            var decryptedMessage = string.Empty;
+            using (var decFileStream = File.Open(fileNamePath, FileMode.OpenOrCreate))
+            using (var cryptoStream2 = encryptionProvider.GetDecryptStream(decFileStream))
+            using (var streamReader = new StreamReader(cryptoStream2, Encoding.UTF8))
+            {
+                decryptedMessage = await streamReader.ReadToEndAsync();
+            }
+
+            // Assert
+            _output.WriteLine($"Decrypted Text: {decryptedMessage}");
+            Assert.Equal(message, decryptedMessage);
+        }
     }
 }
