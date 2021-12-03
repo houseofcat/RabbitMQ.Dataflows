@@ -37,9 +37,15 @@ namespace HouseofCat.Framing
 
             try
             {
+#if NET6_0_OR_GREATER
+                await netStream
+                    .WriteAsync(payload.AsMemory(0, length: bytes.Length + 1), default)
+                    .ConfigureAwait(false);
+#else
                 await netStream
                     .WriteAsync(payload, 0, size: bytes.Length + 1, default)
                     .ConfigureAwait(false);
+#endif
             }
             finally
             {

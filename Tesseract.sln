@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30320.27
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{29F4C0CA-2EA4-433C-8112-9A1336392E52}"
 	ProjectSection(SolutionItems) = preProject
@@ -127,6 +127,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "golang", "golang", "{824F178C-4D64-4944-8C18-1B460F83F5C3}"
 	ProjectSection(SolutionItems) = preProject
 		guides\golang\GoDependencyPatch.md = guides\golang\GoDependencyPatch.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{C073DF79-5344-4980-AA69-4E3CAF9369D9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{1604298C-6A9B-44F8-9C4F-7CBBDF99B5FF}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\master-build.yml = .github\workflows\master-build.yml
+		.github\workflows\publish.yml = .github\workflows\publish.yml
 	EndProjectSection
 EndProject
 Global
@@ -378,6 +386,8 @@ Global
 		{1AB5E832-AD36-40AF-A7E9-A105A778116C} = {29F4C0CA-2EA4-433C-8112-9A1336392E52}
 		{018DB970-F843-4D69-AAE1-C3CDF5FC7093} = {1AB5E832-AD36-40AF-A7E9-A105A778116C}
 		{824F178C-4D64-4944-8C18-1B460F83F5C3} = {1AB5E832-AD36-40AF-A7E9-A105A778116C}
+		{C073DF79-5344-4980-AA69-4E3CAF9369D9} = {29F4C0CA-2EA4-433C-8112-9A1336392E52}
+		{1604298C-6A9B-44F8-9C4F-7CBBDF99B5FF} = {C073DF79-5344-4980-AA69-4E3CAF9369D9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D7099845-267C-4232-8764-5DF25D6B2C79}

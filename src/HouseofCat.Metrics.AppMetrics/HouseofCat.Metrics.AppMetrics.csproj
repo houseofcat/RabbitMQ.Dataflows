@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
   <ItemGroup>
-    <PackageReference Include="App.Metrics" Version="4.2.0" />
+    <PackageReference Include="App.Metrics" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Metrics\HouseofCat.Metrics.csproj" />
