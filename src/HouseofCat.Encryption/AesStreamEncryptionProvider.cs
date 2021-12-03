@@ -65,12 +65,10 @@ namespace HouseofCat.Encryption
         {
             stream.Seek(0, SeekOrigin.Begin);
 
-            using AesManaged aes = new AesManaged
-            {
-                Key = _key.ToArray(),
-                Mode = _cipherMode,
-                Padding = _paddingMode,
-            };
+            using Aes aes = Aes.Create();
+            aes.Key = _key.ToArray();
+            aes.Mode = _cipherMode;
+            aes.Padding = _paddingMode;
 
             var nonceSize = aes.BlockSize / 8;
             stream.Write(BitConverter.GetBytes(nonceSize));
@@ -108,12 +106,10 @@ namespace HouseofCat.Encryption
         {
             stream.Seek(0, SeekOrigin.Begin);
 
-            using AesManaged aes = new AesManaged
-            {
-                Key = _key.ToArray(),
-                Mode = _cipherMode,
-                Padding = _paddingMode,
-            };
+            using Aes aes = Aes.Create();
+            aes.Key = _key.ToArray();
+            aes.Mode = _cipherMode;
+            aes.Padding = _paddingMode;
 
             var nonceSizeBytes = _pool.Rent(4);
             stream.Read(nonceSizeBytes, 0, 4);

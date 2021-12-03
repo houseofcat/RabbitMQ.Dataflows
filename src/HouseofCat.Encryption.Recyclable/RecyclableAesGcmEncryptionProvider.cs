@@ -15,7 +15,7 @@ namespace HouseofCat.Encryption
     {
         public string Type { get; private set; }
 
-        private readonly RNGCryptoServiceProvider _rng = new RNGCryptoServiceProvider();
+        private readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create(nameof(RecyclableAesGcmEncryptionProvider));
         private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
 
         private readonly ReadOnlyMemory<byte> _key;

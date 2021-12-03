@@ -1,7 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
   <ItemGroup>
+	<PackageReference Include="dotMorten.Microsoft.SqlServer.Types" Version="1.3.0" />
     <PackageReference Include="Dapper" Version="2.0.123" />
+	<PackageReference Include="Microsoft.Data.SqlClient" Version="3.0.1" />
+	<PackageReference Include="Microsoft.Spatial" Version="7.9.4" />
+	<PackageReference Include="MySql.Data" Version="8.0.27" />
+	<PackageReference Include="Npgsql" Version="6.0.0" />
+	<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.4" />
+	<PackageReference Include="System.Data.Odbc" Version="6.0.0" />
+	<PackageReference Include="System.Data.OleDb" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Reflection\HouseofCat.Reflection.csproj" />

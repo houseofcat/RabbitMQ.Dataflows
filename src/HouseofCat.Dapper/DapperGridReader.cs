@@ -1,29 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data;
 using System.Threading.Tasks;
 using static Dapper.SqlMapper;
 
 namespace HouseofCat.Dapper
 {
-    public class SqlServerGridReader : IDapperGridReader, IDisposable
+    public interface IDapperGridReader
     {
-        private readonly SqlConnection _connection;
+        bool IsReaderConsumed { get; }
+
+        Task<T> GetSingleAsync<T>() where T : class, new();
+        Task<T> GetFirstAsync<T>() where T : class, new();
+        Task<IEnumerable<T>> GetManyAsync<T>(bool buffered = true) where T : class, new();
+    }
+
+    public class DapperGridReader : IDapperGridReader, IDisposable
+    {
+        private readonly IDbConnection _connection;
         private readonly GridReader _reader;
 
         public bool IsReaderConsumed => _reader.IsConsumed;
 
-        public SqlServerGridReader(SqlConnection connection, GridReader reader)
+        public DapperGridReader(IDbConnection connection, GridReader reader)
         {
             _connection = connection;
             _reader = reader;
         }
 
-        public Task<T> GetAsync<T>() where T : class, new()
+        public Task<T> GetSingleAsync<T>() where T : class, new()
         {
             if (IsReaderConsumed) throw new InvalidOperationException();
 
-            return _reader.ReadSingleAsync<T>();
+            return _reader.ReadSingleOrDefaultAsync<T>();
+        }
+
+        public Task<T> GetFirstAsync<T>() where T : class, new()
+        {
+            if (IsReaderConsumed) throw new InvalidOperationException();
+
+            return _reader.ReadFirstOrDefaultAsync<T>();
         }
 
         public Task<IEnumerable<T>> GetManyAsync<T>(bool buffered = true) where T : class, new()
@@ -48,9 +64,12 @@ namespace HouseofCat.Dapper
                 _disposedValue = true;
             }
         }
-        void IDisposable.Dispose()
+
+        public void Dispose()
         {
-            Dispose(true);
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

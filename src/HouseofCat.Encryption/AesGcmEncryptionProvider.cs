@@ -10,18 +10,11 @@ using System.Threading.Tasks;
 
 namespace HouseofCat.Encryption
 {
-    // Sources:
-    // https://docs.microsoft.com/en-us/dotnet/standard/security/cross-platform-cryptography
-    // 
     public class AesGcmEncryptionProvider : IEncryptionProvider
     {
         public string Type { get; private set; }
 
-        /// <summary>
-        /// Safer way of generating random bytes.
-        /// https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.rngcryptoserviceprovider?redirectedfrom=MSDN&view=net-5.0
-        /// </summary>
-        private readonly RNGCryptoServiceProvider _rng = new RNGCryptoServiceProvider();
+        private readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create(nameof(AesGcmEncryptionProvider));
         private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
 
         private readonly ReadOnlyMemory<byte> _key;
