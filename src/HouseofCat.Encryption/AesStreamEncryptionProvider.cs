@@ -18,7 +18,6 @@ namespace HouseofCat.Encryption
 
         public AesStreamEncryptionProvider(
             ReadOnlyMemory<byte> key,
-            string hashType,
             CipherMode cipherMode = CipherMode.CBC,
             PaddingMode paddingMode = PaddingMode.PKCS7)
         {
@@ -32,17 +31,15 @@ namespace HouseofCat.Encryption
 
             switch (_key.Length)
             {
-                case 16: Type = $"AES{_cipherMode}_128"; break;
-                case 24: Type = $"AES{_cipherMode}_192"; break;
-                case 32: Type = $"AES{_cipherMode}_256"; break;
+                case 16: Type = $"AES{_cipherMode}-128_Padding-{_paddingMode}"; break;
+                case 24: Type = $"AES{_cipherMode}-192_Padding-{_paddingMode}"; break;
+                case 32: Type = $"AES{_cipherMode}-256_Padding-{_paddingMode}"; break;
             }
-
-            if (!string.IsNullOrWhiteSpace(hashType)) { Type = $"HOC_{hashType}-{Type}"; }
         }
 
         /// <summary>
         /// Creates a CryptoStream from the input Stream, but with Nonce/IV size and nonce pre-appended to the Stream
-        /// before creating the CryptoStream. Primarily designed for FileStreams.
+        /// before creating the CryptoStream. Primarily intended to be used with FileStreams.
         /// <para>
         /// Byte Structure
         /// </para>
@@ -75,10 +72,10 @@ namespace HouseofCat.Encryption
             stream.Write(aes.IV, 0, aes.IV.Length);
 
             return new CryptoStream(
-                    stream,
-                    aes.CreateEncryptor(aes.Key, aes.IV),
-                    CryptoStreamMode.Write,
-                    leaveOpen);
+                stream,
+                aes.CreateEncryptor(aes.Key, aes.IV),
+                CryptoStreamMode.Write,
+                leaveOpen);
         }
 
         /// <summary>
