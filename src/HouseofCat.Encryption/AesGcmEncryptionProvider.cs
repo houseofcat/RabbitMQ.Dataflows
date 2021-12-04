@@ -14,12 +14,12 @@ namespace HouseofCat.Encryption
     {
         public string Type { get; private set; }
 
-        private readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create(nameof(AesGcmEncryptionProvider));
+        private readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
         private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
 
         private readonly ReadOnlyMemory<byte> _key;
 
-        public AesGcmEncryptionProvider(byte[] key, string hashType)
+        public AesGcmEncryptionProvider(byte[] key)
         {
             Guard.AgainstNullOrEmpty(key, nameof(key));
 
@@ -28,12 +28,10 @@ namespace HouseofCat.Encryption
 
             switch (_key.Length)
             {
-                case 16: Type = "AESGCM_128"; break;
-                case 24: Type = "AESGCM_192"; break;
-                case 32: Type = "AESGCM_256"; break;
+                case 16: Type = "AESGCM-128"; break;
+                case 24: Type = "AESGCM-192"; break;
+                case 32: Type = "AESGCM-256"; break;
             }
-
-            if (!string.IsNullOrWhiteSpace(hashType)) { Type = $"HOC_{hashType}_{Type}"; }
         }
 
         public ArraySegment<byte> Encrypt(ReadOnlyMemory<byte> unencryptedData)

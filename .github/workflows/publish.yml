@@ -74,22 +74,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Dapper/HouseofCat.Dapper.csproj
 
-    - name: Publish HouseofCat.Dapper.LegacySqlServer
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Dapper.LegacySqlServer/HouseofCat.Dapper.LegacySqlServer.csproj
-
-    - name: Publish HouseofCat.Dapper.SqlServer
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Dapper.SqlServer/HouseofCat.Dapper.SqlServer.csproj
-
     - name: Publish HouseofCat.Data
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -97,6 +81,14 @@ jobs:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Data/HouseofCat.Data.csproj
+
+    - name: Publish HouseofCat.Data.Parquet
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_FILE_PATH: version.props
+          PROJECT_FILE_PATH: src/HouseofCat.Data.Parquet/HouseofCat.Data.Parquet.csproj
 
     - name: Publish HouseofCat.Data.Recyclable
       uses: brandedoutcast/publish-nuget@v2.5.2

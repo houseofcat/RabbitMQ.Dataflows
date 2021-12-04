@@ -51,7 +51,7 @@ namespace Middleware
 
             _middleware = new DataTransformer(
                 serializationProvider,
-                new AesGcmEncryptionProvider(hashKey, hashingProvider.Type),
+                new AesGcmEncryptionProvider(hashKey),
                 new GzipProvider());
 
             _serializedData = _middleware
