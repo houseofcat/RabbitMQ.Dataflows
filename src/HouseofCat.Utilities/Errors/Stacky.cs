@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace HouseofCat.Utilities.Errors
 {
@@ -29,6 +30,10 @@ namespace HouseofCat.Utilities.Errors
 
         public string ToJsonString() => JsonSerializer.Serialize(this, Options);
 
-        private static readonly JsonSerializerOptions Options = new JsonSerializerOptions { WriteIndented = true, IgnoreNullValues = true };
+        private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            WriteIndented = true,
+        };
     }
 }
