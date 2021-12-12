@@ -14,13 +14,9 @@ namespace HouseofCat.Encryption.BouncyCastle
 {
     public class BouncyAesGcmEncryptionProvider : IEncryptionProvider
     {
-        public string Type { get; private set; }
+        public string Type { get; }
 
-        /// <summary>
-        /// Safer way of generating random bytes.
-        /// https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.rngcryptoserviceprovider?redirectedfrom=MSDN&view=net-5.0
-        /// </summary>
-        private readonly RNGCryptoServiceProvider _rng = new RNGCryptoServiceProvider();
+        private readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
         private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
         private readonly AesEncryptionOptions _options;
 
@@ -28,7 +24,7 @@ namespace HouseofCat.Encryption.BouncyCastle
         private readonly int _macBitSize;
         private readonly int _nonceSize;
 
-        public BouncyAesGcmEncryptionProvider(ReadOnlyMemory<byte> key, string hashType, AesEncryptionOptions options = null)
+        public BouncyAesGcmEncryptionProvider(ReadOnlyMemory<byte> key, AesEncryptionOptions options = null)
         {
             Guard.AgainstEmpty(key, nameof(key));
 
@@ -41,12 +37,10 @@ namespace HouseofCat.Encryption.BouncyCastle
 
             switch (key.Length)
             {
-                case 16: Type = "BC_AESGCM_128"; break;
-                case 24: Type = "BC_AESGCM_192"; break;
-                case 32: Type = "BC_AESGCM_256"; break;
+                case 16: Type = "BC_AESGCM-128"; break;
+                case 24: Type = "BC_AESGCM-192"; break;
+                case 32: Type = "BC_AESGCM-256"; break;
             }
-
-            if (!string.IsNullOrWhiteSpace(hashType)) { Type = $"{hashType}-{Type}"; }
         }
 
         public ArraySegment<byte> Encrypt(ReadOnlyMemory<byte> unencryptedData)

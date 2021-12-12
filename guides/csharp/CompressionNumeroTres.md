@@ -6,11 +6,9 @@
 2) Go nuts
 
 #### Intro
-Let's continue our work from the last [guide](https://houseofcat.io/guides/csharp/net/compressionpartdeux).
+Let's continue our work from the last [guide (part-two)](https://houseofcat.io/guides/csharp/net/compressionpartdeux).
 
-We will be taking those well-done examples and bring in something used in high performance systems.
-
-The `RecyclableMemoryStream`.
+We will be taking those well-done examples and bring in something used in high performance systems, the `RecyclableMemoryStream`.
 
 Let's go ahead and acquire package
 ```csharp
@@ -22,8 +20,8 @@ Microsoft.IO.RecyclableMemoryStream
 using Microsoft.IO;
 ```
 
-Let's begin with a global static wrapper I used around RecyclableMemoryStreamManager. This isn't super necessary for you to do but
-since I have a copy of one lying around, let's snag it.
+I am going to begin with a global static wrapper I used around RecyclableMemoryStreamManager. This isn't super necessary for you to
+do but since I have a copy of one already lying around, let's snag it.
 
 ```csharp
 using Microsoft.IO;
@@ -116,11 +114,12 @@ public static class RecyclableManager
 }
 ```
 
-I am not going to tell you exactly what works on the blockSize, bufferSize, maxes, mins, etc. I wouldn't know what works for
-your code. You must figure that out for yourself based on your systems and payloads. I will say, every article's numbers I copied
-while reading their guide *sucked shit* in terms of allocations and performance over just default when benchmarking.
+I am not going to tell you exactly what works on the blockSize, bufferSize, maxes, mins, etc. because I wouldn't know what works for
+your situation. You must figure that out for yourself based on your systems and payloads. I will say, every article's numbers I copied
+while reading their guide on RecyclableMemoryStream *sucked shit* in terms of allocations and performance - over just default - when
+benchmarking. It's possible that its just improved over time.
 
-I have included my own default one but this one primarily only works well for a segment of message sizes I was dealing with.
+I have included my default setup, but this one only worked well for a segment of message sizes I was dealing with.
 It's a specific use case and I am not convinced about even keeping this.
 
 #### Important!  
@@ -143,6 +142,7 @@ public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optima
 
 public ArraySegment<byte> Compress(ReadOnlyMemory<byte> inputData)
 {
+    // replaced
     //using var compressedStream = new MemoryStream();
     var compressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
     using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, false))
@@ -163,16 +163,16 @@ public ArraySegment<byte> Compress(ReadOnlyMemory<byte> inputData)
 ```
 
 ### Code Detour 1 - Right Out The Gate
-Because we are adhering to the signature, we lost an advantage here. We extract the buffer from the `MemoryStream`, which is then
-used by the developer, meaning it can be returned to the buffer pool. It will get discarded eventually but that isn't
-as efficient as signaling a `RecyclableMemoryStream.Dispose()`.
+Because we are adhering to the signature, we lost a bit of an advantage here. We extract the buffer from the `MemoryStream`, which
+is then used by the developer, meaning it can be returned to the buffer pool. It will get discarded eventually but that isn't as
+efficient as signaling a `RecyclableMemoryStream.Dispose()`.
 
-In addition, from time to time under pressure, `TrytGetBuffer()` may indeed fail. In that scenario, we want to make sure that we immediately
-`Dispose()` the `Stream` we `rented` from the `RecyclableManager` as we don't need it after using the `.ToArray()` method.
+In addition, from time to time under pressure, `TrytGetBuffer()` may indeed fail. In that scenario, we want to make sure that we
+immediately `Dispose()` the `Stream` we `rented` from the `RecyclableManager` as we don't need it after using the `.ToArray()`
+method.
 
-This function, while still good for creating `MemoryStreams` backed by a buffer pool, is the second-best choice for lower memory allocations.
-
-That would be using `Stream`.
+This function, while still good for creating `MemoryStreams` backed by a buffer pool, is the second-best choice for lower memory
+allocations. The first would be using `Stream`.
 
 ```csharp
 public MemoryStream Compress(Stream inputStream, bool leaveStreamOpen = false)
@@ -197,7 +197,7 @@ The return now is the `MemoryStream` built from the `RecyclableMemoryStreamManag
 
 Two important notes to remember.
  1. It can be cast to RecyclableMemoryStream.
- 2. When finished with it, you have to remember to _**dispose**_ the `Stream`!
+ 2. When finished with it, you have to remember to _**dispose**_ this `Stream`!
 
 The disposable portion is super important to keep allocations low, as this (underneath the
 covers) returns the buffer to the buffer pool.
@@ -238,11 +238,14 @@ public MemoryStream Decompress(Stream compressedStream, bool leaveStreamOpen = f
 }
 ```
 
-The Decompress method has the same weakness as the first Compress method. To get the lowest allocations, you have to be returning out the
-`Stream` that you can then dispose of afterwards.
+The Decompress method has the same weakness as the first Compress method. To get the lowest allocations, you have to be returning
+out the `Stream` that you can then dispose of afterwards.
 
 ### Code Detour 2 - Optimal Implementation
-If you are using the Recyclable classes, you will want an implementation that looks like this.
+If you are using the Recyclable classes from my library, you will want an implementation that looks like this. I have included one
+under Houseofcat.Data.Recyclable called the `RecyclableTransformer`.
+
+This is a snippet of it under the hood.
 
 ```csharp
 using HouseofCat.Compression;
@@ -254,7 +257,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Example
+namespace HouseofCat.Data.Recyclable
 {
     public class RecyclableTransformer
     {
@@ -318,13 +321,16 @@ namespace HouseofCat.Example
 }
 ```
 
-My HouseofCat libraries really streamlined taking an object `<TIn>` and outputting serialized, compressed, and encrypted bytes in a `Stream`
-or `bytes` and then the ability to `Restore` that back to the object!
+A couple of my HouseofCat libraries really are meant to streamline taking an object `<TIn>` and outputting serialized, compressed,
+and encrypted bytes and then the ability to `Restore` that back to the original object! You should check them out if you are in
+the market for streamlining portions of system.
 
 ### Benchmarks
-Now I always think that there is always room for improvement, but this seems pretty darn good at for an out of the box improvement!
-This relatively painless implementation, on average, amounted to an 88% reduction in byte allocations for non-random data (xml, json, plaintext,
-etc.) Amounts/variance will occur on how compressible an item is of course so your mileage will vary (be sure to test!)
+There is always room for improvement, but this seems pretty damn good as an out-of-the-box improvement!
+
+It's relatively painless to implement and on average, led to an 88% reduction in byte allocations for
+non-random data (xml, json, plaintext, etc.) Amounts/variance will occur on how compressible an item
+is of course so your mileage will vary (be sure to test!)
 
 ```ini
 // * Summary *
@@ -337,42 +343,44 @@ AMD Ryzen 9 5950X, 1 CPU, 32 logical and 16 physical cores
 
 Job=.NET 5.0  Runtime=.NET 5.0
 
-|                               Method |    x |        Mean |     Error |      StdDev |      Median | Ratio | RatioSD |    Gen 0 |   Gen 1 | Gen 2 | Allocated | Decrease |
-|------------------------------------- |----- |------------:|----------:|------------:|------------:|------:|--------:|---------:|--------:|------:|----------:|---------:|
-|      BasicCompressDecompress_5KBytes |   10 |    213.3 us |   4.25 us |     9.14 us |    215.8 us |  1.00 |    0.00 |   6.5918 |       - |     - |    109 KB |      - % |
-|                 GzipProvider_5KBytes |   10 |    203.5 us |   4.06 us |    10.98 us |    210.1 us |  0.94 |    0.05 |   3.4180 |       - |     - |     59 KB | 45.872 % |
-|           GzipProviderStream_5KBytes |   10 |    206.5 us |   4.11 us |    10.97 us |    210.9 us |  0.96 |    0.06 |   3.4180 |       - |     - |     58 KB | 46.789 % |
-|       RecyclableGzipProvider_5KBytes |   10 |    207.5 us |   4.10 us |     9.08 us |    211.3 us |  0.97 |    0.06 |   0.7324 |  0.2441 |     - |     13 KB | 88.073 % |
-| RecyclableGzipProviderStream_5KBytes |   10 |    203.6 us |   2.16 us |     1.91 us |    203.8 us |  0.97 |    0.06 |   0.7324 |       - |     - |     13 KB | 88.073 % |
-|                                      |      |             |           |             |             |       |         |          |         |       |           |          |
-|      BasicCompressDecompress_5KBytes |  100 |  2,188.8 us |  42.41 us |    47.14 us |  2,195.4 us |  1.00 |    0.00 |  66.4063 |       - |     - |  1,088 KB |      - % |
-|                 GzipProvider_5KBytes |  100 |  1,909.6 us |  29.74 us |    27.82 us |  1,911.0 us |  0.87 |    0.02 |  35.1563 |       - |     - |    588 KB | 45.956 % |   
-|           GzipProviderStream_5KBytes |  100 |  1,897.6 us |  22.44 us |    18.73 us |  1,892.8 us |  0.86 |    0.02 |  35.1563 |       - |     - |    583 KB | 46.415 % |
-|       RecyclableGzipProvider_5KBytes |  100 |  2,342.6 us |  45.13 us |    48.29 us |  2,335.8 us |  1.07 |    0.03 |   3.9063 |       - |     - |    121 KB | 88.879 % |
-| RecyclableGzipProviderStream_5KBytes |  100 |  2,182.7 us |  79.15 us |   223.26 us |  2,290.1 us |  0.95 |    0.12 |   5.8594 |       - |     - |    126 KB | 88.420 % |
-|                                      |      |             |           |             |             |       |         |          |         |       |           |          |
-|      BasicCompressDecompress_5KBytes |  500 | 11,190.1 us | 213.12 us |   218.86 us | 11,148.9 us |  1.00 |    0.00 | 328.1250 |       - |     - |  5,438 KB |      - % |
-|                 GzipProvider_5KBytes |  500 | 10,144.5 us | 214.08 us |   631.21 us | 10,449.1 us |  0.84 |    0.06 | 171.8750 |       - |     - |  2,938 KB | 45.973 % |
-|           GzipProviderStream_5KBytes |  500 | 11,105.7 us | 143.25 us |   126.99 us | 11,110.2 us |  0.99 |    0.03 | 171.8750 |       - |     - |  2,914 KB | 46.414 % |
-|       RecyclableGzipProvider_5KBytes |  500 | 11,653.7 us | 182.54 us |   179.28 us | 11,656.0 us |  1.04 |    0.03 |  31.2500 | 15.6250 |     - |    635 KB | 88.323 % | 
-| RecyclableGzipProviderStream_5KBytes |  500 | 11,433.7 us | 171.46 us |   160.39 us | 11,420.8 us |  1.02 |    0.02 |  31.2500 |       - |     - |    629 KB | 88.433 % |
-|                                      |      |             |           |             |             |       |         |          |         |       |           |          |
-|      BasicCompressDecompress_5KBytes | 1000 | 20,582.4 us | 422.06 us | 1,237.82 us | 21,169.3 us |  1.00 |    0.00 | 656.2500 |       - |     - | 10,875 KB |      - % |
-|                 GzipProvider_5KBytes | 1000 | 20,492.8 us | 481.45 us | 1,419.57 us | 21,292.6 us |  1.00 |    0.07 | 343.7500 |       - |     - |  5,875 KB | 45.977 % |
-|           GzipProviderStream_5KBytes | 1000 | 20,491.4 us | 440.79 us | 1,299.68 us | 20,990.3 us |  1.00 |    0.05 | 343.7500 |       - |     - |  5,828 KB | 46.641 % |
-|       RecyclableGzipProvider_5KBytes | 1000 | 18,568.1 us |  42.56 us |    33.23 us | 18,570.2 us |  0.94 |    0.05 |  62.5000 | 31.2500 |     - |  1,271 KB | 88.313 % |
-| RecyclableGzipProviderStream_5KBytes | 1000 | 18,192.9 us | 120.91 us |   134.40 us | 18,188.5 us |  0.96 |    0.07 |  62.5000 |       - |     - |  1,258 KB | 88.432 % |
+|                               Method |    x |        Mean |     Error | Ratio | RatioSD |    Gen 0 |   Gen 1 | Gen 2 | Allocated | Decrease |
+|------------------------------------- |----- |------------:|----------:|------:|--------:|---------:|--------:|------:|----------:|---------:|
+|      BasicCompressDecompress_5KBytes |   10 |    213.3 us |   4.25 us |  1.00 |    0.00 |   6.5918 |       - |     - |    109 KB |      - % |
+|                 GzipProvider_5KBytes |   10 |    203.5 us |   4.06 us |  0.94 |    0.05 |   3.4180 |       - |     - |     59 KB | 45.872 % |
+|           GzipProviderStream_5KBytes |   10 |    206.5 us |   4.11 us |  0.96 |    0.06 |   3.4180 |       - |     - |     58 KB | 46.789 % |
+|       RecyclableGzipProvider_5KBytes |   10 |    207.5 us |   4.10 us |  0.97 |    0.06 |   0.7324 |  0.2441 |     - |     13 KB | 88.073 % |
+| RecyclableGzipProviderStream_5KBytes |   10 |    203.6 us |   2.16 us |  0.97 |    0.06 |   0.7324 |       - |     - |     13 KB | 88.073 % |
+|                                      |      |             |           |       |         |          |         |       |           |          |
+|      BasicCompressDecompress_5KBytes |  100 |  2,188.8 us |  42.41 us |  1.00 |    0.00 |  66.4063 |       - |     - |  1,088 KB |      - % |
+|                 GzipProvider_5KBytes |  100 |  1,909.6 us |  29.74 us |  0.87 |    0.02 |  35.1563 |       - |     - |    588 KB | 45.956 % |   
+|           GzipProviderStream_5KBytes |  100 |  1,897.6 us |  22.44 us |  0.86 |    0.02 |  35.1563 |       - |     - |    583 KB | 46.415 % |
+|       RecyclableGzipProvider_5KBytes |  100 |  2,342.6 us |  45.13 us |  1.07 |    0.03 |   3.9063 |       - |     - |    121 KB | 88.879 % |
+| RecyclableGzipProviderStream_5KBytes |  100 |  2,182.7 us |  79.15 us |  0.95 |    0.12 |   5.8594 |       - |     - |    126 KB | 88.420 % |
+|                                      |      |             |           |       |         |          |         |       |           |          |
+|      BasicCompressDecompress_5KBytes |  500 | 11,190.1 us | 213.12 us |  1.00 |    0.00 | 328.1250 |       - |     - |  5,438 KB |      - % |
+|                 GzipProvider_5KBytes |  500 | 10,144.5 us | 214.08 us |  0.84 |    0.06 | 171.8750 |       - |     - |  2,938 KB | 45.973 % |
+|           GzipProviderStream_5KBytes |  500 | 11,105.7 us | 143.25 us |  0.99 |    0.03 | 171.8750 |       - |     - |  2,914 KB | 46.414 % |
+|       RecyclableGzipProvider_5KBytes |  500 | 11,653.7 us | 182.54 us |  1.04 |    0.03 |  31.2500 | 15.6250 |     - |    635 KB | 88.323 % | 
+| RecyclableGzipProviderStream_5KBytes |  500 | 11,433.7 us | 171.46 us |  1.02 |    0.02 |  31.2500 |       - |     - |    629 KB | 88.433 % |
+|                                      |      |             |           |       |         |          |         |       |           |          |
+|      BasicCompressDecompress_5KBytes | 1000 | 20,582.4 us | 422.06 us |  1.00 |    0.00 | 656.2500 |       - |     - | 10,875 KB |      - % |
+|                 GzipProvider_5KBytes | 1000 | 20,492.8 us | 481.45 us |  1.00 |    0.07 | 343.7500 |       - |     - |  5,875 KB | 45.977 % |
+|           GzipProviderStream_5KBytes | 1000 | 20,491.4 us | 440.79 us |  1.00 |    0.05 | 343.7500 |       - |     - |  5,828 KB | 46.641 % |
+|       RecyclableGzipProvider_5KBytes | 1000 | 18,568.1 us |  42.56 us |  0.94 |    0.05 |  62.5000 | 31.2500 |     - |  1,271 KB | 88.313 % |
+| RecyclableGzipProviderStream_5KBytes | 1000 | 18,192.9 us | 120.91 us |  0.96 |    0.07 |  62.5000 |       - |     - |  1,258 KB | 88.432 % |
 ```
 
 ### Conclusion
-Memory allocation optimizations can be a huge boon in terms of plain-ole throughput. When you start reaching the scale of thousands of requests,
-maybe tens of thousands of requests a second, you start finding these issues fast. Speaking in generality, most devs/managers/product owners start
-scaling up immediately. I know, I know, Cloud hardware solves are often cheaper than devs, but costs can be prohibitive and back in the day you
-couldn't easily throw hardware at problems because it frankly didn't exist in the capacities we take for granted.
+Memory allocation optimizations can be a huge boon to plain-ole throughput. When you start reaching the scale of thousands of requests,
+maybe tens of thousands of requests a second, you start finding these issues quickly. Speaking in generality, most devs/managers/product
+owners start talking about scaling up immediately. I know, I know, Cloud hardware solves are often cheaper than devs, but those costs can
+be just as prohibitive. Back in the day you couldn't easily throw hardware at your problems. Considering how easy it is to implement, basically
+just leaving free performance on the table.
 
-There is nothing special about these three guides or code snippets. The only potential secret sauce was taking something mundane you may see on
-StackOverflow answered a thousand times and just not taking the first popularly upvoted answer. Instead, challenging oneself with some interesting
-constraints. In this particular use case, I was working on a library and I want my it to be as lean and clean as humanly possible so devs
-can get more free/out-of-the-box.
+There isn't anything special about these three Compression guides or code snippets. The only potential secret sauce was taking
+something mundane like Compression, something you may have see on StackOverflow answered a thousand times and just not taking the first popularly upvoted
+answer. Instead, I challenged myself with some interesting constraints.
 
-I hope you found it useful expedition!
+In my actual use case, I was working on my library and I wanted it to be as lean and clean as humanly possible so devs
+can get more free/out-of-the-box performance. I hope you found it useful expedition regardless and helped exposed you to some of the
+newer tricks coming out of C#/NetCore land in recent years!

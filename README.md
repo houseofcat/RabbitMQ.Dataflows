@@ -93,21 +93,15 @@ A library that has a collection of builtin NetCore compression providers that us
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Dapper.svg)](https://www.nuget.org/packages/HouseofCat.Dapper/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Dapper.svg)](https://www.nuget.org/packages/HouseofCat.Dapper/)  
 
-A library that provides a standard for Dapper implementation.  
+A library that provides helper methods for integrating Dapper with the following drivers:
 
-
-## HouseofCat.Dapper.LegacySqlServer
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Dapper.LegacySqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Dapper.LegacySqlServer/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Dapper.LegacySqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Dapper.LegacySqlServer/)  
-
-A library that provides a standard System.Data.SqlClient implementation.  
-
-
-## HouseofCat.Dapper.SqlServer
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Dapper.SqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Dapper.SqlServer/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Dapper.SqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Dapper.SqlServer/)  
-
-A library that provides a standard Microsoft.Data.SqlClient implementation.  
+ * System.Data.SqlClient
+ * Microsoft.Data.SqlClient
+ * MySql.Data.MySqlClient
+ * Npgsq
+ * MySql.Data
+ * System.Data.Odbc
+ * System.Data.OleDb
 
 
 ## HouseofCat.Data

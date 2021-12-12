@@ -60,6 +60,8 @@ namespace HouseofCat.RabbitMQ.Pools
             { _hostLock.Release(); }
         }
 
+        private static readonly string _makeChannelFailedError = "Making a channel failed. Error: {0}";
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public async Task<bool> MakeChannelAsync()
         {
@@ -89,7 +91,7 @@ namespace HouseofCat.RabbitMQ.Pools
             }
             catch (Exception ex)
             {
-                _logger.LogError("Making a channel failed. Error: {0}", ex.Message);
+                _logger.LogError(_makeChannelFailedError, ex.Message);
                 _channel = null;
                 return false;
             }
@@ -110,9 +112,9 @@ namespace HouseofCat.RabbitMQ.Pools
             _hostLock.Wait();
 
             if (e.Active)
-            { _logger.LogWarning(LogMessages.ChannelHosts.FlowControlled); }
+            { _logger.LogWarning(LogMessages.ChannelHosts.FlowControlled, ChannelId); }
             else
-            { _logger.LogInformation(LogMessages.ChannelHosts.FlowControlFinished); }
+            { _logger.LogInformation(LogMessages.ChannelHosts.FlowControlFinished, ChannelId); }
 
             FlowControlled = e.Active;
 
