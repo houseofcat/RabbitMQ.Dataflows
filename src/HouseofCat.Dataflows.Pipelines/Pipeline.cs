@@ -42,7 +42,7 @@ namespace HouseofCat.Dataflows.Pipelines
         public bool Ready { get; private set; }
         public int StepCount { get; private set; }
 
-        public Pipeline(int maxDegreeOfParallelism, bool? ensureOrdered = null, int? bufferSize = null)
+        public Pipeline(int maxDegreeOfParallelism, bool? ensureOrdered = null, int? bufferSize = null, TaskScheduler taskScheduler = null)
         {
             _logger = LogHelper.GetLogger<Pipeline<TIn, TOut>>();
 
@@ -50,14 +50,16 @@ namespace HouseofCat.Dataflows.Pipelines
             _executeStepOptions = new ExecutionDataflowBlockOptions
             {
                 MaxDegreeOfParallelism = maxDegreeOfParallelism,
-                SingleProducerConstrained = true,
+                SingleProducerConstrained = true
             };
 
             _executeStepOptions.EnsureOrdered = ensureOrdered ?? _executeStepOptions.EnsureOrdered;
             _executeStepOptions.BoundedCapacity = bufferSize ?? _executeStepOptions.BoundedCapacity;
+            _executeStepOptions.TaskScheduler = taskScheduler ?? _executeStepOptions.TaskScheduler;
         }
 
-        public Pipeline(int maxDegreeOfParallelism, TimeSpan healthCheckInterval, string pipelineName, bool? ensureOrdered = null, int? bufferSize = null) : this(maxDegreeOfParallelism, ensureOrdered, bufferSize)
+        public Pipeline(int maxDegreeOfParallelism, TimeSpan healthCheckInterval, string pipelineName, bool? ensureOrdered = null, int? bufferSize = null, TaskScheduler taskScheduler = null) : 
+            this(maxDegreeOfParallelism, ensureOrdered, bufferSize, taskScheduler)
         {
             _pipelineName = pipelineName;
             _healthCheckInterval = healthCheckInterval;
@@ -348,7 +350,8 @@ namespace HouseofCat.Dataflows.Pipelines
                 {
                     EnsureOrdered = ensureOrdered ?? _executeStepOptions.EnsureOrdered,
                     MaxDegreeOfParallelism = maxDoPOverride ?? _executeStepOptions.MaxDegreeOfParallelism,
-                    BoundedCapacity = bufferSizeOverride ?? _executeStepOptions.BoundedCapacity
+                    BoundedCapacity = bufferSizeOverride ?? _executeStepOptions.BoundedCapacity,
+                    TaskScheduler = _executeStepOptions.TaskScheduler
                 };
             }
 
