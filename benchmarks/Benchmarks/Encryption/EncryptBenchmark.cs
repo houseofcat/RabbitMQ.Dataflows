@@ -10,7 +10,7 @@ namespace Benchmarks.Encryption
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
-    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
+    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.Net60)]
     public class EncryptBenchmark
     {
         private XorShift XorShift;
@@ -46,7 +46,7 @@ namespace Benchmarks.Encryption
 
             HashKey = HashProvider.GetHashKey(Passphrase, Salt, KeySize);
 
-            EncryptionProvider = new AesGcmEncryptionProvider(HashKey, HashProvider.Type);
+            EncryptionProvider = new AesGcmEncryptionProvider(HashKey);
             EncryptedPayload1 = EncryptionProvider.Encrypt(Payload1).ToArray();
             EncryptedPayload2 = EncryptionProvider.Encrypt(Payload2).ToArray();
             EncryptedPayload3 = EncryptionProvider.Encrypt(Payload3).ToArray();

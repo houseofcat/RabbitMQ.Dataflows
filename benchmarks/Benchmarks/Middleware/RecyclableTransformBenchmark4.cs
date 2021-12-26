@@ -21,7 +21,7 @@ namespace Benchmarks.Middleware
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
-    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
+    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.Net60)]
     public class RecyclableTransformBenchmark4
     {
         private RecyclableTransformer _middleware;
@@ -53,7 +53,7 @@ namespace Benchmarks.Middleware
             _middleware = new RecyclableTransformer(
                 new Utf8JsonProvider(),
                 new RecyclableGzipProvider(),
-                new RecyclableAesGcmEncryptionProvider(hashKey, hashingProvider.Type));
+                new RecyclableAesGcmEncryptionProvider(hashKey));
 
             (var buffer, _) = _middleware.Transform(MyClass);
             _serializedData = buffer.ToArray();

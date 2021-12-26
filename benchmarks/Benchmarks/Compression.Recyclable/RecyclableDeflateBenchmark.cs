@@ -9,7 +9,7 @@ namespace Benchmarks.Compression.Recyclable
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
-    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
+    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.Net60)]
     public class RecyclableDeflateBenchmark
     {
         private ICompressionProvider CompressionProvider;

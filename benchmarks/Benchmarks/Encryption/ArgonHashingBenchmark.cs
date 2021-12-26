@@ -10,7 +10,7 @@ namespace Benchmarks.Encryption
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
-    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
+    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.Net60)]
     public class ArgonHashingBenchmark
     {
         private IHashingProvider HashProvider;

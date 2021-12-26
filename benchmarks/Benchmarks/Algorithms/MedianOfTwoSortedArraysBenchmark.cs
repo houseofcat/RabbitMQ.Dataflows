@@ -11,7 +11,7 @@ namespace Benchmarks.Compression
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
-    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
+    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.Net60)]
     public class MedianOfTwoSortedArraysBenchmark
     {
         private static int ArraySize = 5000;
