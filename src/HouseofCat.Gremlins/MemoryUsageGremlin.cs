@@ -37,7 +37,7 @@ namespace HouseofCat.Gremlins
         /// </summary>
         /// <param name="sizeInBytes"></param>
         /// <returns></returns>
-        public Task AddNetMemoryPressureAsync(int sizeInBytes)
+        public static Task AddNetMemoryPressureAsync(int sizeInBytes)
         {
             ByteQueue.Enqueue(new byte[sizeInBytes]);
 
@@ -48,7 +48,7 @@ namespace HouseofCat.Gremlins
         /// Removes the first byte[] in memory (if any exist).
         /// </summary>
         /// <returns>Success or failure.</returns>
-        public Task<bool> ReduceNetMemoryPressureAsync()
+        public static Task<bool> ReduceNetMemoryPressureAsync()
         {
             return Task.FromResult((ByteQueue.TryDequeue(out byte[] array)));
         }
@@ -57,7 +57,7 @@ namespace HouseofCat.Gremlins
         /// Allocate a memory size to a IntPtr and store the pointer.
         /// </summary>
         /// <returns></returns>
-        public Task AllocateUnmanagedMemoryAsync(int sizeInBytes)
+        public static Task AllocateUnmanagedMemoryAsync(int sizeInBytes)
         {
             MemoryAllocationQueue.Enqueue(Marshal.AllocHGlobal(sizeInBytes));
 
@@ -68,7 +68,7 @@ namespace HouseofCat.Gremlins
         /// Deallocates the first memory location stored by a IntPtr in memory (if it exists).
         /// </summary>
         /// <returns>Success or failure.</returns>
-        public Task<bool> DellocateUnmanagedMemoryAsync()
+        public static Task<bool> DellocateUnmanagedMemoryAsync()
         {
             var success = false;
             if (MemoryAllocationQueue.TryDequeue(out IntPtr allocation))

@@ -14,42 +14,42 @@ namespace HouseofCat.Windows
         /// <summary>
         /// The Thread that will be assigned to a Core/Logical Processor.
         /// </summary>
-        public Thread Thread { get; set; } = null;
+        public Thread Thread { get; set; }
 
         /// <summary>
         /// The CPU this Thread is assigned to.
         /// </summary>
-        public int CpuNumber { get; set; } = 0;
+        public int CpuNumber { get; set; }
 
         /// <summary>
         /// The physical Core/Logical Processor this Thread is to be assigned to.
         /// </summary>
-        public int CpuCoreNumber { get; set; } = 0;
+        public int CpuCoreNumber { get; set; }
 
         /// <summary>
         /// The physical Core/Logical Processor this Thread is to be assigned to.
         /// </summary>
-        public int CpuLogicalProcessorNumber { get; set; } = 0;
+        public int CpuLogicalProcessorNumber { get; set; }
 
         /// <summary>
         /// The physical Core count per CPU.
         /// </summary>
-        public int CoresPerCpu { get; set; } = 0;
+        public int CoresPerCpu { get; set; }
 
         /// <summary>
         /// The Logical Processors per CPU as seen by the OS.
         /// </summary>
-        public int LogicalProcessorsPerCpu { get; set; } = 0;
+        public int LogicalProcessorsPerCpu { get; set; }
 
         /// <summary>
         /// Allows the thread to see when it needs to stop doing work.
         /// </summary>
-        public bool TerminateSelf { get; set; } = false;
+        public bool TerminateSelf { get; set; }
 
         /// <summary>
         /// Tells calling methods to use waits and by how much (ms).
         /// </summary>
-        public int ThrottleTime { get; set; } = 0;
+        public int ThrottleTime { get; set; }
 
         /// <summary>
         /// The ThreadStatus helps quickly identify what work state is for the Thread stored here.

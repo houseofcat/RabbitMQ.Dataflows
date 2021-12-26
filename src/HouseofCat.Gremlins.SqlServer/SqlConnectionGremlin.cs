@@ -8,8 +8,8 @@ namespace HouseofCat.Gremlins
 {
     public class SqlConnectionGremlin
     {
-        private long _currentConnectionId = 0;
-        private long _currentConnectionIdToRemove = 0;
+        private long _currentConnectionId;
+        private long _currentConnectionIdToRemove;
         private readonly object _syncRoot = new object();
 
         /// <summary>

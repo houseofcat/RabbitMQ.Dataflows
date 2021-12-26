@@ -109,7 +109,7 @@ namespace Examples.RabbitMQ.ConsumerWorkflow
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
             _metricsProvider = new NullMetricsProvider();
-            _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
             _compressionProvider = new LZ4PickleProvider();
             _serializationProvider = new Utf8JsonProvider();
 

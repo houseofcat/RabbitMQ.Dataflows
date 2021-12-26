@@ -579,7 +579,7 @@ namespace HouseofCat.Data.Parquet
         }
 
         private static readonly string _dateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ssK";
-        private static bool _skipTypeBreaker = false;
+        private static bool _skipTypeBreaker;
 
         // Attempt to convert the value at the index to the datatypes we expect for Parquet.
         private static object GetComplexValueForParquet(this IDataReader reader, int index)

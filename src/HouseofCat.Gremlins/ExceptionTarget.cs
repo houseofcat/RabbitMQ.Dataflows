@@ -2,10 +2,10 @@
 {
     public class ExceptionTarget
     {
-        public bool AllowConsecutiveFailure = false;
-        public int FailureCount { get; set; } = 0;
-        public int FailureCountMax { get; set; } = 0;
-        public bool GuaranteeFailure { get; set; } = false;
-        public bool LastIterationFailed { get; set; } = false;
+        public bool AllowConsecutiveFailure;
+        public int FailureCount { get; set; }
+        public int FailureCountMax { get; set; }
+        public bool GuaranteeFailure { get; set; }
+        public bool LastIterationFailed { get; set; }
     }
 }

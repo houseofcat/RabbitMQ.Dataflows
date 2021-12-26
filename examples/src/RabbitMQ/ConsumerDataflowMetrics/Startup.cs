@@ -40,7 +40,7 @@ namespace ConsumerDataflowMetrics
                 .GetAwaiter()
                 .GetResult();
 
-            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, hashingProvider.Type);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
             var compressionProvider = new LZ4PickleProvider();
 
             var rabbitService = new RabbitService(
