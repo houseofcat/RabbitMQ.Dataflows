@@ -383,7 +383,7 @@ namespace HouseofCat.Utilities.File
             var directories = new ConcurrentQueue<string>();
             directories.Enqueue(root);
 
-            while (directories.Count > 0)
+            while (!directories.IsEmpty)
             {
                 string currentDir = string.Empty;
                 if (directories.TryDequeue(out currentDir))
@@ -412,7 +412,7 @@ namespace HouseofCat.Utilities.File
             directory.Enqueue(root);
             directoryQueue.Enqueue(directory);
 
-            while (directoryQueue.Count > 0)
+            while (!directoryQueue.IsEmpty)
             {
                 if (directoryQueue.TryDequeue(out ConcurrentQueue<string> dirs))
                 {
