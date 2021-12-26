@@ -15,57 +15,55 @@ namespace HouseofCat.Gremlins
 
         public static Task ThrowsRandomSystemExceptionAsync()
         {
-            switch (_random.Next(0, 25))
+            return _random.Next(0, 25) switch
             {
-                case 0: throw new Exception();
-                case 1: throw new SystemException();
-                case 2: throw new IndexOutOfRangeException();
-                case 3: throw new NullReferenceException();
-                case 4: throw new AccessViolationException();
-                case 5: throw new InvalidOperationException();
-                case 6: throw new ArgumentException();
-                case 7: throw new ArgumentNullException();
-                case 8: throw new ArgumentOutOfRangeException();
-                case 9: throw new InvalidCastException();
-                case 10: throw new InvalidProgramException();
-                case 11: throw new InvalidTimeZoneException();
-                case 12: throw new AggregateException(new Exception());
-                case 13: throw new AggregateException(new Exception[] { new Exception(), new SystemException() });
-                case 14: throw new AggregateException();
-                case 15: throw new ExternalException();
-                case 16: throw new COMException();
-                case 17: throw new SEHException();
-                case 18: throw new OutOfMemoryException();
-                case 19: throw new BadImageFormatException();
-                case 20: throw new DivideByZeroException();
-                case 21: throw new DllNotFoundException();
-                case 22: throw new DuplicateWaitObjectException();
-                case 23: throw new ApplicationException();
-                case 24: throw new ArithmeticException();
-                case 25: throw new InvalidProgramException();
-            }
-
-            return Task.CompletedTask;
+                0 => throw new Exception(),
+                1 => throw new SystemException(),
+                2 => throw new IndexOutOfRangeException(),
+                3 => throw new NullReferenceException(),
+                4 => throw new AccessViolationException(),
+                5 => throw new InvalidOperationException(),
+                6 => throw new ArgumentException(),
+                7 => throw new ArgumentNullException(),
+                8 => throw new ArgumentOutOfRangeException(),
+                9 => throw new InvalidCastException(),
+                10 => throw new InvalidProgramException(),
+                11 => throw new InvalidTimeZoneException(),
+                12 => throw new AggregateException(new Exception()),
+                13 => throw new AggregateException(new Exception[] { new Exception(), new SystemException() }),
+                14 => throw new AggregateException(),
+                15 => throw new ExternalException(),
+                16 => throw new COMException(),
+                17 => throw new SEHException(),
+                18 => throw new OutOfMemoryException(),
+                19 => throw new BadImageFormatException(),
+                20 => throw new DivideByZeroException(),
+                21 => throw new DllNotFoundException(),
+                22 => throw new DuplicateWaitObjectException(),
+                23 => throw new ApplicationException(),
+                24 => throw new ArithmeticException(),
+                25 => throw new InvalidProgramException(),
+                _ => Task.CompletedTask,
+            };
         }
 
         public static Task ThrowsRandomNetworkExceptionAsync()
         {
-            switch (_random.Next(0, 12))
+            return _random.Next(0, 12) switch
             {
-                case 0: throw new Exception();
-                case 1: throw new AccessViolationException();
-                case 2: throw new InvalidOperationException();
-                case 3: throw new IOException();
-                case 4: throw new SocketException();
-                case 5: throw new WebException();
-                case 6: throw new PingException("Gremlins threw this exception.");
-                case 7: throw new HttpRequestException();
-                case 8: throw new HttpListenerException();
-                case 10: throw new TimeoutException();
-                case 12: throw new COMException();
-            }
-
-            return Task.CompletedTask;
+                0 => throw new Exception(),
+                1 => throw new AccessViolationException(),
+                2 => throw new InvalidOperationException(),
+                3 => throw new IOException(),
+                4 => throw new SocketException(),
+                5 => throw new WebException(),
+                6 => throw new PingException("Gremlins threw this exception."),
+                7 => throw new HttpRequestException(),
+                8 => throw new HttpListenerException(),
+                10 => throw new TimeoutException(),
+                12 => throw new COMException(),
+                _ => Task.CompletedTask,
+            };
         }
     }
 }

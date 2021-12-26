@@ -16,7 +16,7 @@ namespace HouseofCat.Dapper
             if (value == null) return null;
 
             if (!_regex.IsMatch(value.ToString()))
-            { throw new Exception("Value is not a Geometry Point"); }
+            { throw new ArgumentException("Value is not a Geometry Point"); }
 
             var geometryPoints = value.ToString().Split('(', ')')[1];
             var geometryValues = geometryPoints.Split(' ');

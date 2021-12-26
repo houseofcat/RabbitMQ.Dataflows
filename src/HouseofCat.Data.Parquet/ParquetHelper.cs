@@ -9,6 +9,7 @@ using Parquet.Data.Rows;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using DataColumn = Parquet.Data.DataColumn;
@@ -222,7 +223,7 @@ namespace HouseofCat.Data.Parquet
         // underlying types work but name needs to remove non-matching characters.
         private static string NormalizeDatabaseTypeName(string input)
         {
-            var lowerInput = input.ToLower();
+            var lowerInput = input.ToLower(CultureInfo.InvariantCulture);
             return lowerInput switch
             {
                 _ when input.Contains(_sysHierarchyId) => _sysHierarchyId,

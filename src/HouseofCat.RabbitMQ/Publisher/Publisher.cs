@@ -23,7 +23,7 @@ namespace HouseofCat.RabbitMQ
 
         ChannelReader<IPublishReceipt> GetReceiptBufferReader();
         Task PublishAsync(IMessage message, bool createReceipt, bool withHeaders = true);
-        Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withHeaders = true);
+        Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true);
 
         Task<bool> PublishAsync(
             string exchangeName,

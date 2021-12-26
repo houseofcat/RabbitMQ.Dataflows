@@ -317,7 +317,7 @@ namespace HouseofCat.RabbitMQ.Pools
             {
                 try
                 { chanHost.Close(); }
-                catch { }
+                catch { /* SWALLOW */ }
             }
 
             await _ackChannels.Reader.WaitToReadAsync().ConfigureAwait(false);
@@ -325,7 +325,7 @@ namespace HouseofCat.RabbitMQ.Pools
             {
                 try
                 { chanHost.Close(); }
-                catch { }
+                catch { /* SWALLOW */ }
             }
         }
 

@@ -218,9 +218,14 @@ namespace HouseofCat.Encryption
             var tagBytes = _pool.Rent(AesGcm.TagByteSizes.MaxSize);
             var nonceBytes = _pool.Rent(AesGcm.NonceByteSizes.MaxSize);
 
-            encryptedStream.Read(nonceBytes, 0, AesGcm.NonceByteSizes.MaxSize);
-            encryptedStream.Read(tagBytes, 0, AesGcm.TagByteSizes.MaxSize);
-            encryptedStream.Read(encryptedBufferBytes, 0, encryptedByteLength);
+            var bytesRead = encryptedStream.Read(nonceBytes, 0, AesGcm.NonceByteSizes.MaxSize);
+            if (bytesRead == 0) throw new InvalidDataException();
+
+            bytesRead = encryptedStream.Read(tagBytes, 0, AesGcm.TagByteSizes.MaxSize);
+            if(bytesRead == 0) throw new InvalidDataException();
+
+            bytesRead = encryptedStream.Read(encryptedBufferBytes, 0, encryptedByteLength);
+            if(bytesRead == 0) throw new InvalidDataException();
 
             // Slicing Version
             var nonce = nonceBytes

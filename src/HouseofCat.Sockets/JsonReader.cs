@@ -19,7 +19,7 @@ namespace HouseofCat.Sockets
         private Channel<TReceived> MessageChannel { get; }
         public ChannelReader<TReceived> MessageChannelReader { get; }
 
-        private Framing.IFramingStrategy FramingStrategy { get; }
+        private IFramingStrategy FramingStrategy { get; }
 
         public JsonReader(
             IQuickListeningSocket quickListeningSocket,

@@ -91,7 +91,8 @@ namespace HouseofCat.Gremlins
             {
                 try
                 {
-                    while (ByteQueue.TryDequeue(out byte[] array)) ;
+                    while (ByteQueue.TryDequeue(out byte[] array))
+
                     while (MemoryAllocationQueue.TryDequeue(out IntPtr allocation))
                     {
                         Marshal.FreeHGlobal(allocation);
