@@ -6,7 +6,7 @@ namespace HouseofCat.Dapper
     public class ConnectionDetails
     {
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public DatabaseType DBType { get; set; }
+        public Database Database { get; set; }
         public string Host { get; set; }
         public int Port { get; set; }
         public string Username { get; set; }

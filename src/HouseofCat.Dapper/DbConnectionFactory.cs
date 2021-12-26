@@ -17,21 +17,21 @@ namespace HouseofCat.Dapper
 
         private static IDbConnection GetConnectionAll(ConnectionDetails connectionDetails)
         {
-            return connectionDetails.DBType switch
+            return connectionDetails.Database switch
             {
-                DatabaseType.SqlServer =>
+                Database.SqlServer =>
                     new Microsoft.Data.SqlClient.SqlConnection(
                         GetConnectionString(connectionDetails)),
-                DatabaseType.PostgreSql =>
+                Database.PostgreSql =>
                     new Npgsql.NpgsqlConnection(
                         GetConnectionString(connectionDetails)),
-                DatabaseType.MySql =>
+                Database.MySql =>
                     new MySql.Data.MySqlClient.MySqlConnection(
                         GetConnectionString(connectionDetails)),
-                DatabaseType.OracleSql =>
+                Database.OracleSql =>
                     new Oracle.ManagedDataAccess.Client.OracleConnection(
                     GetConnectionString(connectionDetails)),
-                DatabaseType.LegacySqlServer =>
+                Database.LegacySqlServer =>
                     new System.Data.SqlClient.SqlConnection(
                         GetConnectionString(connectionDetails)),
                 _ =>
@@ -44,24 +44,24 @@ namespace HouseofCat.Dapper
         [SupportedOSPlatform("windows")]
         private static IDbConnection GetConnectionWindows(ConnectionDetails connectionDetails)
         {
-            return connectionDetails.DBType switch
+            return connectionDetails.Database switch
             {
-                DatabaseType.SqlServer =>
+                Database.SqlServer =>
                     new Microsoft.Data.SqlClient.SqlConnection(
                         GetConnectionString(connectionDetails)),
-                DatabaseType.PostgreSql =>
+                Database.PostgreSql =>
                     new Npgsql.NpgsqlConnection(
                         GetConnectionString(connectionDetails)),
-                DatabaseType.MySql =>
+                Database.MySql =>
                     new MySql.Data.MySqlClient.MySqlConnection(
                         GetConnectionString(connectionDetails)),
-                DatabaseType.OracleSql =>
+                Database.OracleSql =>
                     new Oracle.ManagedDataAccess.Client.OracleConnection(
                     GetConnectionString(connectionDetails)),
-                DatabaseType.LegacySqlServer =>
+                Database.LegacySqlServer =>
                     new System.Data.SqlClient.SqlConnection(
                         GetConnectionString(connectionDetails)),
-                DatabaseType.OleDb =>
+                Database.OleDb =>
                     new System.Data.OleDb.OleDbConnection(
                         GetConnectionString(connectionDetails)),
                 _ => // DatabaseType.Odbc, DatabaseType.Default, and switch "default"
@@ -73,30 +73,30 @@ namespace HouseofCat.Dapper
         public static string GetConnectionString(ConnectionDetails connectionDetails)
         {
             DbConnectionStringBuilder csb;
-            switch (connectionDetails.DBType)
+            switch (connectionDetails.Database)
             {
-                case DatabaseType.SqlServer:
+                case Database.SqlServer:
                     csb = GetSqlServerConnectionStringBuilder(connectionDetails);
                     break;
-                case DatabaseType.PostgreSql:
+                case Database.PostgreSql:
                     csb = GetNpgsqlConnectionStringBuilder(connectionDetails);
                     break;
-                case DatabaseType.MySql:
+                case Database.MySql:
                     csb = GetMySqlConnectionStringBuilder(connectionDetails);
                     break;
-                case DatabaseType.OracleSql:
+                case Database.OracleSql:
                     csb = GetOracleConnectionStringBuilder(connectionDetails);
                     break;
-                case DatabaseType.LegacySqlServer:
+                case Database.LegacySqlServer:
                     csb = GetLegacySqlServerConnectionStringBuilder(connectionDetails);
                     break;
-                case DatabaseType.OleDb:
+                case Database.OleDb:
                     if (!OperatingSystem.IsWindows()) throw new InvalidOperationException("OleDb is only supported on Windows.");
 
                     csb = GetOleDbConnectionStringBuilder(connectionDetails);
                     break;
-                case DatabaseType.Odbc:
-                case DatabaseType.Default:
+                case Database.Odbc:
+                case Database.Default:
                 default:
                     csb = GetOdbcConnectionStringBuilder(connectionDetails);
                     break;

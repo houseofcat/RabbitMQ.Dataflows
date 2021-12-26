@@ -1,9 +1,10 @@
 ﻿using Dapper;
+using Microsoft.SqlServer.Types;
 using System.Data;
 
 namespace HouseofCat.Dapper
 {
-    public class NoParseSqlGeographyTypeHandler : SqlMapper.TypeHandler<Microsoft.SqlServer.Types.SqlGeography>
+    public class NoParseSqlGeographyTypeHandler : SqlMapper.TypeHandler<SqlGeography>
     {
         public override Microsoft.SqlServer.Types.SqlGeography Parse(object value)
         { return default; }

@@ -2,7 +2,7 @@
 {
     public static class Enums
     {
-        public enum DatabaseType
+        public enum Database
         {
             Default,
             OleDb,

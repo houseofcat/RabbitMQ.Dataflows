@@ -9,17 +9,16 @@ namespace HouseofCat.Dapper
 {
     public class GeometryPointTypeHandler : SqlMapper.TypeHandler<GeometryPoint>
     {
+        private Regex _regex = new Regex(@"^(POINT \()(.+)(\))", RegexOptions.CultureInvariant);
+
         public override GeometryPoint Parse(object value)
         {
             if (value == null) return null;
 
-            if (!Regex.IsMatch(value.ToString(), @"^(POINT \()(.+)(\))"))
+            if (!_regex.IsMatch(value.ToString()))
             { throw new Exception("Value is not a Geometry Point"); }
 
-            //Get values inside the brackets
             var geometryPoints = value.ToString().Split('(', ')')[1];
-
-            //Split values by empty space
             var geometryValues = geometryPoints.Split(' ');
 
             var x = ConvertToDouble(geometryValues[0]);
