@@ -58,7 +58,7 @@ namespace HouseofCat.Dataflows.Pipelines
             _executeStepOptions.TaskScheduler = taskScheduler ?? _executeStepOptions.TaskScheduler;
         }
 
-        public Pipeline(int maxDegreeOfParallelism, TimeSpan healthCheckInterval, string pipelineName, bool? ensureOrdered = null, int? bufferSize = null, TaskScheduler taskScheduler = null) : 
+        public Pipeline(int maxDegreeOfParallelism, TimeSpan healthCheckInterval, string pipelineName, bool? ensureOrdered = null, int? bufferSize = null, TaskScheduler taskScheduler = null) :
             this(maxDegreeOfParallelism, ensureOrdered, bufferSize, taskScheduler)
         {
             _pipelineName = pipelineName;

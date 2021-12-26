@@ -1,6 +1,6 @@
-﻿using HouseofCat.Logger;
+﻿using HouseofCat.Dataflows.Pipelines;
+using HouseofCat.Logger;
 using HouseofCat.RabbitMQ.WorkState;
-using HouseofCat.Dataflows.Pipelines;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Management;
-using System.Text;
 
 namespace HouseofCat.Windows.WMI
 {
@@ -46,9 +44,9 @@ namespace HouseofCat.Windows.WMI
             {
                 var mos = new ManagementObjectSearcher(Wmi_Root, Wmi_NumberOfCores);
 
-                foreach (ManagementObject mo in mos.Get())
+                foreach (var mo in mos.Get())
                 {
-                    if ((mo["NumberOfCores"]) != null)
+                    if (mo["NumberOfCores"] != null)
                     { coreCount += int.Parse(mo["NumberOfCores"].ToString()); }
                 }
             }

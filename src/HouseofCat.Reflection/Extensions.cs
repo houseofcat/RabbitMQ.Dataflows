@@ -28,7 +28,7 @@ namespace HouseofCat.Reflection
             var t = Generics.New<TOut>.Instance.Invoke();
             var acessor = TypeAccessor.Create(t.GetType());
 
-            foreach(var kvp in data)
+            foreach (var kvp in data)
             {
                 acessor[t, kvp.Key] = kvp.Value;
             }

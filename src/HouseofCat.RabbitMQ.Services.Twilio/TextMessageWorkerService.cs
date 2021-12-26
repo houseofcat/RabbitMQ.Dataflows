@@ -1,7 +1,7 @@
+using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
-using HouseofCat.Dataflows.Pipelines;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

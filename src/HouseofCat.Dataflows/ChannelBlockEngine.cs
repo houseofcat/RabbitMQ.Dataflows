@@ -23,7 +23,7 @@ namespace HouseofCat.Dataflows
             Func<TOut, Task> postWorkBodyAsync = null,
             int boundedCapacity = 1000,
             TaskScheduler taskScheduler = null,
-            CancellationToken token = default) : 
+            CancellationToken token = default) :
             this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, boundedCapacity, taskScheduler, token)
         {
             _postWorkBodyAsync = postWorkBodyAsync;
@@ -35,7 +35,7 @@ namespace HouseofCat.Dataflows
             bool ensureOrdered,
             int boundedCapacity = 1000,
             TaskScheduler taskScheduler = null,
-            CancellationToken token = default) : 
+            CancellationToken token = default) :
             this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
         {
             if (boundedCapacity > 0)
@@ -53,7 +53,7 @@ namespace HouseofCat.Dataflows
             bool ensureOrdered,
             BoundedChannelOptions options,
             TaskScheduler taskScheduler = null,
-            CancellationToken token = default) : 
+            CancellationToken token = default) :
             this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
         {
             _channelBlock = new ChannelBlock<TIn>(options);
@@ -67,7 +67,7 @@ namespace HouseofCat.Dataflows
             bool ensureOrdered,
             UnboundedChannelOptions options,
             TaskScheduler taskScheduler = null,
-            CancellationToken token = default) : 
+            CancellationToken token = default) :
             this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
         {
             _channelBlock = new ChannelBlock<TIn>(options);
@@ -81,7 +81,7 @@ namespace HouseofCat.Dataflows
             int maxDegreeOfParallelism,
             bool ensureOrdered,
             TaskScheduler taskScheduler = null,
-            CancellationToken token = default) : 
+            CancellationToken token = default) :
             this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
         {
             _channelBlock = new ChannelBlock<TIn>(channel);

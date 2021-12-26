@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace HouseofCat.Windows
+﻿namespace HouseofCat.Windows
 {
     public static class Enums
     {

@@ -1,6 +1,6 @@
+using HouseofCat.Utilities.Errors;
 using System;
 using System.Collections.Generic;
-using HouseofCat.Utilities.Errors;
 using static HouseofCat.Reflection.Generics;
 
 namespace HouseofCat.RabbitMQ
@@ -18,10 +18,10 @@ namespace HouseofCat.RabbitMQ
             {
                 clonedMetadata.CustomFields.Add(kvp.Key, kvp.Value);
             }
-            
+
             return clonedMetadata;
         }
-        
+
         public static T GetHeader<T>(this IMetadata metadata, string key)
         {
             Guard.AgainstNull(metadata, nameof(LetterMetadata));
@@ -36,7 +36,7 @@ namespace HouseofCat.RabbitMQ
 
             return default;
         }
-        
+
         public static void UpsertHeader(this IMetadata metadata, string key, object value)
         {
             if (metadata.CustomFields == null)

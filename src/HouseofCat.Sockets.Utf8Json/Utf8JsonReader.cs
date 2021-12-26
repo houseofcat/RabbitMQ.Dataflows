@@ -1,5 +1,4 @@
 ﻿using HouseofCat.Framing;
-using HouseofCat.Sockets;
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Net.Sockets;

@@ -97,9 +97,9 @@ namespace HouseofCat.RabbitMQ.Dataflows
             ICollection<IConsumer<ReceivedData>> consumers,
             GlobalConsumerPipelineOptions globalConsumerPipelineOptions,
             TaskScheduler taskScheduler = null) : this(
-                rabbitService, 
+                rabbitService,
                 workflowName,
-                consumers, 
+                consumers,
                 globalConsumerPipelineOptions?.MaxDegreesOfParallelism ?? 1,
                 globalConsumerPipelineOptions?.EnsureOrdered ?? true,
                 taskScheduler)
@@ -130,7 +130,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
 
             WorkflowName = workflowName;
             _consumers = consumers;
-            
+
             _rabbitService = rabbitService;
             _serializationProvider = rabbitService.SerializationProvider;
 
@@ -219,12 +219,12 @@ namespace HouseofCat.RabbitMQ.Dataflows
         #region Step Adders
 
         protected virtual ITargetBlock<TState> CreateTargetBlock(
-            int boundedCapacity, TaskScheduler taskScheduler = null) => 
+            int boundedCapacity, TaskScheduler taskScheduler = null) =>
             new BufferBlock<TState>(
                 new DataflowBlockOptions
                 {
                     BoundedCapacity = boundedCapacity > 0 ? boundedCapacity : 1000,
-                    TaskScheduler = taskScheduler ?? _taskScheduler                    
+                    TaskScheduler = taskScheduler ?? _taskScheduler
                 });
 
         public ConsumerDataflow<TState> WithErrorHandling(
@@ -260,7 +260,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
             }
             return this;
         }
-        
+
         public ConsumerDataflow<TState> WithReadyToProcessBuffer(int boundedCapacity, TaskScheduler taskScheduler = null)
         {
             if (_readyBuffer == null)
@@ -313,7 +313,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
             }
             return this;
         }
-        
+
         public ConsumerDataflow<TState> WithFinalization(
             Action<TState> action,
             int? maxDoP = null,

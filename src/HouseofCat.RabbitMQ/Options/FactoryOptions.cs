@@ -1,5 +1,5 @@
-using System;
 using RabbitMQ.Client;
+using System;
 
 namespace HouseofCat.RabbitMQ
 {
@@ -15,27 +15,27 @@ namespace HouseofCat.RabbitMQ
         /// ConnectionFactory (RabbitMQ) virtual host property. Use in lieu of Uri connection string.
         /// </summary>
         public string VirtualHost { get; set; } = "";
-        
+
         /// <summary>
         /// ConnectionFactory (RabbitMQ) username property. Use in lieu of Uri connection string.
         /// </summary>
         public string UserName { get; set; } = "guest";
-        
+
         /// <summary>
         /// ConnectionFactory (RabbitMQ) password property. Use in lieu of Uri connection string.
         /// </summary>
         public string Password { get; set; } = "guest";
-        
+
         /// <summary>
         /// ConnectionFactory (RabbitMQ) host name property. Use in lieu of Uri connection string.
         /// </summary>
         public string HostName { get; set; } = "localhost";
-        
+
         /// <summary>
         /// ConnectionFactory (RabbitMQ) port property. Use in lieu of Uri connection string.
         /// </summary>
         public int Port { get; set; } = AmqpTcpEndpoint.UseDefaultPort;
-        
+
         /// <summary>
         /// ConnectionFactory (RabbitMQ) max connection property.
         /// </summary>
