@@ -110,8 +110,9 @@ namespace HouseofCat.Windows
                                 if (millisecondsToSleep > SleepAccuracyAdjustmentInMicroseconds)
                                 { await Task.Delay((int)millisecondsToSleep).ConfigureAwait(false); }
 
-                                // NO-OP - Short Wait - High CPU
-                                while (SW.ElapsedMicroseconds() < enumerator.Current.FrameTimestamp - SleepAccuracyAdjustmentInMicroseconds) { }
+                                // Short Wait - High CPU
+                                while (SW.ElapsedMicroseconds() < enumerator.Current.FrameTimestamp - SleepAccuracyAdjustmentInMicroseconds)
+                                { /* NO-OP */ }
 
                                 currentTimestamp = SW.ElapsedMicroseconds();
                                 var err = NativeMethods.SendInput(

@@ -9,7 +9,7 @@ namespace HouseofCat.Dapper
 {
     public class GeometryPointTypeHandler : SqlMapper.TypeHandler<GeometryPoint>
     {
-        private Regex _regex = new Regex(@"^(POINT \()(.+)(\))", RegexOptions.CultureInvariant);
+        private static readonly Regex _regex = new Regex(@"^(POINT \()(.+)(\))", RegexOptions.CultureInvariant);
 
         public override GeometryPoint Parse(object value)
         {
