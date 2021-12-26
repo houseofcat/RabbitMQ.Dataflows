@@ -64,7 +64,7 @@ namespace HouseofCat.Gremlins
                         if (Connections.TryGetValue(_currentConnectionIdToRemove, out SqlConnection conn))
                         {
                             try { conn.Close(); }
-                            catch { }
+                            catch { /* SWALLOW */ }
 
                             conn.Dispose();
 

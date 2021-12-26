@@ -74,8 +74,7 @@ namespace HouseofCat.Data.Parquet
 
                     return new DataField(fieldName, DataType.String, hasNulls: true);
                 }
-                catch
-                { }
+                catch { /* SWALLOW */ }
             }
 
             // If mapping is not known, will string work?
@@ -94,8 +93,7 @@ namespace HouseofCat.Data.Parquet
 
                 return new DataField(fieldName, DataType.String, hasNulls: true);
             }
-            catch
-            { }
+            catch { /* SWALLOW */ }
 
             // String did not work, so let's try once more with raw bytes.
             try
@@ -113,8 +111,7 @@ namespace HouseofCat.Data.Parquet
 
                 return new DataField(fieldName, DataType.ByteArray);
             }
-            catch
-            { }
+            catch { /* SWALLOW */ }
 
             // All backup conversions failed.
             throw new InvalidOperationException(string.Format(ParquetDataTypeErrorTemplate, databaseType));

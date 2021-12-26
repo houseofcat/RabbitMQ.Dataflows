@@ -2,7 +2,7 @@
 {
     public class ExceptionTarget
     {
-        public bool AllowConsecutiveFailure;
+        public bool AllowConsecutiveFailure { get; set; }
         public int FailureCount { get; set; }
         public int FailureCountMax { get; set; }
         public bool GuaranteeFailure { get; set; }

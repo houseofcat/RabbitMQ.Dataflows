@@ -38,7 +38,7 @@ namespace HouseofCat.Dataflows.Pipelines
         private readonly TimeSpan _healthCheckInterval;
         private readonly Task _healthCheckTask;
         private readonly string _pipelineName;
-        private CancellationTokenSource _cts;
+        private readonly CancellationTokenSource _cts;
 
         public List<PipelineStep> Steps { get; } = new List<PipelineStep>();
         public bool Ready { get; private set; }

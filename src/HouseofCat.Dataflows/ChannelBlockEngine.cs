@@ -118,7 +118,7 @@ namespace HouseofCat.Dataflows
             {
                 if (_postWorkBodyAsync != null)
                 {
-                    var output = await _workBodyAsync(data);
+                    var output = await _workBodyAsync(data).ConfigureAwait(false);
                     if (output != null)
                     {
                         await _postWorkBodyAsync(output).ConfigureAwait(false);
