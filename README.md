@@ -57,7 +57,7 @@ Check out each project for additional `README.md`. They will provide additional 
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9dbb20a30ada48caae4b92a83628f45e)](https://app.codacy.com/manual/cat_3/Library?utm_source=github.com&utm_medium=referral&utm_content=houseofcat/Library&utm_campaign=Badge_Grade_Dashboard)  
 
-![master-build](https://github.com/houseofcat/HouseofCat.Library/workflows/master-build/badge.svg)  
+[![master-build](https://github.com/houseofcat/HouseofCat.Library/workflows/master-build/badge.svg)](https://github.com/houseofcat/Tesseract/actions/workflows/master-build.yml)
 
 [![Gitter](https://badges.gitter.im/HoC-Tesseract/community.svg)](https://gitter.im/HoC-Tesseract/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
