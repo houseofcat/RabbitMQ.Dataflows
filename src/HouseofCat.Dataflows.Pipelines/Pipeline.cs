@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
@@ -37,13 +38,19 @@ namespace HouseofCat.Dataflows.Pipelines
         private readonly TimeSpan _healthCheckInterval;
         private readonly Task _healthCheckTask;
         private readonly string _pipelineName;
+        private CancellationTokenSource _cts;
 
         public List<PipelineStep> Steps { get; } = new List<PipelineStep>();
         public bool Ready { get; private set; }
         public int StepCount { get; private set; }
 
-        public Pipeline(int maxDegreeOfParallelism, bool? ensureOrdered = null, int? bufferSize = null, TaskScheduler taskScheduler = null)
+        public Pipeline(
+            int maxDegreeOfParallelism,
+            bool? ensureOrdered = null,
+            int? bufferSize = null,
+            TaskScheduler taskScheduler = null)
         {
+            _cts = new CancellationTokenSource();
             _logger = LogHelper.GetLogger<Pipeline<TIn, TOut>>();
 
             _linkStepOptions = new DataflowLinkOptions { PropagateCompletion = true };
@@ -58,7 +65,13 @@ namespace HouseofCat.Dataflows.Pipelines
             _executeStepOptions.TaskScheduler = taskScheduler ?? _executeStepOptions.TaskScheduler;
         }
 
-        public Pipeline(int maxDegreeOfParallelism, TimeSpan healthCheckInterval, string pipelineName, bool? ensureOrdered = null, int? bufferSize = null, TaskScheduler taskScheduler = null) :
+        public Pipeline(
+            int maxDegreeOfParallelism,
+            TimeSpan healthCheckInterval,
+            string pipelineName,
+            bool? ensureOrdered = null,
+            int? bufferSize = null,
+            TaskScheduler taskScheduler = null) :
             this(maxDegreeOfParallelism, ensureOrdered, bufferSize, taskScheduler)
         {
             _pipelineName = pipelineName;
@@ -302,7 +315,10 @@ namespace HouseofCat.Dataflows.Pipelines
             if (Steps[0].Block is ITargetBlock<TIn> firstStep)
             {
                 _logger.LogTrace(Constants.Pipelines.Queued, _pipelineName);
-                return await firstStep.SendAsync(input).ConfigureAwait(false);
+
+                return await firstStep
+                    .SendAsync(input)
+                    .ConfigureAwait(false);
             }
 
             return false;
@@ -325,6 +341,8 @@ namespace HouseofCat.Dataflows.Pipelines
                     return true;
                 }
             }
+
+            _cts?.Cancel();
 
             return false;
         }
@@ -362,9 +380,11 @@ namespace HouseofCat.Dataflows.Pipelines
         {
             await Task.Yield();
 
-            while (true)
+            while (!_cts.IsCancellationRequested)
             {
-                await Task.Delay(_healthCheckInterval).ConfigureAwait(false);
+                try
+                { await Task.Delay(_healthCheckInterval, _cts.Token).ConfigureAwait(false); }
+                catch { /* SWALLOW */ }
 
                 var ex = GetAnyPipelineStepsFault();
                 if (ex != null)
