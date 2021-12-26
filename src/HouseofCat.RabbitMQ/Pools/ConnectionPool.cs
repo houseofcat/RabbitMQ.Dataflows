@@ -181,7 +181,7 @@ namespace HouseofCat.RabbitMQ.Pools
             {
                 try
                 { connHost.Close(); }
-                catch { }
+                catch { /* SWALLOW */ }
             }
 
             _poolLock.Release();

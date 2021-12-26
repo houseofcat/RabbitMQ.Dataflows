@@ -57,7 +57,7 @@ namespace HouseofCat.RabbitMQ
                             config.Exchanges[i].AutoDelete,
                             config.Exchanges[i].Args).ConfigureAwait(false);
                     }
-                    catch { }
+                    catch { /* SWALLOW */ }
                 }
             }
 
@@ -74,7 +74,7 @@ namespace HouseofCat.RabbitMQ
                             config.Queues[i].AutoDelete,
                             config.Queues[i].Args).ConfigureAwait(false);
                     }
-                    catch { }
+                    catch { /* SWALLOW */ }
                 }
             }
 
@@ -90,7 +90,7 @@ namespace HouseofCat.RabbitMQ
                             config.ExchangeBindings[i].RoutingKey,
                             config.ExchangeBindings[i].Args).ConfigureAwait(false);
                     }
-                    catch { }
+                    catch { /* SWALLOW */ }
                 }
             }
 
@@ -106,7 +106,7 @@ namespace HouseofCat.RabbitMQ
                             config.QueueBindings[i].RoutingKey,
                             config.QueueBindings[i].Args).ConfigureAwait(false);
                     }
-                    catch { }
+                    catch { /* SWALLOW */ }
                 }
             }
         }
@@ -133,7 +133,7 @@ namespace HouseofCat.RabbitMQ
                             config.Exchanges[i].AutoDelete,
                             config.Exchanges[i].Args).ConfigureAwait(false);
                     }
-                    catch { }
+                    catch { /* SWALLOW */ }
                 }
             }
 
@@ -150,7 +150,7 @@ namespace HouseofCat.RabbitMQ
                             config.Queues[i].AutoDelete,
                             config.Queues[i].Args).ConfigureAwait(false);
                     }
-                    catch { }
+                    catch { /* SWALLOW */ }
                 }
             }
 
@@ -166,7 +166,7 @@ namespace HouseofCat.RabbitMQ
                             config.ExchangeBindings[i].RoutingKey,
                             config.ExchangeBindings[i].Args).ConfigureAwait(false);
                     }
-                    catch { }
+                    catch { /* SWALLOW */ }
                 }
             }
 
@@ -182,7 +182,7 @@ namespace HouseofCat.RabbitMQ
                             config.QueueBindings[i].RoutingKey,
                             config.QueueBindings[i].Args).ConfigureAwait(false);
                     }
-                    catch { }
+                    catch { /* SWALLOW */ }
                 }
             }
         }

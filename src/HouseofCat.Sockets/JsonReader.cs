@@ -91,7 +91,7 @@ namespace HouseofCat.Sockets
             TReceived obj = default;
             try
             { obj = JsonSerializer.Deserialize<TReceived>(sequence.ToArray()); }
-            catch { }
+            catch { /* SWALLOW */ }
 
             if (obj != null)
             {

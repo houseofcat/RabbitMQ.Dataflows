@@ -95,7 +95,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
                     }
                 }
             }
-            catch { }
+            catch { /* SWALLOW */ }
             finally
             { _cpLock.Release(); }
         }
@@ -123,7 +123,7 @@ namespace HouseofCat.RabbitMQ.Pipelines
                     _completionSource.SetResult(true);
                 }
             }
-            catch { }
+            catch { /* SWALLOW */ }
             finally { _cpLock.Release(); }
         }
 

@@ -55,7 +55,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
                 try
                 { Close(); }
-                catch { }
+                catch { /* SWALLOW */ }
 
                 Connection = null;
             }

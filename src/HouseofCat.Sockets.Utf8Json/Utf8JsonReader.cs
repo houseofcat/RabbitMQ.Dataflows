@@ -91,7 +91,7 @@ namespace HouseofCat.Sockets.Utf8Json
             TRead obj = default;
             try
             { obj = JsonSerializer.Deserialize<TRead>(sequence.ToArray()); }
-            catch { }
+            catch { /* SWALLOW */ }
 
             if (obj != null)
             {

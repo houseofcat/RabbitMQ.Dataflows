@@ -119,7 +119,7 @@ namespace HouseofCat.RabbitMQ.Services
 
                 await _consumerPipeline.StartAsync(false).ConfigureAwait(false);
             }
-            catch { }
+            catch { /* SWALLOW */ }
         }
 
         // Build out your workflow

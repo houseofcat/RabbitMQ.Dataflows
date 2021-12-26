@@ -137,7 +137,7 @@ namespace HouseofCat.RabbitMQ.Pools
             {
                 try
                 { _channel.Close(CloseCode, CloseMessage); }
-                catch { }
+                catch { /* SWALLOW */ }
             }
         }
 
