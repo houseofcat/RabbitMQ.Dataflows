@@ -577,7 +577,6 @@ namespace HouseofCat.Data.Parquet
             throw new InvalidDataException(string.Format(InvalidValueErrorTemplate, rawDataBaseType));
         }
 
-        private static readonly string _dateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ssK";
         private static bool _skipTypeBreaker;
 
         // Attempt to convert the value at the index to the datatypes we expect for Parquet.

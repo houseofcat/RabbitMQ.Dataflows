@@ -11,3 +11,6 @@ dotnet_diagnostic.IDE0057.severity = none
 
 # CA2211: Non-constant fields should not be visible
 dotnet_diagnostic.CA2211.severity = silent
+
+# CA2208: Instantiate argument exceptions correctly
+dotnet_diagnostic.CA2208.severity = silent

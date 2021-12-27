@@ -160,20 +160,6 @@ A library that provides encryption from base AesGcm class in NetCore but with Ar
 A library that focuses on extending functionality to other objects.  
 
 
-## HouseofCat.Extensions.Dataflows
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Extensions.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Dataflows/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Dataflows/)  
-
-A library that focuses on extending functionality to other dataflow related objects. 
-
-
-## HouseofCat.Extensions.Host.Serilog
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Extensions.Host.Serilog.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Host.Serilog/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.Host.Serilog.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Host.Serilog/)  
-
-A library that focuses on extending IHost functionality to quickly setup Serilog.  
-
-
 ## HouseofCat.Framing
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Framing.svg)](https://www.nuget.org/packages/HouseofCat.Framing/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Framing.svg)](https://www.nuget.org/packages/HouseofCat.Framing/)  
@@ -253,6 +239,13 @@ Formerly found at [RabbitMQ.Core](https://github.com/houseofcat/RabbitMQ.Core)
 A library that extends HouseofCat.RabbitMQ functionality by providing epic TPL Dataflow usage for Tesseract.  
 
 
+## HouseofCat.RabbitMQ.Mailkit
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
+
+A library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (Email) with the HouseofCat.RabbitMQ library. 
+
+
 ## HouseofCat.RabbitMQ.Pipelines
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
@@ -264,19 +257,12 @@ A library that extends HouseofCat.RabbitMQ functionality by providing simplified
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
 
-A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.RabbitMQ library.  
+A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.RabbitMQ library.   
 
 
-## HouseofCat.RabbitMQ.Services.Mailkit
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
-
-A library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (Email) with the HouseofCat.RabbitMQ library.  
-
-
-## HouseofCat.RabbitMQ.Services.Twilio
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Twilio/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Twilio/)  
+## HouseofCat.RabbitMQ.Twilio
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Twilio/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Twilio/)  
 
 A library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio (SMS/TextMessages) with the HouseofCat.RabbitMQ library.  
 
@@ -328,6 +314,13 @@ A library that focuses on making it easier to deal with Utf8Json Json Serializat
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.MessagePack/)  
 
 A library that focuses on making it easier to deal with MessagePack Serialization.  
+
+
+## HouseofCat.Serilog
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serilog.svg)](https://www.nuget.org/packages/HouseofCat.Serilog/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serilog.svg)](https://www.nuget.org/packages/HouseofCat.Serilog/)  
+
+A library that focuses on extending IHost functionality to quickly setup Serilog.  
 
 
 ## HouseofCat.Sockets

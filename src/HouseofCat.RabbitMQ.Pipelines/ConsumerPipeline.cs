@@ -51,9 +51,9 @@ namespace HouseofCat.RabbitMQ.Pipelines
                 : "Unknown";
         }
 
-        public async Task StartAsync(bool useStream, CancellationToken cancellationToken = default)
+        public async Task StartAsync(bool useStream, CancellationToken token = default)
         {
-            await _cpLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            await _cpLock.WaitAsync(token).ConfigureAwait(false);
 
             try
             {
@@ -75,9 +75,10 @@ namespace HouseofCat.RabbitMQ.Pipelines
                                     PipelineStreamEngineAsync(
                                         Pipeline,
                                         ConsumerOptions.ConsumerPipelineOptions.WaitForCompletion!.Value,
-                                        cancellationToken.Equals(default)
+                                        token.Equals(default)
                                             ? _cancellationTokenSource.Token
-                                            : cancellationToken));
+                                            : token),
+                                    CancellationToken.None);
                         }
                         else
                         {
@@ -86,9 +87,10 @@ namespace HouseofCat.RabbitMQ.Pipelines
                                     PipelineExecutionEngineAsync(
                                         Pipeline,
                                         ConsumerOptions.ConsumerPipelineOptions.WaitForCompletion!.Value,
-                                        cancellationToken.Equals(default)
+                                        token.Equals(default)
                                             ? _cancellationTokenSource.Token
-                                            : cancellationToken));
+                                            : token),
+                                    CancellationToken.None);
                         }
 
                         Started = true;
@@ -127,7 +129,10 @@ namespace HouseofCat.RabbitMQ.Pipelines
             finally { _cpLock.Release(); }
         }
 
-        public async Task PipelineStreamEngineAsync(IPipeline<ReceivedData, TOut> pipeline, bool waitForCompletion, CancellationToken token = default)
+        public async Task PipelineStreamEngineAsync(
+            IPipeline<ReceivedData, TOut> pipeline,
+            bool waitForCompletion,
+            CancellationToken token = default)
         {
             await _pipeExecLock
                 .WaitAsync(2000, token)
