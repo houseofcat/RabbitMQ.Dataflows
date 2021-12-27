@@ -10,8 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		common.props = common.props
 		houseofcat.png = houseofcat.png
 		LICENSE = LICENSE
-		.github\workflows\master-build.yml = .github\workflows\master-build.yml
-		.github\workflows\publish.yml = .github\workflows\publish.yml
 		README.md = README.md
 		version.props = version.props
 	EndProjectSection
@@ -129,7 +127,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{C073
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{1604298C-6A9B-44F8-9C4F-7CBBDF99B5FF}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\master-build.yml = .github\workflows\master-build.yml
+		.github\workflows\build.yml = .github\workflows\build.yml
 		.github\workflows\publish.yml = .github\workflows\publish.yml
 	EndProjectSection
 EndProject
