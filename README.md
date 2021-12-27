@@ -1,6 +1,6 @@
 # TESSERACT
 
-![TesseractLogo](https://github.com/houseofcat/Tesseract/blob/master/TesseractLogo.svg)
+![TesseractLogo](https://github.com/houseofcat/Tesseract/blob/main/TesseractLogo.svg)
 
 A library of `NetCore` tools to help rapidly develop well performant micro/macroservices. 
 
