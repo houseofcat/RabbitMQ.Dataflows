@@ -1,6 +1,7 @@
 ﻿using HouseofCat.Encryption;
 using HouseofCat.Extensions;
 using HouseofCat.Utilities.Errors;
+using HouseofCat.Utilities.Time;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SqlServer.Types;
 using Parquet;
@@ -18,6 +19,7 @@ namespace HouseofCat.Data.Parquet
 {
     public static class ParquetHelper
     {
+        public static string DateTimeFormat { get; set; } = Time.Formats.CatsAltFormat;
 
         private static readonly HashSet<Type> _skipTypes = new HashSet<Type>
         {
@@ -605,7 +607,7 @@ namespace HouseofCat.Data.Parquet
                 string stringy => stringy,
                 Guid guid => guid.ToString(),
                 TimeSpan timespan => timespan.ToString(),
-                DateTime dateTime => dateTime.ToString(_dateTimeFormat),
+                DateTime dateTime => dateTime.ToString(DateTimeFormat, DateTimeFormatInfo.InvariantInfo),
                 DateTimeOffset dateTimeOffset => dateTimeOffset.ToString(),
                 SqlHierarchyId sqlHierarchy => sqlHierarchy.ToString(),
                 SqlGeography sqlGeography => sqlGeography.ToString(),

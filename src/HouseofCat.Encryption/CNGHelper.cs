@@ -59,6 +59,24 @@ namespace HouseofCat.Encryption
             };
         }
 
+        [SupportedOSPlatform("windows")]
+        public static RSACng GetOrCreateRSACng(string rsaKeyName, CngKeyCreationParameters parameters = null)
+        {
+            Guard.AgainstNullOrEmpty(rsaKeyName, nameof(rsaKeyName));
+
+            CngKey cngKey;
+
+            if (CngKey.Exists(rsaKeyName))
+            { cngKey = CngKey.Open(rsaKeyName); }
+            else
+            { cngKey = CngKey.Create(CngAlgorithm.Rsa, rsaKeyName, parameters); }
+
+            return new RSACng(cngKey)
+            {
+                KeySize = KeySize
+            };
+        }
+
         private static readonly string NoBytesWereReadRsaPublicKeyError = "Unable to create RSA from PublicKey import. No bytes were read.";
         private static readonly string NoBytesWereReadRsaPrivateKeyError = "Unable to create RSA from PrivateKey import. No bytes were read.";
         private static readonly string NotSupportedError = "Linux/Mac have not been implemented yet.";

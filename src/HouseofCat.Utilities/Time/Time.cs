@@ -10,12 +10,12 @@ namespace HouseofCat.Utilities.Time
 
         public static class Formats
         {
-            public const string CatsPreferredFormat = "MM/dd/yyyy HH:mm:ss.fff zzz";
-            public const string CatsAltFormat = "yyyy-MM-dd HH:mm:ss.fff zzz";
-            public const string CatRFC3339 = "yyyy-MM-dd HH:mm:ss.fffzzz";
-            public const string RFC3339Long = "yyyy-MM-dd'T'HH:mm:ss.ffffffK";
-            public const string RFC3339Short = "yyyy-MM-dd'T'HH:mm:ss.fffK";
-            public const string RFC3339Shortest = "yyyy-MM-dd'T'HH:mm:ssK";
+            public static string CatsPreferredFormat = "MM/dd/yyyy HH:mm:ss.fff zzz";
+            public static string CatsAltFormat = "yyyy-MM-dd HH:mm:ss.ffffff zzz";
+            public static string CatRFC3339 = "yyyy-MM-dd HH:mm:ss.fffzzz";
+            public static string RFC3339Long = "yyyy-MM-dd'T'HH:mm:ss.ffffffK";
+            public static string RFC3339Short = "yyyy-MM-dd'T'HH:mm:ss.fffK";
+            public static string RFC3339Shortest = "yyyy-MM-dd'T'HH:mm:ssK";
         }
     }
 }
