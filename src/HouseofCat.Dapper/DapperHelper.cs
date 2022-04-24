@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using HouseofCat.Data.Database;
 using Microsoft.SqlServer.Types;
 using System.Collections.Generic;
 using System.Data;
@@ -312,7 +313,7 @@ namespace HouseofCat.Dapper
         {
             var definition = new CommandDefinition(sql, parameters, null, timeout, commandType, CommandFlags.Buffered);
 
-            return connection.ExecuteReader(definition, CommandBehavior.CloseConnection);
+            return connection.ExecuteReader(definition, CommandBehavior.SequentialAccess);
         }
 
         public static Task<IDataReader> ExecuteReaderAsync(
@@ -325,7 +326,7 @@ namespace HouseofCat.Dapper
             var definition = new CommandDefinition(sql, parameters, null, timeout, commandType, CommandFlags.Buffered);
 
             return connection
-                .ExecuteReaderAsync(definition, CommandBehavior.CloseConnection);
+                .ExecuteReaderAsync(definition, CommandBehavior.SequentialAccess);
         }
 
         #region SqlServer Mechanical Workarounds

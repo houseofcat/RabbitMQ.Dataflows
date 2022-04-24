@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using static HouseofCat.Dapper.Enums;
+using static HouseofCat.Data.Database.Enums;
 
-namespace HouseofCat.Dapper
+namespace HouseofCat.Data.Database
 {
     public class QueryPlan
     {

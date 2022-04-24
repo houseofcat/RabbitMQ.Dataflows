@@ -1,13 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace HouseofCat.Dapper
+namespace HouseofCat.Data.Database
 {
-    public class NpgsqlOptions
+    public class OracleOptions
     {
-        public bool IntegratedSecurity { get; set; }
-
-        public string SslMode { get; set; }
+        public string IntegratedSecurity { get; set; }
 
         [DefaultValue(true)]
         public bool Pooling { get; set; } = true;

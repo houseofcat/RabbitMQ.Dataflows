@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using System.Text.Json.Serialization;
 
-namespace HouseofCat.Dapper
+namespace HouseofCat.Data.Database
 {
     public class Parameter
     {

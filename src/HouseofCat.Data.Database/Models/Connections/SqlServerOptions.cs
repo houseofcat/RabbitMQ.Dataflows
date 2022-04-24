@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace HouseofCat.Dapper
+namespace HouseofCat.Data.Database
 {
     public class SqlServerOptions
     {

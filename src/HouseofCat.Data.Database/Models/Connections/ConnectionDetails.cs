@@ -1,12 +1,11 @@
 ﻿using System.Text.Json.Serialization;
-using static HouseofCat.Dapper.Enums;
 
-namespace HouseofCat.Dapper
+namespace HouseofCat.Data.Database
 {
     public class ConnectionDetails
     {
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public Database Database { get; set; }
+        public Enums.Database Database { get; set; }
         public string Host { get; set; }
         public int Port { get; set; }
         public string Username { get; set; }

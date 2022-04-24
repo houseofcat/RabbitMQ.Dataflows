@@ -18,18 +18,18 @@ namespace HouseofCat.Encryption
         /// found or generate a new CNG key that is then used to make a new RSACng at will
         /// be used by all subsequent calls of GetOrCreateRSACng for encryption/decryption.
         /// </summary>
-        /// <param name="rsaKeyName"></param>
+        /// <param name="rsaKeyContainerName"></param>
         /// <returns>RSACng</returns>
         [SupportedOSPlatform("windows")]
-        public static RSACng GetOrCreateRSACng(string rsaKeyName)
+        public static RSACng GetOrCreateRSACng(string rsaKeyContainerName)
         {
-            Guard.AgainstNullOrEmpty(rsaKeyName, nameof(rsaKeyName));
+            Guard.AgainstNullOrEmpty(rsaKeyContainerName, nameof(rsaKeyContainerName));
 
             CngKey cngKey;
 
-            if (CngKey.Exists(rsaKeyName))
+            if (CngKey.Exists(rsaKeyContainerName))
             {
-                cngKey = CngKey.Open(rsaKeyName);
+                cngKey = CngKey.Open(rsaKeyContainerName);
             }
             else
             {
@@ -50,8 +50,54 @@ namespace HouseofCat.Encryption
 
                 cngKeyCreationParameters.Parameters.Add(cngLengthProperty);
 
-                cngKey = CngKey.Create(CngAlgorithm.Rsa, rsaKeyName, cngKeyCreationParameters);
+                cngKey = CngKey.Create(CngAlgorithm.Rsa, rsaKeyContainerName, cngKeyCreationParameters);
             }
+
+            return new RSACng(cngKey)
+            {
+                KeySize = KeySize
+            };
+        }
+
+        /// <summary>
+        /// Uses Windows based CNG to lookup the RSA KeyContainerName and either return what is
+        /// found or generate a new CNG key that is then used to make a new RSACng at will
+        /// be used by all subsequent calls of GetOrCreateRSACng for encryption/decryption.
+        /// <para>
+        /// Use this for sharing the same RSA KeyContainer between one or more
+        /// applications on the same host.
+        /// </para>
+        /// <para>
+        /// Example.) A Windows host has one app that encrypts
+        /// the data and one app that decrypts the same data.
+        /// </para>
+        /// </summary>
+        /// <param name="rsaKeyContainerName"></param>
+        /// <returns>RSACng</returns>
+        [SupportedOSPlatform("windows")]
+        public static RSACng GetMachineRSACNGKey(string rsaKeyContainerName)
+        {
+            CngKey cngKey;
+
+            if (!CngKey.Exists(rsaKeyContainerName, CngProvider.MicrosoftSoftwareKeyStorageProvider, CngKeyOpenOptions.MachineKey))
+            {
+                var cng = new CngKeyCreationParameters
+                {
+                    KeyUsage = CngKeyUsages.AllUsages,
+                    KeyCreationOptions = CngKeyCreationOptions.MachineKey,
+                    Provider = CngProvider.MicrosoftSoftwareKeyStorageProvider,
+                    ExportPolicy = CngExportPolicies.AllowPlaintextExport
+                        | CngExportPolicies.AllowExport
+                        | CngExportPolicies.AllowArchiving
+                        | CngExportPolicies.AllowPlaintextArchiving,
+                };
+
+                cng.Parameters.Add(new CngProperty("Length", BitConverter.GetBytes(KeySize), CngPropertyOptions.None));
+
+                cngKey = CngKey.Create(CngAlgorithm.Rsa, rsaKeyContainerName, cng);
+            }
+            else
+            { cngKey = CngKey.Open(rsaKeyContainerName, CngProvider.MicrosoftSoftwareKeyStorageProvider, CngKeyOpenOptions.MachineKey); }
 
             return new RSACng(cngKey)
             {

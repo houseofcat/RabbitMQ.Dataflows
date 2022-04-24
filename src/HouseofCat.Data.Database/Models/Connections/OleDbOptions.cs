@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace HouseofCat.Dapper
+namespace HouseofCat.Data.Database
 {
     public class OleDbOptions
     {

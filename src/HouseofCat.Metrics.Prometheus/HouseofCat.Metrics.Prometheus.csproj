@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
   <ItemGroup>
-    <PackageReference Include="prometheus-net" Version="5.0.2" />
-    <PackageReference Include="prometheus-net.DotNetRuntime" Version="4.2.2" />
+    <PackageReference Include="prometheus-net" Version="6.0.0" />
+    <PackageReference Include="prometheus-net.DotNetRuntime" Version="4.2.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Metrics\HouseofCat.Metrics.csproj" />

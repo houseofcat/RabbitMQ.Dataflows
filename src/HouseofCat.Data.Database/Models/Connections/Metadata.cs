@@ -1,4 +1,4 @@
-﻿namespace HouseofCat.Dapper
+﻿namespace HouseofCat.Data.Database
 {
     public class Metadata
     {
@@ -8,5 +8,6 @@
         public NpgsqlOptions NpgsqlOptions { get; set; }
         public MySqlOptions MySqlOptions { get; set; }
         public OracleOptions OracleOptions { get; set; }
+        public SQLiteOptions SQLiteOptions { get; set; }
     }
 }
