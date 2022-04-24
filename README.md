@@ -109,13 +109,22 @@ A library that provides the provides helper classes for data manipulation and tr
 
 A library that provides the provides a Database Connection Factory and Sql Generation.
 
-### Sql Query Generation Support 
+### Database Connection Factory Support
  * System.Data.SqlClient
  * Microsoft.Data.SqlClient
  * MySql.Data.MySqlClient
  * Npgsq
  * MySql.Data
+ * Oracle
+ * SQLite
+
+### Sql Query Generation
+ * SqlServer
+ * MySql
+ * PostgreSql
  * Firebird
+ * Oracle
+ * SQLite
 
 
 ## HouseofCat.Data.Parquet
