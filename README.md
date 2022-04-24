@@ -93,15 +93,7 @@ A library that has a collection of builtin NetCore compression providers that us
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Dapper.svg)](https://www.nuget.org/packages/HouseofCat.Dapper/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Dapper.svg)](https://www.nuget.org/packages/HouseofCat.Dapper/)  
 
-A library that provides helper methods for integrating Dapper with the following drivers:
-
- * System.Data.SqlClient
- * Microsoft.Data.SqlClient
- * MySql.Data.MySqlClient
- * Npgsq
- * MySql.Data
- * System.Data.Odbc
- * System.Data.OleDb
+A library that provides helper methods for integrating Dapper.
 
 
 ## HouseofCat.Data
@@ -109,6 +101,28 @@ A library that provides helper methods for integrating Dapper with the following
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Data.svg)](https://www.nuget.org/packages/HouseofCat.Data/)  
 
 A library that provides the provides helper classes for data manipulation and transformation. 
+
+
+## HouseofCat.Data.Database
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Data.Database.svg)](https://www.nuget.org/packages/HouseofCat.Data.Database/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Data.Database.svg)](https://www.nuget.org/packages/HouseofCat.Data.Database/)  
+
+A library that provides the provides a Database Connection Factory and Sql Generation.
+
+### Sql Query Generation Support 
+ * System.Data.SqlClient
+ * Microsoft.Data.SqlClient
+ * MySql.Data.MySqlClient
+ * Npgsq
+ * MySql.Data
+ * Firebird
+
+
+## HouseofCat.Data.Parquet
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Data.Parquet.svg)](https://www.nuget.org/packages/HouseofCat.Data.Parquet/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Data.Parquet.svg)](https://www.nuget.org/packages/HouseofCat.Data.Parquet/)  
+
+A library that helps extract databases to parquet file (IDataReader -> Snappy compressed Parquet files.)
 
 
 ## HouseofCat.Data.Recyclable
