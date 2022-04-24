@@ -45,7 +45,7 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
             _hashingProvider = new Argon2ID_HashingProvider();
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
-            _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
             _compressionProvider = new GzipProvider();
             _serializationProvider = new Utf8JsonProvider(StandardResolver.Default);
 
@@ -89,7 +89,7 @@ namespace Examples.RabbitMQ.StressAndStabilityConsole
             _hashingProvider = new Argon2ID_HashingProvider();
             var hashKey = await _hashingProvider.GetHashKeyAsync("passwordforencryption", "saltforencryption", 32).ConfigureAwait(false);
 
-            _encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
             _compressionProvider = new GzipProvider();
             _serializationProvider = new Utf8JsonProvider(StandardResolver.Default);
 

@@ -21,7 +21,7 @@ namespace HouseofCat.Gremlins
         /// <summary>
         /// Array containing all the threads to be assigned to a Cpue Core and thread information for record keeping.
         /// </summary>
-        public ThreadContainer[] CpuCoreThreadContainers = null;
+        public ThreadContainer[] CpuCoreThreadContainers;
 
         #endregion
 
@@ -174,7 +174,7 @@ namespace HouseofCat.Gremlins
                 while (!threadContainer.TerminateSelf)
                 {
                     if (threadContainer.ThrottleTime > 0)
-                    { await AsyncWork(threadContainer.ThrottleTime).ConfigureAwait(false); }
+                    { await CpuUsageGremlin.AsyncWork(threadContainer.ThrottleTime).ConfigureAwait(false); }
                     else if (threadContainer.AsyncFuncWork != default)
                     { await threadContainer.AsyncFuncWork(threadNumber).ConfigureAwait(false); }
                 }
@@ -183,12 +183,12 @@ namespace HouseofCat.Gremlins
             }
         }
 
-        private async Task AsyncWork(int throttleTime)
+        private static async Task AsyncWork(int throttleTime)
         {
             await Task.Delay(throttleTime).ConfigureAwait(false);
         }
 
-        private bool disposedValue = false;
+        private bool disposedValue;
 
         /// <summary>
         /// Dispose

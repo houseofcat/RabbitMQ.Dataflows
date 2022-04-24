@@ -37,41 +37,49 @@ namespace HouseofCat.Utilities.Errors
 
         private static void ParseStackTrace(Exception ex, Stacky stacky)
         {
-            if (!string.IsNullOrEmpty(ex.StackTrace))
+            if (string.IsNullOrEmpty(ex.StackTrace)) return;
+
+            var lines = ex.StackTrace.Split(Constants.Stacky.NewLineArray, StringSplitOptions.RemoveEmptyEntries);
+            var stackCount = 0;
+            for (var i = 0; i < lines.Length; i++)
             {
-                var lines = ex.StackTrace.Split(Constants.Stacky.NewLineArray, StringSplitOptions.RemoveEmptyEntries);
-                var stackCount = 0;
-                for (int i = 0; i < lines.Length; i++)
+                if (string.IsNullOrWhiteSpace(stacky.FileName) && lines[i].Contains(Constants.Stacky.CsFileExt))
                 {
-                    if (i == 0)
+                    var lineAsStrings = lines[i].Split(Constants.Stacky.LineArray, StringSplitOptions.RemoveEmptyEntries);
+
+                    if (lineAsStrings.Length > 1 && int.TryParse(lineAsStrings[1], out var lineNumber))
                     {
-                        var subStrings = lines[i].Split(Constants.Stacky.InArray, StringSplitOptions.RemoveEmptyEntries);
-                        if (subStrings.Length > 0)
+                        stacky.Line = lineNumber;
+                    }
+                    var lineSubStrings = lineAsStrings[0].Split(Constants.Stacky.InArray, StringSplitOptions.RemoveEmptyEntries);
+                    if (lineSubStrings.Length > 1)
+                    {
+                        var filePathSubStrings = lineSubStrings[1].Split(Constants.Stacky.ForwardSlashArray, StringSplitOptions.RemoveEmptyEntries);
+                        if (filePathSubStrings.Length > 0)
                         {
-                            stacky.Method = subStrings[0].Split(Constants.Stacky.AtArray, StringSplitOptions.RemoveEmptyEntries)[0];
+                            stacky.FileName = filePathSubStrings[filePathSubStrings.Length - 1];
                         }
-                        var fileStrings = (subStrings.Length > 1)
-                            ? subStrings[1].Split(Constants.Stacky.LineArray, StringSplitOptions.RemoveEmptyEntries)
-                            : new string[] { subStrings[0], string.Empty };
-                        stacky.FileName = fileStrings[0]
-                            .Contains(Constants.Stacky.CsFileExt)
-                            ? fileStrings[0]
-                            : Constants.Stacky.DefaultExceptionFileName;
-                        if (int.TryParse(fileStrings[1], out var temp))
-                        {
-                            stacky.Line = temp;
-                        }
-                        stacky.StackLines.Add($"{i}: {stacky.Method}");
                     }
-                    else if (lines[i].StartsWith(Constants.Stacky.StackDomainBoundary))
+                }
+
+                if (i == 0)
+                {
+                    var subStrings = lines[i].Split(Constants.Stacky.InArray, StringSplitOptions.RemoveEmptyEntries);
+                    if (subStrings.Length > 0)
                     {
-                        stackCount++;
-                        stacky.StackLines.Add(string.Format(Constants.Stacky.NewDomainBoundaryTemplate, stackCount));
+                        stacky.Method = subStrings[0].Split(Constants.Stacky.AtArray, StringSplitOptions.RemoveEmptyEntries)[0];
                     }
-                    else
-                    {
-                        stacky.StackLines.Add(lines[i].Replace(Constants.Stacky.AtValue, $"{i}: @ "));
-                    }
+
+                    stacky.StackLines.Add($"{i}: {stacky.Method}");
+                }
+                else if (lines[i].StartsWith(Constants.Stacky.StackDomainBoundary))
+                {
+                    stackCount++;
+                    stacky.StackLines.Add(string.Format(Constants.Stacky.NewDomainBoundaryTemplate, stackCount));
+                }
+                else
+                {
+                    stacky.StackLines.Add(lines[i].Replace(Constants.Stacky.AtValue, $"{i}: @ "));
                 }
             }
         }

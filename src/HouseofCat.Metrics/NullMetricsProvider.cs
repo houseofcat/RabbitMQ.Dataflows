@@ -8,27 +8,27 @@ namespace HouseofCat.Metrics
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void DecrementCounter(string name, string description = null)
-        { }
+        { /* NO-OP */ }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void DecrementGauge(string name, string description = null)
-        { }
+        { /* NO-OP */ }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void IncrementCounter(string name, string description = null)
-        { }
+        { /* NO-OP */ }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void IncrementGauge(string name, string description = null)
-        { }
+        { /* NO-OP */ }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ObserveValue(string name, double value, string description = null)
-        { }
+        { /* NO-OP */ }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ObserveValueFluctuation(string name, double value, string description = null)
-        { }
+        { /* NO-OP */ }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IDisposable Duration(string name, bool microScale = false, string description = null)

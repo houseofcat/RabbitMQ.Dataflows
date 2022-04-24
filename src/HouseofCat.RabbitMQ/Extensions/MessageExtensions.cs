@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities.Random;
 using RabbitMQ.Client;
+using System;
+using System.Collections.Generic;
 
 namespace HouseofCat.RabbitMQ
 {
@@ -10,7 +10,7 @@ namespace HouseofCat.RabbitMQ
     {
         private static readonly XorShift XorShift = new XorShift(true);
 
-        public static TMessage Clone<TMessage>(this IMessage message) 
+        public static TMessage Clone<TMessage>(this IMessage message)
             where TMessage : IMessage, new()
         {
             return new TMessage
@@ -34,13 +34,13 @@ namespace HouseofCat.RabbitMQ
             var metadata = message.CreateMetadataIfMissing();
             metadata.UpsertHeader(key, value);
         }
-        
+
         public static void WriteHeadersToMetadata(this IMessage message, IDictionary<string, object> headers)
         {
             var metadata = message.CreateMetadataIfMissing();
             metadata.WriteHeadersToMetadata(headers);
         }
-        
+
         public static IBasicProperties CreateBasicProperties(
             this IMessage message,
             IChannelHost channelHost,
@@ -69,7 +69,7 @@ namespace HouseofCat.RabbitMQ
                     }
                 }
             }
-            
+
             return props;
         }
 

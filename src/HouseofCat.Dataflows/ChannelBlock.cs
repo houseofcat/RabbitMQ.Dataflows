@@ -70,16 +70,16 @@ namespace HouseofCat.Dataflows
             else { throw new InvalidCastException($"{nameof(targetBlock)} doesn't implement {typeof(ISourceBlock<TOut>)}"); }
         }
 
-        public void StartReadChannel()
+        public void StartReadChannel(CancellationToken token = default)
         {
-            _cts = new CancellationTokenSource();
-            _channelProcessing = ReadChannelAsync(_cts.Token);
+            _channelProcessing = ReadChannelAsync(
+                token.Equals(default) ? (_cts = new CancellationTokenSource()).Token : token);
         }
 
         public async Task StopChannelAsync()
         {
             _channel.Writer.Complete();
-            _cts.Cancel();
+            _cts?.Cancel();
             await _channelProcessing.ConfigureAwait(false);
         }
 
@@ -147,8 +147,8 @@ namespace HouseofCat.Dataflows
                 var reader = _channel.Reader;
                 while (await reader.WaitToReadAsync(token).ConfigureAwait(false))
                 {
-                    var message = await _channel.Reader.ReadAsync();
-                    await _targetBlock.SendAsync(message, token).ConfigureAwait(false);
+                    var message = await _channel.Reader.ReadAsync(token);
+                    if (message != null) await _targetBlock.SendAsync(message, token).ConfigureAwait(false);
 
                     if (token.IsCancellationRequested) return;
                 }

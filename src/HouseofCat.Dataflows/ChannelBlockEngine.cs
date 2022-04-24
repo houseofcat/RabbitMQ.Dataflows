@@ -1,6 +1,7 @@
 ﻿using HouseofCat.Logger;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -21,7 +22,9 @@ namespace HouseofCat.Dataflows
             bool ensureOrdered,
             Func<TOut, Task> postWorkBodyAsync = null,
             int boundedCapacity = 1000,
-            TaskScheduler taskScheduler = null) : this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, boundedCapacity, taskScheduler)
+            TaskScheduler taskScheduler = null,
+            CancellationToken token = default) :
+            this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, boundedCapacity, taskScheduler, token)
         {
             _postWorkBodyAsync = postWorkBodyAsync;
         }
@@ -31,7 +34,9 @@ namespace HouseofCat.Dataflows
             int maxDegreeOfParallelism,
             bool ensureOrdered,
             int boundedCapacity = 1000,
-            TaskScheduler taskScheduler = null) : this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
+            TaskScheduler taskScheduler = null,
+            CancellationToken token = default) :
+            this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
         {
             if (boundedCapacity > 0)
             { _channelBlock = new ChannelBlock<TIn>(new BoundedChannelOptions(boundedCapacity)); }
@@ -39,7 +44,7 @@ namespace HouseofCat.Dataflows
             { _channelBlock = new ChannelBlock<TIn>(new UnboundedChannelOptions()); }
 
             _channelBlock.LinkTo(_workBlock);
-            _channelBlock.StartReadChannel();
+            _channelBlock.StartReadChannel(token);
         }
 
         public ChannelBlockEngine(
@@ -47,11 +52,13 @@ namespace HouseofCat.Dataflows
             int maxDegreeOfParallelism,
             bool ensureOrdered,
             BoundedChannelOptions options,
-            TaskScheduler taskScheduler = null) : this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
+            TaskScheduler taskScheduler = null,
+            CancellationToken token = default) :
+            this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
         {
             _channelBlock = new ChannelBlock<TIn>(options);
             _channelBlock.LinkTo(_workBlock);
-            _channelBlock.StartReadChannel();
+            _channelBlock.StartReadChannel(token);
         }
 
         public ChannelBlockEngine(
@@ -59,11 +66,13 @@ namespace HouseofCat.Dataflows
             int maxDegreeOfParallelism,
             bool ensureOrdered,
             UnboundedChannelOptions options,
-            TaskScheduler taskScheduler = null) : this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
+            TaskScheduler taskScheduler = null,
+            CancellationToken token = default) :
+            this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
         {
             _channelBlock = new ChannelBlock<TIn>(options);
             _channelBlock.LinkTo(_workBlock);
-            _channelBlock.StartReadChannel();
+            _channelBlock.StartReadChannel(token);
         }
 
         public ChannelBlockEngine(
@@ -71,11 +80,13 @@ namespace HouseofCat.Dataflows
             Func<TIn, Task<TOut>> workBodyAsync,
             int maxDegreeOfParallelism,
             bool ensureOrdered,
-            TaskScheduler taskScheduler = null) : this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
+            TaskScheduler taskScheduler = null,
+            CancellationToken token = default) :
+            this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler)
         {
             _channelBlock = new ChannelBlock<TIn>(channel);
             _channelBlock.LinkTo(_workBlock);
-            _channelBlock.StartReadChannel();
+            _channelBlock.StartReadChannel(token);
         }
 
         private ChannelBlockEngine(
@@ -107,7 +118,7 @@ namespace HouseofCat.Dataflows
             {
                 if (_postWorkBodyAsync != null)
                 {
-                    var output = await _workBodyAsync(data);
+                    var output = await _workBodyAsync(data).ConfigureAwait(false);
                     if (output != null)
                     {
                         await _postWorkBodyAsync(output).ConfigureAwait(false);

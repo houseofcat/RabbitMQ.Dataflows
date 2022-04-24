@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
 using RabbitMQ.Client;
+using System;
+using System.Collections.Generic;
 
 namespace HouseofCat.RabbitMQ
 {
@@ -34,7 +34,7 @@ namespace HouseofCat.RabbitMQ
 
         public LetterMetadata LetterMetadata { get; set; }
         public byte[] Body { get; set; }
-        
+
         public IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders)
         {
             MessageId ??= Guid.NewGuid().ToString();
@@ -106,15 +106,15 @@ namespace HouseofCat.RabbitMQ
             LetterMetadata ??= new LetterMetadata();
             return LetterMetadata;
         }
-        
+
         public T GetHeader<T>(string key) => LetterMetadata.GetHeader<T>(key);
         public bool RemoveHeader(string key) => LetterMetadata.RemoveHeader(key);
         public IDictionary<string, object> GetHeadersOutOfMetadata() => LetterMetadata.GetHeadersOutOfMetadata();
 
-        public byte[] GetBodyToPublish(ISerializationProvider serializationProvider) => 
+        public byte[] GetBodyToPublish(ISerializationProvider serializationProvider) =>
             serializationProvider.Serialize(this);
-        
-        public IPublishReceipt GetPublishReceipt(bool error) => 
+
+        public IPublishReceipt GetPublishReceipt(bool error) =>
             new PublishReceipt { MessageId = MessageId, IsError = error, OriginalLetter = error ? this : null };
     }
 }

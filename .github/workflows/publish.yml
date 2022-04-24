@@ -18,7 +18,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -26,7 +26,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.400
+        dotnet-version: 6.0.202
 
     - name: Install dependencies
       run: dotnet restore Tesseract.sln
@@ -74,22 +74,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Dapper/HouseofCat.Dapper.csproj
 
-    - name: Publish HouseofCat.Dapper.LegacySqlServer
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Dapper.LegacySqlServer/HouseofCat.Dapper.LegacySqlServer.csproj
-
-    - name: Publish HouseofCat.Dapper.SqlServer
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Dapper.SqlServer/HouseofCat.Dapper.SqlServer.csproj
-
     - name: Publish HouseofCat.Data
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -97,6 +81,22 @@ jobs:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Data/HouseofCat.Data.csproj
+
+    - name: Publish HouseofCat.Data.Database
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_FILE_PATH: version.props
+          PROJECT_FILE_PATH: src/HouseofCat.Data.Database/HouseofCat.Data.Database.csproj
+
+    - name: Publish HouseofCat.Data.Parquet
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_FILE_PATH: version.props
+          PROJECT_FILE_PATH: src/HouseofCat.Data.Parquet/HouseofCat.Data.Parquet.csproj
 
     - name: Publish HouseofCat.Data.Recyclable
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -153,22 +153,6 @@ jobs:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Extensions/HouseofCat.Extensions.csproj
-    
-    - name: Publish HouseofCat.Extensions.Dataflows
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Extensions.Dataflows/HouseofCat.Extensions.Dataflows.csproj
-
-    - name: Publish HouseofCat.Extensions.Host.SerilogSqlServer
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Extensions.Host.Serilog/HouseofCat.Extensions.Host.Serilog.csproj
 
     - name: Publish HouseofCat.Framing
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -258,6 +242,14 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Dataflows/HouseofCat.RabbitMQ.Dataflows.csproj
 
+    - name: Publish HouseofCat.RabbitMQ.Mailkit
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_FILE_PATH: version.props
+          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Mailkit/HouseofCat.RabbitMQ.Mailkit.csproj
+
     - name: Publish HouseofCat.RabbitMQ.Pipelines
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -274,21 +266,13 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Services/HouseofCat.RabbitMQ.Services.csproj
 
-    - name: Publish HouseofCat.RabbitMQ.Services.Mailkit
+    - name: Publish HouseofCat.RabbitMQ.Twilio
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Services.Mailkit/HouseofCat.RabbitMQ.Services.Mailkit.csproj
-
-    - name: Publish HouseofCat.RabbitMQ.Services.Twilio
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Services.Twilio/HouseofCat.RabbitMQ.Services.Twilio.csproj
+          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Twilio/HouseofCat.RabbitMQ.Twilio.csproj
 
     - name: Publish HouseofCat.RabbitMQ.WorkState
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -345,6 +329,14 @@ jobs:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Serialization.MessagePack/HouseofCat.Serialization.MessagePack.csproj
+
+    - name: Publish HouseofCat.Serilog
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_FILE_PATH: version.props
+          PROJECT_FILE_PATH: src/HouseofCat.Serilog/HouseofCat.Serilog.csproj
 
     - name: Publish HouseofCat.Sockets
       uses: brandedoutcast/publish-nuget@v2.5.2

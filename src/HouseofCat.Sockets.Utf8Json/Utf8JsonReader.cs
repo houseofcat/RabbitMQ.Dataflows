@@ -1,5 +1,4 @@
 ﻿using HouseofCat.Framing;
-using HouseofCat.Sockets;
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Net.Sockets;
@@ -92,7 +91,7 @@ namespace HouseofCat.Sockets.Utf8Json
             TRead obj = default;
             try
             { obj = JsonSerializer.Deserialize<TRead>(sequence.ToArray()); }
-            catch { }
+            catch { /* SWALLOW */ }
 
             if (obj != null)
             {

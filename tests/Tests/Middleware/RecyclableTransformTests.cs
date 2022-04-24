@@ -55,7 +55,7 @@ namespace Middleware
             _middleware = new RecyclableTransformer(
                 serializationProvider,
                 new RecyclableGzipProvider(),
-                new RecyclableAesGcmEncryptionProvider(hashKey, hashingProvider.Type));
+                new RecyclableAesGcmEncryptionProvider(hashKey));
 
             (_serializedData, _serializedLength) = _middleware.Transform(MyClass);
         }

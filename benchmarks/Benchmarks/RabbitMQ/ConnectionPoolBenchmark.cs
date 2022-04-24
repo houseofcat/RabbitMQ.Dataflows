@@ -9,7 +9,7 @@ namespace HouseofCat.Benchmarks.RabbitMQ
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser, ThreadingDiagnoser]
-    [SimpleJob(runtimeMoniker: RuntimeMoniker.NetCoreApp31)]
+    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.Net60)]
     public class ConnectionPoolBenchmark
     {
         public ConnectionPool ConnectionPool;

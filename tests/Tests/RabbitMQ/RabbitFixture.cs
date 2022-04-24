@@ -35,7 +35,7 @@ namespace RabbitMQ
             CompressionProvider = new GzipProvider();
             HashingProvider = new Argon2ID_HashingProvider();
             HashKey = HashingProvider.GetHashKey(Passphrase, Salt, 32);
-            EncryptionProvider = new AesGcmEncryptionProvider(HashKey, HashingProvider.Type);
+            EncryptionProvider = new AesGcmEncryptionProvider(HashKey);
             SerializationProvider = new Utf8JsonProvider();
 
             Options = JsonFileReader.ReadFileAsync<RabbitOptions>("RabbitMQ\\TestConfig.json").GetAwaiter().GetResult();

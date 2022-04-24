@@ -18,7 +18,7 @@ namespace Benchmarks.Middleware
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
-    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
+    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.Net60)]
     public class DataTransformerBenchmark
     {
         private DataTransformer _middleware;
@@ -47,7 +47,7 @@ namespace Benchmarks.Middleware
 
             _middleware = new DataTransformer(
                 new Utf8JsonProvider(),
-                new AesGcmEncryptionProvider(hashKey, hashingProvider.Type),
+                new AesGcmEncryptionProvider(hashKey),
                 new GzipProvider());
 
             _serializedData = _middleware

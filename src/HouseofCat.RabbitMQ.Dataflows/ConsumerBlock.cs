@@ -24,7 +24,7 @@ namespace HouseofCat.RabbitMQ.Dataflows
         public ConsumerBlock() : this(new BufferBlock<TOut>())
         {
         }
-        
+
         public ConsumerBlock(IConsumer<TOut> consumer) : this()
         {
             Guard.AgainstNull(consumer, nameof(consumer));

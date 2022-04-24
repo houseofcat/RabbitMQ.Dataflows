@@ -526,7 +526,8 @@ namespace HouseofCat.RabbitMQ
                 ensureOrdered,
                 postWorkBodyAsync,
                 boundedCapacity,
-                taskScheduler);
+                taskScheduler,
+                token);
 
             await TransferDataToChannelBlockEngine(channelBlockEngine, token);
         }
@@ -539,11 +540,7 @@ namespace HouseofCat.RabbitMQ
             CancellationToken token = default)
         {
             _ = new ChannelBlockEngine<ReceivedData, bool>(
-                _consumerChannel,
-                workBodyAsync,
-                maxDoP,
-                ensureOrdered,
-                taskScheduler);
+                _consumerChannel, workBodyAsync, maxDoP, ensureOrdered, taskScheduler, token);
 
             await _executionLock.WaitAsync(2000, token).ConfigureAwait(false);
 
@@ -551,7 +548,7 @@ namespace HouseofCat.RabbitMQ
             {
                 while (await _consumerChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false))
                 {
-                    await Task.Delay(4); // sleep until channel is finished.
+                    await Task.Delay(4, token); // sleep until channel is finished.
                 }
             }
             catch (OperationCanceledException)

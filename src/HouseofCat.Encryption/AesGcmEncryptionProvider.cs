@@ -10,23 +10,16 @@ using System.Threading.Tasks;
 
 namespace HouseofCat.Encryption
 {
-    // Sources:
-    // https://docs.microsoft.com/en-us/dotnet/standard/security/cross-platform-cryptography
-    // 
     public class AesGcmEncryptionProvider : IEncryptionProvider
     {
         public string Type { get; private set; }
 
-        /// <summary>
-        /// Safer way of generating random bytes.
-        /// https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.rngcryptoserviceprovider?redirectedfrom=MSDN&view=net-5.0
-        /// </summary>
-        private readonly RNGCryptoServiceProvider _rng = new RNGCryptoServiceProvider();
+        private readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
         private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
 
         private readonly ReadOnlyMemory<byte> _key;
 
-        public AesGcmEncryptionProvider(byte[] key, string hashType)
+        public AesGcmEncryptionProvider(byte[] key)
         {
             Guard.AgainstNullOrEmpty(key, nameof(key));
 
@@ -35,12 +28,10 @@ namespace HouseofCat.Encryption
 
             switch (_key.Length)
             {
-                case 16: Type = "AESGCM_128"; break;
-                case 24: Type = "AESGCM_192"; break;
-                case 32: Type = "AESGCM_256"; break;
+                case 16: Type = "AESGCM-128"; break;
+                case 24: Type = "AESGCM-192"; break;
+                case 32: Type = "AESGCM-256"; break;
             }
-
-            if (!string.IsNullOrWhiteSpace(hashType)) { Type = $"HOC_{hashType}_{Type}"; }
         }
 
         public ArraySegment<byte> Encrypt(ReadOnlyMemory<byte> unencryptedData)
@@ -248,9 +239,14 @@ namespace HouseofCat.Encryption
             var tagBytes = _pool.Rent(AesGcm.TagByteSizes.MaxSize);
             var nonceBytes = _pool.Rent(AesGcm.NonceByteSizes.MaxSize);
 
-            encryptedStream.Read(nonceBytes, 0, AesGcm.NonceByteSizes.MaxSize);
-            encryptedStream.Read(tagBytes, 0, AesGcm.TagByteSizes.MaxSize);
-            encryptedStream.Read(encryptedBufferBytes, 0, encryptedByteLength);
+            var bytesRead = encryptedStream.Read(nonceBytes, 0, AesGcm.NonceByteSizes.MaxSize);
+            if (bytesRead == 0) throw new InvalidDataException();
+
+            bytesRead = encryptedStream.Read(tagBytes, 0, AesGcm.TagByteSizes.MaxSize);
+            if (bytesRead == 0) throw new InvalidDataException();
+
+            bytesRead = encryptedStream.Read(encryptedBufferBytes, 0, encryptedByteLength);
+            if (bytesRead == 0) throw new InvalidDataException();
 
             // Slicing Version
             var nonce = nonceBytes

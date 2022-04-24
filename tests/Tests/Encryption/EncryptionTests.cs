@@ -31,7 +31,7 @@ namespace Encryption
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
 
             var encryptedData = encryptionProvider.Encrypt(_data);
             _output.WriteLine($"Encrypted: {Encoding.UTF8.GetString(encryptedData)}");
@@ -51,7 +51,7 @@ namespace Encryption
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
             var encryptedStream = encryptionProvider.Encrypt(new MemoryStream(_data));
             var decryptedStream = encryptionProvider.Decrypt(encryptedStream);
 
@@ -68,7 +68,7 @@ namespace Encryption
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
             var encryptedStream = await encryptionProvider.EncryptAsync(new MemoryStream(_data));
             var decryptedStream = encryptionProvider.Decrypt(encryptedStream);
 
@@ -83,7 +83,7 @@ namespace Encryption
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
 
             var encryptedData = encryptionProvider.Encrypt(_data);
             _output.WriteLine($"Encrypted: {Encoding.UTF8.GetString(encryptedData)}");
@@ -103,7 +103,7 @@ namespace Encryption
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
             var encryptedStream = encryptionProvider.Encrypt(new MemoryStream(_data));
             var decryptedStream = encryptionProvider.Decrypt(encryptedStream);
 
@@ -120,7 +120,7 @@ namespace Encryption
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
             var encryptedStream = await encryptionProvider.EncryptAsync(new MemoryStream(_data));
             var decryptedStream = encryptionProvider.Decrypt(encryptedStream);
 
@@ -135,7 +135,7 @@ namespace Encryption
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
 
             var encryptedData = encryptionProvider.Encrypt(_data);
             _output.WriteLine($"Encrypted: {Encoding.UTF8.GetString(encryptedData)}");
@@ -155,7 +155,7 @@ namespace Encryption
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
             var encryptedStream = encryptionProvider.Encrypt(new MemoryStream(_data));
             var decryptedStream = encryptionProvider.Decrypt(encryptedStream);
 
@@ -172,7 +172,7 @@ namespace Encryption
             _output.WriteLine(Encoding.UTF8.GetString(hashKey));
             _output.WriteLine($"HashKey: {Encoding.UTF8.GetString(hashKey)}");
 
-            var encryptionProvider = new AesGcmEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptionProvider = new AesGcmEncryptionProvider(hashKey);
             var encryptedStream = await encryptionProvider.EncryptAsync(new MemoryStream(_data));
             var decryptedStream = encryptionProvider.Decrypt(encryptedStream);
 
@@ -187,7 +187,7 @@ namespace Encryption
                 .GetHashKeyAsync(Passphrase, Salt, 32)
                 .ConfigureAwait(false);
 
-            var encryptionProvider = new AesStreamEncryptionProvider(hashKey, _hashingProvider.Type);
+            var encryptionProvider = new AesStreamEncryptionProvider(hashKey);
             var message = "Hello World!";
             var fileNamePath = "./test_enc.txt";
 

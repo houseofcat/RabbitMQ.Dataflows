@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace HouseofCat.Windows
@@ -39,7 +37,7 @@ namespace HouseofCat.Windows
         /// <returns></returns>
         public static long CalculateCoreAffinity(int cpuNumber, int coreNumber, int logicalProcessCount)
         {
-            var affinity = 0;
+            int affinity;
 
             if (cpuNumber == 0)
             { affinity = coreNumber; }

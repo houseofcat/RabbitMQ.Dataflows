@@ -31,7 +31,6 @@ namespace HouseofCat.Gremlins
                 case 7: throw new COMException();
                 case 8: await GenerateSqlExceptionAsync(49918).ConfigureAwait(false); break;
                 case 9: await GenerateSqlExceptionAsync(_random.Next(0, _sqlErrorCount)).ConfigureAwait(false); break;
-                default: break;
             }
         }
 
@@ -52,7 +51,7 @@ namespace HouseofCat.Gremlins
                         .Invoke(collection, new object[] { error });
 
                     e = typeof(SqlException)
-                        .GetMethod("CreateException", BindingFlags.NonPublic | BindingFlags.Static, null, CallingConventions.ExplicitThis, new[] { typeof(SqlErrorCollection), typeof(string) }, new ParameterModifier[] { })
+                        .GetMethod("CreateException", BindingFlags.NonPublic | BindingFlags.Static, null, CallingConventions.ExplicitThis, new[] { typeof(SqlErrorCollection), typeof(string) }, Array.Empty<ParameterModifier>())
                         .Invoke(null, new object[] { collection, "7.0.0" }) as SqlException;
 
                     throw e;

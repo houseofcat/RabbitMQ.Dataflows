@@ -19,10 +19,14 @@ namespace HouseofCat.Utilities
             public const string DefaultExceptionFileName = "SystemException";
             public const string StackDomainBoundary = "---";
             public const string NewDomainBoundaryTemplate = "=== Sub-stack {0} ===";
+
             public static readonly string[] NewLineArray = new string[] { $"{Environment.NewLine}" };
             public static readonly string[] InArray = new string[] { " in " };
             public static readonly string[] AtArray = new string[] { AtValue };
-            public static readonly string[] LineArray = new string[] { ":line " };
+            public static readonly string[] ForwardSlashArray = new string[] { "/" };
+
+            public static readonly string Line = ":line ";
+            public static readonly string[] LineArray = new string[] { Line };
         }
     }
 }

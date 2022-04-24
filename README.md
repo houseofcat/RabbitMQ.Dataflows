@@ -1,6 +1,6 @@
 # TESSERACT
 
-![TesseractLogo](https://github.com/houseofcat/Tesseract/blob/master/TesseractLogo.svg)
+![TesseractLogo](https://github.com/houseofcat/Tesseract/blob/main/TesseractLogo.svg)
 
 A library of `NetCore` tools to help rapidly develop well performant micro/macroservices. 
 
@@ -55,9 +55,9 @@ Check out each project for additional `README.md`. They will provide additional 
 
 ## Status
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9dbb20a30ada48caae4b92a83628f45e)](https://app.codacy.com/manual/cat_3/Library?utm_source=github.com&utm_medium=referral&utm_content=houseofcat/Library&utm_campaign=Badge_Grade_Dashboard)  
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9dbb20a30ada48caae4b92a83628f45e)](https://app.codacy.com/gh/houseofcat/Tesseract/dashboard)  
 
-![master-build](https://github.com/houseofcat/HouseofCat.Library/workflows/master-build/badge.svg)  
+[![build](https://github.com/houseofcat/HouseofCat.Library/workflows/build/badge.svg)](https://github.com/houseofcat/Tesseract/actions/workflows/build.yml)
 
 [![Gitter](https://badges.gitter.im/HoC-Tesseract/community.svg)](https://gitter.im/HoC-Tesseract/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
@@ -93,21 +93,7 @@ A library that has a collection of builtin NetCore compression providers that us
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Dapper.svg)](https://www.nuget.org/packages/HouseofCat.Dapper/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Dapper.svg)](https://www.nuget.org/packages/HouseofCat.Dapper/)  
 
-A library that provides a standard for Dapper implementation.  
-
-
-## HouseofCat.Dapper.LegacySqlServer
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Dapper.LegacySqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Dapper.LegacySqlServer/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Dapper.LegacySqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Dapper.LegacySqlServer/)  
-
-A library that provides a standard System.Data.SqlClient implementation.  
-
-
-## HouseofCat.Dapper.SqlServer
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Dapper.SqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Dapper.SqlServer/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Dapper.SqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Dapper.SqlServer/)  
-
-A library that provides a standard Microsoft.Data.SqlClient implementation.  
+A library that provides helper methods for integrating Dapper.
 
 
 ## HouseofCat.Data
@@ -115,6 +101,37 @@ A library that provides a standard Microsoft.Data.SqlClient implementation.
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Data.svg)](https://www.nuget.org/packages/HouseofCat.Data/)  
 
 A library that provides the provides helper classes for data manipulation and transformation. 
+
+
+## HouseofCat.Data.Database
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Data.Database.svg)](https://www.nuget.org/packages/HouseofCat.Data.Database/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Data.Database.svg)](https://www.nuget.org/packages/HouseofCat.Data.Database/)  
+
+A library that provides the provides a Database Connection Factory and Sql Generation.
+
+### Database Connection Factory Support
+ * System.Data.SqlClient
+ * Microsoft.Data.SqlClient
+ * MySql.Data.MySqlClient
+ * Npgsq
+ * MySql.Data
+ * Oracle
+ * SQLite
+
+### Sql Query Generation
+ * SqlServer
+ * MySql
+ * PostgreSql
+ * Firebird
+ * Oracle
+ * SQLite
+
+
+## HouseofCat.Data.Parquet
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Data.Parquet.svg)](https://www.nuget.org/packages/HouseofCat.Data.Parquet/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Data.Parquet.svg)](https://www.nuget.org/packages/HouseofCat.Data.Parquet/)  
+
+A library that helps extract databases to parquet file (IDataReader -> Snappy compressed Parquet files.)
 
 
 ## HouseofCat.Data.Recyclable
@@ -164,20 +181,6 @@ A library that provides encryption from base AesGcm class in NetCore but with Ar
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.svg)](https://www.nuget.org/packages/HouseofCat.Extensions/)  
 
 A library that focuses on extending functionality to other objects.  
-
-
-## HouseofCat.Extensions.Dataflows
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Extensions.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Dataflows/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Dataflows/)  
-
-A library that focuses on extending functionality to other dataflow related objects. 
-
-
-## HouseofCat.Extensions.Host.Serilog
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Extensions.Host.Serilog.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Host.Serilog/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Extensions.Host.Serilog.svg)](https://www.nuget.org/packages/HouseofCat.Extensions.Host.Serilog/)  
-
-A library that focuses on extending IHost functionality to quickly setup Serilog.  
 
 
 ## HouseofCat.Framing
@@ -259,6 +262,13 @@ Formerly found at [RabbitMQ.Core](https://github.com/houseofcat/RabbitMQ.Core)
 A library that extends HouseofCat.RabbitMQ functionality by providing epic TPL Dataflow usage for Tesseract.  
 
 
+## HouseofCat.RabbitMQ.Mailkit
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
+
+A library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (Email) with the HouseofCat.RabbitMQ library. 
+
+
 ## HouseofCat.RabbitMQ.Pipelines
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Pipelines.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Pipelines/)  
@@ -270,19 +280,12 @@ A library that extends HouseofCat.RabbitMQ functionality by providing simplified
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
 
-A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.RabbitMQ library.  
+A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.RabbitMQ library.   
 
 
-## HouseofCat.RabbitMQ.Services.Mailkit
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
-
-A library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (Email) with the HouseofCat.RabbitMQ library.  
-
-
-## HouseofCat.RabbitMQ.Services.Twilio
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Twilio/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Twilio/)  
+## HouseofCat.RabbitMQ.Twilio
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Twilio/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Twilio/)  
 
 A library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio (SMS/TextMessages) with the HouseofCat.RabbitMQ library.  
 
@@ -334,6 +337,13 @@ A library that focuses on making it easier to deal with Utf8Json Json Serializat
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.MessagePack.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.MessagePack/)  
 
 A library that focuses on making it easier to deal with MessagePack Serialization.  
+
+
+## HouseofCat.Serilog
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serilog.svg)](https://www.nuget.org/packages/HouseofCat.Serilog/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serilog.svg)](https://www.nuget.org/packages/HouseofCat.Serilog/)  
+
+A library that focuses on extending IHost functionality to quickly setup Serilog.  
 
 
 ## HouseofCat.Sockets

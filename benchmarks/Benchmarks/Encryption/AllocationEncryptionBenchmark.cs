@@ -12,7 +12,7 @@ namespace Benchmarks.Encryption
 {
     [MarkdownExporterAttribute.GitHub]
     [MemoryDiagnoser]
-    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.NetCoreApp31)]
+    [SimpleJob(runtimeMoniker: RuntimeMoniker.Net50 | RuntimeMoniker.Net60)]
     public class AllocationEncryptionBenchmark
     {
         private XorShift XorShift;
@@ -40,8 +40,8 @@ namespace Benchmarks.Encryption
 
             HashKey = HashProvider.GetHashKey(Passphrase, Salt, KeySize);
 
-            EncryptionProvider = new AesGcmEncryptionProvider(HashKey, HashProvider.Type);
-            RecyclableEncryptionProvider = new RecyclableAesGcmEncryptionProvider(HashKey, HashProvider.Type);
+            EncryptionProvider = new AesGcmEncryptionProvider(HashKey);
+            RecyclableEncryptionProvider = new RecyclableAesGcmEncryptionProvider(HashKey);
 
             //RecyclableManager.ConfigureNewStaticManagerWithDefaults();
 

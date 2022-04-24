@@ -98,7 +98,7 @@
 
             for (var i = 0; i < interfaces.Length; i++)
             {
-                switch(interfaces[i])
+                switch (interfaces[i])
                 {
                     case IComparable:
                     case IComparable<T>:

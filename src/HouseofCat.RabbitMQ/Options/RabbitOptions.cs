@@ -39,7 +39,7 @@ namespace HouseofCat.RabbitMQ
 
         public void ApplyGlobalConsumerOptions()
         {
-            foreach(var kvp in ConsumerOptions)
+            foreach (var kvp in ConsumerOptions)
             {
                 // Apply the global consumer settings and global consumer pipeline settings
                 // on top of (overriding) individual consumer settings. Opt out by not setting

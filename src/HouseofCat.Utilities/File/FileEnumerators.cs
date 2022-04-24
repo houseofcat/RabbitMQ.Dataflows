@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -178,9 +177,9 @@ namespace HouseofCat.Utilities.File
             dirs.Enqueue(root);
             while (dirs.Count > 0)
             {
-                string currentDir = dirs.Dequeue();
-                string[] subDirs = { };
-                string[] files = { };
+                var currentDir = dirs.Dequeue();
+                var subDirs = Array.Empty<string>();
+                var files = Array.Empty<string>();
 
                 try { subDirs = Directory.GetDirectories(currentDir); }
                 catch (SecurityException) { continue; }
@@ -235,17 +234,17 @@ namespace HouseofCat.Utilities.File
             Action<string> action)
         {
             int fileCount = 0;
-            int procCount = Environment.ProcessorCount;
-            ConcurrentQueue<string> dirs = new ConcurrentQueue<string>();
+            var procCount = Environment.ProcessorCount;
+            var dirs = new ConcurrentQueue<string>();
 
             dirs.Enqueue(root);
-            while (dirs.Count > 0)
+            while (!dirs.IsEmpty)
             {
                 string currentDir = string.Empty;
                 if (dirs.TryDequeue(out currentDir))
                 {
-                    string[] subDirs = { };
-                    string[] files = { };
+                    var subDirs = Array.Empty<string>();
+                    var files = Array.Empty<string>();
 
                     try { subDirs = Directory.GetDirectories(currentDir); }
                     catch (SecurityException) { continue; }
@@ -307,9 +306,9 @@ namespace HouseofCat.Utilities.File
             dirs.Push(root);
             while (dirs.Count > 0)
             {
-                string currentDir = dirs.Pop();
-                string[] subDirs = { };
-                string[] files = { };
+                var currentDir = dirs.Pop();
+                var subDirs = Array.Empty<string>();
+                var files = Array.Empty<string>();
 
                 try { subDirs = Directory.GetDirectories(currentDir); }
                 catch (UnauthorizedAccessException) { continue; }
@@ -384,7 +383,7 @@ namespace HouseofCat.Utilities.File
             var directories = new ConcurrentQueue<string>();
             directories.Enqueue(root);
 
-            while (directories.Count > 0)
+            while (!directories.IsEmpty)
             {
                 string currentDir = string.Empty;
                 if (directories.TryDequeue(out currentDir))
@@ -413,7 +412,7 @@ namespace HouseofCat.Utilities.File
             directory.Enqueue(root);
             directoryQueue.Enqueue(directory);
 
-            while (directoryQueue.Count > 0)
+            while (!directoryQueue.IsEmpty)
             {
                 if (directoryQueue.TryDequeue(out ConcurrentQueue<string> dirs))
                 {
@@ -437,12 +436,12 @@ namespace HouseofCat.Utilities.File
         {
             await Task.Run(() =>
             {
-                string[] subDirs = { };
+                var subDirs = Array.Empty<string>();
 
                 try
                 { subDirs = Directory.GetDirectories(directory); }
-                catch (UnauthorizedAccessException) { }
-                catch (DirectoryNotFoundException) { }
+                catch (UnauthorizedAccessException) { /* SWALLOW */ }
+                catch (DirectoryNotFoundException) { /* SWALLOW */ }
 
                 foreach (var dir in subDirs) { directories.Enqueue(dir); };
             }).ConfigureAwait(false);
@@ -454,12 +453,12 @@ namespace HouseofCat.Utilities.File
         {
             await Task.Run(() =>
             {
-                string[] subDirs = { };
+                var subDirs = Array.Empty<string>();
 
                 try
                 { subDirs = Directory.GetDirectories(directory); }
-                catch (UnauthorizedAccessException) { }
-                catch (DirectoryNotFoundException) { }
+                catch (UnauthorizedAccessException) { /* SWALLOW */ }
+                catch (DirectoryNotFoundException) { /* SWALLOW */ }
 
                 var dirs = new ConcurrentQueue<string>();
                 foreach (var dir in subDirs) { dirs.Enqueue(dir); };
@@ -474,18 +473,18 @@ namespace HouseofCat.Utilities.File
         {
             var t = await Task.Run(() =>
             {
-                string[] files = { };
+                var files = Array.Empty<string>();
                 var fileNames = new ConcurrentBag<string>();
 
                 try
                 { files = Directory.GetFiles(directory, searchPattern); }
-                catch (UnauthorizedAccessException) { }
-                catch (DirectoryNotFoundException) { }
-                catch (IOException) { }
+                catch (UnauthorizedAccessException) { /* SWALLOW */ }
+                catch (DirectoryNotFoundException) { /* SWALLOW */ }
+                catch (IOException) { /* SWALLOW */ }
 
                 try
                 {
-                    foreach (var file in files) { fileNames.Add(file); };
+                    foreach (var file in files) { fileNames.Add(file); }
                 }
                 catch (AggregateException ae)
                 {
@@ -510,14 +509,14 @@ namespace HouseofCat.Utilities.File
         {
             await Task.Run(() =>
             {
-                string[] files = { };
+                var files = Array.Empty<string>();
                 var fileNames = new ConcurrentBag<string>();
 
                 try
                 { files = Directory.GetFiles(directory, searchPattern); }
-                catch (UnauthorizedAccessException) { }
-                catch (DirectoryNotFoundException) { }
-                catch (IOException) { }
+                catch (UnauthorizedAccessException) { /* SWALLOW */ }
+                catch (DirectoryNotFoundException) { /* SWALLOW */ }
+                catch (IOException) { /* SWALLOW */ }
 
                 try
                 {
@@ -543,12 +542,12 @@ namespace HouseofCat.Utilities.File
         {
             await Task.Run(() =>
             {
-                string[] subDirs = { };
+                var subDirs = Array.Empty<string>();
 
                 try
                 { subDirs = Directory.GetDirectories(directory); }
-                catch (UnauthorizedAccessException) { }
-                catch (DirectoryNotFoundException) { }
+                catch (UnauthorizedAccessException) { /* SWALLOW */ }
+                catch (DirectoryNotFoundException) { /* SWALLOW */ }
 
                 Parallel.ForEach(subDirs, dir => { directories.Enqueue(dir); });
             }).ConfigureAwait(false);
@@ -561,13 +560,13 @@ namespace HouseofCat.Utilities.File
         {
             await Task.Run(() =>
             {
-                string[] files = { };
+                var files = Array.Empty<string>();
 
                 try
                 { files = Directory.GetFiles(directory, searchPattern); }
-                catch (UnauthorizedAccessException) { }
-                catch (DirectoryNotFoundException) { }
-                catch (IOException) { }
+                catch (UnauthorizedAccessException) { /* SWALLOW */ }
+                catch (DirectoryNotFoundException) { /* SWALLOW */ }
+                catch (IOException) { /* SWALLOW */ }
 
                 try
                 {

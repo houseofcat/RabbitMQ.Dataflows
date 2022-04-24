@@ -27,7 +27,6 @@ namespace HouseofCat.Gremlins
             {
                 case 1: await ExceptionHelpers.ThrowsRandomSystemExceptionAsync().ConfigureAwait(false); break;
                 case 2: await ExceptionHelpers.ThrowsRandomNetworkExceptionAsync().ConfigureAwait(false); break;
-                default: break;
             }
         }
 
@@ -46,7 +45,6 @@ namespace HouseofCat.Gremlins
                 case int userInput: await HandleIntAsync(userInput, target).ConfigureAwait(false); break;
                 case long userInput: await HandleLongAsync(userInput, target).ConfigureAwait(false); break;
                 case string userInput: await HandleStringAsync(userInput, target).ConfigureAwait(false); break;
-                default: break;
             }
         }
 
@@ -57,7 +55,6 @@ namespace HouseofCat.Gremlins
                 case int userInput: await RemoveIntAsync(userInput).ConfigureAwait(false); break;
                 case long userInput: await RemoveLongAsync(userInput).ConfigureAwait(false); break;
                 case string userInput: await RemoveStringAsync(userInput).ConfigureAwait(false); break;
-                default: break;
             }
         }
 

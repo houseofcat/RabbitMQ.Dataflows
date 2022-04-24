@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace HouseofCat.Serialization
+﻿namespace HouseofCat.Serialization
 {
     public static class Enums
     {

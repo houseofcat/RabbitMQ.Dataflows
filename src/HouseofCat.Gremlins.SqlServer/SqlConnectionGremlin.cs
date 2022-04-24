@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Data;
 using System.Data.SqlClient;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,8 +8,8 @@ namespace HouseofCat.Gremlins
 {
     public class SqlConnectionGremlin
     {
-        private long _currentConnectionId = 0;
-        private long _currentConnectionIdToRemove = 0;
+        private long _currentConnectionId;
+        private long _currentConnectionIdToRemove;
         private readonly object _syncRoot = new object();
 
         /// <summary>
@@ -67,7 +64,7 @@ namespace HouseofCat.Gremlins
                         if (Connections.TryGetValue(_currentConnectionIdToRemove, out SqlConnection conn))
                         {
                             try { conn.Close(); }
-                            catch { }
+                            catch { /* SWALLOW */ }
 
                             conn.Dispose();
 
