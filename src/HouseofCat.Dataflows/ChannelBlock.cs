@@ -1,5 +1,4 @@
-﻿using HouseofCat.Logger;
-using HouseofCat.Utilities.Errors;
+﻿using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -12,34 +11,30 @@ namespace HouseofCat.Dataflows
 {
     public class ChannelBlock<TOut> : ChannelReaderBlock<TOut>, IPropagatorBlock<TOut, TOut>, IReceivableSourceBlock<TOut>
     {
-        private readonly ILogger<ChannelBlock<TOut>> _logger;
-
+        protected readonly Channel<TOut> _channel;
         protected CancellationTokenSource _cts;
         protected Task _channelProcessing;
 
         public ChannelBlock(BoundedChannelOptions options, Func<TOut, TOut> optionalfirstStep = null) : 
-            base(Channel.CreateBounded<TOut>(options), new TransformBlock<TOut, TOut>(optionalfirstStep ?? (input => input)))
+            this(Channel.CreateBounded<TOut>(options), new TransformBlock<TOut, TOut>(optionalfirstStep ?? (input => input)))
         {
             Guard.AgainstNull(options, nameof(options));
-            _logger = LogHelper.LoggerFactory.CreateLogger<ChannelBlock<TOut>>();
         }
 
         public ChannelBlock(UnboundedChannelOptions options, Func<TOut, TOut> optionalfirstStep = null) :
-            base(Channel.CreateUnbounded<TOut>(options), new TransformBlock<TOut, TOut>(optionalfirstStep ?? (input => input)))
+            this(Channel.CreateUnbounded<TOut>(options), new TransformBlock<TOut, TOut>(optionalfirstStep ?? (input => input)))
         {
             Guard.AgainstNull(options, nameof(options));
-            _logger = LogHelper.LoggerFactory.CreateLogger<ChannelBlock<TOut>>();
         }
 
         public ChannelBlock(Channel<TOut> channel, Func<TOut, TOut> optionalfirstStep = null) : 
-            base(channel, new TransformBlock<TOut, TOut>(optionalfirstStep ?? (input => input)))
+            this(channel, new TransformBlock<TOut, TOut>(optionalfirstStep ?? (input => input)))
         {
-            _logger = LogHelper.LoggerFactory.CreateLogger<ChannelBlock<TOut>>();
         }
 
-        public ChannelBlock(Channel<TOut> channel, ITargetBlock<TOut> targetBlock) : base(channel, targetBlock)
+        public ChannelBlock(Channel<TOut> channel, ITargetBlock<TOut> targetBlock) : base(channel?.Reader, targetBlock)
         {
-            _logger = LogHelper.LoggerFactory.CreateLogger<ChannelBlock<TOut>>(); 
+            _channel = channel;
         }
 
         public void StartReadChannel(CancellationToken token = default)

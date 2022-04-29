@@ -13,10 +13,9 @@ namespace HouseofCat.Dataflows
     {
         public Task Completion { get; }
 
-        protected readonly Channel<TOut> _channel;
         protected readonly ITargetBlock<TOut> _targetBlock;
-
-        private readonly ILogger<ChannelReaderBlock<TOut>> _logger;
+        protected readonly ILogger<ChannelReaderBlock<TOut>> _logger;
+        
         private readonly ChannelReader<TOut> _channelReader;
         private readonly ISourceBlock<TOut> _sourceFromTargetBlock;
 
@@ -25,13 +24,7 @@ namespace HouseofCat.Dataflows
         {
         }
 
-        protected ChannelReaderBlock(Channel<TOut> channel, ITargetBlock<TOut> targetBlock) : 
-            this(channel?.Reader, targetBlock)
-        {
-            _channel = channel;
-        }
-
-        private ChannelReaderBlock(ChannelReader<TOut> channelReader, ITargetBlock<TOut> targetBlock)
+        protected ChannelReaderBlock(ChannelReader<TOut> channelReader, ITargetBlock<TOut> targetBlock)
         {
             Guard.AgainstNull(channelReader, nameof(channelReader));
             _logger = LogHelper.LoggerFactory.CreateLogger<ChannelReaderBlock<TOut>>();
