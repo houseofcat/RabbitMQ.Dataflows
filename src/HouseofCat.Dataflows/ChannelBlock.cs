@@ -12,8 +12,6 @@ namespace HouseofCat.Dataflows
 {
     public class ChannelBlock<TOut> : ChannelReaderBlock<TOut>, IPropagatorBlock<TOut, TOut>, IReceivableSourceBlock<TOut>
     {
-        public Task Completion { get; }
-
         private readonly ILogger<ChannelBlock<TOut>> _logger;
 
         protected CancellationTokenSource _cts;
