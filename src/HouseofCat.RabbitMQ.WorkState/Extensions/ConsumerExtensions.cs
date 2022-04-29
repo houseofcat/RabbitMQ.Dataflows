@@ -1,0 +1,29 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using HouseofCat.Dataflows;
+
+namespace HouseofCat.RabbitMQ.WorkState.Extensions
+{
+    public static class ConsumerExtensions
+    {
+        public static async ValueTask DirectChannelExecutionEngineAsync(
+            this Consumer consumer,
+            Func<ReceivedData, Task<IRabbitWorkState>> workBodyAsync,
+            GlobalConsumerPipelineOptions globalConsumerPipelineOptions,
+            Func<IRabbitWorkState, Task> postWorkBodyAsync = null,
+            TaskScheduler taskScheduler = null,
+            CancellationToken cancellationToken = default)
+        {
+            var channelReaderBlockEngine = new ChannelReaderBlockEngine<ReceivedData, IRabbitWorkState>(
+                consumer.GetConsumerBuffer(),
+                workBodyAsync,
+                globalConsumerPipelineOptions.MaxDegreesOfParallelism ?? 1,
+                globalConsumerPipelineOptions.EnsureOrdered ?? true,
+                postWorkBodyAsync,
+                taskScheduler);
+
+            await channelReaderBlockEngine.ReadChannelAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }    
+}
