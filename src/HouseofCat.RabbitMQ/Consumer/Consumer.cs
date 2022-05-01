@@ -105,9 +105,7 @@ namespace HouseofCat.RabbitMQ
 
         public async Task StartConsumerAsync()
         {
-            await _conLock
-                .WaitAsync()
-                .ConfigureAwait(false);
+            if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
 
             try
             {
@@ -140,9 +138,7 @@ namespace HouseofCat.RabbitMQ
 
         public async Task StopConsumerAsync(bool immediate = false)
         {
-            await _conLock
-                .WaitAsync()
-                .ConfigureAwait(false);
+            if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
 
             _logger.LogDebug(LogMessages.Consumers.StopConsumer, ConsumerOptions.ConsumerName);
 
