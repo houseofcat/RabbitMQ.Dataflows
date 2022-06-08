@@ -18,21 +18,37 @@ namespace HouseofCat.RabbitMQ
 {
     public interface IPublisher
     {
-        bool AutoPublisherStarted { get; }
         RabbitOptions Options { get; }
+        bool AutoPublisherStarted { get; }
+
+        void StartAutoPublish(
+            Func<IPublishReceipt, ValueTask> processReceiptAsync = null);
+        Task StartAutoPublishAsync(
+            Func<IPublishReceipt, ValueTask> processReceiptAsync = null);
+        Task StopAutoPublishAsync(bool immediately = false);
+        ValueTask QueueMessageAsync(
+            IMessage message,
+            CancellationToken cancellationToken = default);
 
         ChannelReader<IPublishReceipt> GetReceiptBufferReader();
-        Task PublishAsync(IMessage message, bool createReceipt, bool withHeaders = true);
-        Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true);
-
+        Task PublishAsync(
+            IMessage message,
+            bool createReceipt,
+            bool withHeaders = true,
+            CancellationToken cancellationToken = default);
+        Task PublishWithConfirmationAsync(
+            IMessage message,
+            bool createReceipt,
+            bool withOptionalHeaders = true,
+            CancellationToken cancellationToken = default);
         Task<bool> PublishAsync(
             string exchangeName,
             string routingKey,
             ReadOnlyMemory<byte> payload,
             bool mandatory = false,
             IBasicProperties messageProperties = null,
-            string messageId = null);
-
+            string messageId = null,
+            CancellationToken cancellationToken = default);
         Task<bool> PublishAsync(
             string exchangeName,
             string routingKey,
@@ -40,39 +56,44 @@ namespace HouseofCat.RabbitMQ
             IDictionary<string, object> headers = null,
             string messageId = null,
             byte? priority = 0,
-            bool mandatory = false);
-
+            bool mandatory = false,
+            CancellationToken cancellationToken = default);
         Task<bool> PublishBatchAsync(
             string exchangeName,
             string routingKey,
             IList<ReadOnlyMemory<byte>> payloads,
             bool mandatory = false,
-            IBasicProperties messageProperties = null);
-
+            IBasicProperties messageProperties = null,
+            CancellationToken cancellationToken = default);
         Task<bool> PublishBatchAsync(
             string exchangeName,
             string routingKey,
             IList<ReadOnlyMemory<byte>> payloads,
             IDictionary<string, object> headers = null,
             byte? priority = 0,
-            bool mandatory = false);
-
-        Task PublishManyAsBatchAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true);
-        Task PublishManyAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true);
-        ValueTask QueueMessageAsync(IMessage message);
-        void StartAutoPublish(Func<IPublishReceipt, ValueTask> processReceiptAsync = null);
-        Task StartAutoPublishAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null);
-        Task StopAutoPublishAsync(bool immediately = false);
+            bool mandatory = false,
+            CancellationToken cancellationToken = default);
+        Task PublishManyAsBatchAsync(
+            IList<IMessage> messages,
+            bool createReceipt,
+            bool withHeaders = true,
+            CancellationToken cancellationToken = default);
+        Task PublishManyAsync(
+            IList<IMessage> messages,
+            bool createReceipt,
+            bool withHeaders = true,
+            CancellationToken cancellationToken = default);
+        
+        
     }
 
     public class Publisher : IPublisher, IDisposable
     {
         public RabbitOptions Options { get; }
-
         public bool AutoPublisherStarted { get; private set; }
 
         private readonly ILogger<Publisher> _logger;
-        private readonly IChannelPool _channelPool;
+        private readonly IConnectionPool _connectionPool;
         private readonly SemaphoreSlim _pubLock = new SemaphoreSlim(1, 1);
 
         private readonly ISerializationProvider _serializationProvider;
@@ -88,7 +109,7 @@ namespace HouseofCat.RabbitMQ
         private Channel<IPublishReceipt> _receiptBuffer;
 
         private Task _publishingTask;
-        private Task _processReceiptsAsync;
+        private Task _receiptTask;
         private bool _disposedValue;
 
         public Publisher(
@@ -97,22 +118,22 @@ namespace HouseofCat.RabbitMQ
             IEncryptionProvider encryptionProvider = null,
             ICompressionProvider compressionProvider = null)
             : this(
-                  new ChannelPool(options),
+                  new ConnectionPool(options),
                   serializationProvider,
                   encryptionProvider,
                   compressionProvider)
         { }
 
         public Publisher(
-            IChannelPool channelPool,
+            IConnectionPool connectionPool,
             ISerializationProvider serializationProvider,
             IEncryptionProvider encryptionProvider = null,
             ICompressionProvider compressionProvider = null)
         {
-            Guard.AgainstNull(channelPool, nameof(channelPool));
+            Guard.AgainstNull(connectionPool, nameof(connectionPool));
             Guard.AgainstNull(serializationProvider, nameof(serializationProvider));
 
-            Options = channelPool.Options;
+            Options = connectionPool.Options;
             _logger = LogHelper.GetLogger<Publisher>();
             _serializationProvider = serializationProvider;
 
@@ -138,7 +159,7 @@ namespace HouseofCat.RabbitMQ
                 _compressionProvider = compressionProvider;
             }
 
-            _channelPool = channelPool;
+            _connectionPool = connectionPool;
             _receiptBuffer = Channel.CreateBounded<IPublishReceipt>(
                 new BoundedChannelOptions(1024)
                 {
@@ -152,7 +173,9 @@ namespace HouseofCat.RabbitMQ
             _waitForConfirmation = TimeSpan.FromMilliseconds(Options.PublisherOptions.WaitForConfirmationTimeoutInMilliseconds);
         }
 
-        public void StartAutoPublish(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
+        #region AutoPublisher
+        public void StartAutoPublish(
+            Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
         {
             _pubLock.Wait();
 
@@ -160,7 +183,8 @@ namespace HouseofCat.RabbitMQ
             finally { _pubLock.Release(); }
         }
 
-        public async Task StartAutoPublishAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
+        public async Task StartAutoPublishAsync(
+            Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
         {
             await _pubLock.WaitAsync().ConfigureAwait(false);
 
@@ -168,128 +192,65 @@ namespace HouseofCat.RabbitMQ
             finally { _pubLock.Release(); }
         }
 
-        private void SetupPublisher(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
+        private void SetupPublisher(
+            Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
         {
             _messageQueue = Channel.CreateBounded<IMessage>(
-            new BoundedChannelOptions(Options.PublisherOptions.LetterQueueBufferSize)
-            {
-                FullMode = Options.PublisherOptions.BehaviorWhenFull
-            });
+                new BoundedChannelOptions(Options.PublisherOptions.LetterQueueBufferSize)
+                {
+                    FullMode = Options.PublisherOptions.BehaviorWhenFull
+                });
 
             _publishingTask = ProcessMessagesAsync(_messageQueue.Reader);
 
             if (processReceiptAsync == null)
             { processReceiptAsync = ProcessReceiptAsync; }
 
-            if (_processReceiptsAsync == null)
-            {
-                _processReceiptsAsync = ProcessReceiptsAsync(processReceiptAsync);
-            }
+            _receiptTask = ProcessReceiptsAsync(processReceiptAsync);
 
             AutoPublisherStarted = true;
         }
 
-        public async Task StopAutoPublishAsync(bool immediately = false)
-        {
-            await _pubLock.WaitAsync().ConfigureAwait(false);
-
-            try
-            {
-                if (AutoPublisherStarted)
-                {
-                    _messageQueue.Writer.Complete();
-
-                    if (!immediately)
-                    {
-                        await _messageQueue
-                            .Reader
-                            .Completion
-                            .ConfigureAwait(false);
-
-                        // Wait for Publishing To Finish.
-                        while (!_publishingTask.IsCompleted)
-                        {
-                            await Task.Delay(10).ConfigureAwait(false);
-                        }
-                    }
-
-                    AutoPublisherStarted = false;
-                }
-            }
-            finally
-            { _pubLock.Release(); }
-        }
-
-        public ChannelReader<IPublishReceipt> GetReceiptBufferReader()
-        {
-            return _receiptBuffer.Reader;
-        }
-
-        #region AutoPublisher
-
-        public async ValueTask QueueMessageAsync(IMessage message)
-        {
-            if (!AutoPublisherStarted) throw new InvalidOperationException(ExceptionMessages.AutoPublisherNotStartedError);
-            Guard.AgainstNull(message, nameof(message));
-
-            if (!await _messageQueue
-                 .Writer
-                 .WaitToWriteAsync()
-                 .ConfigureAwait(false))
-            {
-                throw new InvalidOperationException(ExceptionMessages.QueueChannelError);
-            }
-
-            var metadata = message.GetMetadata();
-            _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, metadata?.Id);
-
-            await _messageQueue
-                .Writer
-                .WriteAsync(message)
-                .ConfigureAwait(false);
-        }
-
-        private async Task ProcessMessagesAsync(ChannelReader<IMessage> channelReader)
+        private async Task ProcessMessagesAsync(
+            ChannelReader<IMessage> channelReader)
         {
             await Task.Yield();
-            while (await channelReader.WaitToReadAsync().ConfigureAwait(false))
+            await foreach (var message in channelReader.ReadAllAsync().ConfigureAwait(false))
             {
-                while (channelReader.TryRead(out var message))
+                if (message == null)
+                { continue; }
+
+                var metadata = message.GetMetadata();
+
+                if (_compress)
                 {
-                    if (message == null)
-                    { continue; }
-
-                    var metadata = message.GetMetadata();
-
-                    if (_compress)
-                    {
-                        message.Body = _compressionProvider.Compress(message.Body).ToArray();
-                        metadata.Compressed = _compress;
-                        metadata.CustomFields[Constants.HeaderForCompressed] = _compress;
-                        metadata.CustomFields[Constants.HeaderForCompression] = _compressionProvider.Type;
-                    }
-
-                    if (_encrypt)
-                    {
-                        message.Body = _encryptionProvider.Encrypt(message.Body).ToArray();
-                        metadata.Encrypted = _encrypt;
-                        metadata.CustomFields[Constants.HeaderForEncrypted] = _encrypt;
-                        metadata.CustomFields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
-                        metadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
-                    }
-
-                    _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.MessageId, metadata?.Id);
-
-                    await PublishAsync(message, _createPublishReceipts, _withHeaders)
-                        .ConfigureAwait(false);
+                    message.Body = _compressionProvider.Compress(message.Body).ToArray();
+                    metadata.Compressed = _compress;
+                    metadata.CustomFields[Constants.HeaderForCompressed] = _compress;
+                    metadata.CustomFields[Constants.HeaderForCompression] = _compressionProvider.Type;
                 }
+
+                if (_encrypt)
+                {
+                    message.Body = _encryptionProvider.Encrypt(message.Body).ToArray();
+                    metadata.Encrypted = _encrypt;
+                    metadata.CustomFields[Constants.HeaderForEncrypted] = _encrypt;
+                    metadata.CustomFields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
+                    metadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
+                }
+
+                _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.MessageId, metadata?.Id);
+
+                await PublishAsync(message, _createPublishReceipts, _withHeaders)
+                    .ConfigureAwait(false);
             }
         }
 
-        private async Task ProcessReceiptsAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync)
+        private async Task ProcessReceiptsAsync(
+            Func<IPublishReceipt, ValueTask> processReceiptAsync)
         {
             await Task.Yield();
-            await foreach (var receipt in _receiptBuffer.Reader.ReadAllAsync())
+            await foreach (var receipt in _receiptBuffer.Reader.ReadAllAsync().ConfigureAwait(false))
             {
                 await processReceiptAsync(receipt).ConfigureAwait(false);
             }
@@ -301,22 +262,72 @@ namespace HouseofCat.RabbitMQ
             var originalMessage = receipt.GetOriginalMessage();
             if (receipt.IsError && originalMessage != null)
             {
-                if (AutoPublisherStarted)
-                {
-                    _logger.LogWarning($"Failed publish for message ({originalMessage.MessageId}). Retrying with AutoPublishing...");
+                _logger.LogWarning($"Failed publish for message ({originalMessage.MessageId}). Retrying with AutoPublishing...");
 
-                    try
-                    { await QueueMessageAsync(receipt.GetOriginalMessage()); }
-                    catch (Exception ex) /* No-op */
-                    { _logger.LogDebug("Error ({0}) occurred on retry, most likely because retry during shutdown.", ex.Message); }
-                }
-                else
-                {
-                    _logger.LogError($"Failed publish for message ({originalMessage.MessageId}). Unable to retry as the original message was not received.");
-                }
+                try
+                { await QueueMessageAsync(receipt.GetOriginalMessage()); }
+                catch (Exception ex) /* No-op */
+                { _logger.LogDebug("Error ({0}) occurred on retry, most likely because retry during shutdown.", ex.Message); }
             }
         }
 
+        public async Task StopAutoPublishAsync(bool immediate = false)
+        {
+            await _pubLock.WaitAsync().ConfigureAwait(false);
+
+            try
+            {
+                if (!AutoPublisherStarted) return;
+
+                _messageQueue.Writer.TryComplete();
+
+                var messageTask = _messageQueue.Reader.Completion;
+                _messageQueue = null;
+
+                var publishingTask = _publishingTask;
+                _publishingTask = null;
+
+                var receiptTask = _receiptTask;
+                _receiptTask = null;
+
+                AutoPublisherStarted = false;
+
+                if (immediate) return;
+
+                await Task.WhenAll(messageTask, publishingTask, receiptTask).ConfigureAwait(false);
+            }
+            finally
+            { _pubLock.Release(); }
+        }
+
+        public ChannelReader<IPublishReceipt> GetReceiptBufferReader()
+        {
+            return _receiptBuffer.Reader;
+        }
+
+        public async ValueTask QueueMessageAsync(
+            IMessage message,
+            CancellationToken cancellationToken = default)
+        {
+            if (!AutoPublisherStarted) throw new InvalidOperationException(ExceptionMessages.AutoPublisherNotStartedError);
+            Guard.AgainstNull(message, nameof(message));
+
+            try
+            {
+                var metadata = message.GetMetadata();
+
+                await _messageQueue
+                    .Writer
+                    .WriteAsync(message)
+                    .ConfigureAwait(false);
+
+                _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, metadata?.Id);
+            }
+            catch
+            {
+                throw new InvalidOperationException(ExceptionMessages.QueueChannelError);
+            }
+        }
         #endregion
 
         #region Publishing
@@ -328,15 +339,16 @@ namespace HouseofCat.RabbitMQ
             ReadOnlyMemory<byte> payload,
             bool mandatory = false,
             IBasicProperties messageProperties = null,
-            string messageId = null)
+            string messageId = null,
+            CancellationToken cancellationToken = default)
         {
             Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
 
             var error = false;
-            var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync(false, cancellationToken).ConfigureAwait(false);
             if (messageProperties == null)
             {
-                messageProperties = channelHost.GetChannel().CreateBasicProperties();
+                messageProperties = channel.CreateBasicProperties();
                 messageProperties.DeliveryMode = 2;
                 messageProperties.MessageId = messageId ?? Guid.NewGuid().ToString();
 
@@ -351,14 +363,12 @@ namespace HouseofCat.RabbitMQ
 
             try
             {
-                channelHost
-                    .GetChannel()
-                    .BasicPublish(
-                        exchange: exchangeName ?? string.Empty,
-                        routingKey: routingKey,
-                        mandatory: mandatory,
-                        basicProperties: messageProperties,
-                        body: payload);
+                channel.BasicPublish(
+                    exchange: exchangeName ?? string.Empty,
+                    routingKey: routingKey,
+                    mandatory: mandatory,
+                    basicProperties: messageProperties,
+                    body: payload);
             }
             catch (Exception ex)
             {
@@ -367,8 +377,7 @@ namespace HouseofCat.RabbitMQ
             }
             finally
             {
-                await _channelPool
-                    .ReturnChannelAsync(channelHost, error);
+                await returnFunc.Invoke(channel, error).ConfigureAwait(false);
             }
 
             return error;
@@ -382,23 +391,22 @@ namespace HouseofCat.RabbitMQ
             IDictionary<string, object> headers = null,
             string messageId = null,
             byte? priority = 0,
-            bool mandatory = false)
+            bool mandatory = false,
+            CancellationToken cancellationToken = default)
         {
             Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
 
             var error = false;
-            var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync(false, cancellationToken).ConfigureAwait(false);
 
             try
             {
-                channelHost
-                    .GetChannel()
-                    .BasicPublish(
-                        exchange: exchangeName ?? string.Empty,
-                        routingKey: routingKey,
-                        mandatory: mandatory,
-                        basicProperties: BuildProperties(headers, channelHost, messageId, priority),
-                        body: payload);
+                channel.BasicPublish(
+                    exchange: exchangeName ?? string.Empty,
+                    routingKey: routingKey,
+                    mandatory: mandatory,
+                    basicProperties: BuildProperties(headers, channel, messageId, priority),
+                    body: payload);
             }
             catch (Exception ex)
             {
@@ -411,8 +419,7 @@ namespace HouseofCat.RabbitMQ
             }
             finally
             {
-                await _channelPool
-                    .ReturnChannelAsync(channelHost, error);
+                await returnFunc.Invoke(channel, error).ConfigureAwait(false);
             }
 
             return error;
@@ -424,16 +431,17 @@ namespace HouseofCat.RabbitMQ
             string routingKey,
             IList<ReadOnlyMemory<byte>> payloads,
             bool mandatory = false,
-            IBasicProperties messageProperties = null)
+            IBasicProperties messageProperties = null,
+            CancellationToken cancellationToken = default)
         {
             Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
             Guard.AgainstNullOrEmpty(payloads, nameof(payloads));
 
             var error = false;
-            var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync(false, cancellationToken).ConfigureAwait(false);
             if (messageProperties == null)
             {
-                messageProperties = channelHost.GetChannel().CreateBasicProperties();
+                messageProperties = channel.CreateBasicProperties();
                 messageProperties.DeliveryMode = 2;
                 messageProperties.MessageId = Guid.NewGuid().ToString();
 
@@ -448,7 +456,7 @@ namespace HouseofCat.RabbitMQ
 
             try
             {
-                var batch = channelHost.GetChannel().CreateBasicPublishBatch();
+                var batch = channel.CreateBasicPublishBatch();
 
                 for (int i = 0; i < payloads.Count; i++)
                 {
@@ -468,8 +476,7 @@ namespace HouseofCat.RabbitMQ
             }
             finally
             {
-                await _channelPool
-                    .ReturnChannelAsync(channelHost, error);
+                await returnFunc.Invoke(channel, error).ConfigureAwait(false);
             }
 
             return error;
@@ -482,21 +489,22 @@ namespace HouseofCat.RabbitMQ
             IList<ReadOnlyMemory<byte>> payloads,
             IDictionary<string, object> headers = null,
             byte? priority = 0,
-            bool mandatory = false)
+            bool mandatory = false,
+            CancellationToken cancellationToken = default)
         {
             Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
             Guard.AgainstNullOrEmpty(payloads, nameof(payloads));
 
             var error = false;
-            var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync(false, cancellationToken).ConfigureAwait(false);
 
             try
             {
-                var batch = channelHost.GetChannel().CreateBasicPublishBatch();
+                var batch = channel.CreateBasicPublishBatch();
 
                 for (int i = 0; i < payloads.Count; i++)
                 {
-                    batch.Add(exchangeName, routingKey, mandatory, BuildProperties(headers, channelHost, null, priority), payloads[i]);
+                    batch.Add(exchangeName, routingKey, mandatory, BuildProperties(headers, channel, null, priority), payloads[i]);
                 }
 
                 batch.Publish();
@@ -512,8 +520,7 @@ namespace HouseofCat.RabbitMQ
             }
             finally
             {
-                await _channelPool
-                    .ReturnChannelAsync(channelHost, error);
+                await returnFunc.Invoke(channel, error).ConfigureAwait(false);
             }
 
             return error;
@@ -526,23 +533,23 @@ namespace HouseofCat.RabbitMQ
         /// <param name="message"></param>
         /// <param name="createReceipt"></param>
         /// <param name="withOptionalHeaders"></param>
-        public async Task PublishAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true)
+        public async Task PublishAsync(
+            IMessage message,
+            bool createReceipt,
+            bool withOptionalHeaders = true,
+            CancellationToken cancellationToken = default)
         {
             var error = false;
-            var chanHost = await _channelPool
-                .GetChannelAsync()
-                .ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync(false, cancellationToken).ConfigureAwait(false);
 
             try
             {
-                chanHost
-                    .GetChannel()
-                    .BasicPublish(
-                        message.Envelope.Exchange,
-                        message.Envelope.RoutingKey,
-                        message.Envelope.RoutingOptions?.Mandatory ?? false,
-                        message.BuildProperties(chanHost, withOptionalHeaders),
-                        message.GetBodyToPublish(_serializationProvider));
+                channel.BasicPublish(
+                    message.Envelope.Exchange,
+                    message.Envelope.RoutingKey,
+                    message.Envelope.RoutingOptions?.Mandatory ?? false,
+                    message.BuildProperties(channel, withOptionalHeaders),
+                    message.GetBodyToPublish(_serializationProvider));
             }
             catch (Exception ex)
             {
@@ -554,17 +561,21 @@ namespace HouseofCat.RabbitMQ
 
                 error = true;
             }
-            finally
+            
+            if (createReceipt)
             {
-                if (createReceipt)
+                try
                 {
-                    await CreateReceiptAsync(message, error)
-                        .ConfigureAwait(false);
+                    await CreateReceiptAsync(message, error).ConfigureAwait(false);
                 }
-
-                await _channelPool
-                    .ReturnChannelAsync(chanHost, error);
+                catch
+                {
+                    error = true;
+                }
             }
+                
+
+            await returnFunc.Invoke(channel, error).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -575,27 +586,27 @@ namespace HouseofCat.RabbitMQ
         /// <param name="message"></param>
         /// <param name="createReceipt"></param>
         /// <param name="withOptionalHeaders"></param>
-        public async Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true)
+        public async Task PublishWithConfirmationAsync(
+            IMessage message,
+            bool createReceipt,
+            bool withOptionalHeaders = true,
+            CancellationToken cancellationToken = default)
         {
             var error = false;
-            var chanHost = await _channelPool
-                .GetAckChannelAsync()
-                .ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync(true, cancellationToken).ConfigureAwait(false);
 
             try
             {
-                chanHost.GetChannel().WaitForConfirmsOrDie(_waitForConfirmation);
+                channel.WaitForConfirmsOrDie(_waitForConfirmation);
 
-                chanHost
-                    .GetChannel()
-                    .BasicPublish(
-                        message.Envelope.Exchange,
-                        message.Envelope.RoutingKey,
-                        message.Envelope.RoutingOptions?.Mandatory ?? false,
-                        message.BuildProperties(chanHost, withOptionalHeaders),
-                        message.GetBodyToPublish(_serializationProvider));
+                channel.BasicPublish(
+                    message.Envelope.Exchange,
+                    message.Envelope.RoutingKey,
+                    message.Envelope.RoutingOptions?.Mandatory ?? false,
+                    message.BuildProperties(channel, withOptionalHeaders),
+                    message.GetBodyToPublish(_serializationProvider));
 
-                chanHost.GetChannel().WaitForConfirmsOrDie(_waitForConfirmation);
+                channel.WaitForConfirmsOrDie(_waitForConfirmation);
             }
             catch (Exception ex)
             {
@@ -607,17 +618,20 @@ namespace HouseofCat.RabbitMQ
 
                 error = true;
             }
-            finally
-            {
-                if (createReceipt)
-                {
-                    await CreateReceiptAsync(message, error)
-                        .ConfigureAwait(false);
-                }
 
-                await _channelPool
-                    .ReturnChannelAsync(chanHost, error);
+            if (createReceipt)
+            {
+                try
+                {
+                    await CreateReceiptAsync(message, error).ConfigureAwait(false);
+                }
+                catch
+                {
+                    error = true;
+                }
             }
+
+            await returnFunc.Invoke(channel, error).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -626,22 +640,24 @@ namespace HouseofCat.RabbitMQ
         /// <param name="messages"></param>
         /// <param name="createReceipt"></param>
         /// <param name="withOptionalHeaders"></param>
-        public async Task PublishManyAsync(IList<IMessage> messages, bool createReceipt, bool withOptionalHeaders = true)
+        public async Task PublishManyAsync(
+            IList<IMessage> messages,
+            bool createReceipt,
+            bool withOptionalHeaders = true,
+            CancellationToken cancellationToken = default)
         {
             var error = false;
-            var chanHost = await _channelPool
-                .GetChannelAsync()
-                .ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync(false, cancellationToken).ConfigureAwait(false);
 
             for (int i = 0; i < messages.Count; i++)
             {
                 try
                 {
-                    chanHost.GetChannel().BasicPublish(
+                    channel.BasicPublish(
                         messages[i].Envelope.Exchange,
                         messages[i].Envelope.RoutingKey,
                         messages[i].Envelope.RoutingOptions.Mandatory,
-                        messages[i].BuildProperties(chanHost, withOptionalHeaders),
+                        messages[i].BuildProperties(channel, withOptionalHeaders),
                         messages[i].GetBodyToPublish(_serializationProvider));
                 }
                 catch (Exception ex)
@@ -656,12 +672,21 @@ namespace HouseofCat.RabbitMQ
                 }
 
                 if (createReceipt)
-                { await CreateReceiptAsync(messages[i], error).ConfigureAwait(false); }
+                {
+                    try
+                    {
+                        await CreateReceiptAsync(messages[i], error).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        error = true;
+                    }
+                }
 
                 if (error) { break; }
             }
 
-            await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false);
+            await returnFunc.Invoke(channel, error).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -671,30 +696,39 @@ namespace HouseofCat.RabbitMQ
         /// <param name="messages"></param>
         /// <param name="createReceipt"></param>
         /// <param name="withOptionalHeaders"></param>
-        public async Task PublishManyAsBatchAsync(IList<IMessage> messages, bool createReceipt, bool withOptionalHeaders = true)
+        public async Task PublishManyAsBatchAsync(
+            IList<IMessage> messages,
+            bool createReceipt,
+            bool withOptionalHeaders = true,
+            CancellationToken cancellationToken = default)
         {
             var error = false;
-            var chanHost = await _channelPool
-                .GetChannelAsync()
-                .ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync(false, cancellationToken).ConfigureAwait(false);
 
             try
             {
                 if (messages.Count > 0)
                 {
-                    var publishBatch = chanHost.GetChannel().CreateBasicPublishBatch();
+                    var publishBatch = channel.CreateBasicPublishBatch();
                     for (int i = 0; i < messages.Count; i++)
                     {
                         publishBatch.Add(
                             messages[i].Envelope.Exchange,
                             messages[i].Envelope.RoutingKey,
                             messages[i].Envelope.RoutingOptions.Mandatory,
-                            messages[i].BuildProperties(chanHost, withOptionalHeaders),
+                            messages[i].BuildProperties(channel, withOptionalHeaders),
                             messages[i].GetBodyToPublish(_serializationProvider).AsMemory());
 
                         if (createReceipt)
                         {
-                            await CreateReceiptAsync(messages[i], error).ConfigureAwait(false);
+                            try
+                            {
+                                await CreateReceiptAsync(messages[i], error).ConfigureAwait(false);
+                            }
+                            catch
+                            {
+                                error = true;
+                            }
                         }
                     }
 
@@ -710,24 +744,25 @@ namespace HouseofCat.RabbitMQ
                 error = true;
             }
             finally
-            { await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false); }
+            {
+                await returnFunc.Invoke(channel, error).ConfigureAwait(false);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private async ValueTask CreateReceiptAsync(IMessage message, bool error)
         {
-            if (!await _receiptBuffer
-                .Writer
-                .WaitToWriteAsync()
-                .ConfigureAwait(false))
+            try
+            {
+                await _receiptBuffer
+                    .Writer
+                    .WriteAsync(message.GetPublishReceipt(error))
+                    .ConfigureAwait(false);
+            }
+            catch
             {
                 throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
             }
-
-            await _receiptBuffer
-                .Writer
-                .WriteAsync(message.GetPublishReceipt(error))
-                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -741,12 +776,12 @@ namespace HouseofCat.RabbitMQ
         /// <returns></returns>
         private static IBasicProperties BuildProperties(
             IDictionary<string, object> headers,
-            IChannelHost channelHost,
+            IModel channel,
             string messageId = null,
             byte? priority = 0,
             byte? deliveryMode = 2)
         {
-            var props = channelHost.GetChannel().CreateBasicProperties();
+            var props = channel.CreateBasicProperties();
             props.DeliveryMode = deliveryMode ?? 2; // Default Persisted
             props.Priority = priority ?? 0; // Default Priority
             props.MessageId = messageId ?? Guid.NewGuid().ToString();

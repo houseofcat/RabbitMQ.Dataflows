@@ -10,42 +10,57 @@ using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ.Pools
 {
-    public interface IConnectionPool
+    public interface IConnectionPool : IAsyncDisposable
     {
         RabbitOptions Options { get; }
+        bool IsRunning { get; }
 
-        IConnection CreateConnection(string connectionName);
-        ValueTask<IConnectionHost> GetConnectionAsync();
-        ValueTask ReturnConnectionAsync(IConnectionHost connHost);
-
+        Task StartAsync();
         Task ShutdownAsync();
+        IChannelPool GetTransientChannelPool();
+        ValueTask<IModel> GetTransientChannelAsync(bool ack = false, CancellationToken cancellationToken = default);
+        ValueTask<(IModel channel, Func<IModel, bool, ValueTask> returnFunc)> GetChannelAsync(bool ack = false, CancellationToken cancellationToken = default);
     }
 
-    public class ConnectionPool : IConnectionPool, IDisposable
+    public class ConnectionPool : IConnectionPool
     {
-        private readonly ILogger<ConnectionPool> _logger;
-        private readonly SemaphoreSlim _poolLock = new SemaphoreSlim(1, 1);
-
-        private Channel<IConnectionHost> _connections;
-        private ConnectionFactory _connectionFactory;
-        private bool _disposedValue;
-        private ulong _currentConnectionId;
-
+        public static long GlobalConnectionId = 0;
         public RabbitOptions Options { get; }
+        public bool IsRunning { get; private set; }
 
-        public ConnectionPool(RabbitOptions options)
+        private readonly ILogger<ConnectionPool> _logger;
+        private readonly IConnectionFactory _connectionFactory;
+        private readonly SemaphoreSlim _poolLock = new SemaphoreSlim(1, 1);
+        private readonly TimeSpan _recoveryDelay = TimeSpan.FromSeconds(1);
+
+        private Channel<IChannelPool> _healthyPools;
+        private Channel<IChannelPool> _unhealthyPools;
+        private Task _recoveryTask;
+
+        public ConnectionPool(
+            RabbitOptions options)
         {
             Guard.AgainstNull(options, nameof(options));
+
             Options = options;
 
             _logger = LogHelper.GetLogger<ConnectionPool>();
-
-            _connections = Channel.CreateBounded<IConnectionHost>(Options.PoolOptions.MaxConnections);
             _connectionFactory = CreateConnectionFactory();
-
-            CreateConnectionsAsync().GetAwaiter().GetResult();
         }
 
+        public ConnectionPool(
+            RabbitOptions options,
+            IConnectionFactory connectionFactory)
+        {
+            Guard.AgainstNull(options, nameof(options));
+
+            Options = options;
+
+            _logger = LogHelper.GetLogger<ConnectionPool>();
+            _connectionFactory = connectionFactory;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ConnectionFactory CreateConnectionFactory()
         {
             var cf = new ConnectionFactory
@@ -91,124 +106,159 @@ namespace HouseofCat.RabbitMQ.Pools
             return cf;
         }
 
-        public IConnection CreateConnection(string connectionName) => _connectionFactory.CreateConnection(connectionName);
-
-        // Allows overriding the mechanism for creating ConnectionHosts while a base one was implemented.
-        protected virtual IConnectionHost CreateConnectionHost(ulong connectionId, IConnection connection) =>
-            new ConnectionHost(connectionId, connection);
-
-        private async Task CreateConnectionsAsync()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private IConnection CreateConnecton()
         {
-            _logger.LogTrace(LogMessages.ConnectionPools.CreateConnections);
+            var connectionName = $"{Options.PoolOptions.ServiceName}:{Interlocked.Increment(ref GlobalConnectionId)}";
+            return _connectionFactory.CreateConnection(connectionName);
+        }
 
-            for (int i = 0; i < Options.PoolOptions.MaxConnections; i++)
+        public async Task StartAsync()
+        {
+            if (!await _poolLock.WaitAsync(0).ConfigureAwait(false)) return;
+
+            if (IsRunning) return;
+
+            try
             {
-                var serviceName = string.IsNullOrEmpty(Options.PoolOptions.ServiceName) ? $"HoC.RabbitMQ:{i}" : $"{Options.PoolOptions.ServiceName}:{i}";
-                try
+                _healthyPools = Channel.CreateBounded<IChannelPool>(Options.PoolOptions.MaxConnections);
+                _unhealthyPools = Channel.CreateBounded<IChannelPool>(Options.PoolOptions.MaxConnections);
+
+                for (int i = 0; i < Options.PoolOptions.MaxConnections; i++)
                 {
-                    await _connections
+                    await _healthyPools
                         .Writer
-                        .WriteAsync(CreateConnectionHost(_currentConnectionId++, CreateConnection(serviceName)));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, LogMessages.ConnectionPools.CreateConnectionException, serviceName);
-                    throw; // Non Optional Throw
-                }
-            }
-
-            _logger.LogTrace(LogMessages.ConnectionPools.CreateConnectionsComplete);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async ValueTask<IConnectionHost> GetConnectionAsync()
-        {
-            if (!await _connections
-                .Reader
-                .WaitToReadAsync()
-                .ConfigureAwait(false))
-            {
-                throw new InvalidOperationException(ExceptionMessages.GetConnectionErrorMessage);
-            }
-
-            while (true)
-            {
-                var connHost = await _connections
-                    .Reader
-                    .ReadAsync().ConfigureAwait(false);
-
-                // Connection Health Check
-                var healthy = await connHost.HealthyAsync().ConfigureAwait(false);
-                if (!healthy)
-                {
-                    await ReturnConnectionAsync(connHost).ConfigureAwait(false);
-                    await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
-                    continue;
+                        .WriteAsync(GetTransientChannelPool())
+                        .ConfigureAwait(false);
                 }
 
-                return connHost;
-            }
-        }
+                _recoveryTask = RecoverConnections();
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async ValueTask ReturnConnectionAsync(IConnectionHost connHost)
-        {
-            if (!await _connections
-                    .Writer
-                    .WaitToWriteAsync()
-                    .ConfigureAwait(false))
+                IsRunning = true;
+            }
+            finally
             {
-                throw new InvalidOperationException(ExceptionMessages.GetConnectionErrorMessage);
+                _poolLock.Release();
             }
-
-            await _connections
-                .Writer
-                .WriteAsync(connHost);
         }
 
         public async Task ShutdownAsync()
         {
-            _logger.LogTrace(LogMessages.ConnectionPools.Shutdown);
+            if (!await _poolLock.WaitAsync(0).ConfigureAwait(false)) return;
 
-            await _poolLock
-                .WaitAsync()
-                .ConfigureAwait(false);
+            if (!IsRunning) return;
 
-            _connections.Writer.Complete();
-
-            await _connections.Reader.WaitToReadAsync().ConfigureAwait(false);
-            while (_connections.Reader.TryRead(out IConnectionHost connHost))
+            try
             {
-                try
-                { connHost.Close(); }
-                catch { /* SWALLOW */ }
-            }
+                _healthyPools.Writer.TryComplete();
+                _unhealthyPools.Writer.TryComplete();
 
-            _poolLock.Release();
-
-            _logger.LogTrace(LogMessages.ConnectionPools.ShutdownComplete);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                if (disposing)
+                await foreach (var pool in _healthyPools.Reader.ReadAllAsync())
                 {
-                    _poolLock.Dispose();
+                    await pool.DisposeAsync().ConfigureAwait(false);
                 }
 
-                _connectionFactory = null;
-                _connections = null;
-                _disposedValue = true;
+                await foreach (var pool in _unhealthyPools.Reader.ReadAllAsync())
+                {
+                    await pool.DisposeAsync().ConfigureAwait(false);
+                }
+
+                await _recoveryTask.ConfigureAwait(false);
+                _recoveryTask = null;
+
+                IsRunning = false;
+            }
+            finally
+            {
+                _poolLock.Release();
             }
         }
 
-        public void Dispose()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private async Task RecoverConnections()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            try
+            {
+                await foreach (var pool in _unhealthyPools.Reader.ReadAllAsync().ConfigureAwait(false))
+                {
+                    if (pool.IsHealthy)
+                    {
+                        await _healthyPools.Writer.WriteAsync(pool).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await _unhealthyPools.Writer.WriteAsync(pool).ConfigureAwait(false);
+                        await Task.Delay(_recoveryDelay);
+                    }
+                }
+            }
+            catch { }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IChannelPool GetTransientChannelPool()
+        {
+            return new ChannelPool(Options, CreateConnecton());
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async ValueTask<IModel> GetTransientChannelAsync(
+            bool ack,
+            CancellationToken cancellationToken = default)
+        {
+            if (IsRunning) throw new InvalidOperationException(ExceptionMessages.ChannelPoolValidationMessage);
+
+            while (await _healthyPools.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (_healthyPools.Reader.TryRead(out var pool))
+                {
+                    try
+                    {
+                        var channel = pool.GetTransientChannel(ack);
+                        return channel;
+                    }
+                    finally
+                    {
+                        // Immediately return the pool
+                        await _healthyPools.Writer.WriteAsync(pool).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            throw new InvalidOperationException(ExceptionMessages.ChannelPoolValidationMessage);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async ValueTask<(IModel, Func<IModel, bool, ValueTask>)> GetChannelAsync(
+            bool ack,
+            CancellationToken cancellationToken = default)
+        {
+            if (IsRunning) throw new InvalidOperationException(ExceptionMessages.ChannelPoolValidationMessage);
+
+            while (await _healthyPools.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (_healthyPools.Reader.TryRead(out var pool))
+                {
+                    try
+                    {
+                        var channel = await pool.GetChannelAsync(ack, cancellationToken).ConfigureAwait(false);
+                        if (ack) return (channel, pool.ReturnAckChannelAsync);
+                        return (channel, pool.ReturnChannelAsync);
+                    }
+                    finally
+                    {
+                        // Immediately return the pool
+                        await _healthyPools.Writer.WriteAsync(pool).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            throw new InvalidOperationException(ExceptionMessages.ChannelPoolValidationMessage);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            // TODO
         }
     }
 }

@@ -43,11 +43,11 @@ namespace HouseofCat.RabbitMQ
 
         public static IBasicProperties CreateBasicProperties(
             this IMessage message,
-            IChannelHost channelHost,
+            IModel channel,
             bool withOptionalHeaders,
             IMetadata metadata)
         {
-            var props = channelHost.GetChannel().CreateBasicProperties();
+            var props = channel.CreateBasicProperties();
 
             props.DeliveryMode = message.Envelope.RoutingOptions.DeliveryMode;
             props.ContentType = message.Envelope.RoutingOptions.MessageType;

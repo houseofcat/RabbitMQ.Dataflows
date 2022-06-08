@@ -26,18 +26,19 @@ namespace HouseofCat.RabbitMQ
 
     public class Topologer : ITopologer
     {
-        private readonly IChannelPool _channelPool;
         public RabbitOptions Options { get; }
 
-        public Topologer(RabbitOptions options) : this(new ChannelPool(options))
+        private readonly IConnectionPool _connectionPool;
+
+        public Topologer(RabbitOptions options) : this(new ConnectionPool(options))
         { }
 
-        public Topologer(IChannelPool channelPool)
+        public Topologer(IConnectionPool connectionPool)
         {
-            Guard.AgainstNull(channelPool, nameof(channelPool));
+            Guard.AgainstNull(connectionPool, nameof(connectionPool));
 
-            Options = channelPool.Options;
-            _channelPool = channelPool;
+            Options = connectionPool.Options;
+            _connectionPool = connectionPool;
         }
 
         public async Task CreateTopologyAsync(TopologyConfig config)
@@ -207,11 +208,11 @@ namespace HouseofCat.RabbitMQ
             Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
 
             var error = false;
-            var chanHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync().ConfigureAwait(false);
 
             try
             {
-                chanHost.GetChannel().QueueDeclare(
+                channel.QueueDeclare(
                     queue: queueName,
                     durable: durable,
                     exclusive: exclusive,
@@ -219,7 +220,7 @@ namespace HouseofCat.RabbitMQ
                     arguments: args);
             }
             catch { error = true; }
-            finally { await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false); }
+            finally { await returnFunc.Invoke(channel, error).ConfigureAwait(false); }
 
             return error;
         }
@@ -240,17 +241,17 @@ namespace HouseofCat.RabbitMQ
             Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
 
             var error = false;
-            var chanHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync().ConfigureAwait(false);
 
             try
             {
-                chanHost.GetChannel().QueueDelete(
+                channel.QueueDelete(
                     queue: queueName,
                     ifUnused: onlyIfUnused,
                     ifEmpty: onlyIfEmpty);
             }
             catch { error = true; }
-            finally { await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false); }
+            finally { await returnFunc.Invoke(channel, error).ConfigureAwait(false); }
 
             return error;
         }
@@ -274,18 +275,18 @@ namespace HouseofCat.RabbitMQ
             Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
 
             var error = false;
-            var chanHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync().ConfigureAwait(false);
 
             try
             {
-                chanHost.GetChannel().QueueBind(
+                channel.QueueBind(
                     queue: queueName,
                     exchange: exchangeName,
                     routingKey: routingKey,
                     arguments: args);
             }
             catch { error = true; }
-            finally { await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false); }
+            finally { await returnFunc.Invoke(channel, error).ConfigureAwait(false); }
 
             return error;
         }
@@ -309,18 +310,18 @@ namespace HouseofCat.RabbitMQ
             Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
 
             var error = false;
-            var chanHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync().ConfigureAwait(false);
 
             try
             {
-                chanHost.GetChannel().QueueUnbind(
+                channel.QueueUnbind(
                     queue: queueName,
                     exchange: exchangeName,
                     routingKey: routingKey,
                     arguments: args);
             }
             catch { error = true; }
-            finally { await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false); }
+            finally { await returnFunc.Invoke(channel, error).ConfigureAwait(false); }
 
             return error;
         }
@@ -345,11 +346,11 @@ namespace HouseofCat.RabbitMQ
             Guard.AgainstNullOrEmpty(exchangeName, nameof(exchangeName));
 
             var error = false;
-            var chanHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync().ConfigureAwait(false);
 
             try
             {
-                chanHost.GetChannel().ExchangeDeclare(
+                channel.ExchangeDeclare(
                     exchange: exchangeName,
                     type: exchangeType,
                     durable: durable,
@@ -357,7 +358,7 @@ namespace HouseofCat.RabbitMQ
                     arguments: args);
             }
             catch { error = true; }
-            finally { await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false); }
+            finally { await returnFunc.Invoke(channel, error).ConfigureAwait(false); }
 
             return error;
         }
@@ -374,16 +375,16 @@ namespace HouseofCat.RabbitMQ
             Guard.AgainstNullOrEmpty(exchangeName, nameof(exchangeName));
 
             var error = false;
-            var chanHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync().ConfigureAwait(false);
 
             try
             {
-                chanHost.GetChannel().ExchangeDelete(
+                channel.ExchangeDelete(
                     exchange: exchangeName,
                     ifUnused: onlyIfUnused);
             }
             catch { error = true; }
-            finally { await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false); }
+            finally { await returnFunc.Invoke(channel, error).ConfigureAwait(false); }
 
             return error;
         }
@@ -407,18 +408,18 @@ namespace HouseofCat.RabbitMQ
             Guard.AgainstNullOrEmpty(childExchangeName, nameof(childExchangeName));
 
             var error = false;
-            var chanHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync().ConfigureAwait(false);
 
             try
             {
-                chanHost.GetChannel().ExchangeBind(
+                channel.ExchangeBind(
                     destination: childExchangeName,
                     source: parentExchangeName,
                     routingKey: routingKey,
                     arguments: args);
             }
             catch { error = true; }
-            finally { await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false); }
+            finally { await returnFunc.Invoke(channel, error).ConfigureAwait(false); }
 
             return error;
         }
@@ -442,18 +443,18 @@ namespace HouseofCat.RabbitMQ
             Guard.AgainstNullOrEmpty(childExchangeName, nameof(childExchangeName));
 
             var error = false;
-            var chanHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+            var (channel, returnFunc) = await _connectionPool.GetChannelAsync().ConfigureAwait(false);
 
             try
             {
-                chanHost.GetChannel().ExchangeUnbind(
+                channel.ExchangeUnbind(
                     destination: childExchangeName,
                     source: parentExchangeName,
                     routingKey: routingKey,
                     arguments: args);
             }
             catch { error = true; }
-            finally { await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false); }
+            finally { await returnFunc.Invoke(channel, error).ConfigureAwait(false); }
 
             return error;
         }

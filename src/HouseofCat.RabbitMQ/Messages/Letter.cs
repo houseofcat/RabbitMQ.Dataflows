@@ -24,7 +24,7 @@ namespace HouseofCat.RabbitMQ
 
         IPublishReceipt GetPublishReceipt(bool error);
 
-        IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders);
+        IBasicProperties BuildProperties(IModel channel, bool withOptionalHeaders);
     }
 
     public class Letter : IMessage
@@ -35,11 +35,11 @@ namespace HouseofCat.RabbitMQ
         public LetterMetadata LetterMetadata { get; set; }
         public byte[] Body { get; set; }
 
-        public IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders)
+        public IBasicProperties BuildProperties(IModel channel, bool withOptionalHeaders)
         {
             MessageId ??= Guid.NewGuid().ToString();
 
-            var props = this.CreateBasicProperties(channelHost, withOptionalHeaders, LetterMetadata);
+            var props = this.CreateBasicProperties(channel, withOptionalHeaders, LetterMetadata);
             props.MessageId = MessageId;
 
             // Non-optional Header.
