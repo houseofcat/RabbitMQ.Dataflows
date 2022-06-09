@@ -17,7 +17,7 @@ namespace HouseofCat.RabbitMQ.Pools
         bool IsRunning { get; }
         bool IsHealthy { get; }
 
-        Task StartAsync();
+        Task<bool> StartAsync();
         Task ShutdownAsync();
         IModel GetTransientChannel(bool ack = false);
         ValueTask<IModel> GetChannelAsync(bool ack = false, CancellationToken cancellationToken = default);
@@ -55,35 +55,44 @@ namespace HouseofCat.RabbitMQ.Pools
 
         public bool IsHealthy => Connection.IsOpen && _channelCount >= _healthyCount && _ackChannelCount >= _healthyCount;
 
-        public async Task StartAsync()
+        public async Task<bool> StartAsync()
         {
-            if (!await _poolLock.WaitAsync(0).ConfigureAwait(false)) return;
-
-            if (IsRunning) return;
+            await _poolLock.WaitAsync().ConfigureAwait(false);
 
             try
             {
+                if (IsRunning) return IsRunning;
+
+                IsRunning = true;
+
                 _channels = Channel.CreateBounded<IModel>(Options.PoolOptions.MaxChannels);
                 _ackChannels = Channel.CreateBounded<IModel>(Options.PoolOptions.MaxChannels);
                 _channelCount = 0;
                 _ackChannelCount = 0;
                 _recoveryTask = RecoverChannels();
-                IsRunning = true;
             }
             finally
             {
                 _poolLock.Release();
             }
+
+            return IsRunning;
         }
 
         public async Task ShutdownAsync()
         {
-            if (!await _poolLock.WaitAsync(0).ConfigureAwait(false)) return;
-
-            if (!IsRunning) return;
+            await _poolLock.WaitAsync().ConfigureAwait(false);
 
             try
             {
+                if (!IsRunning) return;
+
+                IsRunning = false;
+
+                // Wait for recovery to finish
+                await _recoveryTask.ConfigureAwait(false);
+                _recoveryTask = null;
+
                 _channels.Writer.TryComplete();
                 _ackChannels.Writer.TryComplete();
 
@@ -97,11 +106,6 @@ namespace HouseofCat.RabbitMQ.Pools
                 };
                 _channelCount = 0;
                 _ackChannelCount = 0;
-
-                await _recoveryTask.ConfigureAwait(false);
-                _recoveryTask = null;
-
-                IsRunning = false;
             }
             finally
             {

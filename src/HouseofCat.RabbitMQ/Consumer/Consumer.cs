@@ -21,7 +21,7 @@ namespace HouseofCat.RabbitMQ
         bool Started { get; }
 
         ChannelReader<TFromQueue> GetConsumerBuffer();
-        Task StartConsumerAsync();
+        Task StartConsumerAsync(CancellationToken cancellationToken = default);
         Task StopConsumerAsync(bool immediate = false);
         ValueTask<TFromQueue> ReadAsync(CancellationToken cancellationToken = default);
         Task<IEnumerable<TFromQueue>> ReadUntilEmptyAsync(CancellationToken cancellationToken = default);
@@ -103,19 +103,25 @@ namespace HouseofCat.RabbitMQ
         }
 
         // Add cancellation token
-        public async Task StartConsumerAsync()
+        public async Task StartConsumerAsync(CancellationToken cancellationToken = default)
         {
-            if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
-
-            if (!ConsumerOptions.Enabled || Started) return;
-
-            if (!ConnectionPool.IsRunning)
-            {
-                await ConnectionPool.StartAsync().ConfigureAwait(false);
-            }
+            if (!ConsumerOptions.Enabled) return;
 
             try
             {
+                await _conLock.WaitAsync().ConfigureAwait(false);
+
+                if (Started) return;
+
+                // Always use a transient channel for consumers - its long running anyway
+                // so needlessly depleting a pool impl
+                var autoAck = ConsumerOptions.AutoAck ?? false;
+                _channel = await ConnectionPool
+                    .GetTransientChannelAsync(!autoAck, cancellationToken);
+
+                // If we get a channel we are considered started
+                Started = true;
+
                 // Channels and consumers should recover, so should never
                 // have to loop and create consumers/channels on connection errors
                 _consumerChannel = Channel.CreateBounded<ReceivedData>(
@@ -123,13 +129,6 @@ namespace HouseofCat.RabbitMQ
                     {
                         FullMode = ConsumerOptions.BehaviorWhenFull!.Value
                     });
-
-                // Always use a transient channel for consumers - its long running anyway
-                // so needlessly depleting a pool impl
-                var autoAck = ConsumerOptions.AutoAck ?? false;
-                _logger.LogTrace(LogMessages.Consumers.GettingTransientChannelHost, ConsumerOptions.ConsumerName);
-                _channel = await ConnectionPool
-                    .GetTransientChannelAsync(!autoAck);
 
                 if (Options.FactoryOptions.EnableDispatchConsumersAsync)
                 {
@@ -150,15 +149,16 @@ namespace HouseofCat.RabbitMQ
                     BasicConsume(consumer);
                 }
 
-                Started = true;
-
                 _logger.LogInformation(
                     LogMessages.Consumers.StartedConsumer,
                     ConsumerOptions.ConsumerName);
 
                 _logger.LogDebug(LogMessages.Consumers.Started, ConsumerOptions.ConsumerName);    
             }
-            finally { _conLock.Release(); }
+            finally
+            {
+                _conLock.Release();
+            }
         }
 
         private void BasicConsume(IBasicConsumer consumer)
@@ -230,21 +230,24 @@ namespace HouseofCat.RabbitMQ
 
         public async Task StopConsumerAsync(bool immediate = false)
         {
-            if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
-
-            if (!ConsumerOptions.Enabled || !Started) return;
+            if (!ConsumerOptions.Enabled) return;
 
             try
             {
+                await _conLock.WaitAsync().ConfigureAwait(false);
+
+                if (!Started) return;
+
+                Started = false;
                 _consumerChannel.Writer.TryComplete();
                 _channel.Dispose();
                 _channel = null;
-
-                Started = false;
+                
                 _logger.LogDebug(LogMessages.Consumers.StopConsumer, ConsumerOptions.ConsumerName);
 
                 if (immediate) return;
 
+                // FIXME This creates a race condition if we try to start consuming again immediately
                 await _consumerChannel
                     .Reader
                     .Completion

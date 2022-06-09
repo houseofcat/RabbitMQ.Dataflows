@@ -15,7 +15,7 @@ namespace HouseofCat.RabbitMQ.Pools
         RabbitOptions Options { get; }
         bool IsRunning { get; }
 
-        Task StartAsync();
+        Task<bool> StartAsync();
         Task ShutdownAsync();
         IChannelPool GetTransientChannelPool();
         ValueTask<IModel> GetTransientChannelAsync(bool ack = false, CancellationToken cancellationToken = default);
@@ -113,16 +113,18 @@ namespace HouseofCat.RabbitMQ.Pools
             return _connectionFactory.CreateConnection(connectionName);
         }
 
-        public async Task StartAsync()
+        public async Task<bool> StartAsync()
         {
-            if (!await _poolLock.WaitAsync(0).ConfigureAwait(false)) return;
-
-            if (IsRunning) return;
+            await _poolLock.WaitAsync().ConfigureAwait(false);
 
             try
             {
+                if (IsRunning) return IsRunning;
+
+                IsRunning = true;
                 _healthyPools = Channel.CreateBounded<IChannelPool>(Options.PoolOptions.MaxConnections);
                 _unhealthyPools = Channel.CreateBounded<IChannelPool>(Options.PoolOptions.MaxConnections);
+                _recoveryTask = RecoverConnections();
 
                 for (int i = 0; i < Options.PoolOptions.MaxConnections; i++)
                 {
@@ -131,47 +133,13 @@ namespace HouseofCat.RabbitMQ.Pools
                         .WriteAsync(GetTransientChannelPool())
                         .ConfigureAwait(false);
                 }
-
-                _recoveryTask = RecoverConnections();
-
-                IsRunning = true;
             }
             finally
             {
                 _poolLock.Release();
             }
-        }
 
-        public async Task ShutdownAsync()
-        {
-            if (!await _poolLock.WaitAsync(0).ConfigureAwait(false)) return;
-
-            if (!IsRunning) return;
-
-            try
-            {
-                _healthyPools.Writer.TryComplete();
-                _unhealthyPools.Writer.TryComplete();
-
-                await foreach (var pool in _healthyPools.Reader.ReadAllAsync())
-                {
-                    await pool.DisposeAsync().ConfigureAwait(false);
-                }
-
-                await foreach (var pool in _unhealthyPools.Reader.ReadAllAsync())
-                {
-                    await pool.DisposeAsync().ConfigureAwait(false);
-                }
-
-                await _recoveryTask.ConfigureAwait(false);
-                _recoveryTask = null;
-
-                IsRunning = false;
-            }
-            finally
-            {
-                _poolLock.Release();
-            }
+            return IsRunning;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -193,6 +161,38 @@ namespace HouseofCat.RabbitMQ.Pools
                 }
             }
             catch { }
+        }
+
+        public async Task ShutdownAsync()
+        {
+            await _poolLock.WaitAsync().ConfigureAwait(false);
+
+            try
+            {
+                if (!IsRunning) return;
+
+                IsRunning = false;
+
+                await _recoveryTask.ConfigureAwait(false);
+                _recoveryTask = null;
+
+                _healthyPools.Writer.TryComplete();
+                _unhealthyPools.Writer.TryComplete();
+
+                await foreach (var pool in _healthyPools.Reader.ReadAllAsync())
+                {
+                    await pool.DisposeAsync().ConfigureAwait(false);
+                }
+
+                await foreach (var pool in _unhealthyPools.Reader.ReadAllAsync())
+                {
+                    await pool.DisposeAsync().ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                _poolLock.Release();
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

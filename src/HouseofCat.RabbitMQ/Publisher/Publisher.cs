@@ -25,7 +25,7 @@ namespace HouseofCat.RabbitMQ
             Func<IPublishReceipt, ValueTask> processReceiptAsync = null);
         Task StartAutoPublishAsync(
             Func<IPublishReceipt, ValueTask> processReceiptAsync = null);
-        Task StopAutoPublishAsync(bool immediately = false);
+        Task StopAutoPublishAsync(bool immediate = false);
         ValueTask QueueMessageAsync(
             IMessage message,
             CancellationToken cancellationToken = default);
@@ -83,8 +83,6 @@ namespace HouseofCat.RabbitMQ
             bool createReceipt,
             bool withHeaders = true,
             CancellationToken cancellationToken = default);
-        
-        
     }
 
     public class Publisher : IPublisher, IDisposable
@@ -179,7 +177,11 @@ namespace HouseofCat.RabbitMQ
         {
             _pubLock.Wait();
 
-            try { SetupPublisher(processReceiptAsync); }
+            try
+            {
+                if (AutoPublisherStarted) return;
+                SetupPublisher(processReceiptAsync);
+            }
             finally { _pubLock.Release(); }
         }
 
@@ -188,13 +190,19 @@ namespace HouseofCat.RabbitMQ
         {
             await _pubLock.WaitAsync().ConfigureAwait(false);
 
-            try { SetupPublisher(processReceiptAsync); }
+            try
+            {
+                if (AutoPublisherStarted) return;
+                SetupPublisher(processReceiptAsync);
+            }
             finally { _pubLock.Release(); }
         }
 
         private void SetupPublisher(
             Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
         {
+            AutoPublisherStarted = true;
+
             _messageQueue = Channel.CreateBounded<IMessage>(
                 new BoundedChannelOptions(Options.PublisherOptions.LetterQueueBufferSize)
                 {
@@ -203,12 +211,9 @@ namespace HouseofCat.RabbitMQ
 
             _publishingTask = ProcessMessagesAsync(_messageQueue.Reader);
 
-            if (processReceiptAsync == null)
-            { processReceiptAsync = ProcessReceiptAsync; }
+            if (processReceiptAsync == null) processReceiptAsync = ProcessReceiptAsync;
 
             _receiptTask = ProcessReceiptsAsync(processReceiptAsync);
-
-            AutoPublisherStarted = true;
         }
 
         private async Task ProcessMessagesAsync(
@@ -279,22 +284,14 @@ namespace HouseofCat.RabbitMQ
             {
                 if (!AutoPublisherStarted) return;
 
-                _messageQueue.Writer.TryComplete();
-
-                var messageTask = _messageQueue.Reader.Completion;
-                _messageQueue = null;
-
-                var publishingTask = _publishingTask;
-                _publishingTask = null;
-
-                var receiptTask = _receiptTask;
-                _receiptTask = null;
-
                 AutoPublisherStarted = false;
+
+                _messageQueue.Writer.TryComplete();
 
                 if (immediate) return;
 
-                await Task.WhenAll(messageTask, publishingTask, receiptTask).ConfigureAwait(false);
+                // FIXME This creates a race codition with the local variables if we try to start auto publishing immediately
+                await Task.WhenAll(_messageQueue.Reader.Completion, _publishingTask, _receiptTask).ConfigureAwait(false);
             }
             finally
             { _pubLock.Release(); }
