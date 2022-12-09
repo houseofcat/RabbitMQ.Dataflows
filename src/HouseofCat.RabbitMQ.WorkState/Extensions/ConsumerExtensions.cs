@@ -7,7 +7,7 @@ namespace HouseofCat.RabbitMQ.WorkState.Extensions
 {
     public static class ConsumerExtensions
     {
-        public static async ValueTask DirectChannelExecutionEngineAsync(
+        public static ValueTask DirectChannelExecutionEngineAsync(
             this Consumer consumer,
             Func<ReceivedData, Task<IRabbitWorkState>> workBodyAsync,
             Func<IRabbitWorkState, Task> postWorkBodyAsync = null,
@@ -22,7 +22,7 @@ namespace HouseofCat.RabbitMQ.WorkState.Extensions
                 postWorkBodyAsync,
                 taskScheduler);
 
-            await channelReaderBlockEngine.ReadChannelAsync(cancellationToken).ConfigureAwait(false);
+            return channelReaderBlockEngine.ReadChannelAsync(cancellationToken);
         }
     }    
 }
