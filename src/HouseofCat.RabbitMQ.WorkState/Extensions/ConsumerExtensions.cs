@@ -10,7 +10,6 @@ namespace HouseofCat.RabbitMQ.WorkState.Extensions
         public static async ValueTask DirectChannelExecutionEngineAsync(
             this Consumer consumer,
             Func<ReceivedData, Task<IRabbitWorkState>> workBodyAsync,
-            GlobalConsumerPipelineOptions globalConsumerPipelineOptions,
             Func<IRabbitWorkState, Task> postWorkBodyAsync = null,
             TaskScheduler taskScheduler = null,
             CancellationToken cancellationToken = default)
@@ -18,8 +17,8 @@ namespace HouseofCat.RabbitMQ.WorkState.Extensions
             var channelReaderBlockEngine = new ChannelReaderBlockEngine<ReceivedData, IRabbitWorkState>(
                 consumer.GetConsumerBuffer(),
                 workBodyAsync,
-                globalConsumerPipelineOptions.MaxDegreesOfParallelism ?? 1,
-                globalConsumerPipelineOptions.EnsureOrdered ?? true,
+                consumer.ConsumerOptions.ConsumerPipelineOptions.MaxDegreesOfParallelism,
+                consumer.ConsumerOptions.ConsumerPipelineOptions.EnsureOrdered,
                 postWorkBodyAsync,
                 taskScheduler);
 

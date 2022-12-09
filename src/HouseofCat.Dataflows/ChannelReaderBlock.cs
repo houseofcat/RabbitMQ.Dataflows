@@ -13,12 +13,12 @@ namespace HouseofCat.Dataflows
     {
         public Task Completion { get; }
 
-        protected readonly ITargetBlock<TOut> _targetBlock;
-        protected readonly ILogger<ChannelReaderBlock<TOut>> _logger;
-        
         private readonly ChannelReader<TOut> _channelReader;
         private readonly ISourceBlock<TOut> _sourceFromTargetBlock;
 
+        protected readonly ITargetBlock<TOut> _targetBlock;
+        protected readonly ILogger<ChannelReaderBlock<TOut>> _logger;
+        
         public ChannelReaderBlock(ChannelReader<TOut> channelReader, ExecutionDataflowBlockOptions executeOptions) :
             this(channelReader, new TransformBlock<TOut, TOut>(input => input, executeOptions))
         {

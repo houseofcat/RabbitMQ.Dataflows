@@ -21,8 +21,8 @@ namespace HouseofCat.Dataflows
         public ChannelReaderBlockEngine(
             ChannelReader<TIn> channelReader,
             Func<TIn, Task<TOut>> workBodyAsync,
-            int maxDegreeOfParallelism,
-            bool ensureOrdered,
+            int? maxDegreeOfParallelism,
+            bool? ensureOrdered,
             Func<TOut, Task> postWorkBodyAsync = null,
             TaskScheduler taskScheduler = null) : 
             this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler, postWorkBodyAsync)
@@ -33,8 +33,8 @@ namespace HouseofCat.Dataflows
 
         protected ChannelReaderBlockEngine(
             Func<TIn, Task<TOut>> workBodyAsync,
-            int maxDegreeOfParallelism,
-            bool ensureOrdered,
+            int? maxDegreeOfParallelism,
+            bool? ensureOrdered,
             TaskScheduler taskScheduler,
             Func<TOut, Task> postWorkBodyAsync = null)
         {
@@ -43,8 +43,8 @@ namespace HouseofCat.Dataflows
 
             _executeOptions = new ExecutionDataflowBlockOptions
             {
-                MaxDegreeOfParallelism = maxDegreeOfParallelism,
-                EnsureOrdered = ensureOrdered
+                MaxDegreeOfParallelism = maxDegreeOfParallelism ?? DataflowBlockOptions.Unbounded,
+                EnsureOrdered = ensureOrdered ?? false
             };
 
             _postWorkBodyAsync = postWorkBodyAsync;
