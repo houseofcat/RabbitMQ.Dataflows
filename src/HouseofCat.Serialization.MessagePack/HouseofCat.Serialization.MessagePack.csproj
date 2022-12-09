@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
   <ItemGroup>
-    <PackageReference Include="MessagePack" Version="2.3.85" />
+    <PackageReference Include="MessagePack" Version="2.4.59" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />

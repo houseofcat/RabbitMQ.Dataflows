@@ -1,7 +1,7 @@
 ﻿using HouseofCat.Utilities.Errors;
 using K4os.Compression.LZ4;
 using K4os.Compression.LZ4.Streams;
-using Microsoft.Toolkit.HighPerformance;
+using CommunityToolkit.HighPerformance;
 using System;
 using System.IO;
 using System.Threading.Tasks;
