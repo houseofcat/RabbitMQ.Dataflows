@@ -8,7 +8,7 @@ appreciate people learning about technology. It's nice to see people excited abo
 not a fan of hype. People are just as quick to move on to the next buzzword. But seeing how `Copilot` and `ChatGPT` are here to take
 my job... which is essentially building fancy CRUD these days, I figured I would expand my skill set since this impacts me more directly.
 
-```
+```text
    When the Robots are here to take our jobs, the crafty and shrewd individual radically
    accepts their fate and learns how to fix Robots ASAP.  
        - Tristan Hyams (Tristan's Law of Robotics)
@@ -32,7 +32,7 @@ GPUs but I do recommend ones with VRAM of 10 GB+ for the speed. I will note thou
 have encountered a plethora of out of memory exceptions while had 12 GB+ still free of VRAM. I honestly suspect its the notorious 
 `a data engineer worked on this...`  
 
-```
+```text
    Give a Senior Data Scientist a VM with 64 GB of RAM and they will use it. 
    
    Give that same VM to a Senior Backend Engineer and they will start checking 
