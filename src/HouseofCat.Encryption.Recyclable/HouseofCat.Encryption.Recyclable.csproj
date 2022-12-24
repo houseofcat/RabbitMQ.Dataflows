@@ -1,9 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
   <ItemGroup>
-    <PackageReference Include="Microsoft.Toolkit.HighPerformance" Version="7.1.2" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
     <ProjectReference Include="..\HouseofCat.Recyclable\HouseofCat.Recyclable.csproj" />
   </ItemGroup>

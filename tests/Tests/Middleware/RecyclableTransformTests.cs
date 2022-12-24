@@ -7,7 +7,7 @@ using HouseofCat.Hashing;
 using HouseofCat.Hashing.Argon;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Time;
-using Microsoft.Toolkit.HighPerformance;
+using CommunityToolkit.HighPerformance;
 using System;
 using System.Collections.Generic;
 using System.IO;

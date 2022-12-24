@@ -92,7 +92,7 @@ It's not the prettiest or the most straightforward code, but it did work well.
 
 What works better is this NuGet package (document links at the bottom).
 ```csharp
-using Microsoft.Toolkit.HighPerformance;
+using CommunityToolkit.HighPerformance;
 ```
 
 The library has awesome pre-coded helpers for these "stuck between a rock and a hard place" scenarios. Specifically, for our
