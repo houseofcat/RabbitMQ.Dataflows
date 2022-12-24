@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.SqlServer.Types;
 using MySql.Data.Types;
 using Newtonsoft.Json;
-using NpgsqlTypes;
 using Parquet;
 using Parquet.Data;
 using System;
@@ -15,6 +14,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using DataColumn = Parquet.Data.DataColumn;
 
 namespace HouseofCat.Data.Parquet
@@ -382,7 +382,6 @@ namespace HouseofCat.Data.Parquet
                 case DateTimeOffset dto: return dto.ToString();
                 case MySqlDecimal mydec: return mydec.Value.ToString();
                 case TimeSpan ts: return ts.ToString("g");
-                case IDictionary d: return FailsafeJsonString(d);
                 case Array a: return FailsafeJsonString(a);
                 case SqlHierarchyId docId: return docId.ToString();
                 case SqlGeography sqlgeo: return sqlgeo.ToString();
@@ -409,7 +408,7 @@ namespace HouseofCat.Data.Parquet
             }
         }
 
-        public static (int, int) WriteDataReaderToParquetFiles(
+        public static async Task<(int, int)> WriteDataReaderToParquetFiles(
              IDataReader reader,
              Schema schema,
              string[] normalizedDatabaseTypes,
@@ -446,7 +445,7 @@ namespace HouseofCat.Data.Parquet
                     var fileName = $"{fileNameWithoutExtension}-{fileCount:c000#}.snappy.parquet";
                     var fileNamePath = $"{outputDirectory}\\{fileName}";
 
-                    rowCount += WriteDataReaderToParquetFile(
+                    rowCount += await WriteDataReaderToParquetFileAsync(
                         reader,
                         schema,
                         normalizedDatabaseTypes,
@@ -466,7 +465,7 @@ namespace HouseofCat.Data.Parquet
 
         public static long GoodEnoughThresholdLength = 1024 * 24;
 
-        public static int WriteDataReaderToParquetFile(
+        public static async Task<int> WriteDataReaderToParquetFileAsync(
             IDataReader reader,
             Schema schema,
             string[] normalizedDatabaseTypes,
@@ -489,10 +488,7 @@ namespace HouseofCat.Data.Parquet
             { columns[i] = new ArrayList(); }
 
             using var fileStream = File.Open(fileNamePath, FileMode.Create);
-            using var parquetWriter = new ParquetWriter(schema, fileStream, formatOptions: new ParquetOptions { TreatBigIntegersAsDates = false })
-            {
-                CompressionMethod = CompressionMethod.Snappy,
-            };
+            using var parquetWriter = await ParquetWriter.CreateAsync(schema, fileStream, formatOptions: new ParquetOptions { TreatBigIntegersAsDates = false }, cancellationToken: token);
 
             while (!reader.IsClosed)
             {
@@ -526,7 +522,7 @@ namespace HouseofCat.Data.Parquet
                 using var groupWriter = parquetWriter.CreateRowGroup();
                 for (var i = 0; i < columns.Length; i++)
                 {
-                    groupWriter.WriteColumn(new DataColumn(dataFields[i], columns[i].ToArray(dataFields[i].ClrNullableIfHasNullsType)));
+                    await groupWriter.WriteColumnAsync(new DataColumn(dataFields[i], columns[i].ToArray(dataFields[i].ClrNullableIfHasNullsType)), token);
                     columns[i].Clear(); // Remove elements after conversion to DataColumn. We re-use the columns though so we don't trim.
                 }
             }
