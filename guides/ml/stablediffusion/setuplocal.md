@@ -132,7 +132,7 @@ you should be able to get started. I am going to help you out real quick as thin
 
 I modified the `webui-user.bat` to add PYTORCH line `set PYTORCH_CUDA_ALLOC_CONF=garbage_collection_threshold:0.6,max_split_size_mb:64`.
 
-```batch
+```
 @echo off
 
 set PYTHON=
@@ -194,7 +194,7 @@ Navigate to you `stable-diffusion-webui` folder, copy the path, and open up a `T
 
 ![Terminal as Admin](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/terminalasadmin.png)
 
-```
+```bat
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 
@@ -203,7 +203,7 @@ PS C:\Users\cat> cd C:\GitHub\houseofcat\stable-diffusion-webui
 
 Then execute `webui-user.bat`.
 
-```
+```bat
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 
