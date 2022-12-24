@@ -48,12 +48,14 @@ you VRAM is impacted by your settings when using stable-diffusion and also tempe
 
 I also recommend utilizing the command
 
-```nvidia-smi```
+```
+nvidia-smi
+```
 
 Executed in Terminal/CMD/PowerShell.
 
 Example.)
-```posh
+```
 PS C:\Users\cat> nvidia-smi
 
 Sat Dec 24 10:42:56 2022
@@ -194,7 +196,7 @@ Navigate to you `stable-diffusion-webui` folder, copy the path, and open up a `T
 
 ![Terminal as Admin](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/terminalasadmin.png)
 
-```bat
+```
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 
@@ -203,7 +205,7 @@ PS C:\Users\cat> cd C:\GitHub\houseofcat\stable-diffusion-webui
 
 Then execute `webui-user.bat`.
 
-```bat
+```
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 
