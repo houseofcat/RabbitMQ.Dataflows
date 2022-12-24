@@ -377,7 +377,6 @@ namespace HouseofCat.Data.Parquet
                 case DateTime dt: return dt.ToString(_dateTimeFormat);
                 case Guid g: return g.ToString();
                 case MySqlDateTime mydt: return mydt.GetDateTime().ToString(_dateTimeFormat);
-                case NpgsqlDateTime npdt: return npdt.ToDateTime().ToString(_dateTimeFormat);
                 case byte[] binary: return FailsafeString(binary);
                 case object[] os: return FailsafeJsonString(os);
                 case DateTimeOffset dto: return dto.ToString();

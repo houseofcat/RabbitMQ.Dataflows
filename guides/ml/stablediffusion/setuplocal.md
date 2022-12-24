@@ -26,9 +26,11 @@ running through Notebooks or CLI.
  - ASUS ROG STRIX RTX 3090 OC White Edition  
  - Intel i9 10900K @ 5.0 GHz  
 
-You will need a beefy CPU if doing the slower CPU only loads. That being said, this guide is for CUDA/nVidia cards. There are ways to run with lower VRAM
-GPUs but I do recommend ones with VRAM of 10 GB+. I will note though, it's not entirely VRAM heavy, it feels a little unoptimized and leaky. I
-honestly suspect its the notorious `a data engineer worked on this...`
+You will need a beefy CPU if doing the slower CPU only loads. That being said, this guide is for CUDA/nVidia cards so the CPU doesn't 
+really have to be top of the line. The heavy lifting is going to be done by graphics card/GPU. There are ways to run with lower VRAM
+GPUs but I do recommend ones with VRAM of 10 GB+ for the speed. I will note though, it does seem a little unoptimized and leaky as I 
+have encountered a plethora of out of memory exceptions while had 12 GB+ still free of VRAM. I honestly suspect its the notorious 
+`a data engineer worked on this...`  
 
 ```
    Give a Senior Data Scientist a VM with 64 GB of RAM and they will use it. 

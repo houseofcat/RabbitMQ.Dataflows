@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
 	<PropertyGroup>
-		<TargetFrameworks>net5.0-windows;net6.0-windows</TargetFrameworks>
+		<TargetFrameworks>net6.0-windows;net7.0-windows</TargetFrameworks>
 	</PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
