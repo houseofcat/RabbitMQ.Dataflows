@@ -1,7 +1,7 @@
 ﻿using HouseofCat.Extensions;
 using HouseofCat.Recyclable;
 using HouseofCat.Utilities.Errors;
-using Microsoft.Toolkit.HighPerformance;
+using CommunityToolkit.HighPerformance;
 using System;
 using System.Buffers;
 using System.IO;

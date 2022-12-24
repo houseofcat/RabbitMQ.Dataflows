@@ -131,7 +131,7 @@ the final state of our last guide and start implementing `RecyclableMemoryStream
 
 Up first is compression!
 ```csharp
-using Microsoft.Toolkit.HighPerformance;
+using CommunityToolkit.HighPerformance;
 using System;
 using System.IO;
 using System.IO.Compression;

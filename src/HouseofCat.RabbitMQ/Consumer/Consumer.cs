@@ -105,9 +105,7 @@ namespace HouseofCat.RabbitMQ
 
         public async Task StartConsumerAsync()
         {
-            await _conLock
-                .WaitAsync()
-                .ConfigureAwait(false);
+            if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
 
             try
             {
@@ -140,9 +138,7 @@ namespace HouseofCat.RabbitMQ
 
         public async Task StopConsumerAsync(bool immediate = false)
         {
-            await _conLock
-                .WaitAsync()
-                .ConfigureAwait(false);
+            if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
 
             _logger.LogDebug(LogMessages.Consumers.StopConsumer, ConsumerOptions.ConsumerName);
 
@@ -171,6 +167,9 @@ namespace HouseofCat.RabbitMQ
             }
             finally { _conLock.Release(); }
         }
+
+        private AsyncEventingBasicConsumer _asyncConsumer;
+        private EventingBasicConsumer _consumer;
 
         private async Task<bool> StartConsumingAsync()
         {
@@ -249,9 +248,6 @@ namespace HouseofCat.RabbitMQ
                     consumer);
         }
 
-        private AsyncEventingBasicConsumer _asyncConsumer;
-        private EventingBasicConsumer _consumer;
-
         private async Task SetChannelHostAsync()
         {
             if (ConsumerOptions.UseTransientChannels ?? true)
@@ -308,7 +304,13 @@ namespace HouseofCat.RabbitMQ
 
         private async void ConsumerShutdown(object sender, ShutdownEventArgs e)
         {
-            await HandleUnexpectedShutdownAsync(e).ConfigureAwait(false);
+            if (await _conLock.WaitAsync(0))
+            {
+                try
+                { await HandleUnexpectedShutdownAsync(e).ConfigureAwait(false); }
+                finally
+                { _conLock.Release(); }
+            }
         }
 
         private AsyncEventingBasicConsumer CreateAsyncConsumer()
@@ -358,7 +360,13 @@ namespace HouseofCat.RabbitMQ
 
         private async Task ConsumerShutdownAsync(object sender, ShutdownEventArgs e)
         {
-            await HandleUnexpectedShutdownAsync(e).ConfigureAwait(false);
+            if (await _conLock.WaitAsync(0))
+            {
+                try
+                { await HandleUnexpectedShutdownAsync(e).ConfigureAwait(false); }
+                finally
+                { _conLock.Release(); }
+            }
         }
 
         private async Task HandleUnexpectedShutdownAsync(ShutdownEventArgs e)

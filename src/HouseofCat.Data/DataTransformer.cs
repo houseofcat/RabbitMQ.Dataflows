@@ -2,7 +2,7 @@
 using HouseofCat.Encryption;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
-using Microsoft.Toolkit.HighPerformance;
+using CommunityToolkit.HighPerformance;
 using System;
 using System.IO;
 using System.Threading.Tasks;
