@@ -8,8 +8,11 @@ appreciate people learning about technology. It's nice to see people excited abo
 not a fan of hype. People are just as quick to move on to the next buzzword. But seeing how `Copilot` and `ChatGPT` are here to take
 my job... which is essentially building fancy CRUD these days, I figured I would expand my skill set since this impacts me more directly.
 
-> When the Robots are here to take our jobs, the crafty and shrewd individual radically accepts their fate and learns how to fix Robots ASAP.  
-    - Tristan Hyams (Tristan's Law of Robotics)
+```
+   When the Robots are here to take our jobs, the crafty and shrewd individual radically
+   accepts their fate and learns how to fix Robots ASAP.  
+       - Tristan Hyams (Tristan's Law of Robotics)
+```
 
 Now to be clear, this is not a guide to explain how Stable Diffusion works. I am not fully comfortable doing that as I'm still learning it.
 That will most likely be better suited as a guide unto itself. However, I was able to put some skills to use this tool and to apply my skills to
@@ -27,9 +30,14 @@ You will need a beefy CPU if doing the slower CPU only loads. That being said, t
 GPUs but I do recommend ones with VRAM of 10 GB+. I will note though, it's not entirely VRAM heavy, it feels a little unoptimized and leaky. I
 honestly suspect its the notorious `a data engineer worked on this...`
 
-> Give a Senior Data Scientist a VM with 64 GB of RAM and they will use it.  
-  Give that same VM to a Senior Backend Engineer and they will start checking the code for memory leaks after using 0.5 GB.  
-	- Tristan Hyams (Tristan's Observations of Data Scientists)
+```
+   Give a Senior Data Scientist a VM with 64 GB of RAM and they will use it. 
+   
+   Give that same VM to a Senior Backend Engineer and they will start checking 
+   the code for memory leaks after using 0.5 GB.  
+
+       - Tristan Hyams (Tristan's Observations of Data Scientists)
+```
 
 I kid the Data Scientists, but __*they know what I am talking about*__.
 
