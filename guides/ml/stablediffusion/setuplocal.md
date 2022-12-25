@@ -232,13 +232,18 @@ Resolution: 512x512
 CFG: 7  
 
 #### Output Grid
-![BlackCatGridOfImagesFromTextPrompt](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/blackcat-grid.png)
+<img src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/blackcat-grid.png" alt="BlackCatGridOfImagesFromTextPrompt" height="460" width="640"/>
 
-Well these all kind of suck, however, you shouldn't always expect diamonds. BUT WAIT!  
-Before before generating new ones, let's select one and detail it out. 
+Well these all kind are rough. When generating batches though you shouldn't always expect diamonds...  
+
+BUT WAIT! That top middle one is really catching my eye! Not directly but as something with potential!  
+
+Before I disregard this group and start generating a new set, let's select one and see if we can enhance it.  
+
+![Enhance!](https://i.giphy.com/media/3ohc14lCEdXHSpnnSU/giphy.gif)
 
 ### First Enhancement Run (Image Prompt)
-First, let's select an image from the previous grid.
+First, let's select the image we like from the output grid.
 
 ![ImgSelect](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/imgselect.png)
 
@@ -247,14 +252,16 @@ First, let's select an image from the previous grid.
 > A black house cat typing on a computer, artstation, high defintion  
 Steps: 30, Sampler: Euler a, CFG scale: 7, Seed: 2089545485, Size: 512x512, Model hash: 2c02b20a, Batch size: 6, Batch pos: 1  
 
-We are going to use an image as the prompt, increase the steps to enhance the accuracy and increase the resolution to double while we are at it and view the output
+We are going to switch to `img2img` (Image as a prompt) so we can build a new image with this as the base image. We increase 
+the inference steps to 150 (the maximum) to really enhance the quality/details and flesh it out. I also increase the resolution 
+to double while we are at it and view the output. We will keep the same Txt Prompt:  
+```
+A black house cat typing on a computer, artstation, high defintion
+```  
 
-With the same Txt Prompt: A black house cat typing on a computer, artstation, high defintion
+![Enhanced](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/imgprompt-blackcatenhanced.png)  
 
-
-![Enhanced](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/imgprompt-blackcatenhanced.png)
-
-There we go, we have something much closer to a not Picaso cat.
+There we go, we have something much closer a house cat and not Picaso cat.  
 
 #### Settings  
  - Model: 2c02b20a (v2 768)  
@@ -270,7 +277,8 @@ There we go, we have something much closer to a not Picaso cat.
 
 
 ### Second Enhancement Run (Image Prompt)
-Second, let's alter the text prompt because I see a typo in the word `definition` and decrease the CFG to 5 to let it get more liberal.
+I like the progress we have made but I have noticed a typo in the text prompt. Let's alter the text prompt because I see a
+typo in the word `definition` and decrease the CFG to 5 to let it get a more liberal generation.  
 
 #### Text Prompt
 > A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realism, high definition
