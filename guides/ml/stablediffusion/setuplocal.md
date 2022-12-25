@@ -221,7 +221,9 @@ If you don't see anything in the drop down, review the Models step.
 Let's fire it up!
 
 #### First Run (Text Prompt)
-> A black house cat typing on a computer, artstation, high defintion
+```text
+A black house cat typing on a computer, artstation, high defintion
+```
 
 #### Settings
 Model: 2c02b20a (v2 768)  
@@ -243,18 +245,20 @@ Before I disregard this group and start generating a new set, let's select one a
 ![Enhance!](https://i.giphy.com/media/3ohc14lCEdXHSpnnSU/giphy.gif)
 
 ### First Enhancement Run (Image Prompt)
-First, let's select the image we like from the output grid.
+Let's select the image we liked from the output grid.
 
 ![ImgSelect](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/imgselect.png)
 
 ![BlackCat](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/firstblackcat.png)
 
-> A black house cat typing on a computer, artstation, high defintion  
+```text
+A black house cat typing on a computer, artstation, high defintion  
 Steps: 30, Sampler: Euler a, CFG scale: 7, Seed: 2089545485, Size: 512x512, Model hash: 2c02b20a, Batch size: 6, Batch pos: 1  
+```
 
 We are going to switch to `img2img` (Image as a prompt) so we can build a new image with this as the base image. We increase 
 the inference steps to 150 (the maximum) to really enhance the quality/details and flesh it out. I also increase the resolution 
-to double while we are at it and view the output. We will keep the same Txt Prompt:  
+to double while we are at it and view the output. We will keep the same Txt Prompt:   
 ```
 A black house cat typing on a computer, artstation, high defintion
 ```  
@@ -273,7 +277,9 @@ There we go, we have something much closer a house cat and not Picaso cat.
 
 ![SecondRender](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/secondrender.png)
 
-> Steps: 150, Sampler: Euler a, CFG scale: 7, Seed: 1139297090, Size: 1024x1024, Model hash: 2c02b20a, Denoising strength: 0.75, Mask blur: 4
+```text
+Steps: 150, Sampler: Euler a, CFG scale: 7, Seed: 1139297090, Size: 1024x1024, Model hash: 2c02b20a, Denoising strength: 0.75, Mask blur: 4
+```
 
 
 ### Second Enhancement Run (Image Prompt)
@@ -281,7 +287,9 @@ I like the progress we have made but I have noticed a typo in the text prompt. L
 typo in the word `definition` and decrease the CFG to 5 to let it get a more liberal generation.  
 
 #### Text Prompt
-> A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realism, high definition
+```text
+A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realism, high definition
+```
 
 #### Settings  
  - Model: 2c02b20a (v2 768)  
@@ -303,15 +311,19 @@ Looking at our GPU while running through GPU-z
 
 ![NewBlackCat](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/newblackcat.png)
 
-> A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realism, high definition  
-  Steps: 150, Sampler: Euler a, CFG scale: 5, Seed: 1479210306, Size: 1024x1024, Model hash: 2c02b20a, Denoising strength: 0.75, Mask blur: 4  
+```text
+A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realism, high definition  
+Steps: 150, Sampler: Euler a, CFG scale: 5, Seed: 1479210306, Size: 1024x1024, Model hash: 2c02b20a, Denoising strength: 0.75, Mask blur: 4  
+```
 
 ### Third Enhancement Run (Image Prompt)
 I love the new image, but its not quite there so I am going to send it to image prompt and try again, only this time with an even lower CFG and lower
 the denoising strength.
 
 #### Text Prompt
-> A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realism, high definition
+```text
+A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realism, high definition
+```
 
 #### Settings  
  - Model: 2c02b20a (v2 768)  
@@ -326,8 +338,10 @@ the denoising strength.
 
 ![FinishedBlackCat](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/thirdenhancement.png)
 
-> A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realism, high definition
-   Steps: 150, Sampler: Euler a, CFG scale: 1, Seed: 615367035, Size: 1024x1024, Model hash: 2c02b20a, Denoising strength: 0.5, Mask blur: 4
+```
+A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realism, high definition
+Steps: 150, Sampler: Euler a, CFG scale: 1, Seed: 615367035, Size: 1024x1024, Model hash: 2c02b20a, Denoising strength: 0.5, Mask blur: 4
+```
 
 
 ### Fourth Run: Enhance! (Extras)
