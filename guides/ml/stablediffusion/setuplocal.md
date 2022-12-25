@@ -6,10 +6,9 @@ Machine Learning is so hot right now.
 
 Normally, it kind of annoys me how people pick up on trendy things so quickly. Not that I don't 
 appreciate people learning about technology. It's nice to see people excited about things in 
-general. Being a cynic though, I am generally not a fan of hype. People are just as quick to 
-move on to the next buzzword too which feeds into the annoyance. But seeing how `Copilot` 
-and `ChatGPT` are here to take my job... which is essentially building fancy CRUD apps these 
-days, I figured I would expand my skill set since this impacts me more directly.
+general. Being a cynic though, I am generally not a fan of hype and people are hyped about AI. Seeing as how `Copilot` 
+and `ChatGPT` are here to take my job (which is essentially building fancy CRUD apps these 
+days) I figured I would expand my skill set!
 
 ```text
 When the Robots are here to take our jobs, the crafty and shrewd individual radically
@@ -18,25 +17,25 @@ accepts their fate and learns how to fix Robots ASAP.
 ```
 
 Now to be clear, this is not a guide to fully explain how Stable Diffusion works. I am not
-fully comfortable doing that as I'm still learning it. That will most likely be better 
-suited as a guide unto itself. However, I was able to put some skills to use this tool and
-to apply my skills to general troubleshooting.  
+fully comfortable wroting that as I'm still learning it myself. That will make a great guide 
+unto itself. Instead, I was able to put some skills to use when using this tool and 
+General troubleshooting.  
 
 I have decided to base this first guide around using an open source setup from [AUTOMATIC1111](https://github.com/AUTOMATIC1111/stable-diffusion-webui).
-This seemed like the most comprehensive collection of functioning tools while not being too
-bad to setup and provided a User Interface vs. running through Notebooks or CLI.
+It seems like the most comprehensive collection of functioning tools while not being too
+difficult to setup. A User Interface vs. running through Notebooks or CLI ain't bad either.
 
-### This Test Hardware  
+### My Test Hardware  
 
  - ASUS ROG STRIX RTX 3090 OC White Edition  
  - Intel i9 10900K @ 5.0 GHz  
 
-You will need a beefy CPU if doing the slower CPU-only inferences. That being said, this 
-guide is for CUDA/nVidia cards so the CPU doesn't really have to be top of the line. The 
-heavy lifting is going to be done by graphics card/GPU. There are ways to run with lower 
+You will need a beefy CPU if doing the slower CPU-only inferences. This 
+guide is primarily for CUDA/nVidia cards. The CPU doesn't really have to be top of the line as the 
+heavy lifting is going to be done by GPU. There are ways to run with lower 
 VRAM GPUs but I do recommend ones with VRAM of 10 GB+ for the speed. I will note though,
 it does seem a little unoptimized and leaky as I have encountered a plethora of out of 
-memory exceptions while had 12 GB+ still free of VRAM. I honestly suspect its the 
+memory exceptions while havinv 12 GB+ of VRAM still free. I honestly suspect its the 
 notorious `a data engineer worked on this...`  
 
 ```text
@@ -51,7 +50,7 @@ I kid the Data Scientists, but __*they know what I am talking about*__.
 
 Anyways, let's get AUTOMATIC1111 WebUI setup with a Stable Diffusion model!
 
-### Software Setup To Get Started  
+### Host Machine Setup
 
  - Windows 11 Prod (latest updates installed as `12/23/2022`)  
  - Python `v3.10.6 ` 
@@ -60,12 +59,12 @@ Anyways, let's get AUTOMATIC1111 WebUI setup with a Stable Diffusion model!
 
 #### Monitoring Your nVidia Card  
 
-It's good to know how to monitor your GPU VRAM usage, I recommend [GPU-z from Techpowerup](https://www.techpowerup.com/download/techpowerup-gpu-z/).
-For any overclockers or benchmark, it's usually the defacto standard for monitoring your 
+It's good to know how to monitor your GPU VRAM usage. I recommend [GPU-z from Techpowerup](https://www.techpowerup.com/download/techpowerup-gpu-z/).
+For any overclockers or benchmark, it's widely known tool for monitoring  
 GPUs. It provides solid instrumentation on several components of the GPU, namely how to 
 see temps, VRAM usage, power draw, etc.
 
-I also recommend utilizing the command
+I also recommend learning the command
 
 ```
 nvidia-smi
@@ -128,18 +127,18 @@ The `model.ckpt` file is not included in the repo but this is __*100% needed*__ 
     1. You will also want the Stability AI's inference `config.yaml` and that is located [here](https://raw.githubusercontent.com/Stability-AI/stablediffusion/main/configs/stable-diffusion/v2-inference-v.yaml) for v2.
 
 Once they are both downloaded, you will place the Checkpoint in the `stable-diffusion` folder under `models`.
-Also copy in the above config.yml and rename it to match the checkpoint (but with a .yaml file extension.)
+Also copy in the above `config.yaml` and rename it to match the checkpoint (but with a .yaml file extension.)
 
-Depending on where you cloned your `stable-diffusion-webui` copy, the directory should look like this  
+Depending on where you cloned the `stable-diffusion-webui` repo, the path should look something like this  
 ```C:\GitHub\houseofcat\stable-diffusion-webui\models\Stable-diffusion```
 
 ![Model Location](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/model_location.png)
 
 ## Pre-Run Tweaking  
 
-Assuming that you have the right Python version installed (listed above) and GIT is installed and
-your models are placed in the right folder, you should be able to get started. I am going to help
-you out real quick as things were a bit wonky to begin with.
+Assuming that you have the right Python version installed (listed above), GIT is installed and
+your models are placed in the right folder, you should be able to get started. I do recommend 
+a quick tip as things were a bit wonky for me my first few launches.
 
 I modified the `webui-user.bat` to add PYTORCH configuration change
 ```
@@ -159,7 +158,7 @@ set PYTORCH_CUDA_ALLOC_CONF=garbage_collection_threshold:0.6,max_split_size_mb:6
 call webui.bat
 ```
 
-This will aid in keep the VRAM usage cleaned up and a bit of a smaller footprint. There are thousands of other
+This will aid in keeping the VRAM usage lower and a bit of a smaller footprint. There are thousands of other
 tweaks, but I was honestly getting `OutOfMemory` exceptions while having 13 GB indicated free on the GPU and this seemed
 to reduce the frequency of that.  
 
@@ -170,11 +169,11 @@ python -m pip install --upgrade pip
 
 ## First UI Run  
 
-Navigate to you `stable-diffusion-webui` folder, copy the path, and open up a `Terminal/CMD/PowerShell as Admin`.
+Navigate to your `stable-diffusion-webui` folder, copy the path, and open up a `Terminal/CMD/PowerShell as Admin`.
 
 ![Terminal as Admin](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/terminalasadmin.png)
 
-```
+```text
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 
@@ -183,7 +182,7 @@ PS C:\Users\cat> cd C:\GitHub\houseofcat\stable-diffusion-webui
 
 Then execute `webui-user.bat`.
 
-```
+```text
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 
@@ -208,10 +207,13 @@ Running on local URL:  http://127.0.0.1:7860
 To create a public link, set `share=True` in `launch()`.
 ```
 
-As you can see it says `Running on local URL:  http://127.0.0.1:7860`.  
+As you can see it says  
+```text
+Running on local URL:  http://127.0.0.1:7860
+```
 
-This means you can now navigate to http://127.0.0.1:7860 in your browser. Here's what it should look like, notice the models in
-the top left corner.
+This means you can now navigate to http://127.0.0.1:7860 in your browser. Here's what it should look like. Notice the models in
+the top left corner match the ones you placed in the folder.
 
 ![WebUI](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/automatic1111-webui.png)
 
@@ -245,7 +247,7 @@ CFG: 7
 
 Well these all kind are rough. When generating batches though you shouldn't always expect diamonds...  
 
-BUT WAIT! That top middle one is really catching my eye! Not directly but as something with potential!  
+BUT WAIT! That top middle one is really catching my eye... I bet it has potential!  
 
 Before I disregard this group and start generating a new set, let's select one and see if we can enhance it.  
 
@@ -266,16 +268,18 @@ A black house cat typing on a computer, artstation, high defintion
 Steps: 30, Sampler: Euler a, CFG scale: 7, Seed: 2089545485, Size: 512x512, Model hash: 2c02b20a, Batch size: 6, Batch pos: 1  
 ```
 
-We are going to switch to `img2img` (Image as a prompt) so we can build a new image with this as the base image. We increase 
-the inference steps to 150 (the maximum) to really enhance the quality/details and flesh it out. I also increase the resolution 
-to double while we are at it and view the output. We will keep the same Txt Prompt:   
+We are going to switch to `img2img` (Image as a prompt) so we can build a new image with this as a base image. We increase 
+the inference steps to 150 (the maximum) to really enhance the quality/details. This should flesh out the details. I also increase the resolution 
+to double while we are at and view the output. We will keep the same Txt Prompt:   
 ```
 A black house cat typing on a computer, artstation, high defintion
 ```  
 
+#### Output 2
+
 ![Enhanced](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/imgprompt-blackcatenhanced.png)  
 
-There we go, we have something much closer a house cat and not Picaso cat.  
+There we go, we have something much closer to a house cat and not a Picaso cat.  
 
 #### Settings  
  - Model: 2c02b20a (v2 768)  
@@ -291,11 +295,10 @@ There we go, we have something much closer a house cat and not Picaso cat.
 Steps: 150, Sampler: Euler a, CFG scale: 7, Seed: 1139297090, Size: 1024x1024, Model hash: 2c02b20a, Denoising strength: 0.75, Mask blur: 4
 ```
 
-
 ### Second Enhancement Run (Image Prompt)  
 
-I like the progress we have made but I have noticed a typo in the text prompt. Let's alter the text prompt because I see a
-typo in the word `definition` and decrease the CFG to 5 to let it get a more liberal generation.  
+I like the progress we have made but I have noticed a typo in the text prompt. Let's alter the text prompt to correct the word `definition` 
+and decrease the CFG to 5 to let it get a more liberal image generation.  
 
 #### Text Prompt  
 
@@ -321,7 +324,7 @@ Looking at our GPU while running through GPU-z
 
 ![SecondRender](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/secondenhancement.png)
 
-#### Output 2
+#### Output 3
 
 ![NewBlackCat](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/newblackcat.png)
 
@@ -332,7 +335,7 @@ Steps: 150, Sampler: Euler a, CFG scale: 5, Seed: 1479210306, Size: 1024x1024, M
 
 ### Third Enhancement Run (Image Prompt)  
 
-I love the new image, but its not quite there so I am going to send it to image prompt and try again, only this time with an even lower CFG and lower
+I love the new image, but it's not quite there so I am going to send it to image prompt and try again, only this time with an even lower CFG and lower
 the denoising strength.
 
 #### Text Prompt  
@@ -351,9 +354,9 @@ A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realis
  - CFG: 1  
  - Denoise Strength: 0.5  
 
-#### Output 3  
+#### Output 4  
 
-Here we go a solid rendering.  
+Here we go, we got a solid rendering.  
 
 ![FinishedBlackCat](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/thirdenhancement.png)
 
@@ -364,7 +367,7 @@ Steps: 150, Sampler: Euler a, CFG scale: 1, Seed: 615367035, Size: 1024x1024, Mo
 
 ### Fourth Run: Enhance! (Extras) 
 
-Well it doesn't match my prompt but its a solid rendering!
+Well it doesn't match my prompt but its a good picture!
 
 Currently though, it's only 1024x1024, so I am going to rescale it on the Extras tab.
 
@@ -381,19 +384,21 @@ I am going to target 4x and Anime4K to upscale it.
  - Upscaler2: R-ESRGAN 4x+ Anime6B  
  - Upscale Before Restoring Faces checked  
 
-#### Output 4  
+#### Output 5  
 
 <img src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/animescaled.png" alt="animescaled" height="1024" width="1024" />
 
-Be sure to download to really appreciate the full 8 MB size :100:  
+Be sure to download the full 8 MB size image to zoom in on.
 
 ### NOTE: OutOfMemory Exceptions  
 
 If you do start getting OUTOFMEMORY type of exceptions but they don't seem normal, restart your system.  
 
-Let me give you an example. Let's say you were doing a Batch Size of 6, 512x512 images, at 30 steps. Everything
+Let me give you an example.  
+
+Let's say you were doing a Batch Size of 6, 512x512 images, at 30 steps. Everything
 was working fine and only using 13 GB of VRAM. You decide to try for 7 and boom! CRASH. So naturally you think,
-I'll just go back to 6... then boom! CRASH?! This was previously working?!  
+I'll just go back to 6... So you do that and then boom! CRASH?! This was previously working?!  
 
 __*DON'T WASTE TOO MUCH TIME TROUBLESHOOTING*__  
 Just turn it off and on again. You may be able to stop and start the server, but I have found the issue sometimes
