@@ -34,9 +34,8 @@ You will need a beefy CPU if doing the slower CPU-only inferences. This
 guide is primarily for CUDA/nVidia cards. The CPU doesn't really have to be top of the line as the 
 heavy lifting is going to be done by GPU. There are ways to run with lower 
 VRAM GPUs but I do recommend ones with VRAM of 10 GB+ for the speed. I will note though,
-it does seem a little unoptimized and leaky as I have encountered a plethora of out of 
-memory exceptions while havinv 12 GB+ of VRAM still free. I honestly suspect its the 
-notorious `a data engineer worked on this...`  
+it does seem a little unoptimized and leaky as I have encountered a plethora of `OutOfMemory` exceptions
+while having 12 GB+ of VRAM still free. I honestly suspect its the notorious `a data engineer worked on this...`  
 
 ```text
 Give a Senior Data Scientist a VM with 64 GB of RAM and they will use it. 
@@ -60,9 +59,9 @@ Anyways, let's get AUTOMATIC1111 WebUI setup with a Stable Diffusion model!
 #### Monitoring Your nVidia Card  
 
 It's good to know how to monitor your GPU VRAM usage. I recommend [GPU-z from Techpowerup](https://www.techpowerup.com/download/techpowerup-gpu-z/).
-For any overclockers or benchmark, it's widely known tool for monitoring  
-GPUs. It provides solid instrumentation on several components of the GPU, namely how to 
-see temps, VRAM usage, power draw, etc.
+For any overclockers or benchmarkers, it's a widely known tool for monitoring  
+GPUs. It provides solid instrumentation on several components of the GPU, most importantly, 
+view temps, VRAM usage, power draw, etc.
 
 I also recommend learning the command
 
@@ -136,9 +135,9 @@ Depending on where you cloned the `stable-diffusion-webui` repo, the path should
 
 ## Pre-Run Tweaking  
 
-Assuming that you have the right Python version installed (listed above), GIT is installed and
-your models are placed in the right folder, you should be able to get started. I do recommend 
-a quick tip as things were a bit wonky for me my first few launches.
+Assuming that you have the right Python version installed (listed above), GIT is installed, 
+and your models are placed in the right folder, you should be able to get started. I do 
+recommend a quick tip as things were a bit wonky for my first few launches.
 
 I modified the `webui-user.bat` to add PYTORCH configuration change
 ```
@@ -158,9 +157,9 @@ set PYTORCH_CUDA_ALLOC_CONF=garbage_collection_threshold:0.6,max_split_size_mb:6
 call webui.bat
 ```
 
-This will aid in keeping the VRAM usage lower and a bit of a smaller footprint. There are thousands of other
-tweaks, but I was honestly getting `OutOfMemory` exceptions while having 13 GB indicated free on the GPU and this seemed
-to reduce the frequency of that.  
+This will aid in keeping the VRAM usage lower and have a bit of a smaller footprint. There are thousands of other
+tweaks, but I was honestly getting `OutOfMemory` exceptions while requesting 4GB but having 13 GB indicated free 
+on the GPU. This seemed to reduce the frequency of that.  
 
 I recommend upgrading PIP as well.  
 ```
