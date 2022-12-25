@@ -257,6 +257,8 @@ Let's select the image we liked from the output grid.
 
 ![ImgSelect](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/imgselect.png)
 
+#### Output 1
+
 ![BlackCat](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/firstblackcat.png)
 
 ```text
@@ -319,6 +321,8 @@ Looking at our GPU while running through GPU-z
 
 ![SecondRender](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/secondenhancement.png)
 
+#### Output 2
+
 ![NewBlackCat](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/newblackcat.png)
 
 ```text
@@ -346,6 +350,8 @@ A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realis
  - Resolution: 1024x1024  
  - CFG: 1  
  - Denoise Strength: 0.5  
+
+#### Output 3  
 
 Here we go a solid rendering.  
 
@@ -375,7 +381,7 @@ I am going to target 4x and Anime4K to upscale it.
  - Upscaler2: R-ESRGAN 4x+ Anime6B  
  - Upscale Before Restoring Faces checked  
 
-#### Output  
+#### Output 4  
 
 <img src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/animescaled.png" alt="animescaled" height="1024" width="1024" />
 
