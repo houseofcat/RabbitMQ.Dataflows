@@ -1,6 +1,7 @@
 ﻿### How Can I Run Stable Diffusion Locally?
 
-#### Intro
+#### Intro  
+
 Machine Learning is so hot right now.  
 
 Normally, it kind of annoys me how people pick up on trendy things so quickly. Not that I don't 
@@ -25,7 +26,8 @@ I have decided to base this first guide around using an open source setup from [
 This seemed like the most comprehensive collection of functioning tools while not being too
 bad to setup and provided a User Interface vs. running through Notebooks or CLI.
 
-### This Test Hardware
+### This Test Hardware  
+
  - ASUS ROG STRIX RTX 3090 OC White Edition  
  - Intel i9 10900K @ 5.0 GHz  
 
@@ -49,13 +51,15 @@ I kid the Data Scientists, but __*they know what I am talking about*__.
 
 Anyways, let's get AUTOMATIC1111 WebUI setup with a Stable Diffusion model!
 
-### Software Setup To Get Started
+### Software Setup To Get Started  
+
  - Windows 11 Prod (latest updates installed as `12/23/2022`)  
  - Python `v3.10.6 ` 
  - Git For Windows (x64) `v2.39.0`  
  - nVidia Drivers `v527.56`
 
-#### Monitoring Your nVidia Card
+#### Monitoring Your nVidia Card  
+
 It's good to know how to monitor your GPU VRAM usage, I recommend [GPU-z from Techpowerup](https://www.techpowerup.com/download/techpowerup-gpu-z/).
 For any overclockers or benchmark, it's usually the defacto standard for monitoring your 
 GPUs. It provides solid instrumentation on several components of the GPU, namely how to 
@@ -70,7 +74,7 @@ nvidia-smi
 Executed in Terminal/CMD/PowerShell.
 
 Example.)
-```
+```text
 PS C:\Users\cat> nvidia-smi
 
 Sat Dec 24 10:42:56 2022
@@ -103,7 +107,8 @@ This can tell your high level nVidia details real quick.
 You can also monitor your GPU in Task Manager on Windows 10/11.  
 ![TaskManager](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/taskmanager.png)
 
-### Steps For Windows (borrowed from the Repo)
+### Steps For Windows (borrowed from the Repo)  
+
 1. Install [Python 3.10.6](https://www.python.org/downloads/release/python-3106/), checking "Add Python to PATH"
 2. Install [git](https://git-scm.com/download/win).
 3. Download the stable-diffusion-webui repository, for example by running `git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git`.
@@ -111,7 +116,8 @@ You can also monitor your GPU in Task Manager on Windows 10/11.
 5. _*(Optional)*_ Place `GFPGANv1.4.pth` in the base directory, alongside `webui.py` (see [dependencies](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Dependencies) for where to get it).
 6. Run `webui-user.bat` from Windows Explorer as normal, non-administrator, user.
 
-## The Models
+## The Models  
+
 The `model.ckpt` file is not included in the repo but this is __*100% needed*__ for the magic to begin.  
 
 1. You need a training checkpoint model.
@@ -129,7 +135,7 @@ Depending on where you cloned your `stable-diffusion-webui` copy, the directory 
 
 ![Model Location](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/model_location.png)
 
-## Pre-Run Tweaking
+## Pre-Run Tweaking  
 
 Assuming that you have the right Python version installed (listed above) and GIT is installed and
 your models are placed in the right folder, you should be able to get started. I am going to help
@@ -162,7 +168,7 @@ I recommend upgrading PIP as well.
 python -m pip install --upgrade pip
 ```
 
-## First UI Run
+## First UI Run  
 
 Navigate to you `stable-diffusion-webui` folder, copy the path, and open up a `Terminal/CMD/PowerShell as Admin`.
 
@@ -216,16 +222,16 @@ it a fresh slate and make sure nothing is cached from the previous setup attempt
 
 If you don't see anything in the drop down, review the Models step.  
 
-### First Image Prompt
+### First Image Prompt  
 
 Let's fire it up!
 
-#### First Run (Text Prompt)
+#### First Run (Text Prompt)  
 ```text
 A black house cat typing on a computer, artstation, high defintion
 ```
 
-#### Settings
+#### Settings  
 Model: 2c02b20a (v2 768)  
 Batch Count: 1  
 Batch Size: 6  
@@ -233,7 +239,8 @@ Steps: 30
 Resolution: 512x512  
 CFG: 7  
 
-#### Output Grid
+#### Output Grid  
+
 <img src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/blackcat-grid.png" alt="BlackCatGridOfImagesFromTextPrompt" height="460" width="640"/>
 
 Well these all kind are rough. When generating batches though you shouldn't always expect diamonds...  
@@ -244,7 +251,8 @@ Before I disregard this group and start generating a new set, let's select one a
 
 ![Enhance!](https://i.giphy.com/media/3ohc14lCEdXHSpnnSU/giphy.gif)
 
-### First Enhancement Run (Image Prompt)
+### First Enhancement Run (Image Prompt)  
+
 Let's select the image we liked from the output grid.
 
 ![ImgSelect](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/imgselect.png)
@@ -282,16 +290,19 @@ Steps: 150, Sampler: Euler a, CFG scale: 7, Seed: 1139297090, Size: 1024x1024, M
 ```
 
 
-### Second Enhancement Run (Image Prompt)
+### Second Enhancement Run (Image Prompt)  
+
 I like the progress we have made but I have noticed a typo in the text prompt. Let's alter the text prompt because I see a
 typo in the word `definition` and decrease the CFG to 5 to let it get a more liberal generation.  
 
-#### Text Prompt
+#### Text Prompt  
+
 ```text
 A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realism, high definition
 ```
 
-#### Settings  
+#### Settings   
+
  - Model: 2c02b20a (v2 768)  
  - Batch Count: 1  
  - Batch Size: 1  
@@ -299,15 +310,16 @@ A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realis
  - Resolution: 1024x1024  
  - CFG: 5  
 
-#### GPU Monitoring
+#### GPU Monitoring  
+
 Looking at our GPU while running through GPU-z  
 ![GPU-z](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/gpuz.png)
 
-#### Example UI
+#### Example UI  
 
 ![SecondRender](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/secondenhancement.png)
 
-#### Output
+#### Output  
 
 ![NewBlackCat](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/newblackcat.png)
 
@@ -316,16 +328,19 @@ A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realis
 Steps: 150, Sampler: Euler a, CFG scale: 5, Seed: 1479210306, Size: 1024x1024, Model hash: 2c02b20a, Denoising strength: 0.75, Mask blur: 4  
 ```
 
-### Third Enhancement Run (Image Prompt)
+### Third Enhancement Run (Image Prompt)  
+
 I love the new image, but its not quite there so I am going to send it to image prompt and try again, only this time with an even lower CFG and lower
 the denoising strength.
 
-#### Text Prompt
+#### Text Prompt  
+
 ```text
 A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realism, high definition
 ```
 
-#### Settings  
+#### Settings   
+
  - Model: 2c02b20a (v2 768)  
  - Batch Count: 1  
  - Batch Size: 1  
@@ -334,7 +349,7 @@ A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realis
  - CFG: 1  
  - Denoise Strength: 0.5
 
-#### Output
+#### Output  
 
 ![FinishedBlackCat](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/thirdenhancement.png)
 
@@ -344,7 +359,7 @@ Steps: 150, Sampler: Euler a, CFG scale: 1, Seed: 615367035, Size: 1024x1024, Mo
 ```
 
 
-### Fourth Run: Enhance! (Extras)
+### Fourth Run: Enhance! (Extras) 
 
 Well it doesn't match my prompt but its a solid rendering!
 
@@ -356,19 +371,21 @@ I am going to target 4x and Anime4K to upscale it.
 
 ![Extras](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/rescale4x.png)
 
-#### Settings
+#### Settings  
+
  - Resize: 4x  
  - Upscaler1: R-ESRGAN 4x+ Anime6B  
  - Upscaler2: R-ESRGAN 4x+ Anime6B  
  - Upscale Before Restoring Faces checked  
 
-#### Output
+#### Output  
 
 <img src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/animescaled.png" alt="animescaled" height="512" width="512"/>
 
 Be sure to download to really appreciate the full 8 MB size :100:  
 
-### NOTE: OutOfMemory Exceptions
+### NOTE: OutOfMemory Exceptions  
+
 If you do start getting OUTOFMEMORY type of exceptions but they don't seem normal, restart your system.  
 
 Let me give you an example. Let's say you were doing a Batch Size of 6, 512x512 images, at 30 steps. Everything
@@ -385,7 +402,7 @@ It's also possible that it was so brief that you can't quite view it on instrume
 monitoring to get familiar with how high you can adjust certain values.  
 
 Example Error Message
-```
+```text
 Error completing request
 ...
 
@@ -395,7 +412,7 @@ If reserved memory is >> allocated memory try setting max_split_size_mb to avoid
 See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
 ```
 
-# Final Thoughts
+# Final Thoughts  
 
 There you have it! Once the rescaled image above is done rendering in your browser, open it up in a new tab and
 really zoom in to fully appreciate the quality! 
