@@ -319,8 +319,6 @@ Looking at our GPU while running through GPU-z
 
 ![SecondRender](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/secondenhancement.png)
 
-#### Output  
-
 ![NewBlackCat](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/newblackcat.png)
 
 ```text
