@@ -349,13 +349,14 @@ A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realis
 
 #### Output  
 
+Here we go a solid rendering.  
+
 ![FinishedBlackCat](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/thirdenhancement.png)
 
-```
+```text
 A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realism, high definition
 Steps: 150, Sampler: Euler a, CFG scale: 1, Seed: 615367035, Size: 1024x1024, Model hash: 2c02b20a, Denoising strength: 0.5, Mask blur: 4
 ```
-
 
 ### Fourth Run: Enhance! (Extras) 
 
@@ -378,7 +379,7 @@ I am going to target 4x and Anime4K to upscale it.
 
 #### Output  
 
-<img src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/animescaled.png" alt="animescaled" height="512" width="512"/>
+<img src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/animescaled.png" alt="animescaled" height="1024" width="1024"/>
 
 Be sure to download to really appreciate the full 8 MB size :100:  
 
