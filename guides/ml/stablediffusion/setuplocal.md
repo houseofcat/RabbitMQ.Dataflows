@@ -3,42 +3,46 @@
 #### Intro
 Machine Learning is so hot right now.  
 
-Normally, it kind of annoys me how people pick up on trendy things so quickly. Not that I don't
-appreciate people learning about technology. It's nice to see people excited about things in general. Being a cynic though, I am generally
-not a fan of hype. People are just as quick to move on to the next buzzword. But seeing how `Copilot` and `ChatGPT` are here to take
-my job... which is essentially building fancy CRUD these days, I figured I would expand my skill set since this impacts me more directly.
+Normally, it kind of annoys me how people pick up on trendy things so quickly. Not that I don't 
+appreciate people learning about technology. It's nice to see people excited about things in 
+general. Being a cynic though, I am generally not a fan of hype. People are just as quick to 
+move on to the next buzzword too which feeds into the annoyance. But seeing how `Copilot` 
+and `ChatGPT` are here to take my job... which is essentially building fancy CRUD apps these 
+days, I figured I would expand my skill set since this impacts me more directly.
 
 ```text
-   When the Robots are here to take our jobs, the crafty and shrewd individual radically
-   accepts their fate and learns how to fix Robots ASAP.  
-       - Tristan Hyams (Tristan's Law of Robotics)
+When the Robots are here to take our jobs, the crafty and shrewd individual radically
+accepts their fate and learns how to fix Robots ASAP.  
+    - Tristan Hyams (Tristan's Law of Robotics)
 ```
 
-Now to be clear, this is not a guide to explain how Stable Diffusion works. I am not fully comfortable doing that as I'm still learning it.
-That will most likely be better suited as a guide unto itself. However, I was able to put some skills to use this tool and to apply my skills to
-general troubleshooting.  
+Now to be clear, this is not a guide to fully explain how Stable Diffusion works. I am not
+fully comfortable doing that as I'm still learning it. That will most likely be better 
+suited as a guide unto itself. However, I was able to put some skills to use this tool and
+to apply my skills to general troubleshooting.  
 
 I have decided to base this first guide around using an open source setup from [AUTOMATIC1111](https://github.com/AUTOMATIC1111/stable-diffusion-webui).
-This seemed like the most comprehensive collection of functioning tools while not being too bad to setup and provided a User Interface vs.
-running through Notebooks or CLI.
+This seemed like the most comprehensive collection of functioning tools while not being too
+bad to setup and provided a User Interface vs. running through Notebooks or CLI.
 
 ### This Test Hardware
  - ASUS ROG STRIX RTX 3090 OC White Edition  
  - Intel i9 10900K @ 5.0 GHz  
 
-You will need a beefy CPU if doing the slower CPU only loads. That being said, this guide is for CUDA/nVidia cards so the CPU doesn't 
-really have to be top of the line. The heavy lifting is going to be done by graphics card/GPU. There are ways to run with lower VRAM
-GPUs but I do recommend ones with VRAM of 10 GB+ for the speed. I will note though, it does seem a little unoptimized and leaky as I 
-have encountered a plethora of out of memory exceptions while had 12 GB+ still free of VRAM. I honestly suspect its the notorious 
-`a data engineer worked on this...`  
+You will need a beefy CPU if doing the slower CPU-only inferences. That being said, this 
+guide is for CUDA/nVidia cards so the CPU doesn't really have to be top of the line. The 
+heavy lifting is going to be done by graphics card/GPU. There are ways to run with lower 
+VRAM GPUs but I do recommend ones with VRAM of 10 GB+ for the speed. I will note though,
+it does seem a little unoptimized and leaky as I have encountered a plethora of out of 
+memory exceptions while had 12 GB+ still free of VRAM. I honestly suspect its the 
+notorious `a data engineer worked on this...`  
 
 ```text
-   Give a Senior Data Scientist a VM with 64 GB of RAM and they will use it. 
-   
-   Give that same VM to a Senior Backend Engineer and they will start checking 
-   the code for memory leaks after using 0.5 GB.  
+Give a Senior Data Scientist a VM with 64 GB of RAM and they will use it. 
 
-       - Tristan Hyams (Tristan's Observations of Data Scientists)
+Give that same VM to a Senior Backend Engineer and they will start checking 
+the code for memory leaks after using 0.5 GB.  
+    - Tristan Hyams (Tristan's Observations of Data Scientists)
 ```
 
 I kid the Data Scientists, but __*they know what I am talking about*__.
@@ -53,8 +57,9 @@ Anyways, let's get AUTOMATIC1111 WebUI setup with a Stable Diffusion model!
 
 #### Monitoring Your nVidia Card
 It's good to know how to monitor your GPU VRAM usage, I recommend [GPU-z from Techpowerup](https://www.techpowerup.com/download/techpowerup-gpu-z/).
-For any overclockers or benchmark, its usually the defacto standard for monitoring your GPUs. The accurate instrumentation system to see how much
-you VRAM is impacted by your settings when using stable-diffusion and also temperatures/power draw if you are worried.
+For any overclockers or benchmark, it's usually the defacto standard for monitoring your 
+GPUs. It provides solid instrumentation on several components of the GPU, namely how to 
+see temps, VRAM usage, power draw, etc.
 
 I also recommend utilizing the command
 
@@ -86,20 +91,7 @@ Sat Dec 24 10:42:56 2022
 |  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
 |        ID   ID                                                   Usage      |
 |=============================================================================|
-|    0   N/A  N/A      5544    C+G   ...462.54\msedgewebview2.exe    N/A      |
-|    0   N/A  N/A      9288    C+G   ...2txyewy\TextInputHost.exe    N/A      |
-|    0   N/A  N/A     11600    C+G   ...y\ShellExperienceHost.exe    N/A      |
-|    0   N/A  N/A     14724    C+G   ...8bbwe\WindowsTerminal.exe    N/A      |
 |    0   N/A  N/A     15060    C+G   C:\Windows\explorer.exe         N/A      |
-|    0   N/A  N/A     15648    C+G   ...p-3.1.2\GitHubDesktop.exe    N/A      |
-|    0   N/A  N/A     17020    C+G   ...me\Application\chrome.exe    N/A      |
-|    0   N/A  N/A     17120    C+G   ...n1h2txyewy\SearchHost.exe    N/A      |
-|    0   N/A  N/A     17148    C+G   ...artMenuExperienceHost.exe    N/A      |
-|    0   N/A  N/A     19124    C+G   ...462.54\msedgewebview2.exe    N/A      |
-|    0   N/A  N/A     19576    C+G   ...MOTIV\ShurePlus MOTIV.exe    N/A      |
-|    0   N/A  N/A     20880    C+G   ...e\PhoneExperienceHost.exe    N/A      |
-|    0   N/A  N/A     22912    C+G   ...lPanel\SystemSettings.exe    N/A      |
-|    0   N/A  N/A     23944    C+G   ...462.54\msedgewebview2.exe    N/A      |
 +-----------------------------------------------------------------------------+
 ```
 
@@ -108,7 +100,7 @@ This can tell your high level nVidia details real quick.
  - CUDA: v12.0
  - VRAM in Use: 759 MB / 24576 MB
 
-You can also monitor your GPU in Task Manager on Windows 10/11.
+You can also monitor your GPU in Task Manager on Windows 10/11.  
 ![TaskManager](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/taskmanager.png)
 
 ### Steps For Windows (borrowed from the Repo)
@@ -129,20 +121,24 @@ The `model.ckpt` file is not included in the repo but this is __*100% needed*__ 
 2. You will need an inference config.  
     1. You will also want the Stability AI's inference `config.yaml` and that is located [here](https://raw.githubusercontent.com/Stability-AI/stablediffusion/main/configs/stable-diffusion/v2-inference-v.yaml) for v2.
 
-Once they are both downloaded, you will place the Checkpoint in the `stable-diffusion` folder under `models`. Also copy in the above config.yml and rename it to match
-the checkpoint
+Once they are both downloaded, you will place the Checkpoint in the `stable-diffusion` folder under `models`.
+Also copy in the above config.yml and rename it to match the checkpoint (but with a .yaml file extension.)
 
-Depending on where you cloned your `stable-diffusion-webui` copy, the directory they need to go is something like this
+Depending on where you cloned your `stable-diffusion-webui` copy, the directory should look like this  
 ```C:\GitHub\houseofcat\stable-diffusion-webui\models\Stable-diffusion```
 
 ![Model Location](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/model_location.png)
 
 ## Pre-Run Tweaking
 
-Assuming that you have the right Python version installed (listed above) and GIT is installed and your models are placed in the right folder,
-you should be able to get started. I am going to help you out real quick as things were a bit wonky to begin with.
+Assuming that you have the right Python version installed (listed above) and GIT is installed and
+your models are placed in the right folder, you should be able to get started. I am going to help
+you out real quick as things were a bit wonky to begin with.
 
-I modified the `webui-user.bat` to add PYTORCH line `set PYTORCH_CUDA_ALLOC_CONF=garbage_collection_threshold:0.6,max_split_size_mb:64`.
+I modified the `webui-user.bat` to add PYTORCH configuration change
+```
+set PYTORCH_CUDA_ALLOC_CONF=garbage_collection_threshold:0.6,max_split_size_mb:64
+```
 
 ```
 @echo off
@@ -157,47 +153,13 @@ set PYTORCH_CUDA_ALLOC_CONF=garbage_collection_threshold:0.6,max_split_size_mb:6
 call webui.bat
 ```
 
-This will aid in keep the VRAM usage cleaned up and a bit of a smaller footprint.
+This will aid in keep the VRAM usage cleaned up and a bit of a smaller footprint. There are thousands of other
+tweaks, but I was honestly getting `OutOfMemory` exceptions while having 13 GB indicated free on the GPU and this seemed
+to reduce the frequency of that.  
 
-There are thousands of other tweaks, but I was honestly getting Out of Memory while having 13 GB indicated free on the GPU and this seemed to fix it.
-
-I recommend upgrading PIP as well.
+I recommend upgrading PIP as well.  
 ```
 python -m pip install --upgrade pip
-```
-
-Example.)
-```
-PS C:\Users\cat> python -m pip install --upgrade pip
-Requirement already satisfied: pip in c:\program files\python310\lib\site-packages (22.3.1)
-```
-
-### NOTE: OUTOFMEMORY EXCEPTIONS
-If you do start getting OUTOFMEMORY exceptions but they don't seem normal, restart your system.  
-
-Let me give you an example and let's say you were doing a Batch of 6, 512x512 images, at 30 steps. Everything was
-working fine and only using 13 GB of VRAM. You decide to try for 7 and boom! CRASH. So naturally you think, I'll
-just go back to 6... then boom! CRASH?! This was previously working?!    
-
-__*DON'T WASTE ANY TIME TROUBLESHOOTING*__  
-Just turn it off and on again. You may be able to stop and start the server, but I have found I need to stop the server,
-close the terminal and the browser, and even then, the issue sometimes still persisted. Feel free to try this but when in doubt,
-restart.  
-
-Note though, if you undo your settings change (i.e. go back to batch size of 6 from 7) and it is working again, then the batch
-size of 7 was just the limit of your system and it hit its head on the ceiling during processing. It's also possible that it
-was so brief that you can't quite view it on instrumentation. Hopefully you are monitoring to get familiar with how high you
-can adjust certain values.  
-
-Example Error Message
-```
-Error completing request
-Arguments: (0, 'A Black house Cat with red eyes, next to a window with rain running down it, realism, high definition', '', 'None', 'None', <PIL.Image.Image image mode=RGB size=512x512 at 0x2320F4E29B0>, None, None, None, None, 0, 150, 0, 4, 0, 1, False, False, 1, 1, 5, 0.75, -1.0, -1.0, 0, 0, 0, False, 1256, 1256, 0, False, 32, 0, '', '', 0, 0.9, 5, '0.0001', False, 'None', '', 0.1, False, '<ul>\n<li><code>CFG Scale</code> should be 2 or lower.</li>\n</ul>\n', True, True, '', '', True, 50, True, 1, 0, False, 4, 1, '<p style="margin-bottom:0.75em">Recommended settings: Sampling Steps: 80-100, Sampler: Euler a, Denoising strength: 0.8</p>', 128, 8, ['left', 'right', 'up', 'down'], 1, 0.05, 128, 4, 0, ['left', 'right', 'up', 'down'], False, False, False, False, '', '<p style="margin-bottom:0.75em">Will upscale the image by the selected scale factor; use width and height sliders to set tile size</p>', 64, 0, 2, 1, '', 0, '', True, False, False) {}
-Traceback (most recent call last):
-
-...
-
-RuntimeError: CUDA out of memory. Tried to allocate 11.32 GiB (GPU 0; 24.00 GiB total capacity; 14.03 GiB already allocated; 7.31 GiB free; 14.22 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
 ```
 
 ## First UI Run
@@ -384,9 +346,37 @@ I am going to target 4x and Anime4K to upscale it.
 
 Be sure to download to really appreciate the full 8 MB size :100:  
 
+### NOTE: OutOfMemory Exceptions
+If you do start getting OUTOFMEMORY type of exceptions but they don't seem normal, restart your system.  
+
+Let me give you an example. Let's say you were doing a Batch Size of 6, 512x512 images, at 30 steps. Everything
+was working fine and only using 13 GB of VRAM. You decide to try for 7 and boom! CRASH. So naturally you think,
+I'll just go back to 6... then boom! CRASH?! This was previously working?!  
+
+__*DON'T WASTE TOO MUCH TIME TROUBLESHOOTING*__  
+Just turn it off and on again. You may be able to stop and start the server, but I have found the issue sometimes
+still persisted until total restart.  
+
+Note: If you undo your settings change (i.e. go back to batch size of 6 from 7) and it is working again, then 
+the batch size of 7 was just the limit of your system. Like it hit its head on the ceiling during processing. 
+It's also possible that it was so brief that you can't quite view it on instrumentation. Hopefully you are 
+monitoring to get familiar with how high you can adjust certain values.  
+
+Example Error Message
+```
+Error completing request
+...
+
+RuntimeError: CUDA out of memory. Tried to allocate 11.32 GiB
+(GPU 0; 24.00 GiB total capacity; 14.03 GiB already allocated; 7.31 GiB free; 14.22 GiB reserved in total by PyTorch)
+If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.
+See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
+```
+
 # Final Thoughts
 
-There you have it, once the image above is done rendering in your browser, open it up in a new tab and zoom in. There you can see the very high quality from the rescale!
+There you have it! Once the rescaled image above is done rendering in your browser, open it up in a new tab and
+really zoom in to fully appreciate the quality! 
 
 To recap what we did.  
 1. Setup Python and GIT for Windows.
