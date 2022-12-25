@@ -17,8 +17,8 @@ accepts their fate and learns how to fix Robots ASAP.
 ```
 
 Now to be clear, this is not a guide to fully explain how Stable Diffusion works. I am not
-fully comfortable wroting that as I'm still learning it myself. That will make a great guide 
-unto itself. Instead, I was able to put some skills to use when using this tool and 
+fully comfortable writing that as I'm still learning it myself. That will make a great guide 
+unto itself. Instead, I was able to put my skills to use when using this tool and 
 General troubleshooting.  
 
 I have decided to base this first guide around using an open source setup from [AUTOMATIC1111](https://github.com/AUTOMATIC1111/stable-diffusion-webui).
