@@ -345,9 +345,7 @@ A Black house Cat with red eyes, in a forest during a rainy thunderstorm, realis
  - Steps: 150  
  - Resolution: 1024x1024  
  - CFG: 1  
- - Denoise Strength: 0.5
-
-#### Output  
+ - Denoise Strength: 0.5  
 
 Here we go a solid rendering.  
 
@@ -379,7 +377,7 @@ I am going to target 4x and Anime4K to upscale it.
 
 #### Output  
 
-<img src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/animescaled.png" alt="animescaled" height="1024" width="1024"/>
+<img src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/setuplocally/animescaled.png" alt="animescaled" height="1024" width="1024" />
 
 Be sure to download to really appreciate the full 8 MB size :100:  
 
