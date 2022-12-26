@@ -1,4 +1,4 @@
-﻿### StableDiffusion v2.x - Introduction to Xformers!
+﻿### Introduction to Xformers!
 
 #### Intro  
 
