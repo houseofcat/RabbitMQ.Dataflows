@@ -69,7 +69,6 @@ bad-artist
 ```
 
 #### Settings
-
 ```text
 Steps: 100  
 Sampler: Euler a
@@ -107,7 +106,6 @@ bad-artist
 ```
 
 #### Settings
-
 ```text
 Steps: 100  
 Sampler: Euler a
@@ -145,7 +143,6 @@ bad-artist
 ```
 
 #### Settings
-
 ```text
 Steps: 100  
 Sampler: Euler a
@@ -169,10 +166,11 @@ Actual MAX VRAM Usage: 654 MB
 ![OrangeCat04](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/xformers/OrangeCat04.png)
 
 #### Text Prompt
+```text
 An ((orange cat)) sitting on the roof of a (skyscraper) in a (cyberpunk city) at night while its ((raining)), photo realistic, 8k
+```
 
 #### Settings
-
 ```text
 Steps: 100  
 Sampler: Euler a
@@ -195,5 +193,5 @@ Actual MAX VRAM Usage: 655 MB
 
 There weren't variations this time around, but it doesn't mean they couldn't have happened with slightly different settings.
 
-Shaved 3 seconds off of render time but the real highlight is that with Xformers, it used ~650 MB of VRAM vs. 4400 MB of VRAM
+Shaved 3 seconds off of render time but the real highlight is that with Xformers, it used ~650 MB of VRAM vs. ~4400 MB of VRAM
 to output nearly identical images. This is a huge saving in VRAM!
