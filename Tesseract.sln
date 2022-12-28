@@ -136,6 +136,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "stablediffusion", "stablediffusion", "{D61A9911-AC32-4D96-ABC0-E02763115885}"
 	ProjectSection(SolutionItems) = preProject
 		guides\ml\stablediffusion\setuplocal.md = guides\ml\stablediffusion\setuplocal.md
+		guides\ml\stablediffusion\txtprompt.md = guides\ml\stablediffusion\txtprompt.md
+		guides\ml\stablediffusion\xformers.md = guides\ml\stablediffusion\xformers.md
 	EndProjectSection
 EndProject
 Global
