@@ -48,19 +48,24 @@ Seed: 4219356135
 When I first started playing with generation I was getting hundreds and hundreds of
 batches rendered and trying to cherry pick the best images. I quickly realize
 this wasn't a feasible long term approach because its taking to long to generate
-something not completely crap. The more I tried to lock in values while tweaking others
-others the harder it seemed to generate images I personaly liked. What I kept discovering
-were there were dozens of images I discard because of a defect. A hand, an extra eye,
-or a dozen extra eyes, etc. This quick introduction to inpaint may help you over come
-some things - but don't expect miracles. The miracles are totally at random.
+something different while keeping what I liked about an image. The more I tried
+to lock in values while tweaking others others the more the image shifted away
+from what I like. Inpainting allows us to keep what we like from any image or
+any generated image and use StableDiffusion to swap, erase, or fill in the blanks,
+or tweak. What I kept discovering were there were dozens of images I discard
+because of a defect that I wish I had known about inpainting before hand.
+A an extra finger on a hand, an extra eye, or a dozen extra eyes, etc. Could have
+all been avoied had I known.  This quick introduction to inpaint may help you
+over come some things - but don't expect miracles. The miracles are still
+totally at random (prompt driven).  
 
 The above image is wrong in a few places. I generally like the overall look, it needs
-more steps and obviously resolution scaling to 1024x1024.
+more steps and obviously resolution scaling to 1024x1024.  
 
-1. We need to fix that monstrosity in his hand.
-2. The sign extends too far out.
-2. What is going on around his hair in the back?
-3. That bottom left front of his suit jacket looks off.
+1. We need to fix that monstrosity in his hand.  
+2. The sign extends too far out.  
+2. What is going on around his hair in the back?  
+3. That bottom left front of his suit jacket looks off.  
 
 ### Send To Inpaint
 Send to Inpaint!
