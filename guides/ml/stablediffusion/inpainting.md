@@ -295,3 +295,7 @@ This should suffice for the purposes of the guide. Now we upscale and finish it.
   <img slot="first" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-01.png" />
   <img slot="second" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/john_wick_finished_small.png" />
 </img-comparison-slider>
+
+### Final Thoughts
+All the image sliders above kept the pictures at the same resolution for the comparison. So
+it's not a totally a fair comparison but the results really I think speak for themselves.  
