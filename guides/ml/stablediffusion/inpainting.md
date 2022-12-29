@@ -233,11 +233,11 @@ Denoising Strengh: 0.5
 Seed: 4219356135
 ```
 
-#### Before
-![Shoulder](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-12a.png)
-
-#### After
-![Car Wheels](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-12b.png)
+#### Before & After
+<img-comparison-slider>
+  <img slot="first" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-12a.png" />
+  <img slot="second" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-12b.png" />
+</img-comparison-slider>
 
 ### Send to Img2Img - Final Resolution by Batch
 I am now going to port this to 1024x1024, with varying inference steps to try and cleanup
@@ -256,9 +256,10 @@ Denoising Strengh: 0.1
 Seed: 4219356135
 ```
 
+#### Before & After
 <img-comparison-slider>
   <img slot="first" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-12a.png" />
-  <img slot="second" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-13.png" />
+  <img slot="second" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-13_small.png" />
 </img-comparison-slider>
 
 ### Inpainting - The Face
@@ -280,6 +281,7 @@ Denoising Strengh: 0.6 (major variation depending on what I am doing)
 Seed: 4219356135
 ```
 
+#### Before & After
 <img-comparison-slider>
   <img slot="first" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-13a.png" />
   <img slot="second" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-13b.png" />
@@ -288,6 +290,7 @@ Seed: 4219356135
 ### Upscale with R-ESRGAN 4x+ Anime6B
 This should suffice for the purposes of the guide. Now we upscale and finish it.  
 
+#### Before & After
 <img-comparison-slider>
   <img slot="first" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-01.png" />
   <img slot="second" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/john_wick_finished_small.png" />
