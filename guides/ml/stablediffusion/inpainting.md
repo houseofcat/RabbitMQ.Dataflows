@@ -167,7 +167,7 @@ Here is the output. The 3rd image (bottom left) is the one I like.
 Send the previous image back to inpaint after clearing the masking. And lets start working
 on the gun.  
 
-I am going to test a reduction in size first by paintin a whole new area in there.  
+I am going to test a reduction in size first by painting a whole new area in there.  
 
 ![NoGunMask](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-09a.png)
 
