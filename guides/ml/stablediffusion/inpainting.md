@@ -290,5 +290,5 @@ This should suffice for the purposes of the guide. Now we upscale and finish it.
 
 <img-comparison-slider>
   <img slot="first" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-01.png" />
-  <img slot="second" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/john_wick_finished.png" />
+  <img slot="second" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/john_wick_finished_small.png" />
 </img-comparison-slider>
