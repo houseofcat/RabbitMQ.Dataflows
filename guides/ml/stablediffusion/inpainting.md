@@ -4,9 +4,9 @@
 
 I have written a guide for setting up AUTOMATIC1111's stable diffusion locally over 
 [here](https://houseofcat.io/guides/ml/stablediffusion/setuplocally). This is a quick tutorial 
-on tweaking a part of an image with inpainting.
+on tweaking a part of an image you aren't too happy with.
 
-#### AUTOMATIC1111's WEB UI - Seeding Your Inpaint
+#### AUTOMATIC1111's WEB UI - Seeding your Inpaint
 The first thing we need is a solid text prompt to begin generating images. I plan on running
 the following prompts without seed first, finding an image in the spirit of what I am
 looking for. Then added the seed to the settings below. It took 3 more batches of
@@ -120,8 +120,7 @@ Let's do our first batch of images generated. This is not cherry picked.
 ![OutputGrid](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-05.png)
 
 The bottom right image is perfect (to me of course). We are going to send this back in
-to inpainting! Click the `X` on the inpainting side to quickly clear the previous "masking"
-then choose `Send to Inpaint` from the selected image on your grid.
+to inpainting! Click the `X` to quickly clear the previous "masking".
 
 ![SendToInpaint2](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-06.png)
 
@@ -142,17 +141,15 @@ Here is the output. The 3rd image (bottom left) is the one I like.
 ### Output Image 3 - Suit Correction
 ![SendToInpaint3](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-08b.png)
 
-### Send To Inpaint 3  
+### Send To Inpaint 3
 Send the previous image back to inpaint after clearing the masking. And lets start working
-on the gun.  
+on the gun.
 
-I am going to test a reduction in size first by paintin a whole new area in there.  
-
+I am going to test a reduction in size first by paintin a whole new area in there.
 ![NoGunMask](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-09a.png)
 
 What I am hoping to generate is a new seed for inpainting but I need a smaller item. I was 
-able to generate an image in my first batch.  
-
+able to generate an image in my first batch.
 ![Gun1](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-09b.png)
 
 Back to inpaint!
@@ -264,12 +261,12 @@ Seed: 4219356135
 #### After
 ![Step13B](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-13b.png)
 
-### Upscale with R-ESRGAN 4x+ Anime6B
-This should suffice for the purposes of the guide. After many small corrections I am now ready to upscale and be
-done with it. I hope you found this guide useful!  
 
-#### Start of the Guide
+### Upscale with R-ESRGAN 4x+ Anime6B
+This should suffice for the purposes of the guide. Now we upscale and finish it.  
+
+#### Start
 ![JohnWick](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-01.png)
 
-#### End of the Guide
-<img src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/john_wick_finished.png" alt="animescaled" height="1024" width="1024" />
+#### Finished
+![JWFinished](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/john_wick_finished.png)
