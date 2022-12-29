@@ -182,7 +182,7 @@ Back to inpaint!
 
 ![Gun2](https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-09d.png)
 
-### Keep Tweaking aka Send to Inpaint 97 Times
+### Keep Tweaking (aka Send to Inpaint 9,135 times)
 I am kidding but now we are pretty close. We need to adjust the `Denoising` value. This affects
 how much it will diverge from the current image.  
 
@@ -290,7 +290,7 @@ Seed: 4219356135
 ### Upscale with R-ESRGAN 4x+ Anime6B
 This should suffice for the purposes of the guide. Now we upscale and finish it.  
 
-#### Before & After
+#### Start & Finish
 <img-comparison-slider>
   <img slot="first" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-01.png" />
   <img slot="second" src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/john_wick_finished_small.png" />
