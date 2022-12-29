@@ -291,7 +291,7 @@ Seed: 4219356135
 This should suffice for the purposes of the guide. Now we upscale and finish it.  
 
 <div class="before-after">
-  <img src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-01.png" alt="Before 2">
-  <img src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/john_wick_finished.png" alt="After 2">
+  <img src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/step-01.png" alt="Before 3">
+  <img src="https://houseofcat.blob.core.windows.net/website/guides/ml/stablediffusion/inpainting/john_wick_finished.png" alt="After 3">
   <div class="slider"></div>
 </div>
