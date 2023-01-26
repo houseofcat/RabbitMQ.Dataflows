@@ -8,7 +8,7 @@ namespace HouseofCat.RabbitMQ.WorkState.Extensions
     public static class ConsumerExtensions
     {
         public static ValueTask DirectChannelExecutionEngineAsync(
-            this Consumer consumer,
+            this IConsumer<ReceivedData> consumer,
             Func<ReceivedData, Task<IRabbitWorkState>> workBodyAsync,
             Func<IRabbitWorkState, Task> postWorkBodyAsync = null,
             TaskScheduler taskScheduler = null,
