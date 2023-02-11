@@ -504,10 +504,10 @@ public static class ParquetHelper
             if (currentFileSize > 0 && postWriteFileSize == 0)
             { postWriteFileSize = currentFileSize; }
 
-            if (maxFileSize <= currentFileSize)
+            if ((maxFileSize ?? MaxFileSize) <= currentFileSize)
             { break; }
 
-            var remainingAllowedFileSize = maxFileSize - currentFileSize;
+            var remainingAllowedFileSize = (maxFileSize ?? MaxFileSize) - currentFileSize;
 
             // File size is good enough check.
             //
