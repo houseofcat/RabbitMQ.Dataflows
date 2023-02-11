@@ -7,391 +7,399 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-namespace HouseofCat.Dataflows.Pipelines
+namespace HouseofCat.Dataflows.Pipelines;
+
+public interface IPipeline<TIn, TOut>
 {
-    public interface IPipeline<TIn, TOut>
+    bool Ready { get; }
+    int StepCount { get; }
+    List<PipelineStep> Steps { get; }
+
+    void AddAsyncStep<TLocalIn, TLocalOut>(Func<TLocalIn, Task<TLocalOut>> stepFunc, int? localMaxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null);
+    void AddAsyncSteps<TLocalIn, TLocalOut>(List<Func<TLocalIn, Task<TLocalOut>>> stepFunctions, int? localMaxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null);
+    void AddStep<TLocalIn, TLocalOut>(Func<TLocalIn, TLocalOut> stepFunc, int? localMaxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null);
+    void AddSteps<TLocalIn, TLocalOut>(List<Func<TLocalIn, TLocalOut>> stepFunctions, int? localMaxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null);
+    Task<bool> AwaitCompletionAsync();
+
+    void Finalize(Action<TOut> finalizeStep);
+    void Finalize(Func<TOut, Task> finalizeStep);
+    Exception GetAnyPipelineStepsFault();
+    Task<bool> QueueForExecutionAsync(TIn input);
+}
+
+// Great lesson/template found here.
+// https://michaelscodingspot.com/pipeline-implementations-csharp-3/
+
+public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
+{
+    private readonly ILogger<Pipeline<TIn, TOut>> _logger;
+    private readonly ExecutionDataflowBlockOptions _executeStepOptions;
+    private readonly DataflowLinkOptions _linkStepOptions;
+    private readonly TimeSpan _healthCheckInterval;
+    private readonly Task _healthCheckTask;
+    private readonly string _pipelineName;
+    private readonly CancellationTokenSource _cts;
+
+    public List<PipelineStep> Steps { get; } = new List<PipelineStep>();
+    public bool Ready { get; private set; }
+    public int StepCount { get; private set; }
+
+    public Pipeline(
+        int maxDegreeOfParallelism,
+        bool? ensureOrdered = null,
+        int? bufferSize = null,
+        TaskScheduler taskScheduler = null)
     {
-        bool Ready { get; }
-        int StepCount { get; }
-        List<PipelineStep> Steps { get; }
+        _cts = new CancellationTokenSource();
+        _logger = LogHelper.GetLogger<Pipeline<TIn, TOut>>();
 
-        void AddAsyncStep<TLocalIn, TLocalOut>(Func<TLocalIn, Task<TLocalOut>> stepFunc, int? localMaxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null);
-        void AddAsyncSteps<TLocalIn, TLocalOut>(List<Func<TLocalIn, Task<TLocalOut>>> stepFunctions, int? localMaxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null);
-        void AddStep<TLocalIn, TLocalOut>(Func<TLocalIn, TLocalOut> stepFunc, int? localMaxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null);
-        void AddSteps<TLocalIn, TLocalOut>(List<Func<TLocalIn, TLocalOut>> stepFunctions, int? localMaxDoP = null, bool? ensureOrdered = null, int? bufferSizeOverride = null);
-        Task<bool> AwaitCompletionAsync();
+        _linkStepOptions = new DataflowLinkOptions { PropagateCompletion = true };
+        _executeStepOptions = new ExecutionDataflowBlockOptions
+        {
+            MaxDegreeOfParallelism = maxDegreeOfParallelism,
+            SingleProducerConstrained = true
+        };
 
-        void Finalize(Action<TOut> finalizeStep);
-        void Finalize(Func<TOut, Task> finalizeStep);
-        Exception GetAnyPipelineStepsFault();
-        Task<bool> QueueForExecutionAsync(TIn input);
+        _executeStepOptions.EnsureOrdered = ensureOrdered ?? _executeStepOptions.EnsureOrdered;
+        _executeStepOptions.BoundedCapacity = bufferSize ?? _executeStepOptions.BoundedCapacity;
+        _executeStepOptions.TaskScheduler = taskScheduler ?? _executeStepOptions.TaskScheduler;
     }
 
-    // Great lesson/template found here.
-    // https://michaelscodingspot.com/pipeline-implementations-csharp-3/
-
-    public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
+    public Pipeline(
+        int maxDegreeOfParallelism,
+        TimeSpan healthCheckInterval,
+        string pipelineName,
+        bool? ensureOrdered = null,
+        int? bufferSize = null,
+        TaskScheduler taskScheduler = null) :
+        this(maxDegreeOfParallelism, ensureOrdered, bufferSize, taskScheduler)
     {
-        private readonly ILogger<Pipeline<TIn, TOut>> _logger;
-        private readonly ExecutionDataflowBlockOptions _executeStepOptions;
-        private readonly DataflowLinkOptions _linkStepOptions;
-        private readonly TimeSpan _healthCheckInterval;
-        private readonly Task _healthCheckTask;
-        private readonly string _pipelineName;
-        private readonly CancellationTokenSource _cts;
+        _pipelineName = pipelineName;
+        _healthCheckInterval = healthCheckInterval;
+        _healthCheckTask = Task.Run(SimplePipelineHealthTaskAsync);
+    }
 
-        public List<PipelineStep> Steps { get; } = new List<PipelineStep>();
-        public bool Ready { get; private set; }
-        public int StepCount { get; private set; }
+    public void AddAsyncStep<TLocalIn, TLocalOut>(
+        Func<TLocalIn, Task<TLocalOut>> stepFunc,
+        int? localMaxDoP = null,
+        bool? ensureOrdered = null,
+        int? bufferSizeOverride = null)
+    {
+        if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
 
-        public Pipeline(
-            int maxDegreeOfParallelism,
-            bool? ensureOrdered = null,
-            int? bufferSize = null,
-            TaskScheduler taskScheduler = null)
+        var options = GetExecuteStepOptions(localMaxDoP, ensureOrdered, bufferSizeOverride);
+        var pipelineStep = new PipelineStep
         {
-            _cts = new CancellationTokenSource();
-            _logger = LogHelper.GetLogger<Pipeline<TIn, TOut>>();
+            IsAsync = true,
+            StepIndex = StepCount++,
+        };
 
-            _linkStepOptions = new DataflowLinkOptions { PropagateCompletion = true };
-            _executeStepOptions = new ExecutionDataflowBlockOptions
-            {
-                MaxDegreeOfParallelism = maxDegreeOfParallelism,
-                SingleProducerConstrained = true
-            };
-
-            _executeStepOptions.EnsureOrdered = ensureOrdered ?? _executeStepOptions.EnsureOrdered;
-            _executeStepOptions.BoundedCapacity = bufferSize ?? _executeStepOptions.BoundedCapacity;
-            _executeStepOptions.TaskScheduler = taskScheduler ?? _executeStepOptions.TaskScheduler;
+        if (Steps.Count == 0)
+        {
+            pipelineStep.Block = new TransformBlock<TLocalIn, Task<TLocalOut>>(
+                async (input) => await stepFunc(input), options);
+            Steps.Add(pipelineStep);
         }
-
-        public Pipeline(
-            int maxDegreeOfParallelism,
-            TimeSpan healthCheckInterval,
-            string pipelineName,
-            bool? ensureOrdered = null,
-            int? bufferSize = null,
-            TaskScheduler taskScheduler = null) :
-            this(maxDegreeOfParallelism, ensureOrdered, bufferSize, taskScheduler)
+        else
         {
-            _pipelineName = pipelineName;
-            _healthCheckInterval = healthCheckInterval;
-            _healthCheckTask = Task.Run(SimplePipelineHealthTaskAsync);
-        }
-
-        public void AddAsyncStep<TLocalIn, TLocalOut>(
-            Func<TLocalIn, Task<TLocalOut>> stepFunc,
-            int? localMaxDoP = null,
-            bool? ensureOrdered = null,
-            int? bufferSizeOverride = null)
-        {
-            if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
-
-            var options = GetExecuteStepOptions(localMaxDoP, ensureOrdered, bufferSizeOverride);
-            var pipelineStep = new PipelineStep
+            var lastStep = Steps.Last();
+            if (lastStep.IsAsync)
             {
-                IsAsync = true,
-                StepIndex = StepCount++,
-            };
+                var step = new TransformBlock<Task<TLocalIn>, Task<TLocalOut>>(
+                    async (input) => await stepFunc(await input),
+                    options);
 
-            if (Steps.Count == 0)
-            {
-                pipelineStep.Block = new TransformBlock<TLocalIn, Task<TLocalOut>>(stepFunc, options);
-                Steps.Add(pipelineStep);
+                if (lastStep.Block is ISourceBlock<Task<TLocalIn>> sourceBlock)
+                {
+                    sourceBlock.LinkTo(step, _linkStepOptions);
+                    pipelineStep.Block = step;
+                    Steps.Add(pipelineStep);
+                }
+                else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
             }
             else
             {
-                var lastStep = Steps.Last();
-                if (lastStep.IsAsync)
-                {
-                    var step = new TransformBlock<Task<TLocalIn>, Task<TLocalOut>>(
-                        async (input) => stepFunc(await input.ConfigureAwait(false)),
-                        options);
+                var step = new TransformBlock<TLocalIn, Task<TLocalOut>>(
+                    async (input) => await stepFunc(input),
+                    options);
 
-                    if (lastStep.Block is ISourceBlock<Task<TLocalIn>> sourceBlock)
-                    {
-                        sourceBlock.LinkTo(step, _linkStepOptions);
-                        pipelineStep.Block = step;
-                        Steps.Add(pipelineStep);
-                    }
-                    else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
-                }
-                else
+                if (lastStep.Block is ISourceBlock<TLocalIn> sourceBlock)
                 {
-                    var step = new TransformBlock<TLocalIn, Task<TLocalOut>>(stepFunc, options);
-
-                    if (lastStep.Block is ISourceBlock<TLocalIn> sourceBlock)
-                    {
-                        sourceBlock.LinkTo(step, _linkStepOptions);
-                        pipelineStep.Block = step;
-                        Steps.Add(pipelineStep);
-                    }
-                    else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
+                    sourceBlock.LinkTo(step, _linkStepOptions);
+                    pipelineStep.Block = step;
+                    Steps.Add(pipelineStep);
                 }
+                else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
             }
         }
+    }
 
-        public void AddAsyncSteps<TLocalIn, TLocalOut>(
-            List<Func<TLocalIn, Task<TLocalOut>>> stepFunctions,
-            int? localMaxDoP = null,
-            bool? ensureOrdered = null,
-            int? bufferSizeOverride = null)
+    public void AddAsyncSteps<TLocalIn, TLocalOut>(
+        List<Func<TLocalIn, Task<TLocalOut>>> stepFunctions,
+        int? localMaxDoP = null,
+        bool? ensureOrdered = null,
+        int? bufferSizeOverride = null)
+    {
+        if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
+
+        for (var i = 0; i < stepFunctions.Count; i++)
         {
-            if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
+            AddAsyncStep(stepFunctions[i], localMaxDoP, ensureOrdered, bufferSizeOverride);
+        }
+    }
 
-            for (int i = 0; i < stepFunctions.Count; i++)
+    public void AddStep<TLocalIn, TLocalOut>(
+        Func<TLocalIn, TLocalOut> stepFunc,
+        int? localMaxDoP = null,
+        bool? ensureOrdered = null,
+        int? bufferSizeOverride = null)
+    {
+        if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
+
+        var options = GetExecuteStepOptions(localMaxDoP, ensureOrdered, bufferSizeOverride);
+        var pipelineStep = new PipelineStep
+        {
+            IsAsync = false,
+            StepIndex = StepCount++,
+        };
+
+        if (Steps.Count == 0)
+        {
+            pipelineStep.Block = new TransformBlock<TLocalIn, TLocalOut>(stepFunc, options);
+            Steps.Add(pipelineStep);
+        }
+        else
+        {
+            var lastStep = Steps.Last();
+            if (lastStep.IsAsync)
             {
-                AddAsyncStep(stepFunctions[i], localMaxDoP, ensureOrdered, bufferSizeOverride);
+                var step = new TransformBlock<Task<TLocalIn>, TLocalOut>(
+                    async (input) => stepFunc(await input),
+                    options);
+
+                if (lastStep.Block is ISourceBlock<Task<TLocalIn>> sourceBlock)
+                {
+                    sourceBlock.LinkTo(step, _linkStepOptions);
+                    pipelineStep.Block = step;
+                    Steps.Add(pipelineStep);
+                }
+                else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
+            }
+            else
+            {
+                var step = new TransformBlock<TLocalIn, TLocalOut>(stepFunc, options);
+                if (lastStep.Block is ISourceBlock<TLocalIn> sourceBlock)
+                {
+                    sourceBlock.LinkTo(step, _linkStepOptions);
+                    pipelineStep.Block = step;
+                    Steps.Add(pipelineStep);
+                }
+                else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
             }
         }
+    }
 
-        public void AddStep<TLocalIn, TLocalOut>(
-            Func<TLocalIn, TLocalOut> stepFunc,
-            int? localMaxDoP = null,
-            bool? ensureOrdered = null,
-            int? bufferSizeOverride = null)
+    public void AddSteps<TLocalIn, TLocalOut>(
+        List<Func<TLocalIn, TLocalOut>> stepFunctions,
+        int? localMaxDoP = null,
+        bool? ensureOrdered = null,
+        int? bufferSizeOverride = null)
+    {
+        if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
+
+        for (int i = 0; i < stepFunctions.Count; i++)
         {
-            if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
+            AddStep(stepFunctions[i], localMaxDoP, ensureOrdered, bufferSizeOverride);
+        }
+    }
 
-            var options = GetExecuteStepOptions(localMaxDoP, ensureOrdered, bufferSizeOverride);
+    public void Finalize(Action<TOut> finalizeStep)
+    {
+        if (Ready) throw new InvalidOperationException(Constants.Pipelines.AlreadyFinalized);
+        if (Steps.Count == 0) throw new InvalidOperationException(Constants.Pipelines.CantFinalize);
+
+        if (finalizeStep != null)
+        {
             var pipelineStep = new PipelineStep
             {
                 IsAsync = false,
                 StepIndex = StepCount++,
+                IsLastStep = true,
             };
 
-            if (Steps.Count == 0)
+            var lastStep = Steps.Last();
+            if (lastStep.IsAsync)
             {
-                pipelineStep.Block = new TransformBlock<TLocalIn, TLocalOut>(stepFunc, options);
-                Steps.Add(pipelineStep);
+                var step = new ActionBlock<Task<TOut>>(
+                    async input => finalizeStep(await input),
+                    _executeStepOptions);
+
+                if (lastStep.Block is ISourceBlock<Task<TOut>> sourceBlock)
+                {
+                    pipelineStep.Block = step;
+                    sourceBlock.LinkTo(step, _linkStepOptions);
+                    Steps.Add(pipelineStep);
+                }
+                else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
             }
             else
             {
-                var lastStep = Steps.Last();
-                if (lastStep.IsAsync)
-                {
-                    var step = new TransformBlock<Task<TLocalIn>, TLocalOut>(
-                        async (input) => stepFunc(await input.ConfigureAwait(false)),
-                        options);
+                var step = new ActionBlock<TOut>(
+                    finalizeStep,
+                    _executeStepOptions);
 
-                    if (lastStep.Block is ISourceBlock<Task<TLocalIn>> sourceBlock)
-                    {
-                        sourceBlock.LinkTo(step, _linkStepOptions);
-                        pipelineStep.Block = step;
-                        Steps.Add(pipelineStep);
-                    }
-                    else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
-                }
-                else
+                if (lastStep.Block is ISourceBlock<TOut> sourceBlock)
                 {
-                    var step = new TransformBlock<TLocalIn, TLocalOut>(stepFunc, options);
-                    if (lastStep.Block is ISourceBlock<TLocalIn> sourceBlock)
-                    {
-                        sourceBlock.LinkTo(step, _linkStepOptions);
-                        pipelineStep.Block = step;
-                        Steps.Add(pipelineStep);
-                    }
-                    else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
+                    pipelineStep.Block = step;
+                    sourceBlock.LinkTo(step, _linkStepOptions);
+                    Steps.Add(pipelineStep);
                 }
+                else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
             }
         }
+        else
+        { Steps.Last().IsLastStep = true; }
 
-        public void AddSteps<TLocalIn, TLocalOut>(
-            List<Func<TLocalIn, TLocalOut>> stepFunctions,
-            int? localMaxDoP = null,
-            bool? ensureOrdered = null,
-            int? bufferSizeOverride = null)
+        Ready = true;
+    }
+
+    public void Finalize(Func<TOut, Task> finalizeStep)
+    {
+        if (Ready) throw new InvalidOperationException(Constants.Pipelines.AlreadyFinalized);
+        if (Steps.Count == 0) throw new InvalidOperationException(Constants.Pipelines.CantFinalize);
+
+        if (finalizeStep != null)
         {
-            if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
-
-            for (int i = 0; i < stepFunctions.Count; i++)
+            var pipelineStep = new PipelineStep
             {
-                AddStep(stepFunctions[i], localMaxDoP, ensureOrdered, bufferSizeOverride);
-            }
-        }
+                IsAsync = true,
+                StepIndex = StepCount++,
+                IsLastStep = true,
+            };
 
-        public void Finalize(Action<TOut> finalizeStep)
-        {
-            if (Ready) throw new InvalidOperationException(Constants.Pipelines.AlreadyFinalized);
-            if (Steps.Count == 0) throw new InvalidOperationException(Constants.Pipelines.CantFinalize);
-
-            if (finalizeStep != null)
+            var lastStep = Steps.Last();
+            if (lastStep.IsAsync)
             {
-                var pipelineStep = new PipelineStep
+                var step = new ActionBlock<Task<TOut>>(
+                    async (input) => await finalizeStep(await input),
+                    _executeStepOptions);
+
+                if (lastStep.Block is ISourceBlock<Task<TOut>> sourceBlock)
                 {
-                    IsAsync = false,
-                    StepIndex = StepCount++,
-                    IsLastStep = true,
-                };
-
-                var lastStep = Steps.Last();
-                if (lastStep.IsAsync)
-                {
-                    var step = new ActionBlock<Task<TOut>>(
-                        async input => finalizeStep(await input.ConfigureAwait(false)),
-                        _executeStepOptions);
-
-                    if (lastStep.Block is ISourceBlock<Task<TOut>> sourceBlock)
-                    {
-                        pipelineStep.Block = step;
-                        sourceBlock.LinkTo(step, _linkStepOptions);
-                        Steps.Add(pipelineStep);
-                    }
-                    else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
-                }
-                else
-                {
-                    var step = new ActionBlock<TOut>(
-                        finalizeStep,
-                        _executeStepOptions);
-
-                    if (lastStep.Block is ISourceBlock<TOut> sourceBlock)
-                    {
-                        pipelineStep.Block = step;
-                        sourceBlock.LinkTo(step, _linkStepOptions);
-                        Steps.Add(pipelineStep);
-                    }
-                    else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
-                }
-            }
-            else
-            { Steps.Last().IsLastStep = true; }
-
-            Ready = true;
-        }
-
-        public void Finalize(Func<TOut, Task> finalizeStep)
-        {
-            if (Ready) throw new InvalidOperationException(Constants.Pipelines.AlreadyFinalized);
-            if (Steps.Count == 0) throw new InvalidOperationException(Constants.Pipelines.CantFinalize);
-
-            if (finalizeStep != null)
-            {
-                var pipelineStep = new PipelineStep
-                {
-                    IsAsync = true,
-                    StepIndex = StepCount++,
-                    IsLastStep = true,
-                };
-
-                var lastStep = Steps.Last();
-                if (lastStep.IsAsync)
-                {
-                    var step = new ActionBlock<Task<TOut>>(
-                        async t => await finalizeStep(await t.ConfigureAwait(false)).ConfigureAwait(false),
-                        _executeStepOptions);
-
-                    if (lastStep.Block is ISourceBlock<Task<TOut>> sourceBlock)
-                    {
-                        pipelineStep.Block = step;
-                        sourceBlock.LinkTo(step, _linkStepOptions);
-                        Steps.Add(pipelineStep);
-                    }
-                }
-                else
-                {
-                    var step = new ActionBlock<TOut>(t => finalizeStep(t), _executeStepOptions);
-                    if (lastStep.Block is ISourceBlock<TOut> sourceBlock)
-                    {
-                        pipelineStep.Block = step;
-                        sourceBlock.LinkTo(step, _linkStepOptions);
-                        Steps.Add(pipelineStep);
-                    }
+                    pipelineStep.Block = step;
+                    sourceBlock.LinkTo(step, _linkStepOptions);
+                    Steps.Add(pipelineStep);
                 }
             }
             else
             {
-                var lastStep = Steps.Last();
-                lastStep.IsLastStep = true;
-            }
-
-            Ready = true;
-        }
-
-        public async Task<bool> QueueForExecutionAsync(TIn input)
-        {
-            if (!Ready) throw new InvalidOperationException(Constants.Pipelines.NotFinalized);
-
-            if (Steps[0].Block is ITargetBlock<TIn> firstStep)
-            {
-                _logger.LogTrace(Constants.Pipelines.Queued, _pipelineName);
-
-                return await firstStep
-                    .SendAsync(input)
-                    .ConfigureAwait(false);
-            }
-
-            return false;
-        }
-
-        public async Task<bool> AwaitCompletionAsync()
-        {
-            if (!Ready) throw new InvalidOperationException(Constants.Pipelines.NotFinalized);
-
-            if (Steps[0].Block is ITargetBlock<TIn> firstStep)
-            {
-                // Tell the pipeline its finished.
-                firstStep.Complete();
-
-                // Await the last step.
-                if (Steps[^1].Block is ITargetBlock<TIn> lastStep)
+                var step = new ActionBlock<TOut>(t => finalizeStep(t), _executeStepOptions);
+                if (lastStep.Block is ISourceBlock<TOut> sourceBlock)
                 {
-                    _logger.LogTrace(Constants.Pipelines.AwaitsCompletion, _pipelineName);
-                    await lastStep.Completion.ConfigureAwait(false);
-                    return true;
+                    pipelineStep.Block = step;
+                    sourceBlock.LinkTo(step, _linkStepOptions);
+                    Steps.Add(pipelineStep);
                 }
             }
-
-            _cts?.Cancel();
-
-            return false;
+        }
+        else
+        {
+            var lastStep = Steps.Last();
+            lastStep.IsLastStep = true;
         }
 
-        public Exception GetAnyPipelineStepsFault()
-        {
-            foreach (var step in Steps)
-            {
-                if (step.IsFaulted)
-                {
-                    return step.Block.Completion.Exception;
-                }
-            }
+        Ready = true;
+    }
 
-            return null;
+    public async Task<bool> QueueForExecutionAsync(TIn input)
+    {
+        if (!Ready) throw new InvalidOperationException(Constants.Pipelines.NotFinalized);
+
+        if (Steps[0].Block is ITargetBlock<TIn> firstStep)
+        {
+            _logger.LogTrace(Constants.Pipelines.Queued, _pipelineName);
+
+            return await firstStep
+                .SendAsync(input);
         }
 
-        private ExecutionDataflowBlockOptions GetExecuteStepOptions(int? maxDoPOverride, bool? ensureOrdered, int? bufferSizeOverride)
-        {
-            if (maxDoPOverride.HasValue || ensureOrdered.HasValue || bufferSizeOverride.HasValue)
-            {
-                return new ExecutionDataflowBlockOptions
-                {
-                    EnsureOrdered = ensureOrdered ?? _executeStepOptions.EnsureOrdered,
-                    MaxDegreeOfParallelism = maxDoPOverride ?? _executeStepOptions.MaxDegreeOfParallelism,
-                    BoundedCapacity = bufferSizeOverride ?? _executeStepOptions.BoundedCapacity,
-                    TaskScheduler = _executeStepOptions.TaskScheduler
-                };
-            }
+        return false;
+    }
 
-            return _executeStepOptions;
+    public async Task<bool> AwaitCompletionAsync()
+    {
+        if (!Ready) throw new InvalidOperationException(Constants.Pipelines.NotFinalized);
+
+        if (Steps[0].Block is ITargetBlock<TIn> firstStep)
+        {
+            // Tell the pipeline its finished.
+            firstStep.Complete();
+
+            // Await the last step.
+            if (Steps[^1].Block is ITargetBlock<TIn> lastStep)
+            {
+                _logger.LogTrace(Constants.Pipelines.AwaitsCompletion, _pipelineName);
+                await lastStep.Completion;
+                return true;
+            }
+            // ActionBlock is returning false for is ITargetBlock<TIn> but it used to work, this catches the Finalize steps when not caught above.
+            else if (Steps[^1].Block is IDataflowBlock lastActionStep)
+            {
+                _logger.LogTrace(Constants.Pipelines.AwaitsCompletion, _pipelineName);
+                await lastActionStep.Completion;
+                return true;
+            }
         }
 
-        private async Task SimplePipelineHealthTaskAsync()
+        _cts?.Cancel();
+
+        return false;
+    }
+
+    public Exception GetAnyPipelineStepsFault()
+    {
+        foreach (var step in Steps)
         {
-            await Task.Yield();
-
-            while (!_cts.IsCancellationRequested)
+            if (step.IsFaulted)
             {
-                try
-                { await Task.Delay(_healthCheckInterval, _cts.Token).ConfigureAwait(false); }
-                catch { /* SWALLOW */ }
-
-                var ex = GetAnyPipelineStepsFault();
-                if (ex != null)
-                { _logger.LogCritical(ex, Constants.Pipelines.Faulted, _pipelineName); }
-                else  // No Steps are Faulted... Hooray!
-                { _logger.LogInformation(Constants.Pipelines.Healthy, _pipelineName); }
+                return step.Block.Completion.Exception;
             }
+        }
+
+        return null;
+    }
+
+    private ExecutionDataflowBlockOptions GetExecuteStepOptions(int? maxDoPOverride, bool? ensureOrdered, int? bufferSizeOverride)
+    {
+        if (maxDoPOverride.HasValue || ensureOrdered.HasValue || bufferSizeOverride.HasValue)
+        {
+            return new ExecutionDataflowBlockOptions
+            {
+                EnsureOrdered = ensureOrdered ?? _executeStepOptions.EnsureOrdered,
+                MaxDegreeOfParallelism = maxDoPOverride ?? _executeStepOptions.MaxDegreeOfParallelism,
+                BoundedCapacity = bufferSizeOverride ?? _executeStepOptions.BoundedCapacity,
+                TaskScheduler = _executeStepOptions.TaskScheduler
+            };
+        }
+
+        return _executeStepOptions;
+    }
+
+    private async Task SimplePipelineHealthTaskAsync()
+    {
+        await Task.Yield();
+
+        while (!_cts.IsCancellationRequested)
+        {
+            try
+            { await Task.Delay(_healthCheckInterval, _cts.Token).ConfigureAwait(false); }
+            catch { /* SWALLOW */ }
+
+            var ex = GetAnyPipelineStepsFault();
+            if (ex != null)
+            { _logger.LogCritical(ex, Constants.Pipelines.Faulted, _pipelineName); }
+            else  // No Steps are Faulted... Hooray!
+            { _logger.LogInformation(Constants.Pipelines.Healthy, _pipelineName); }
         }
     }
 }
