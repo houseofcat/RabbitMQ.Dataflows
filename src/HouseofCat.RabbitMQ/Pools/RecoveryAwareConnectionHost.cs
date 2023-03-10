@@ -22,10 +22,10 @@ public class RecoveryAwareConnectionHost : IConnectionHost, IDisposable
     public RecoveryAwareConnectionHost(IConnectionHost connHost)
     {
         _connHost = connHost;
-        AssignConnection(connection: null);
+        AssignConnection(null);
     }
 
-    public void AssignConnection(IConnection connection = null)
+    public void AssignConnection(IConnection connection)
     {
         _hostLock.Wait();
 
