@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using static HouseofCat.RabbitMQ.LogMessages.ConnectionPools;
 
 namespace HouseofCat.RabbitMQ.Pools
 {
@@ -51,7 +52,7 @@ namespace HouseofCat.RabbitMQ.Pools
             var cf = new ConnectionFactory
             {
                 AutomaticRecoveryEnabled = true,
-                TopologyRecoveryEnabled = Options.FactoryOptions.TopologyRecovery,
+                TopologyRecoveryEnabled = false,
                 NetworkRecoveryInterval = TimeSpan.FromSeconds(Options.FactoryOptions.NetRecoveryTimeout),
                 ContinuationTimeout = TimeSpan.FromSeconds(Options.FactoryOptions.ContinuationTimeout),
                 RequestedHeartbeat = TimeSpan.FromSeconds(Options.FactoryOptions.HeartbeatInterval),
@@ -99,25 +100,30 @@ namespace HouseofCat.RabbitMQ.Pools
 
         private async Task CreateConnectionsAsync()
         {
-            _logger.LogTrace(LogMessages.ConnectionPools.CreateConnections);
+            _logger.LogTrace(CreateConnections);
 
-            for (int i = 0; i < Options.PoolOptions.MaxConnections; i++)
+            for (var i = 0; i < Options.PoolOptions.MaxConnections; i++)
             {
                 var serviceName = string.IsNullOrEmpty(Options.PoolOptions.ServiceName) ? $"HoC.RabbitMQ:{i}" : $"{Options.PoolOptions.ServiceName}:{i}";
                 try
                 {
+                    var connection = CreateConnection(serviceName);
+                    var connHost = CreateConnectionHost(_currentConnectionId++, connection);
                     await _connections
                         .Writer
-                        .WriteAsync(CreateConnectionHost(_currentConnectionId++, CreateConnection(serviceName)));
+                        .WriteAsync(
+                            connHost.Connection is IAutorecoveringConnection
+                                ? new RecoveryAwareConnectionHost(connHost)
+                                : connHost);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, LogMessages.ConnectionPools.CreateConnectionException, serviceName);
+                    _logger.LogError(ex, CreateConnectionException, serviceName);
                     throw; // Non Optional Throw
                 }
             }
 
-            _logger.LogTrace(LogMessages.ConnectionPools.CreateConnectionsComplete);
+            _logger.LogTrace(CreateConnectionsComplete);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -168,7 +174,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
         public async Task ShutdownAsync()
         {
-            _logger.LogTrace(LogMessages.ConnectionPools.Shutdown);
+            _logger.LogTrace(Shutdown);
 
             await _poolLock
                 .WaitAsync()
@@ -186,7 +192,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
             _poolLock.Release();
 
-            _logger.LogTrace(LogMessages.ConnectionPools.ShutdownComplete);
+            _logger.LogTrace(ShutdownComplete);
         }
 
         protected virtual void Dispose(bool disposing)

@@ -77,6 +77,11 @@ namespace HouseofCat.RabbitMQ.Pools
                     _channel = null;
                 }
 
+                if (!await _connHost.HealthyAsync().ConfigureAwait(false))
+                {
+                    return false;
+                }
+
                 _channel = _connHost.Connection.CreateModel();
 
                 if (Ackable)
