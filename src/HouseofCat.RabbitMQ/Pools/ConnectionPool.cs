@@ -7,13 +7,15 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using static HouseofCat.RabbitMQ.LogMessages.ConnectionPools;
+using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ.Pools
 {
     public interface IConnectionPool
     {
         RabbitOptions Options { get; }
+
+        ValueTask<IChannelHost> CreateChannelAsync(ulong channelId, bool ackable);
 
         IConnection CreateConnection(string connectionName);
         ValueTask<IConnectionHost> GetConnectionAsync();
@@ -92,6 +94,15 @@ namespace HouseofCat.RabbitMQ.Pools
             return cf;
         }
 
+        // Allows overriding the mechanism for creating ChannelHosts while a base one was implemented.
+        protected virtual IChannelHost CreateChannelHost(ulong channelId, IConnectionHost connHost, bool ackable) =>
+            new ChannelHost(channelId, connHost, ackable);
+
+        // Allows overriding the mechanism for creating RecoveryAwareChannelHosts while a base one was implemented.
+        protected virtual IRecoveryAwareChannelHost CreateRecoveryAwareChannelHost(
+            ulong channelId, IRecoveryAwareConnectionHost connHost, bool ackable) =>
+            new RecoveryAwareChannelHost(channelId, connHost, ackable);
+
         public IConnection CreateConnection(string connectionName) => _connectionFactory.CreateConnection(connectionName);
 
         // Allows overriding the mechanism for creating ConnectionHosts while a base one was implemented.
@@ -104,7 +115,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
         private async Task CreateConnectionsAsync()
         {
-            _logger.LogTrace(CreateConnections);
+            _logger.LogTrace(ConnectionPools.CreateConnections);
 
             for (var i = 0; i < Options.PoolOptions.MaxConnections; i++)
             {
@@ -121,12 +132,71 @@ namespace HouseofCat.RabbitMQ.Pools
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, CreateConnectionException, serviceName);
+                    _logger.LogError(ex, ConnectionPools.CreateConnectionException, serviceName);
                     throw; // Non Optional Throw
                 }
             }
 
-            _logger.LogTrace(CreateConnectionsComplete);
+            _logger.LogTrace(ConnectionPools.CreateConnectionsComplete);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async ValueTask<IChannelHost> CreateChannelAsync(ulong channelId, bool ackable)
+        {
+            var sleep = Options.PoolOptions.SleepOnErrorInterval;
+            IConnectionHost connHost = null;
+
+            while (true)
+            {
+                _logger.LogTrace(ChannelPools.CreateChannel, channelId);
+
+                // Get ConnectionHost
+                try
+                {
+                    connHost = await GetConnectionAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    _logger.LogTrace(ChannelPools.CreateChannelFailedConnection, channelId);
+                    await ReturnConnectionWithOptionalSleep(connHost, channelId, sleep).ConfigureAwait(false);
+                    continue;
+                }
+
+                // Create a Channel Host
+                try
+                {
+                    var chanHost =
+                        connHost is IRecoveryAwareConnectionHost recoveryAwareConnectionHost
+                            ? CreateRecoveryAwareChannelHost(channelId, recoveryAwareConnectionHost, ackable)
+                            : CreateChannelHost(channelId, connHost, ackable);
+                    await ReturnConnectionWithOptionalSleep(connHost, channelId).ConfigureAwait(false);
+                    _logger.LogDebug(ChannelPools.CreateChannelSuccess, channelId);
+
+                    return chanHost;
+                }
+                catch
+                {
+                    _logger.LogTrace(ChannelPools.CreateChannelFailedConstruction, channelId);
+                    await ReturnConnectionWithOptionalSleep(connHost, channelId, sleep).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private async ValueTask ReturnConnectionWithOptionalSleep(
+            IConnectionHost connHost, ulong channelId, int sleep = 0)
+        {
+            if (connHost != null)
+            {
+                // Return Connection (or lose them.)
+                await ReturnConnectionAsync(connHost).ConfigureAwait(false);
+            }
+
+            if (sleep > 0)
+            {
+                _logger.LogDebug(ChannelPools.CreateChannelSleep, channelId);
+
+                await Task.Delay(sleep).ConfigureAwait(false);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -177,7 +247,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
         public async Task ShutdownAsync()
         {
-            _logger.LogTrace(Shutdown);
+            _logger.LogTrace(ConnectionPools.Shutdown);
 
             await _poolLock
                 .WaitAsync()
@@ -195,7 +265,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
             _poolLock.Release();
 
-            _logger.LogTrace(ShutdownComplete);
+            _logger.LogTrace(ConnectionPools.ShutdownComplete);
         }
 
         protected virtual void Dispose(bool disposing)

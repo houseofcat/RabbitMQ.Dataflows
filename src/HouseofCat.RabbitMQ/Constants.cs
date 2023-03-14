@@ -122,6 +122,8 @@ namespace HouseofCat.RabbitMQ
             public const string ChannelNotEstablished = "Consumer ({0}) channel host could not be assigned.";
             public const string ConsumerMessageReceived = "Consumer ({0}) message received (DT:{1}). Adding to buffer...";
             public const string ConsumerAsyncMessageReceived = "Consumer ({0}) async message received (DT:{1}). Adding to buffer...";
+            public const string ConsumerRegistered = "Consumer ({0}) registered (CT:{1}).";
+            public const string ConsumerAsyncRegistered = "Consumer ({0}) async registered (CT:{1}).";
             public const string ConsumerShutdownEvent = "Consumer ({0}) shutdown event has occurred. Reason: {1}. Attempting to restart consuming...";
             public const string ConsumerMessageWriteToBufferError = "Consumer ({0}) was unable to write to channel buffer. Error: {1}";
 

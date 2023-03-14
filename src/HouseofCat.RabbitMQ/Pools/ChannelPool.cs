@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using HouseofCat.RabbitMQ.Pools.Extensions;
 using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ.Pools
@@ -86,8 +85,8 @@ namespace HouseofCat.RabbitMQ.Pools
         {
             for (var i = 0; i < Options.PoolOptions.MaxChannels; i++)
             {
-                var chanHost =
-                    await _connectionPool.CreateChannelAsync(CurrentChannelId++, false, _logger).ConfigureAwait(false);
+                var chanHost = await _connectionPool.CreateChannelAsync(CurrentChannelId++, false)
+                    .ConfigureAwait(false);
                 _flaggedChannels[chanHost.ChannelId] = false;
 
                 await _channels
@@ -98,8 +97,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
             for (var i = 0; i < Options.PoolOptions.MaxChannels; i++)
             {
-                var chanHost = await _connectionPool.CreateChannelAsync(CurrentChannelId++, true, _logger)
-                    .ConfigureAwait(false);
+                var chanHost = await _connectionPool.CreateChannelAsync(CurrentChannelId++, true).ConfigureAwait(false);
                 _flaggedChannels[chanHost.ChannelId] = false;
 
                 await _ackChannels
@@ -202,8 +200,8 @@ namespace HouseofCat.RabbitMQ.Pools
         /// <param name="ackable"></param>
         /// <returns><see cref="IChannelHost"/></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ValueTask<IChannelHost> GetTransientChannelAsync(bool ackable) =>
-            _connectionPool.CreateChannelAsync(0, ackable, _logger);
+        public ValueTask<IChannelHost> GetTransientChannelAsync(bool ackable) => 
+            _connectionPool.CreateChannelAsync(0, ackable);
 
         /// <summary>
         /// Returns the <see cref="ChannelHost"/> back to the <see cref="ChannelPool"/>.

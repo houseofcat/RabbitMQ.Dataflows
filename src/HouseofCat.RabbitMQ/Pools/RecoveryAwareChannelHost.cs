@@ -1,12 +1,11 @@
-using System;
 using System.Collections.Concurrent;
-using RabbitMQ.Client;
+using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ.Pools;
 
 public interface IRecoveryAwareChannelHost : IChannelHost
 {
-    ConcurrentBag<string> RegisteredConsumerTags { get; }
+    ValueTask<bool> CancelRecoveredConsumerTag(string consumerTag);
 }
 
 public class RecoveryAwareChannelHost : ChannelHost, IRecoveryAwareChannelHost
@@ -15,41 +14,25 @@ public class RecoveryAwareChannelHost : ChannelHost, IRecoveryAwareChannelHost
     
     private IRecoveryAwareConnectionHost _connHost;
 
-    public RecoveryAwareChannelHost(IRecoveryAwareConnectionHost connHost, bool ackable) : base(0, connHost, ackable)
+    public RecoveryAwareChannelHost(ulong channelId, IRecoveryAwareConnectionHost connHost, bool ackable) :
+        base(channelId, connHost, ackable)
     {
         _connHost = connHost;
     }
-    
-    protected override void AddEventHandlers()
-    {
-        base.AddEventHandlers();
-        if (Channel is IRecoverable recoverableChannel)
-        {
-            recoverableChannel.Recovery += ChannelRecovered;
-        }
-    }
 
-    protected override void RemoveEventHandlers()
+    public async ValueTask<bool> CancelRecoveredConsumerTag(string consumerTag)
     {
-        base.RemoveEventHandlers();
-        if (Channel is IRecoverable recoverableChannel)
-        {
-            recoverableChannel.Recovery -= ChannelRecovered;
-        }
-    }
+        await EnterLockAsync().ConfigureAwait(false);
 
-    protected virtual void ChannelRecovered(object sender, EventArgs e)
-    {
-        EnterLock();
         try
         {
-            while (RegisteredConsumerTags?.TryTake(out var consumerTag) ?? false)
+            if (!_connHost.RemoveRecoveredConsumerTag(consumerTag))
             {
-                if (_connHost.RecoveredConsumerTags.TryRemove(consumerTag, out var newConsumerTag))
-                {
-                    Channel.BasicCancel(newConsumerTag);
-                }
+                return false;
             }
+
+            Channel.BasicCancelNoWait(consumerTag);
+            return true;
         }
         finally
         {

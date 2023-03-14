@@ -11,19 +11,42 @@ public interface IRecoveryAwareConnectionHost : IConnectionHost
 {
     bool? Recovered { get; }
     bool Recovering { get; }
-    ConcurrentDictionary<string, string> RecoveredConsumerTags { get; }
+    bool RemoveRecoveredConsumerTag(string consumerTag);
 }
 
 public class RecoveryAwareConnectionHost : ConnectionHost, IRecoveryAwareConnectionHost
 {
     public bool? Recovered { get; private set; }
     public bool Recovering { get; private set; }
-    public ConcurrentDictionary<string, string> RecoveredConsumerTags { get; private set; } = new();
+
+    private ConcurrentDictionary<string, bool> _recoveredConsumerTags = new();
 
     public RecoveryAwareConnectionHost(ulong connectionId, IConnection connection) : base(connectionId, connection)
     {
     }
 
+    public override async Task<bool> HealthyAsync()
+    {
+        await EnterLockAsync().ConfigureAwait(false);
+
+        try
+        {
+            if (Recovered is false)
+            {
+                return false;
+            }
+        }
+        finally
+        {
+            ExitLock();
+        }
+
+        return await base.HealthyAsync().ConfigureAwait(false);
+    }
+
+    public bool RemoveRecoveredConsumerTag(string consumerTag) =>
+        _recoveredConsumerTags?.TryRemove(consumerTag, out _) ?? false;
+    
     protected override void AddEventHandlers()
     {
         base.AddEventHandlers();
@@ -46,25 +69,6 @@ public class RecoveryAwareConnectionHost : ConnectionHost, IRecoveryAwareConnect
         autoRecoveringConnection.ConsumerTagChangeAfterRecovery -= ConsumerTagChangedAfterRecovery;
     }
 
-    public override async Task<bool> HealthyAsync()
-    {
-        await EnterLockAsync().ConfigureAwait(false);
-
-        try
-        {
-            if (Recovered is false)
-            {
-                return false;
-            }
-        }
-        finally
-        {
-            ExitLock();
-        }
-
-        return await base.HealthyAsync().ConfigureAwait(false);
-    }
-
     protected override void ConnectionClosed(object sender, ShutdownEventArgs e)
     {
         base.ConnectionClosed(sender, e);
@@ -80,7 +84,6 @@ public class RecoveryAwareConnectionHost : ConnectionHost, IRecoveryAwareConnect
         Recovered = true;
         Recovering = false;
         ExitLock();
-        RecoveredConsumerTags.Clear();
     }
 
     protected virtual void ConsumerTagChangedAfterRecovery(object sender, ConsumerTagChangedAfterRecoveryEventArgs e)
@@ -88,7 +91,7 @@ public class RecoveryAwareConnectionHost : ConnectionHost, IRecoveryAwareConnect
         EnterLock();
         Recovering = true;
         ExitLock();
-        RecoveredConsumerTags.TryAdd(e.TagBefore, e.TagAfter);
+        _recoveredConsumerTags.TryAdd(e.TagAfter, true);
     }
 
     protected override void Dispose(bool disposing)
@@ -98,7 +101,7 @@ public class RecoveryAwareConnectionHost : ConnectionHost, IRecoveryAwareConnect
             return;
         }
 
-        RecoveredConsumerTags = null;
+        _recoveredConsumerTags = null;
         base.Dispose(disposing);
     }
 }

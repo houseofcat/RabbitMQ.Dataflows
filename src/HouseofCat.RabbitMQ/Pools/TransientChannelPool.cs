@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HouseofCat.Logger;
-using HouseofCat.RabbitMQ.Pools.Extensions;
 using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Logging;
 using static HouseofCat.RabbitMQ.LogMessages;
@@ -35,7 +34,7 @@ public class TransientChannelPool : IChannelPool, IDisposable
     public ValueTask<IChannelHost> GetChannelAsync() => throw new NotSupportedException();
 
     public ValueTask<IChannelHost> GetTransientChannelAsync(bool ackable) =>
-        _connectionPool.CreateChannelAsync(0, ackable, _logger);
+        _connectionPool.CreateChannelAsync(0, ackable);
 
     public ValueTask ReturnChannelAsync(IChannelHost chanHost, bool flagChannel) => throw new NotSupportedException();
 
