@@ -31,9 +31,10 @@ namespace HouseofCat.RabbitMQ.Pools
         public bool Dead { get; private set; }
         public bool Closed { get; private set; }
 
+        protected bool DisposedValue { get; private set; }
+
         private readonly ILogger<ConnectionHost> _logger;
         private readonly SemaphoreSlim _hostLock = new SemaphoreSlim(1, 1);
-        private bool _disposedValue;
 
         public ConnectionHost(ulong connectionId, IConnection connection)
         {
@@ -45,13 +46,11 @@ namespace HouseofCat.RabbitMQ.Pools
 
         public void AssignConnection(IConnection connection)
         {
-            _hostLock.Wait();
+            EnterLock();
 
             if (Connection != null)
             {
-                Connection.ConnectionBlocked -= ConnectionBlocked;
-                Connection.ConnectionUnblocked -= ConnectionUnblocked;
-                Connection.ConnectionShutdown -= ConnectionClosed;
+                RemoveEventHandlers();
 
                 try
                 { Close(); }
@@ -62,35 +61,51 @@ namespace HouseofCat.RabbitMQ.Pools
 
             Connection = connection;
 
+            AddEventHandlers();
+
+            ExitLock();
+        }
+
+        protected virtual void AddEventHandlers()
+        {
             Connection.ConnectionBlocked += ConnectionBlocked;
             Connection.ConnectionUnblocked += ConnectionUnblocked;
             Connection.ConnectionShutdown += ConnectionClosed;
-
-            _hostLock.Release();
         }
+
+        protected virtual void RemoveEventHandlers()
+        {
+            Connection.ConnectionBlocked -= ConnectionBlocked;
+            Connection.ConnectionUnblocked -= ConnectionUnblocked;
+            Connection.ConnectionShutdown -= ConnectionClosed;
+        }
+
+        protected void EnterLock() => _hostLock.Wait();
+        protected Task EnterLockAsync() => _hostLock.WaitAsync();
+        protected void ExitLock() => _hostLock.Release();
 
         protected virtual void ConnectionClosed(object sender, ShutdownEventArgs e)
         {
-            _hostLock.Wait();
+            EnterLock();
             _logger.LogWarning(e.ReplyText);
             Closed = true;
-            _hostLock.Release();
+            ExitLock();
         }
 
         protected virtual void ConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
         {
-            _hostLock.Wait();
+            EnterLock();
             _logger.LogWarning(e.Reason);
             Blocked = true;
-            _hostLock.Release();
+            ExitLock();
         }
 
         protected virtual void ConnectionUnblocked(object sender, EventArgs e)
         {
-            _hostLock.Wait();
+            EnterLock();
             _logger.LogInformation("Connection unblocked!");
             Blocked = false;
-            _hostLock.Release();
+            ExitLock();
         }
 
         private const int CloseCode = 200;
@@ -104,34 +119,34 @@ namespace HouseofCat.RabbitMQ.Pools
         /// <para>AutoRecovery = False yields results like Closed, Dead, and IsOpen will be true, true, false or false, false, true.</para>
         /// <para>AutoRecovery = True, yields difficult results like Closed, Dead, And IsOpen will be false, false, false or true, true, true (and other variations).</para>
         /// </summary>
-        public async Task<bool> HealthyAsync()
+        public virtual async Task<bool> HealthyAsync()
         {
-            await _hostLock
-                .WaitAsync()
-                .ConfigureAwait(false);
+            await EnterLockAsync().ConfigureAwait(false);
 
             if (Closed && Connection.IsOpen)
             { Closed = false; } // Means a Recovery took place.
             else if (Dead && Connection.IsOpen)
             { Dead = false; } // Means a Miracle took place.
 
-            _hostLock.Release();
+            ExitLock();
 
             return Connection.IsOpen && !Blocked; // TODO: See if we can incorporate Dead/Closed observations.
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (DisposedValue)
             {
-                if (disposing)
-                {
-                    _hostLock.Dispose();
-                }
-
-                Connection = null;
-                _disposedValue = true;
+                return;
             }
+
+            if (disposing)
+            {
+                _hostLock.Dispose();
+            }
+
+            Connection = null;
+            DisposedValue = true;
         }
 
         public void Dispose()

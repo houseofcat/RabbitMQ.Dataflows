@@ -52,7 +52,7 @@ namespace HouseofCat.RabbitMQ.Pools
             var cf = new ConnectionFactory
             {
                 AutomaticRecoveryEnabled = true,
-                TopologyRecoveryEnabled = false,
+                TopologyRecoveryEnabled = Options.FactoryOptions.TopologyRecovery,
                 NetworkRecoveryInterval = TimeSpan.FromSeconds(Options.FactoryOptions.NetRecoveryTimeout),
                 ContinuationTimeout = TimeSpan.FromSeconds(Options.FactoryOptions.ContinuationTimeout),
                 RequestedHeartbeat = TimeSpan.FromSeconds(Options.FactoryOptions.HeartbeatInterval),
@@ -98,6 +98,10 @@ namespace HouseofCat.RabbitMQ.Pools
         protected virtual IConnectionHost CreateConnectionHost(ulong connectionId, IConnection connection) =>
             new ConnectionHost(connectionId, connection);
 
+        // Allows overriding the mechanism for creating RecoveryAwareConnectionHosts while a base one was implemented.
+        protected virtual IRecoveryAwareConnectionHost CreateRecoveryAwareConnectionHost(
+            ulong connectionId, IConnection connection) => new RecoveryAwareConnectionHost(connectionId, connection);
+
         private async Task CreateConnectionsAsync()
         {
             _logger.LogTrace(CreateConnections);
@@ -108,13 +112,12 @@ namespace HouseofCat.RabbitMQ.Pools
                 try
                 {
                     var connection = CreateConnection(serviceName);
-                    var connHost = CreateConnectionHost(_currentConnectionId++, connection);
                     await _connections
                         .Writer
                         .WriteAsync(
-                            connHost.Connection is IAutorecoveringConnection
-                                ? new RecoveryAwareConnectionHost(connHost)
-                                : connHost);
+                            connection is IAutorecoveringConnection
+                                ? CreateRecoveryAwareConnectionHost(_currentConnectionId++, connection)
+                                : CreateConnectionHost(_currentConnectionId++, connection));
                 }
                 catch (Exception ex)
                 {

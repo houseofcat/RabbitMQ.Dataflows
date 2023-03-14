@@ -6,6 +6,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ.Pools
 {
@@ -25,18 +26,17 @@ namespace HouseofCat.RabbitMQ.Pools
     public class ChannelHost : IChannelHost, IDisposable
     {
         private readonly ILogger<ChannelHost> _logger;
-        private IModel _channel { get; set; }
-        private IConnectionHost _connHost { get; set; }
 
-        public ulong ChannelId { get; set; }
-
+        public ulong ChannelId { get; }
         public bool Ackable { get; }
-
         public bool Closed { get; private set; }
         public bool FlowControlled { get; private set; }
 
         private readonly SemaphoreSlim _hostLock = new SemaphoreSlim(1, 1);
-        private bool _disposedValue;
+        private IConnectionHost _connHost;
+
+        protected IModel Channel { get; private set; }
+        protected bool DisposedValue { get; private set; }
 
         public ChannelHost(ulong channelId, IConnectionHost connHost, bool ackable)
         {
@@ -52,113 +52,134 @@ namespace HouseofCat.RabbitMQ.Pools
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IModel GetChannel()
         {
-            _hostLock.Wait();
+            EnterLock();
 
             try
-            { return _channel; }
+            {
+                return Channel;
+            }
             finally
-            { _hostLock.Release(); }
+            {
+                ExitLock();
+            }
         }
 
-        private static readonly string _makeChannelFailedError = "Making a channel failed. Error: {0}";
+        private const string MakeChannelFailedError = "Making a channel failed. Error: {Message}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public async Task<bool> MakeChannelAsync()
         {
-            await _hostLock.WaitAsync().ConfigureAwait(false);
+            if (!await _connHost.HealthyAsync().ConfigureAwait(false))
+            {
+                return false;
+            }
+
+            await EnterLockAsync().ConfigureAwait(false);
 
             try
             {
-                if (_channel != null)
+                if (Channel != null)
                 {
-                    _channel.FlowControl -= FlowControl;
-                    _channel.ModelShutdown -= ChannelClose;
+                    RemoveEventHandlers();
                     Close();
-                    _channel = null;
+                    Channel = null;
                 }
 
-                if (!await _connHost.HealthyAsync().ConfigureAwait(false))
-                {
-                    return false;
-                }
-
-                _channel = _connHost.Connection.CreateModel();
+                Channel = _connHost.Connection.CreateModel();
 
                 if (Ackable)
                 {
-                    _channel.ConfirmSelect();
+                    Channel.ConfirmSelect();
                 }
 
-                _channel.FlowControl += FlowControl;
-                _channel.ModelShutdown += ChannelClose;
+                AddEventHandlers();
 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(_makeChannelFailedError, ex.Message);
-                _channel = null;
+                _logger.LogError(MakeChannelFailedError, ex.Message);
+                Channel = null;
                 return false;
             }
             finally
-            { _hostLock.Release(); }
+            {
+                ExitLock();
+            }
         }
+
+        protected virtual void AddEventHandlers()
+        {
+            Channel.FlowControl += FlowControl;
+            Channel.ModelShutdown += ChannelClose;
+        }
+
+        protected virtual void RemoveEventHandlers()
+        {
+            Channel.FlowControl -= FlowControl;
+            Channel.ModelShutdown -= ChannelClose;
+        }
+
+        protected void EnterLock() => _hostLock.Wait();
+        protected Task EnterLockAsync() => _hostLock.WaitAsync();
+        protected void ExitLock() => _hostLock.Release();
 
         protected virtual void ChannelClose(object sender, ShutdownEventArgs e)
         {
-            _hostLock.Wait();
+            EnterLock();
             _logger.LogDebug(e.ReplyText);
             Closed = true;
-            _hostLock.Release();
+            ExitLock();
         }
 
         protected virtual void FlowControl(object sender, FlowControlEventArgs e)
         {
-            _hostLock.Wait();
-
+            EnterLock();
             if (e.Active)
-            { _logger.LogWarning(LogMessages.ChannelHosts.FlowControlled, ChannelId); }
+            {
+                _logger.LogWarning(ChannelHosts.FlowControlled, ChannelId);
+            }
             else
-            { _logger.LogInformation(LogMessages.ChannelHosts.FlowControlFinished, ChannelId); }
-
+            {
+                _logger.LogInformation(ChannelHosts.FlowControlFinished, ChannelId);
+            }
             FlowControlled = e.Active;
-
-            _hostLock.Release();
+            ExitLock();
         }
 
-        public async Task<bool> HealthyAsync()
-        {
-            var connectionHealthy = await _connHost.HealthyAsync().ConfigureAwait(false);
-
-            return connectionHealthy && !FlowControlled && (_channel?.IsOpen ?? false);
-        }
+        public async Task<bool> HealthyAsync() =>
+            await _connHost.HealthyAsync().ConfigureAwait(false) && !FlowControlled && (Channel?.IsOpen ?? false);
 
         private const int CloseCode = 200;
         private const string CloseMessage = "HouseofCat.RabbitMQ manual close channel initiated.";
 
         public void Close()
         {
-            if (!Closed || !_channel.IsOpen)
+            if (!Closed && Channel.IsOpen)
             {
                 try
-                { _channel.Close(CloseCode, CloseMessage); }
+                {
+                    Channel.Close(CloseCode, CloseMessage);
+                }
                 catch { /* SWALLOW */ }
             }
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (DisposedValue)
             {
-                if (disposing)
-                {
-                    _hostLock.Dispose();
-                }
-
-                _channel = null;
-                _connHost = null;
-                _disposedValue = true;
+                return;
             }
+
+            if (disposing)
+            {
+                _hostLock.Dispose();
+            }
+
+            Channel = null;
+            _connHost = null;
+            DisposedValue = true;
         }
 
         public void Dispose()

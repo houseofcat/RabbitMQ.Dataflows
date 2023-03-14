@@ -348,3 +348,15 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# Rider folder
+.idea/
+
+# Docker files for local and CI/CD packaging
+Directory.Build.Props
+Dockerfile*
+NuGet.Config
+docker-compose.yml
+package.sh
+publish.sh
+tests.sh

@@ -7,6 +7,8 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using HouseofCat.RabbitMQ.Pools.Extensions;
+using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ.Pools
 {
@@ -82,22 +84,28 @@ namespace HouseofCat.RabbitMQ.Pools
 
         private async Task CreateChannelsAsync()
         {
-            for (int i = 0; i < Options.PoolOptions.MaxChannels; i++)
+            for (var i = 0; i < Options.PoolOptions.MaxChannels; i++)
             {
-                var chanHost = await CreateChannelAsync(CurrentChannelId++, false).ConfigureAwait(false);
+                var chanHost =
+                    await _connectionPool.CreateChannelAsync(CurrentChannelId++, false, _logger).ConfigureAwait(false);
+                _flaggedChannels[chanHost.ChannelId] = false;
 
                 await _channels
                     .Writer
-                    .WriteAsync(chanHost);
+                    .WriteAsync(chanHost)
+                    .ConfigureAwait(false);
             }
 
-            for (int i = 0; i < Options.PoolOptions.MaxChannels; i++)
+            for (var i = 0; i < Options.PoolOptions.MaxChannels; i++)
             {
-                var chanHost = await CreateChannelAsync(CurrentChannelId++, true).ConfigureAwait(false);
+                var chanHost = await _connectionPool.CreateChannelAsync(CurrentChannelId++, true, _logger)
+                    .ConfigureAwait(false);
+                _flaggedChannels[chanHost.ChannelId] = false;
 
                 await _ackChannels
                     .Writer
-                    .WriteAsync(chanHost);
+                    .WriteAsync(chanHost)
+                    .ConfigureAwait(false);
             }
         }
 
@@ -131,7 +139,7 @@ namespace HouseofCat.RabbitMQ.Pools
             var flagged = _flaggedChannels.ContainsKey(chanHost.ChannelId) && _flaggedChannels[chanHost.ChannelId];
             if (flagged || !healthy)
             {
-                _logger.LogWarning(LogMessages.ChannelPools.DeadChannel, chanHost.ChannelId);
+                _logger.LogWarning(ChannelPools.DeadChannel, chanHost.ChannelId);
 
                 var success = false;
                 while (!success)
@@ -174,7 +182,7 @@ namespace HouseofCat.RabbitMQ.Pools
             var flagged = _flaggedChannels.ContainsKey(chanHost.ChannelId) && _flaggedChannels[chanHost.ChannelId];
             if (flagged || !healthy)
             {
-                _logger.LogWarning(LogMessages.ChannelPools.DeadChannel, chanHost.ChannelId);
+                _logger.LogWarning(ChannelPools.DeadChannel, chanHost.ChannelId);
 
                 var success = false;
                 while (!success)
@@ -194,60 +202,8 @@ namespace HouseofCat.RabbitMQ.Pools
         /// <param name="ackable"></param>
         /// <returns><see cref="IChannelHost"/></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async ValueTask<IChannelHost> GetTransientChannelAsync(bool ackable) => await CreateChannelAsync(0, ackable).ConfigureAwait(false);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private async Task<IChannelHost> CreateChannelAsync(ulong channelId, bool ackable)
-        {
-            IChannelHost chanHost = null;
-            IConnectionHost connHost = null;
-
-            while (true)
-            {
-                _logger.LogTrace(LogMessages.ChannelPools.CreateChannel, channelId);
-
-                // Get ConnectionHost
-                try
-                { connHost = await _connectionPool.GetConnectionAsync().ConfigureAwait(false); }
-                catch
-                {
-                    _logger.LogTrace(LogMessages.ChannelPools.CreateChannelFailedConnection, channelId);
-                    await ReturnConnectionWithOptionalSleep(connHost, channelId, Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
-                    continue;
-                }
-
-                // Create a Channel Host
-                try
-                {
-                    chanHost = new ChannelHost(channelId, connHost, ackable);
-                    await ReturnConnectionWithOptionalSleep(connHost, channelId, 0).ConfigureAwait(false);
-                    _flaggedChannels[chanHost.ChannelId] = false;
-                    _logger.LogDebug(LogMessages.ChannelPools.CreateChannelSuccess, channelId);
-
-                    return chanHost;
-                }
-                catch
-                {
-                    _logger.LogTrace(LogMessages.ChannelPools.CreateChannelFailedConstruction, channelId);
-                    await ReturnConnectionWithOptionalSleep(connHost, channelId, Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
-                }
-            }
-        }
-
-        private async Task ReturnConnectionWithOptionalSleep(IConnectionHost connHost, ulong channelId, int sleep)
-        {
-            if (connHost != null)
-            { await _connectionPool.ReturnConnectionAsync(connHost); } // Return Connection (or lose them.)
-
-            if (sleep > 0)
-            {
-                _logger.LogDebug(LogMessages.ChannelPools.CreateChannelSleep, channelId);
-
-                await Task
-                    .Delay(sleep)
-                    .ConfigureAwait(false);
-            }
-        }
+        public ValueTask<IChannelHost> GetTransientChannelAsync(bool ackable) =>
+            _connectionPool.CreateChannelAsync(0, ackable, _logger);
 
         /// <summary>
         /// Returns the <see cref="ChannelHost"/> back to the <see cref="ChannelPool"/>.
@@ -264,7 +220,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
             _flaggedChannels[chanHost.ChannelId] = flagChannel;
 
-            _logger.LogDebug(LogMessages.ChannelPools.ReturningChannel, chanHost.ChannelId, flagChannel);
+            _logger.LogDebug(ChannelPools.ReturningChannel, chanHost.ChannelId, flagChannel);
 
             if (chanHost.Ackable)
             {
@@ -284,7 +240,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
         public async Task ShutdownAsync()
         {
-            _logger.LogTrace(LogMessages.ChannelPools.Shutdown);
+            _logger.LogTrace(ChannelPools.Shutdown);
 
             await _poolLock
                 .WaitAsync()
@@ -303,7 +259,7 @@ namespace HouseofCat.RabbitMQ.Pools
             }
 
             _poolLock.Release();
-            _logger.LogTrace(LogMessages.ChannelPools.ShutdownComplete);
+            _logger.LogTrace(ChannelPools.ShutdownComplete);
         }
 
         private async Task CloseChannelsAsync()

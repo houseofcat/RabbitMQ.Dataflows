@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ
 {
@@ -123,12 +124,12 @@ namespace HouseofCat.RabbitMQ
                     bool success;
                     do
                     {
-                        _logger.LogTrace(LogMessages.Consumers.StartingConsumerLoop, ConsumerOptions.ConsumerName);
+                        _logger.LogTrace(Consumers.StartingConsumerLoop, ConsumerOptions.ConsumerName);
                         success = await StartConsumingAsync().ConfigureAwait(false);
                     }
                     while (!success);
 
-                    _logger.LogDebug(LogMessages.Consumers.Started, ConsumerOptions.ConsumerName);
+                    _logger.LogDebug(Consumers.Started, ConsumerOptions.ConsumerName);
 
                     Started = true;
                 }
@@ -140,7 +141,7 @@ namespace HouseofCat.RabbitMQ
         {
             if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
 
-            _logger.LogDebug(LogMessages.Consumers.StopConsumer, ConsumerOptions.ConsumerName);
+            _logger.LogDebug(Consumers.StopConsumer, ConsumerOptions.ConsumerName);
 
             try
             {
@@ -161,7 +162,7 @@ namespace HouseofCat.RabbitMQ
 
                     Started = false;
                     _logger.LogDebug(
-                        LogMessages.Consumers.StoppedConsumer,
+                        Consumers.StoppedConsumer,
                         ConsumerOptions.ConsumerName);
                 }
             }
@@ -177,7 +178,7 @@ namespace HouseofCat.RabbitMQ
             { return false; }
 
             _logger.LogInformation(
-                LogMessages.Consumers.StartingConsumer,
+                Consumers.StartingConsumer,
                 ConsumerOptions.ConsumerName);
 
             if (Options.FactoryOptions.EnableDispatchConsumersAsync)
@@ -228,7 +229,7 @@ namespace HouseofCat.RabbitMQ
             }
 
             _logger.LogInformation(
-                LogMessages.Consumers.StartedConsumer,
+                Consumers.StartedConsumer,
                 ConsumerOptions.ConsumerName);
 
             return true;
@@ -236,7 +237,7 @@ namespace HouseofCat.RabbitMQ
 
         private void BasicConsume(IBasicConsumer consumer)
         {
-            _chanHost
+            var consumerTag = _chanHost
                 .GetChannel()
                 .BasicConsume(
                     ConsumerOptions.QueueName,
@@ -246,6 +247,10 @@ namespace HouseofCat.RabbitMQ
                     ConsumerOptions.Exclusive ?? false,
                     null,
                     consumer);
+            if (_chanHost is IRecoveryAwareChannelHost recoveryAwareChannelHost)
+            {
+                recoveryAwareChannelHost.RegisteredConsumerTags?.Add(consumerTag);
+            }
         }
 
         private async Task SetChannelHostAsync()
@@ -253,28 +258,28 @@ namespace HouseofCat.RabbitMQ
             if (ConsumerOptions.UseTransientChannels ?? true)
             {
                 var autoAck = ConsumerOptions.AutoAck ?? false;
-                _logger.LogTrace(LogMessages.Consumers.GettingTransientChannelHost, ConsumerOptions.ConsumerName);
+                _logger.LogTrace(Consumers.GettingTransientChannelHost, ConsumerOptions.ConsumerName);
                 _chanHost = await ChannelPool
                     .GetTransientChannelAsync(!autoAck)
                     .ConfigureAwait(false);
             }
             else if (ConsumerOptions.AutoAck ?? false)
             {
-                _logger.LogTrace(LogMessages.Consumers.GettingChannelHost, ConsumerOptions.ConsumerName);
+                _logger.LogTrace(Consumers.GettingChannelHost, ConsumerOptions.ConsumerName);
                 _chanHost = await ChannelPool
                     .GetChannelAsync()
                     .ConfigureAwait(false);
             }
             else
             {
-                _logger.LogTrace(LogMessages.Consumers.GettingAckChannelHost, ConsumerOptions.ConsumerName);
+                _logger.LogTrace(Consumers.GettingAckChannelHost, ConsumerOptions.ConsumerName);
                 _chanHost = await ChannelPool
                     .GetAckChannelAsync()
                     .ConfigureAwait(false);
             }
 
             _logger.LogDebug(
-                LogMessages.Consumers.ChannelEstablished,
+                Consumers.ChannelEstablished,
                 ConsumerOptions.ConsumerName,
                 _chanHost?.ChannelId ?? 0ul);
         }
@@ -295,7 +300,7 @@ namespace HouseofCat.RabbitMQ
         protected virtual async void ReceiveHandler(object _, BasicDeliverEventArgs bdea)
         {
             _logger.LogDebug(
-                LogMessages.Consumers.ConsumerMessageReceived,
+                Consumers.ConsumerMessageReceived,
                 ConsumerOptions.ConsumerName,
                 bdea.DeliveryTag);
 
@@ -329,7 +334,7 @@ namespace HouseofCat.RabbitMQ
         protected virtual async Task ReceiveHandlerAsync(object _, BasicDeliverEventArgs bdea)
         {
             _logger.LogDebug(
-                LogMessages.Consumers.ConsumerAsyncMessageReceived,
+                Consumers.ConsumerAsyncMessageReceived,
                 ConsumerOptions.ConsumerName,
                 bdea.DeliveryTag);
 
@@ -351,7 +356,7 @@ namespace HouseofCat.RabbitMQ
             catch (Exception ex)
             {
                 _logger.LogError(
-                    LogMessages.Consumers.ConsumerMessageWriteToBufferError,
+                    Consumers.ConsumerMessageWriteToBufferError,
                     ConsumerOptions.ConsumerName,
                     ex.Message);
                 return false;
@@ -382,7 +387,7 @@ namespace HouseofCat.RabbitMQ
                     if (success)
                     {
                         _logger.LogWarning(
-                            LogMessages.Consumers.ConsumerShutdownEvent,
+                            Consumers.ConsumerShutdownEvent,
                             ConsumerOptions.ConsumerName,
                             e.ReplyText);
 
@@ -492,7 +497,7 @@ namespace HouseofCat.RabbitMQ
                         if (receivedData != null)
                         {
                             _logger.LogDebug(
-                                LogMessages.Consumers.ConsumerDataflowQueueing,
+                                Consumers.ConsumerDataflowQueueing,
                                 ConsumerOptions.ConsumerName,
                                 receivedData.DeliveryTag);
 
@@ -506,13 +511,13 @@ namespace HouseofCat.RabbitMQ
             catch (OperationCanceledException)
             {
                 _logger.LogWarning(
-                    LogMessages.Consumers.ConsumerDataflowActionCancelled,
+                    Consumers.ConsumerDataflowActionCancelled,
                     ConsumerOptions.ConsumerName);
             }
             catch (Exception ex)
             {
                 _logger.LogError(
-                    LogMessages.Consumers.ConsumerDataflowError,
+                    Consumers.ConsumerDataflowError,
                     ConsumerOptions.ConsumerName,
                     ex.Message);
             }
@@ -562,13 +567,13 @@ namespace HouseofCat.RabbitMQ
             catch (OperationCanceledException)
             {
                 _logger.LogWarning(
-                    LogMessages.Consumers.ConsumerDataflowActionCancelled,
+                    Consumers.ConsumerDataflowActionCancelled,
                     ConsumerOptions.ConsumerName);
             }
             catch (Exception ex)
             {
                 _logger.LogError(
-                    LogMessages.Consumers.ConsumerDataflowError,
+                    Consumers.ConsumerDataflowError,
                     ConsumerOptions.ConsumerName,
                     ex.Message);
             }
@@ -589,7 +594,7 @@ namespace HouseofCat.RabbitMQ
                     if (receivedData != null)
                     {
                         _logger.LogDebug(
-                            LogMessages.Consumers.ConsumerDataflowQueueing,
+                            Consumers.ConsumerDataflowQueueing,
                             ConsumerOptions.ConsumerName,
                             receivedData.DeliveryTag);
 
@@ -602,13 +607,13 @@ namespace HouseofCat.RabbitMQ
             catch (OperationCanceledException)
             {
                 _logger.LogWarning(
-                    LogMessages.Consumers.ConsumerDataflowActionCancelled,
+                    Consumers.ConsumerDataflowActionCancelled,
                     ConsumerOptions.ConsumerName);
             }
             catch (Exception ex)
             {
                 _logger.LogError(
-                    LogMessages.Consumers.ConsumerDataflowError,
+                    Consumers.ConsumerDataflowError,
                     ConsumerOptions.ConsumerName,
                     ex.Message);
             }

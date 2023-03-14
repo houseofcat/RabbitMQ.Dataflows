@@ -1,113 +1,104 @@
 using System;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace HouseofCat.RabbitMQ.Pools;
 
-public class RecoveryAwareConnectionHost : IConnectionHost, IDisposable
+public interface IRecoveryAwareConnectionHost : IConnectionHost
 {
-    public IConnection Connection => _connHost.Connection;
-    public ulong ConnectionId => _connHost.ConnectionId;
-    public bool Blocked => _connHost.Blocked;
-    public bool Dead => _connHost.Dead;
-    public bool Closed => _connHost.Closed;
+    bool? Recovered { get; }
+    bool Recovering { get; }
+    ConcurrentDictionary<string, string> RecoveredConsumerTags { get; }
+}
 
-    private readonly SemaphoreSlim _hostLock = new(1, 1);
-    private IAutorecoveringConnection _connection;
-    private IConnectionHost _connHost;
-    private bool? _recovered;
-    private bool _disposedValue;
+public class RecoveryAwareConnectionHost : ConnectionHost, IRecoveryAwareConnectionHost
+{
+    public bool? Recovered { get; private set; }
+    public bool Recovering { get; private set; }
+    public ConcurrentDictionary<string, string> RecoveredConsumerTags { get; private set; } = new();
 
-    public RecoveryAwareConnectionHost(IConnectionHost connHost)
+    public RecoveryAwareConnectionHost(ulong connectionId, IConnection connection) : base(connectionId, connection)
     {
-        _connHost = connHost;
-        AssignConnection(null);
     }
 
-    public void AssignConnection(IConnection connection)
+    protected override void AddEventHandlers()
     {
-        _hostLock.Wait();
-
-        if (_connection != null)
+        base.AddEventHandlers();
+        if (Connection is not IAutorecoveringConnection autoRecoveringConnection)
         {
-            _connection.ConnectionShutdown -= ConnectionClosed;
-            _connection.RecoverySucceeded -= ConnectionRecovered;
-            _connection = null;
+            return;
         }
-
-        if (connection is not null)
-        {
-            _connHost.AssignConnection(connection);
-        }
-
-        if (Connection is IAutorecoveringConnection autoRecoveringConnection)
-        {
-            _connection = autoRecoveringConnection;
-            _connection.ConnectionShutdown += ConnectionClosed;
-            _connection.RecoverySucceeded += ConnectionRecovered;
-        }
-
-        _hostLock.Release();
+        autoRecoveringConnection.RecoverySucceeded += ConnectionRecovered;
+        autoRecoveringConnection.ConsumerTagChangeAfterRecovery += ConsumerTagChangedAfterRecovery;
     }
 
-    public void Close() => _connHost.Close();
-
-    public async Task<bool> HealthyAsync()
+    protected override void RemoveEventHandlers()
     {
-        await _hostLock
-            .WaitAsync()
-            .ConfigureAwait(false);
+        base.RemoveEventHandlers();
+        if (Connection is not IAutorecoveringConnection autoRecoveringConnection)
+        {
+            return;
+        }
+        autoRecoveringConnection.RecoverySucceeded -= ConnectionRecovered;
+        autoRecoveringConnection.ConsumerTagChangeAfterRecovery -= ConsumerTagChangedAfterRecovery;
+    }
+
+    public override async Task<bool> HealthyAsync()
+    {
+        await EnterLockAsync().ConfigureAwait(false);
 
         try
         {
-            return _recovered != false && await _connHost.HealthyAsync().ConfigureAwait(false);
+            if (Recovered is false)
+            {
+                return false;
+            }
         }
         finally
         {
-            _hostLock.Release();
+            ExitLock();
         }
+
+        return await base.HealthyAsync().ConfigureAwait(false);
     }
 
-    private void ConnectionClosed(object sender, ShutdownEventArgs e)
+    protected override void ConnectionClosed(object sender, ShutdownEventArgs e)
     {
-        _hostLock.Wait();
-        _recovered = false;
-        _hostLock.Release();
+        base.ConnectionClosed(sender, e);
+        EnterLock();
+        Recovered = false;
+        Recovering = false;
+        ExitLock();
     }
 
-    private void ConnectionRecovered(object sender, EventArgs e)
+    protected virtual void ConnectionRecovered(object sender, EventArgs e)
     {
-        _hostLock.Wait();
-        _recovered = true;
-        _hostLock.Release();
+        EnterLock();
+        Recovered = true;
+        Recovering = false;
+        ExitLock();
+        RecoveredConsumerTags.Clear();
     }
 
-    protected virtual void Dispose(bool disposing)
+    protected virtual void ConsumerTagChangedAfterRecovery(object sender, ConsumerTagChangedAfterRecoveryEventArgs e)
     {
-        if (_disposedValue)
+        EnterLock();
+        Recovering = true;
+        ExitLock();
+        RecoveredConsumerTags.TryAdd(e.TagBefore, e.TagAfter);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (DisposedValue)
         {
             return;
         }
 
-        if (disposing)
-        {
-            if (_connHost is IDisposable disposableConnHost)
-            {
-                disposableConnHost.Dispose();
-            }
-            _hostLock.Dispose();
-        }
-
-        _connection = null;
-        _connHost = null;
-        _disposedValue = true;
-    }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
+        RecoveredConsumerTags = null;
+        base.Dispose(disposing);
     }
 }
