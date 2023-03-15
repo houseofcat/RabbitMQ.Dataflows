@@ -346,16 +346,8 @@ namespace HouseofCat.RabbitMQ
             }
         }
 
-        private async void ConsumerShutdown(object sender, ShutdownEventArgs e)
-        {
-            if (!_shutdown && await _conLock.WaitAsync(0))
-            {
-                try
-                { await HandleUnexpectedShutdownAsync(e).ConfigureAwait(false); }
-                finally
-                { _conLock.Release(); }
-            }
-        }
+        private async void ConsumerShutdown(object sender, ShutdownEventArgs e) =>
+            await HandleUnexpectedShutdownAsync(e).ConfigureAwait(false);
 
         protected virtual void ConsumerUnregistered(object _, ConsumerEventArgs args)
         {
@@ -406,16 +398,7 @@ namespace HouseofCat.RabbitMQ
             }
         }
 
-        private async Task ConsumerShutdownAsync(object sender, ShutdownEventArgs e)
-        {
-            if (!_shutdown && await _conLock.WaitAsync(0))
-            {
-                try
-                { await HandleUnexpectedShutdownAsync(e).ConfigureAwait(false); }
-                finally
-                { _conLock.Release(); }
-            }
-        }
+        private Task ConsumerShutdownAsync(object sender, ShutdownEventArgs e) => HandleUnexpectedShutdownAsync(e);
 
         protected virtual async Task ConsumerUnregisteredAsync(object _, ConsumerEventArgs args)
         {
@@ -432,30 +415,51 @@ namespace HouseofCat.RabbitMQ
 
         private async Task HandleUnexpectedShutdownAsync(ShutdownEventArgs e)
         {
+            if (_shutdown)
+            {
+                return;
+            }
+
             await Task.Yield();
-            bool success;
+            var success = false;
             do
             {
-                success =
-                    _chanHost is IRecoveryAwareChannelHost recoveryAwareChanHost
-                        ? await recoveryAwareChanHost.RecoverChannelAsync(StartConsumingAsync).ConfigureAwait(false)
-                        : await _chanHost.MakeChannelAsync().ConfigureAwait(false);
-                if (!success)
+                try
                 {
-                    continue;
+                    if (!await _conLock.WaitAsync(0).ConfigureAwait(false))
+                    {
+                        continue;
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    break;
                 }
 
-                _logger.LogWarning(
-                    Consumers.ConsumerShutdownEvent,
-                    ConsumerOptions.ConsumerName,
-                    e.ReplyText);
-
-                if (_chanHost is not IRecoveryAwareChannelHost)
+                try
                 {
-                    success = await StartConsumingAsync().ConfigureAwait(false);
+                    success =
+                        _chanHost is IRecoveryAwareChannelHost recoveryAwareChanHost
+                            ? await recoveryAwareChanHost.RecoverChannelAsync(StartConsumingAsync).ConfigureAwait(false)
+                            : await _chanHost.MakeChannelAsync().ConfigureAwait(false);
+                    if (success)
+                    {
+                        _logger.LogWarning(
+                            Consumers.ConsumerShutdownEvent,
+                            ConsumerOptions.ConsumerName,
+                            e.ReplyText);
+
+                        if (_chanHost is not IRecoveryAwareChannelHost)
+                        {
+                            success = await StartConsumingAsync().ConfigureAwait(false);
+                        }
+                    }
                 }
-            }
-            while (!_shutdown && !success);
+                finally
+                {
+                    _conLock.Release();
+                }
+            } while (!_shutdown && !success);
         }
 
         public ChannelReader<ReceivedData> GetConsumerBuffer() => _consumerChannel.Reader;
