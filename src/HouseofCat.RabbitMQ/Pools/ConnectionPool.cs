@@ -110,7 +110,8 @@ namespace HouseofCat.RabbitMQ.Pools
                     var connection = CreateConnection(serviceName);
                     await _connections
                         .Writer
-                        .WriteAsync(CreateConnectionHost(_currentConnectionId++, connection));
+                        .WriteAsync(CreateConnectionHost(_currentConnectionId++, connection))
+                        .ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

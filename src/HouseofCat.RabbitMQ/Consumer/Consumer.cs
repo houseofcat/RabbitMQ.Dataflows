@@ -186,10 +186,10 @@ namespace HouseofCat.RabbitMQ
             {
                 if (_asyncConsumer != null) // Cleanup operation, this prevents an EventHandler leak.
                 {
-                    _asyncConsumer.ConsumerCancelled -= ConsumerUnregisteredAsync;
                     _asyncConsumer.Received -= ReceiveHandlerAsync;
                     _asyncConsumer.Registered -= ConsumerRegisterAsync;
                     _asyncConsumer.Shutdown -= ConsumerShutdownAsync;
+                    _asyncConsumer.Unregistered -= ConsumerUnregisteredAsync;
                 }
 
                 try

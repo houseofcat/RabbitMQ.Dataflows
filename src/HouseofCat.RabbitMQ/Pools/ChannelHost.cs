@@ -64,7 +64,7 @@ namespace HouseofCat.RabbitMQ.Pools
             }
         }
 
-        private const string MakeChannelFailedError = "Making a channel failed. Error: {Message}";
+        private const string MakeChannelFailedError = "Making a channel failed. Error: {0}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public async Task<bool> MakeChannelAsync()
