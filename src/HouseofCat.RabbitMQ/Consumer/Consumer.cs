@@ -285,9 +285,25 @@ namespace HouseofCat.RabbitMQ
                 _chanHost?.ChannelId ?? 0ul);
         }
 
+        private EventingBasicConsumer CreateConsumer()
+        {
+            _chanHost.GetChannel().BasicQos(0, ConsumerOptions.BatchSize!.Value, false);
+            var consumer = new EventingBasicConsumer(_chanHost.GetChannel());
+
+            consumer.Received += ReceiveHandler;
+            consumer.Registered += ConsumerRegister;
+            consumer.Shutdown += ConsumerShutdown;
+            consumer.Unregistered += ConsumerUnregistered;
+
+            return consumer;
+        }
+
         protected async ValueTask<bool> HandleMessage(BasicDeliverEventArgs bdea)
         {
-            if (!await _consumerChannel.Writer.WaitToWriteAsync().ConfigureAwait(false)) return false;
+            if (_consumerChannel is null || !await _consumerChannel.Writer.WaitToWriteAsync().ConfigureAwait(false))
+            {
+                return false;
+            }
 
             try
             {
@@ -305,19 +321,6 @@ namespace HouseofCat.RabbitMQ
                     ex.Message);
                 return false;
             }
-        }
-
-        private EventingBasicConsumer CreateConsumer()
-        {
-            _chanHost.GetChannel().BasicQos(0, ConsumerOptions.BatchSize!.Value, false);
-            var consumer = new EventingBasicConsumer(_chanHost.GetChannel());
-
-            consumer.Received += ReceiveHandler;
-            consumer.Registered += ConsumerRegister;
-            consumer.Shutdown += ConsumerShutdown;
-            consumer.Unregistered += ConsumerUnregistered;
-
-            return consumer;
         }
 
         protected virtual async void ReceiveHandler(object _, BasicDeliverEventArgs bdea)
@@ -345,7 +348,7 @@ namespace HouseofCat.RabbitMQ
 
         private async void ConsumerShutdown(object sender, ShutdownEventArgs e)
         {
-            if (await _conLock.WaitAsync(0))
+            if (!_shutdown && await _conLock.WaitAsync(0))
             {
                 try
                 { await HandleUnexpectedShutdownAsync(e).ConfigureAwait(false); }
@@ -405,7 +408,7 @@ namespace HouseofCat.RabbitMQ
 
         private async Task ConsumerShutdownAsync(object sender, ShutdownEventArgs e)
         {
-            if (await _conLock.WaitAsync(0))
+            if (!_shutdown && await _conLock.WaitAsync(0))
             {
                 try
                 { await HandleUnexpectedShutdownAsync(e).ConfigureAwait(false); }
@@ -429,33 +432,30 @@ namespace HouseofCat.RabbitMQ
 
         private async Task HandleUnexpectedShutdownAsync(ShutdownEventArgs e)
         {
-            if (!_shutdown)
+            await Task.Yield();
+            bool success;
+            do
             {
-                await Task.Yield();
-                bool success;
-                do
+                success =
+                    _chanHost is IRecoveryAwareChannelHost recoveryAwareChanHost
+                        ? await recoveryAwareChanHost.RecoverChannelAsync(StartConsumingAsync).ConfigureAwait(false)
+                        : await _chanHost.MakeChannelAsync().ConfigureAwait(false);
+                if (!success)
                 {
-                    success =
-                        _chanHost is IRecoveryAwareChannelHost recoveryAwareChanHost
-                            ? await recoveryAwareChanHost.RecoverChannelAsync(StartConsumingAsync).ConfigureAwait(false)
-                            : await _chanHost.MakeChannelAsync().ConfigureAwait(false);
-                    if (!success)
-                    {
-                        continue;
-                    }
-
-                    _logger.LogWarning(
-                        Consumers.ConsumerShutdownEvent,
-                        ConsumerOptions.ConsumerName,
-                        e.ReplyText);
-
-                    if (_chanHost is not IRecoveryAwareChannelHost)
-                    {
-                        success = await StartConsumingAsync().ConfigureAwait(false);
-                    }
+                    continue;
                 }
-                while (!_shutdown && !success);
+
+                _logger.LogWarning(
+                    Consumers.ConsumerShutdownEvent,
+                    ConsumerOptions.ConsumerName,
+                    e.ReplyText);
+
+                if (_chanHost is not IRecoveryAwareChannelHost)
+                {
+                    success = await StartConsumingAsync().ConfigureAwait(false);
+                }
             }
+            while (!_shutdown && !success);
         }
 
         public ChannelReader<ReceivedData> GetConsumerBuffer() => _consumerChannel.Reader;
