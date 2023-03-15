@@ -1,10 +1,8 @@
 using HouseofCat.Logger;
-using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using static HouseofCat.RabbitMQ.LogMessages;
@@ -49,31 +47,17 @@ namespace HouseofCat.RabbitMQ.Pools
         Task ShutdownAsync();
     }
 
-    public class ChannelPool : IChannelPool, IDisposable
+    public class ChannelPool : TransientChannelPool
     {
-        private readonly ILogger<ChannelPool> _logger;
-        private readonly IConnectionPool _connectionPool;
-        private readonly SemaphoreSlim _poolLock = new SemaphoreSlim(1, 1);
         private Channel<IChannelHost> _channels;
         private Channel<IChannelHost> _ackChannels;
         private ConcurrentDictionary<ulong, bool> _flaggedChannels;
-        private bool _disposedValue;
-
-        public RabbitOptions Options { get; }
-
-        // A 0 indicates TransientChannels.
-        public ulong CurrentChannelId { get; private set; } = 1;
-        public bool Shutdown { get; private set; }
 
         public ChannelPool(RabbitOptions options) : this(new ConnectionPool(options)) { }
 
-        public ChannelPool(IConnectionPool connPool)
+        public ChannelPool(IConnectionPool connPool) : base(connPool, LogHelper.GetLogger<ChannelPool>())
         {
-            Guard.AgainstNull(connPool, nameof(connPool));
-            Options = connPool.Options;
-
-            _logger = LogHelper.GetLogger<ChannelPool>();
-            _connectionPool = connPool;
+            CurrentChannelId = 1;
             _flaggedChannels = new ConcurrentDictionary<ulong, bool>();
             _channels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
             _ackChannels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
@@ -85,8 +69,7 @@ namespace HouseofCat.RabbitMQ.Pools
         {
             for (var i = 0; i < Options.PoolOptions.MaxChannels; i++)
             {
-                var chanHost = await _connectionPool.CreateChannelAsync(CurrentChannelId++, false)
-                    .ConfigureAwait(false);
+                var chanHost = await CreateChannelAsync(CurrentChannelId++, false).ConfigureAwait(false);
                 _flaggedChannels[chanHost.ChannelId] = false;
 
                 await _channels
@@ -97,7 +80,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
             for (var i = 0; i < Options.PoolOptions.MaxChannels; i++)
             {
-                var chanHost = await _connectionPool.CreateChannelAsync(CurrentChannelId++, true).ConfigureAwait(false);
+                var chanHost = await CreateChannelAsync(CurrentChannelId++, true).ConfigureAwait(false);
                 _flaggedChannels[chanHost.ChannelId] = false;
 
                 await _ackChannels
@@ -116,7 +99,7 @@ namespace HouseofCat.RabbitMQ.Pools
         /// </summary>
         /// <returns><see cref="IChannelHost"/></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async ValueTask<IChannelHost> GetChannelAsync()
+        public override async ValueTask<IChannelHost> GetChannelAsync()
         {
             if (Shutdown) throw new InvalidOperationException(ExceptionMessages.ChannelPoolValidationMessage);
 
@@ -137,7 +120,7 @@ namespace HouseofCat.RabbitMQ.Pools
             var flagged = _flaggedChannels.ContainsKey(chanHost.ChannelId) && _flaggedChannels[chanHost.ChannelId];
             if (flagged || !healthy)
             {
-                _logger.LogWarning(ChannelPools.DeadChannel, chanHost.ChannelId);
+                Logger.LogWarning(ChannelPools.DeadChannel, chanHost.ChannelId);
 
                 var success = false;
                 while (!success)
@@ -159,7 +142,7 @@ namespace HouseofCat.RabbitMQ.Pools
         /// </summary>
         /// <returns><see cref="IChannelHost"/></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async ValueTask<IChannelHost> GetAckChannelAsync()
+        public override async ValueTask<IChannelHost> GetAckChannelAsync()
         {
             if (Shutdown) throw new InvalidOperationException(ExceptionMessages.ChannelPoolValidationMessage);
 
@@ -180,7 +163,7 @@ namespace HouseofCat.RabbitMQ.Pools
             var flagged = _flaggedChannels.ContainsKey(chanHost.ChannelId) && _flaggedChannels[chanHost.ChannelId];
             if (flagged || !healthy)
             {
-                _logger.LogWarning(ChannelPools.DeadChannel, chanHost.ChannelId);
+                Logger.LogWarning(ChannelPools.DeadChannel, chanHost.ChannelId);
 
                 var success = false;
                 while (!success)
@@ -194,16 +177,6 @@ namespace HouseofCat.RabbitMQ.Pools
         }
 
         /// <summary>
-        /// <para>Gives user a transient <see cref="IChannelHost"/> is simply a channel not managed by this library.</para>
-        /// <para><em>Closing and disposing the <see cref="IChannelHost"/> is the responsiblity of the user.</em></para>
-        /// </summary>
-        /// <param name="ackable"></param>
-        /// <returns><see cref="IChannelHost"/></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ValueTask<IChannelHost> GetTransientChannelAsync(bool ackable) => 
-            _connectionPool.CreateChannelAsync(0, ackable);
-
-        /// <summary>
         /// Returns the <see cref="ChannelHost"/> back to the <see cref="ChannelPool"/>.
         /// <para>All Aqmp IModel Channels close server side on error, so you have to indicate to the library when that happens.</para>
         /// <para>The library does its best to listen for a dead <see cref="ChannelHost"/>, but nothing is as reliable as the user flagging the channel for replacement.</para>
@@ -212,13 +185,13 @@ namespace HouseofCat.RabbitMQ.Pools
         /// <param name="chanHost"></param>
         /// <param name="flagChannel"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async ValueTask ReturnChannelAsync(IChannelHost chanHost, bool flagChannel = false)
+        public override async ValueTask ReturnChannelAsync(IChannelHost chanHost, bool flagChannel)
         {
             if (Shutdown) throw new InvalidOperationException(ExceptionMessages.ChannelPoolValidationMessage);
 
             _flaggedChannels[chanHost.ChannelId] = flagChannel;
 
-            _logger.LogDebug(ChannelPools.ReturningChannel, chanHost.ChannelId, flagChannel);
+            Logger.LogDebug(ChannelPools.ReturningChannel, chanHost.ChannelId, flagChannel);
 
             if (chanHost.Ackable)
             {
@@ -236,31 +209,7 @@ namespace HouseofCat.RabbitMQ.Pools
             }
         }
 
-        public async Task ShutdownAsync()
-        {
-            _logger.LogTrace(ChannelPools.Shutdown);
-
-            await _poolLock
-                .WaitAsync()
-                .ConfigureAwait(false);
-
-            if (!Shutdown)
-            {
-                await CloseChannelsAsync()
-                    .ConfigureAwait(false);
-
-                Shutdown = true;
-
-                await _connectionPool
-                    .ShutdownAsync()
-                    .ConfigureAwait(false);
-            }
-
-            _poolLock.Release();
-            _logger.LogTrace(ChannelPools.ShutdownComplete);
-        }
-
-        private async Task CloseChannelsAsync()
+        protected override async Task CloseChannelsAsync()
         {
             // Signal to Channel no more data is coming.
             _channels.Writer.Complete();
@@ -283,26 +232,17 @@ namespace HouseofCat.RabbitMQ.Pools
             }
         }
 
-        protected virtual void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (DisposedValue)
             {
-                if (disposing)
-                {
-                    _channels = null;
-                    _ackChannels = null;
-                    _flaggedChannels = null;
-                    _poolLock.Dispose();
-                }
-
-                _disposedValue = true;
+                return;
             }
-        }
 
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            _channels = null;
+            _ackChannels = null;
+            _flaggedChannels = null;
+            base.Dispose(disposing);
         }
     }
 }

@@ -15,8 +15,6 @@ namespace HouseofCat.RabbitMQ.Pools
     {
         RabbitOptions Options { get; }
 
-        ValueTask<IChannelHost> CreateChannelAsync(ulong channelId, bool ackable);
-
         IConnection CreateConnection(string connectionName);
         ValueTask<IConnectionHost> GetConnectionAsync();
         ValueTask ReturnConnectionAsync(IConnectionHost connHost);
@@ -94,24 +92,11 @@ namespace HouseofCat.RabbitMQ.Pools
             return cf;
         }
 
-        // Allows overriding the mechanism for creating ChannelHosts while a base one was implemented.
-        protected virtual IChannelHost CreateChannelHost(ulong channelId, IConnectionHost connHost, bool ackable) =>
-            new ChannelHost(channelId, connHost, ackable);
-
-        // Allows overriding the mechanism for creating RecoveryAwareChannelHosts while a base one was implemented.
-        protected virtual IRecoveryAwareChannelHost CreateRecoveryAwareChannelHost(
-            ulong channelId, IRecoveryAwareConnectionHost connHost, bool ackable) =>
-            new RecoveryAwareChannelHost(channelId, connHost, ackable);
-
         public IConnection CreateConnection(string connectionName) => _connectionFactory.CreateConnection(connectionName);
 
         // Allows overriding the mechanism for creating ConnectionHosts while a base one was implemented.
         protected virtual IConnectionHost CreateConnectionHost(ulong connectionId, IConnection connection) =>
             new ConnectionHost(connectionId, connection);
-
-        // Allows overriding the mechanism for creating RecoveryAwareConnectionHosts while a base one was implemented.
-        protected virtual IRecoveryAwareConnectionHost CreateRecoveryAwareConnectionHost(
-            ulong connectionId, IConnection connection) => new RecoveryAwareConnectionHost(connectionId, connection);
 
         private async Task CreateConnectionsAsync()
         {
@@ -125,10 +110,7 @@ namespace HouseofCat.RabbitMQ.Pools
                     var connection = CreateConnection(serviceName);
                     await _connections
                         .Writer
-                        .WriteAsync(
-                            connection is IAutorecoveringConnection
-                                ? CreateRecoveryAwareConnectionHost(_currentConnectionId++, connection)
-                                : CreateConnectionHost(_currentConnectionId++, connection));
+                        .WriteAsync(CreateConnectionHost(_currentConnectionId++, connection));
                 }
                 catch (Exception ex)
                 {
@@ -138,65 +120,6 @@ namespace HouseofCat.RabbitMQ.Pools
             }
 
             _logger.LogTrace(ConnectionPools.CreateConnectionsComplete);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async ValueTask<IChannelHost> CreateChannelAsync(ulong channelId, bool ackable)
-        {
-            var sleep = Options.PoolOptions.SleepOnErrorInterval;
-            IConnectionHost connHost = null;
-
-            while (true)
-            {
-                _logger.LogTrace(ChannelPools.CreateChannel, channelId);
-
-                // Get ConnectionHost
-                try
-                {
-                    connHost = await GetConnectionAsync().ConfigureAwait(false);
-                }
-                catch
-                {
-                    _logger.LogTrace(ChannelPools.CreateChannelFailedConnection, channelId);
-                    await ReturnConnectionWithOptionalSleep(connHost, channelId, sleep).ConfigureAwait(false);
-                    continue;
-                }
-
-                // Create a Channel Host
-                try
-                {
-                    var chanHost =
-                        connHost is IRecoveryAwareConnectionHost recoveryAwareConnectionHost
-                            ? CreateRecoveryAwareChannelHost(channelId, recoveryAwareConnectionHost, ackable)
-                            : CreateChannelHost(channelId, connHost, ackable);
-                    await ReturnConnectionWithOptionalSleep(connHost, channelId).ConfigureAwait(false);
-                    _logger.LogDebug(ChannelPools.CreateChannelSuccess, channelId);
-
-                    return chanHost;
-                }
-                catch
-                {
-                    _logger.LogTrace(ChannelPools.CreateChannelFailedConstruction, channelId);
-                    await ReturnConnectionWithOptionalSleep(connHost, channelId, sleep).ConfigureAwait(false);
-                }
-            }
-        }
-
-        private async ValueTask ReturnConnectionWithOptionalSleep(
-            IConnectionHost connHost, ulong channelId, int sleep = 0)
-        {
-            if (connHost != null)
-            {
-                // Return Connection (or lose them.)
-                await ReturnConnectionAsync(connHost).ConfigureAwait(false);
-            }
-
-            if (sleep > 0)
-            {
-                _logger.LogDebug(ChannelPools.CreateChannelSleep, channelId);
-
-                await Task.Delay(sleep).ConfigureAwait(false);
-            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -214,7 +137,8 @@ namespace HouseofCat.RabbitMQ.Pools
             {
                 var connHost = await _connections
                     .Reader
-                    .ReadAsync().ConfigureAwait(false);
+                    .ReadAsync()
+                    .ConfigureAwait(false);
 
                 // Connection Health Check
                 var healthy = await connHost.HealthyAsync().ConfigureAwait(false);
@@ -256,7 +180,7 @@ namespace HouseofCat.RabbitMQ.Pools
             _connections.Writer.Complete();
 
             await _connections.Reader.WaitToReadAsync().ConfigureAwait(false);
-            while (_connections.Reader.TryRead(out IConnectionHost connHost))
+            while (_connections.Reader.TryRead(out var connHost))
             {
                 try
                 { connHost.Close(); }

@@ -31,10 +31,9 @@ namespace HouseofCat.RabbitMQ.Pools
         public bool Dead { get; private set; }
         public bool Closed { get; private set; }
 
-        protected bool DisposedValue { get; private set; }
-
         private readonly ILogger<ConnectionHost> _logger;
         private readonly SemaphoreSlim _hostLock = new SemaphoreSlim(1, 1);
+        private bool _disposedValue;
 
         public ConnectionHost(ulong connectionId, IConnection connection)
         {
@@ -46,11 +45,13 @@ namespace HouseofCat.RabbitMQ.Pools
 
         public void AssignConnection(IConnection connection)
         {
-            EnterLock();
+            _hostLock.Wait();
 
             if (Connection != null)
             {
-                RemoveEventHandlers();
+                Connection.ConnectionBlocked -= ConnectionBlocked;
+                Connection.ConnectionUnblocked -= ConnectionUnblocked;
+                Connection.ConnectionShutdown -= ConnectionClosed;
 
                 try
                 { Close(); }
@@ -60,52 +61,35 @@ namespace HouseofCat.RabbitMQ.Pools
             }
 
             Connection = connection;
-
-            AddEventHandlers();
-
-            ExitLock();
-        }
-
-        protected virtual void AddEventHandlers()
-        {
             Connection.ConnectionBlocked += ConnectionBlocked;
             Connection.ConnectionUnblocked += ConnectionUnblocked;
             Connection.ConnectionShutdown += ConnectionClosed;
-        }
 
-        protected virtual void RemoveEventHandlers()
-        {
-            Connection.ConnectionBlocked -= ConnectionBlocked;
-            Connection.ConnectionUnblocked -= ConnectionUnblocked;
-            Connection.ConnectionShutdown -= ConnectionClosed;
+            _hostLock.Release();
         }
-
-        protected void EnterLock() => _hostLock.Wait();
-        protected Task EnterLockAsync() => _hostLock.WaitAsync();
-        protected void ExitLock() => _hostLock.Release();
 
         protected virtual void ConnectionClosed(object sender, ShutdownEventArgs e)
         {
-            EnterLock();
+            _hostLock.Wait();
             _logger.LogWarning(e.ReplyText);
             Closed = true;
-            ExitLock();
+            _hostLock.Release();
         }
 
         protected virtual void ConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
         {
-            EnterLock();
+            _hostLock.Wait();
             _logger.LogWarning(e.Reason);
             Blocked = true;
-            ExitLock();
+            _hostLock.Release();
         }
 
         protected virtual void ConnectionUnblocked(object sender, EventArgs e)
         {
-            EnterLock();
+            _hostLock.Wait();
             _logger.LogInformation("Connection unblocked!");
             Blocked = false;
-            ExitLock();
+            _hostLock.Release();
         }
 
         private const int CloseCode = 200;
@@ -119,23 +103,23 @@ namespace HouseofCat.RabbitMQ.Pools
         /// <para>AutoRecovery = False yields results like Closed, Dead, and IsOpen will be true, true, false or false, false, true.</para>
         /// <para>AutoRecovery = True, yields difficult results like Closed, Dead, And IsOpen will be false, false, false or true, true, true (and other variations).</para>
         /// </summary>
-        public virtual async Task<bool> HealthyAsync()
+        public async Task<bool> HealthyAsync()
         {
-            await EnterLockAsync().ConfigureAwait(false);
+            await _hostLock.WaitAsync().ConfigureAwait(false);
 
             if (Closed && Connection.IsOpen)
             { Closed = false; } // Means a Recovery took place.
             else if (Dead && Connection.IsOpen)
             { Dead = false; } // Means a Miracle took place.
 
-            ExitLock();
+            _hostLock.Release();
 
             return Connection.IsOpen && !Blocked; // TODO: See if we can incorporate Dead/Closed observations.
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (DisposedValue)
+            if (_disposedValue)
             {
                 return;
             }
@@ -146,7 +130,7 @@ namespace HouseofCat.RabbitMQ.Pools
             }
 
             Connection = null;
-            DisposedValue = true;
+            _disposedValue = true;
         }
 
         public void Dispose()

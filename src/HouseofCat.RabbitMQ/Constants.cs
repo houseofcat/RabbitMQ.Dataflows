@@ -120,6 +120,8 @@ namespace HouseofCat.RabbitMQ
             public const string GettingAckChannelHost = "Consumer ({0}) getting a ackable channel host.";
             public const string ChannelEstablished = "Consumer ({0}) channel host ({1}) assigned.";
             public const string ChannelNotEstablished = "Consumer ({0}) channel host could not be assigned.";
+            public const string ConsumerCancelled = "Consumer ({0}) cancelled (CT:{1}).";
+            public const string ConsumerAsyncCancelled = "Consumer ({0}) async cancelled (CT:{1}).";
             public const string ConsumerMessageReceived = "Consumer ({0}) message received (DT:{1}). Adding to buffer...";
             public const string ConsumerAsyncMessageReceived = "Consumer ({0}) async message received (DT:{1}). Adding to buffer...";
             public const string ConsumerRegistered = "Consumer ({0}) registered (CT:{1}).";
