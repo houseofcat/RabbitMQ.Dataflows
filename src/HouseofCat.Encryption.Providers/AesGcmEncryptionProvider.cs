@@ -1,5 +1,4 @@
 ﻿using HouseofCat.Extensions;
-using HouseofCat.Recyclable;
 using HouseofCat.Utilities.Errors;
 using CommunityToolkit.HighPerformance;
 using System;
@@ -8,22 +7,21 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using HouseofCat.Encryption.Providers;
 
-namespace HouseofCat.Encryption.Recyclable;
+namespace HouseofCat.Encryption.Providers;
 
-public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
+public class AesGcmEncryptionProvider : IEncryptionProvider
 {
-    public string Type { get; }
+    public string Type { get; private set; }
 
     private readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
     private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
 
     private readonly ReadOnlyMemory<byte> _key;
 
-    public RecyclableAesGcmEncryptionProvider(ReadOnlyMemory<byte> key)
+    public AesGcmEncryptionProvider(byte[] key)
     {
-        Guard.AgainstEmpty(key, nameof(key));
+        Guard.AgainstNullOrEmpty(key, nameof(key));
 
         if (!Constants.Aes.ValidKeySizes.Contains(key.Length)) throw new ArgumentException("Keysize is an invalid length.");
         _key = key;
@@ -90,17 +88,14 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
 
         aes.Encrypt(
             nonce.AsSpan().Slice(0, AesGcm.NonceByteSizes.MaxSize),
-            buffer.AsSpan().Slice(0, length),
+            buffer.Slice(0, length),
             encryptedBytes.AsSpan().Slice(0, length),
             tag.AsSpan().Slice(0, AesGcm.TagByteSizes.MaxSize));
 
         // Prefix ciphertext with nonce and tag, since they are fixed length and it will simplify decryption.
         // Our pattern: Nonce Tag Cipher
         // Other patterns people use: Nonce Cipher Tag // couldn't find a solid source.
-        var encryptedStream = RecyclableManager.GetStream(
-            nameof(RecyclableAesGcmEncryptionProvider),
-            AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize + length);
-
+        var encryptedStream = new MemoryStream(new byte[AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize + length]);
         using (var binaryWriter = new BinaryWriter(encryptedStream, Encoding.UTF8, true))
         {
             binaryWriter.Write(nonce, 0, AesGcm.NonceByteSizes.MaxSize);
@@ -129,7 +124,7 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
         using var aes = new AesGcm(_key.Span);
 
         var length = (int)unencryptedStream.Length;
-        (var buffer, var returnTobuffer) = await unencryptedStream.GetSafeBufferAsync(length);
+        (var buffer, var returnBuffer) = await unencryptedStream.GetSafeBufferAsync(length);
 
         // Slicing Version
         // Rented arrays sizes are minimums, not guarantees.
@@ -141,17 +136,14 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
 
         aes.Encrypt(
             nonce.AsSpan().Slice(0, AesGcm.NonceByteSizes.MaxSize),
-            buffer.Slice(0, length),
+            buffer.AsSpan().Slice(0, length),
             encryptedBytes.AsSpan().Slice(0, length),
             tag.AsSpan().Slice(0, AesGcm.TagByteSizes.MaxSize));
 
         // Prefix ciphertext with nonce and tag, since they are fixed length and it will simplify decryption.
         // Our pattern: Nonce Tag Cipher
         // Other patterns people use: Nonce Cipher Tag // couldn't find a solid source.
-        var encryptedStream = RecyclableManager.GetStream(
-            nameof(RecyclableAesGcmEncryptionProvider),
-            AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize + length);
-
+        var encryptedStream = new MemoryStream(new byte[AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize + length]);
         using (var binaryWriter = new BinaryWriter(encryptedStream, Encoding.UTF8, true))
         {
             binaryWriter.Write(nonce, 0, AesGcm.NonceByteSizes.MaxSize);
@@ -159,7 +151,7 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
             binaryWriter.Write(encryptedBytes, 0, length);
         }
 
-        if (returnTobuffer)
+        if (returnBuffer)
         { _pool.Return(buffer.Array); }
 
         _pool.Return(encryptedBytes);
@@ -177,7 +169,35 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
     {
         Guard.AgainstEmpty(unencryptedData, nameof(unencryptedData));
 
-        return RecyclableManager.GetStream(nameof(RecyclableAesGcmEncryptionProvider), Encrypt(unencryptedData));
+        using var aes = new AesGcm(_key.Span);
+
+        // Slicing Version
+        // Rented arrays sizes are minimums, not guarantees.
+        // Need to perform extra work managing slices to keep the byte sizes correct but the memory allocations are lower by 200%
+        var encryptedBytes = _pool.Rent(unencryptedData.Length);
+        var tag = _pool.Rent(AesGcm.TagByteSizes.MaxSize); // MaxSize = 16
+        var nonce = _pool.Rent(AesGcm.NonceByteSizes.MaxSize); // MaxSize = 12
+        _rng.GetBytes(nonce, 0, AesGcm.NonceByteSizes.MaxSize);
+
+        aes.Encrypt(
+            nonce.AsSpan().Slice(0, AesGcm.NonceByteSizes.MaxSize),
+            unencryptedData.Span,
+            encryptedBytes.AsSpan().Slice(0, unencryptedData.Length),
+            tag.AsSpan().Slice(0, AesGcm.TagByteSizes.MaxSize));
+
+        // Prefix ciphertext with nonce and tag, since they are fixed length and it will simplify decryption.
+        // Our pattern: Nonce Tag Cipher
+        // Other patterns people use: Nonce Cipher Tag // couldn't find a solid source.
+        var encryptedData = new byte[AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize + unencryptedData.Length];
+        Buffer.BlockCopy(nonce, 0, encryptedData, 0, AesGcm.NonceByteSizes.MaxSize);
+        Buffer.BlockCopy(tag, 0, encryptedData, AesGcm.NonceByteSizes.MaxSize, AesGcm.TagByteSizes.MaxSize);
+        Buffer.BlockCopy(encryptedBytes, 0, encryptedData, AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize, unencryptedData.Length);
+
+        _pool.Return(encryptedBytes);
+        _pool.Return(tag);
+        _pool.Return(nonce);
+
+        return new MemoryStream(encryptedData);
     }
 
     public ArraySegment<byte> Decrypt(ReadOnlyMemory<byte> encryptedData)
@@ -223,10 +243,10 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
         if (bytesRead == 0) throw new InvalidDataException();
 
         bytesRead = encryptedStream.Read(tagBytes, 0, AesGcm.TagByteSizes.MaxSize);
-        if(bytesRead == 0) throw new InvalidDataException();
+        if (bytesRead == 0) throw new InvalidDataException();
 
         bytesRead = encryptedStream.Read(encryptedBufferBytes, 0, encryptedByteLength);
-        if(bytesRead == 0) throw new InvalidDataException();
+        if (bytesRead == 0) throw new InvalidDataException();
 
         // Slicing Version
         var nonce = nonceBytes
@@ -250,13 +270,32 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
 
         if (!leaveStreamOpen) { encryptedStream.Close(); }
 
-        return RecyclableManager.GetStream(nameof(RecyclableAesGcmEncryptionProvider), decryptedBytes);
+        return new MemoryStream(decryptedBytes);
     }
 
     public MemoryStream DecryptToStream(ReadOnlyMemory<byte> encryptedData)
     {
         Guard.AgainstEmpty(encryptedData, nameof(encryptedData));
 
-        return RecyclableManager.GetStream(nameof(RecyclableAesGcmEncryptionProvider), Decrypt(encryptedData));
+        using var aes = new AesGcm(_key.Span);
+
+        // Slicing Version
+        var nonce = encryptedData
+            .Slice(0, AesGcm.NonceByteSizes.MaxSize)
+            .Span;
+
+        var tag = encryptedData
+            .Slice(AesGcm.NonceByteSizes.MaxSize, AesGcm.TagByteSizes.MaxSize)
+            .Span;
+
+        var encryptedBytes = encryptedData
+            .Slice(AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize)
+            .Span;
+
+        var decryptedBytes = new byte[encryptedBytes.Length];
+
+        aes.Decrypt(nonce, encryptedBytes, tag, decryptedBytes);
+
+        return new MemoryStream(decryptedBytes);
     }
 }

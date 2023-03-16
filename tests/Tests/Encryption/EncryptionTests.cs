@@ -1,4 +1,4 @@
-using HouseofCat.Encryption;
+using HouseofCat.Encryption.Providers;
 using HouseofCat.Hashing;
 using HouseofCat.Hashing.Argon;
 using System.IO;

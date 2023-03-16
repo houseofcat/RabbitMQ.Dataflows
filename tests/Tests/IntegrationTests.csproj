@@ -36,7 +36,7 @@
     <ProjectReference Include="..\..\src\HouseofCat.Data\HouseofCat.Data.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Data.Recyclable\HouseofCat.Data.Recyclable.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Dataflows\HouseofCat.Dataflows.csproj" />
-    <ProjectReference Include="..\..\src\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.Encryption.Providers\HouseofCat.Encryption.Providers.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Encryption.BouncyCastle\HouseofCat.Encryption.BouncyCastle.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Encryption.Recyclable\HouseofCat.Encryption.Recyclable.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Hashing.Argon\HouseofCat.Hashing.Argon.csproj" />

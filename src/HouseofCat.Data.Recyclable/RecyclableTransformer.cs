@@ -1,5 +1,5 @@
 ﻿using HouseofCat.Compression;
-using HouseofCat.Encryption;
+using HouseofCat.Encryption.Recyclable;
 using HouseofCat.Recyclable;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
