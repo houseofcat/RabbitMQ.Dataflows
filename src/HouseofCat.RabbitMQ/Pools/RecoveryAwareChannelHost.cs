@@ -9,6 +9,8 @@ namespace HouseofCat.RabbitMQ.Pools;
 public interface IRecoveryAwareChannelHost : IChannelHost
 {
     bool? Recovered { get; }
+    string RecordedConsumerTag { get; }
+    string RecoveredConsumerTag { get; }
     void DeleteRecordedConsumerTag(string consumerTag);
     void RecordConsumerTag(string consumerTag);
     Task DeleteRecordedConsumerTagAsync(string consumerTag);
@@ -19,9 +21,8 @@ public interface IRecoveryAwareChannelHost : IChannelHost
 public class RecoveryAwareChannelHost : ChannelHost, IRecoveryAwareChannelHost
 {
     public bool? Recovered { get; private set; }
-
-    private string _recordedConsumerTag;
-    private string _recoveredConsumerTag;
+    public string RecordedConsumerTag { get; private set; }
+    public string RecoveredConsumerTag { get; private set; }
 
     public RecoveryAwareChannelHost(ulong channelId, IConnectionHost connHost, bool ackable) :
         base(channelId, connHost, ackable)
@@ -40,8 +41,8 @@ public class RecoveryAwareChannelHost : ChannelHost, IRecoveryAwareChannelHost
                 return false;
             }
 
-            _recordedConsumerTag = _recoveredConsumerTag;
-            _recoveredConsumerTag = null;
+            RecordedConsumerTag = RecoveredConsumerTag;
+            RecoveredConsumerTag = null;
         }
         finally
         {
@@ -50,7 +51,7 @@ public class RecoveryAwareChannelHost : ChannelHost, IRecoveryAwareChannelHost
 
         if (await base.HealthyAsync().ConfigureAwait(false))
         {
-            if (!string.IsNullOrEmpty(_recordedConsumerTag))
+            if (!string.IsNullOrEmpty(RecordedConsumerTag))
             {
                 return true;
             }
@@ -69,9 +70,9 @@ public class RecoveryAwareChannelHost : ChannelHost, IRecoveryAwareChannelHost
     public void DeleteRecordedConsumerTag(string consumerTag)
     {
         EnterLock();
-        if (_recordedConsumerTag == consumerTag)
+        if (RecordedConsumerTag == consumerTag)
         {
-            _recordedConsumerTag = null;
+            RecordedConsumerTag = null;
         }
         ExitLock();
     }
@@ -79,16 +80,16 @@ public class RecoveryAwareChannelHost : ChannelHost, IRecoveryAwareChannelHost
     public void RecordConsumerTag(string consumerTag)
     {
         EnterLock();
-        _recordedConsumerTag = consumerTag;
+        RecordedConsumerTag = consumerTag;
         ExitLock();
     }
 
     public async Task DeleteRecordedConsumerTagAsync(string consumerTag)
     {
         await EnterLockAsync().ConfigureAwait(false);
-        if (_recordedConsumerTag == consumerTag)
+        if (RecordedConsumerTag == consumerTag)
         {
-            _recordedConsumerTag = null;
+            RecordedConsumerTag = null;
         }
         ExitLock();
     }
@@ -96,7 +97,7 @@ public class RecoveryAwareChannelHost : ChannelHost, IRecoveryAwareChannelHost
     public async Task RecordConsumerTagAsync(string consumerTag)
     {
         await EnterLockAsync().ConfigureAwait(false);
-        _recordedConsumerTag = consumerTag;
+        RecordedConsumerTag = consumerTag;
         ExitLock();
     }
 
@@ -132,7 +133,7 @@ public class RecoveryAwareChannelHost : ChannelHost, IRecoveryAwareChannelHost
         if (Channel is IRecoverable)
         {
             Recovered = false;
-            _recoveredConsumerTag = null;
+            RecoveredConsumerTag = null;
         }
         ExitLock();
         base.ChannelClose(sender, e);
@@ -149,9 +150,9 @@ public class RecoveryAwareChannelHost : ChannelHost, IRecoveryAwareChannelHost
     {
         EnterLock();
         // Check TagAfter in case of race condition where the consumer registers its tag before this handler fires
-        if (Channel is IRecoverable && (e.TagBefore == _recordedConsumerTag || e.TagAfter == _recordedConsumerTag))
+        if (Channel is IRecoverable && (e.TagBefore == RecordedConsumerTag || e.TagAfter == RecordedConsumerTag))
         {
-            _recoveredConsumerTag = e.TagAfter;
+            RecoveredConsumerTag = e.TagAfter;
         }
         ExitLock();
     }

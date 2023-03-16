@@ -457,7 +457,13 @@ namespace HouseofCat.RabbitMQ
                 }
                 finally
                 {
-                    _conLock.Release();
+                    try
+                    {
+                        _conLock.Release();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                    }
                 }
             } while (!_shutdown && !success);
         }
