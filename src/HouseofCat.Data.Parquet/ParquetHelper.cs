@@ -1,4 +1,5 @@
 ﻿using HouseofCat.Encryption;
+using HouseofCat.Encryption.Providers;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.Time;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +20,8 @@ using System.Threading.Tasks;
 using DataColumn = Parquet.Data.DataColumn;
 
 namespace HouseofCat.Data.Parquet;
+
+#pragma warning disable CS0618 // Type or member is obsolete
 
 public static class ParquetHelper
 {
@@ -347,6 +350,7 @@ public static class ParquetHelper
                 default:
                     return reader.GetComplexValueForParquet(index);
             }
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         throw new InvalidDataException(string.Format(InvalidValueErrorTemplate, normalizedDatabaseType));

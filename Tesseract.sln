@@ -20,7 +20,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Utilities", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Dataflows", "src\HouseofCat.Dataflows\HouseofCat.Dataflows.csproj", "{E3D8F002-1DD4-4926-BD15-20B6115AA60C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Encryption", "src\HouseofCat.Encryption\HouseofCat.Encryption.csproj", "{97C0674A-E7DC-4EF6-8E8C-1D06FE2FCAC2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Encryption.Providers", "src\HouseofCat.Encryption.Providers\HouseofCat.Encryption.Providers.csproj", "{97C0674A-E7DC-4EF6-8E8C-1D06FE2FCAC2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HouseofCat.Compression", "src\HouseofCat.Compression\HouseofCat.Compression.csproj", "{276C2CF1-4013-4035-AFAB-8DF0481BE4E7}"
 EndProject
