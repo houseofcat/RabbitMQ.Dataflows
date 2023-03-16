@@ -15,18 +15,23 @@ public static class CNGHelper
     /// be used by all subsequent calls of GetOrCreateRSACng for encryption/decryption.
     /// </summary>
     /// <param name="rsaKeyContainerName"></param>
-    /// <returns>RSACng</returns>
+    /// <param name="keySize"></param>
+    /// <param name="provider"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     [SupportedOSPlatform("windows")]
-    public static RSACng GetOrCreateEphemeralRSACng(string rsaKeyContainerName, int keySize = 4096, CngProvider provider = null)
+    public static RSACng GetOrCreateEphemeralRSACng(string rsaKeyContainerName, CngProvider provider = null, int keySize = 4096)
     {
         Guard.AgainstNullOrEmpty(rsaKeyContainerName, nameof(rsaKeyContainerName));
         if (keySize != 2048 || keySize != 4096) throw new ArgumentOutOfRangeException("Keysize can only be 2048 or 4096.");
+
+        provider ??= CngProvider.MicrosoftSoftwareKeyStorageProvider;
 
         CngKey cngKey;
 
         if (CngKey.Exists(rsaKeyContainerName))
         {
-            cngKey = CngKey.Open(rsaKeyContainerName);
+            cngKey = CngKey.Open(rsaKeyContainerName, provider);
         }
         else
         {
@@ -70,14 +75,16 @@ public static class CNGHelper
     /// <param name="rsaKeyContainerName"></param>
     /// <returns>RSACng</returns>
     [SupportedOSPlatform("windows")]
-    public static RSACng GetOrCreateRSACngMachineKey(string rsaKeyContainerName, int keySize = 4096)
+    public static RSACng GetOrCreateRSACngMachineKey(string rsaKeyContainerName, CngProvider provider = null, int keySize = 4096)
     {
         Guard.AgainstNullOrEmpty(rsaKeyContainerName, nameof(rsaKeyContainerName));
         if (keySize != 2048 || keySize != 4096) throw new ArgumentOutOfRangeException("Keysize can only be 2048 or 4096.");
-        
+
+        provider ??= CngProvider.MicrosoftSoftwareKeyStorageProvider;
+
         CngKey cngKey;
 
-        if (!CngKey.Exists(rsaKeyContainerName, CngProvider.MicrosoftSoftwareKeyStorageProvider, CngKeyOpenOptions.MachineKey))
+        if (!CngKey.Exists(rsaKeyContainerName, provider, CngKeyOpenOptions.MachineKey))
         {
             var cng = new CngKeyCreationParameters
             {
@@ -87,13 +94,13 @@ public static class CNGHelper
                     | CngExportPolicies.AllowArchiving
                     | CngExportPolicies.AllowPlaintextArchiving,
                 KeyCreationOptions = CngKeyCreationOptions.MachineKey,
-                Provider = CngProvider.MicrosoftSoftwareKeyStorageProvider,
+                Provider = provider,
             };
 
             cngKey = CngKey.Create(CngAlgorithm.Rsa, rsaKeyContainerName, cng);
         }
         else
-        { cngKey = CngKey.Open(rsaKeyContainerName, CngProvider.MicrosoftSoftwareKeyStorageProvider, CngKeyOpenOptions.MachineKey); }
+        { cngKey = CngKey.Open(rsaKeyContainerName, provider, CngKeyOpenOptions.MachineKey); }
 
         return new RSACng(cngKey)
         {
@@ -101,16 +108,26 @@ public static class CNGHelper
         };
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="rsaKeyName"></param>
+    /// <param name="parameters"></param>
+    /// <param name="keySize"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     [SupportedOSPlatform("windows")]
     public static RSACng GetOrCreateRSACng(string rsaKeyName, CngKeyCreationParameters parameters, int keySize = 4096)
     {
         Guard.AgainstNullOrEmpty(rsaKeyName, nameof(rsaKeyName));
         if (keySize != 2048 || keySize != 4096) throw new ArgumentOutOfRangeException("Keysize can only be 2048 or 4096.");
 
+        parameters.Provider ??= CngProvider.MicrosoftSoftwareKeyStorageProvider;
+
         CngKey cngKey;
 
-        if (CngKey.Exists(rsaKeyName))
-        { cngKey = CngKey.Open(rsaKeyName); }
+        if (CngKey.Exists(rsaKeyName, parameters.Provider))
+        { cngKey = CngKey.Open(rsaKeyName, parameters.Provider); }
         else
         { cngKey = CngKey.Create(CngAlgorithm.Rsa, rsaKeyName, parameters); }
 
@@ -126,14 +143,16 @@ public static class CNGHelper
     private static readonly string RsaKeyNameDoesNotExistError = "RSA key ({0}) does not exist.";
 
     [SupportedOSPlatform("windows")]
-    public static byte[] GetRSAPublicKey(string rsaKeyName, int keySize = 4096)
+    public static byte[] GetRSAPublicKey(string rsaKeyName, CngProvider provider = null, int keySize = 4096)
     {
         Guard.AgainstNullOrEmpty(rsaKeyName, nameof(rsaKeyName));
         if (keySize != 2048 || keySize != 4096) throw new ArgumentOutOfRangeException("Keysize can only be 2048 or 4096.");
-        
-        if (!CngKey.Exists(rsaKeyName)) throw new InvalidOperationException(string.Format(RsaKeyNameDoesNotExistError, rsaKeyName));
 
-        var cngKey = CngKey.Open(rsaKeyName);
+        provider ??= CngProvider.MicrosoftSoftwareKeyStorageProvider;
+
+        if (!CngKey.Exists(rsaKeyName, provider)) throw new InvalidOperationException(string.Format(RsaKeyNameDoesNotExistError, rsaKeyName));
+
+        var cngKey = CngKey.Open(rsaKeyName, provider);
         var rsaCng = new RSACng(cngKey)
         {
             KeySize = keySize
@@ -143,14 +162,16 @@ public static class CNGHelper
     }
 
     [SupportedOSPlatform("windows")]
-    public static string GetRSAPublicKeyAsString(string rsaKeyName, int keySize = 4096)
+    public static string GetRSAPublicKeyAsString(string rsaKeyName, CngProvider provider = null, int keySize = 4096)
     {
         Guard.AgainstNullOrEmpty(rsaKeyName, nameof(rsaKeyName));
         if (keySize != 2048 || keySize != 4096) throw new ArgumentOutOfRangeException("Keysize can only be 2048 or 4096.");
-        
-        if (!CngKey.Exists(rsaKeyName)) throw new InvalidOperationException(string.Format(RsaKeyNameDoesNotExistError, rsaKeyName));
 
-        var cngKey = CngKey.Open(rsaKeyName);
+        provider ??= CngProvider.MicrosoftSoftwareKeyStorageProvider;
+
+        if (!CngKey.Exists(rsaKeyName, provider)) throw new InvalidOperationException(string.Format(RsaKeyNameDoesNotExistError, rsaKeyName));
+
+        var cngKey = CngKey.Open(rsaKeyName, provider);
         var rsaCng = new RSACng(cngKey)
         {
             KeySize = keySize
@@ -160,14 +181,16 @@ public static class CNGHelper
     }
 
     [SupportedOSPlatform("windows")]
-    public static MemoryStream GetRSAPublicKeyAsStream(string rsaKeyName, int keySize = 4096)
+    public static MemoryStream GetRSAPublicKeyAsStream(string rsaKeyName, CngProvider provider = null, int keySize = 4096)
     {
         Guard.AgainstNullOrEmpty(rsaKeyName, nameof(rsaKeyName));
         if (keySize != 2048 || keySize != 4096) throw new ArgumentOutOfRangeException("Keysize can only be 2048 or 4096.");
 
-        if (!CngKey.Exists(rsaKeyName)) throw new InvalidOperationException(string.Format(RsaKeyNameDoesNotExistError, rsaKeyName));
+        provider ??= CngProvider.MicrosoftSoftwareKeyStorageProvider;
 
-        var cngKey = CngKey.Open(rsaKeyName);
+        if (!CngKey.Exists(rsaKeyName, provider)) throw new InvalidOperationException(string.Format(RsaKeyNameDoesNotExistError, rsaKeyName));
+
+        var cngKey = CngKey.Open(rsaKeyName, provider);
         var rsaCng = new RSACng(cngKey)
         {
             KeySize = keySize
@@ -177,14 +200,16 @@ public static class CNGHelper
     }
 
     [SupportedOSPlatform("windows")]
-    public static byte[] GetRSAPrivateKey(string rsaKeyName, int keySize = 4096)
+    public static byte[] GetRSAPrivateKey(string rsaKeyName, CngProvider provider = null, int keySize = 4096)
     {
         Guard.AgainstNullOrEmpty(rsaKeyName, nameof(rsaKeyName));
         if (keySize != 2048 || keySize != 4096) throw new ArgumentOutOfRangeException("Keysize can only be 2048 or 4096.");
 
-        if (!CngKey.Exists(rsaKeyName)) throw new InvalidOperationException($"RSA key ({rsaKeyName}) does not exist.");
+        provider ??= CngProvider.MicrosoftSoftwareKeyStorageProvider;
 
-        var cngKey = CngKey.Open(rsaKeyName);
+        if (!CngKey.Exists(rsaKeyName, provider)) throw new InvalidOperationException($"RSA key ({rsaKeyName}) does not exist.");
+
+        var cngKey = CngKey.Open(rsaKeyName, provider);
         var rsaCng = new RSACng(cngKey)
         {
             KeySize = keySize
@@ -194,14 +219,16 @@ public static class CNGHelper
     }
 
     [SupportedOSPlatform("windows")]
-    public static string GetRSAPrivateKeyAsString(string rsaKeyName, int keySize = 4096)
+    public static string GetRSAPrivateKeyAsString(string rsaKeyName, CngProvider provider = null, int keySize = 4096)
     {
         Guard.AgainstNullOrEmpty(rsaKeyName, nameof(rsaKeyName));
         if (keySize != 2048 || keySize != 4096) throw new ArgumentOutOfRangeException("Keysize can only be 2048 or 4096.");
-        
-        if (!CngKey.Exists(rsaKeyName)) throw new InvalidOperationException(string.Format(RsaKeyNameDoesNotExistError, rsaKeyName));
 
-        var cngKey = CngKey.Open(rsaKeyName);
+        provider ??= CngProvider.MicrosoftSoftwareKeyStorageProvider;
+
+        if (!CngKey.Exists(rsaKeyName, provider)) throw new InvalidOperationException(string.Format(RsaKeyNameDoesNotExistError, rsaKeyName));
+
+        var cngKey = CngKey.Open(rsaKeyName, provider);
         var rsaCng = new RSACng(cngKey)
         {
             KeySize = keySize
@@ -211,14 +238,16 @@ public static class CNGHelper
     }
 
     [SupportedOSPlatform("windows")]
-    public static MemoryStream GetRSAPrivateKeyAsStream(string rsaKeyName, int keySize = 4096)
+    public static MemoryStream GetRSAPrivateKeyAsStream(string rsaKeyName, CngProvider provider = null, int keySize = 4096)
     {
         Guard.AgainstNullOrEmpty(rsaKeyName, nameof(rsaKeyName));
         if (keySize != 2048 || keySize != 4096) throw new ArgumentOutOfRangeException("Keysize can only be 2048 or 4096.");
 
-        if (!CngKey.Exists(rsaKeyName)) throw new InvalidOperationException(string.Format(RsaKeyNameDoesNotExistError, rsaKeyName));
+        provider ??= CngProvider.MicrosoftSoftwareKeyStorageProvider;
 
-        var cngKey = CngKey.Open(rsaKeyName);
+        if (!CngKey.Exists(rsaKeyName, provider)) throw new InvalidOperationException(string.Format(RsaKeyNameDoesNotExistError, rsaKeyName));
+
+        var cngKey = CngKey.Open(rsaKeyName, provider);
         var rsaCng = new RSACng(cngKey)
         {
             KeySize = keySize
@@ -228,15 +257,11 @@ public static class CNGHelper
     }
 
     [SupportedOSPlatform("windows")]
-    public static RSACng CreateRSACngFromPublicKey(byte[] publicKey, int keySize = 4096)
+    public static RSACng CreateRSACngFromPublicKey(byte[] publicKey)
     {
         Guard.AgainstNullOrEmpty(publicKey, nameof(publicKey));
-        if (keySize != 2048 || keySize != 4096) throw new ArgumentOutOfRangeException("Keysize can only be 2048 or 4096.");
 
-        var rsaCng = new RSACng()
-        {
-            KeySize = keySize
-        };
+        var rsaCng = new RSACng();
 
         rsaCng.ImportRSAPublicKey(publicKey, out var bytesRead);
 
@@ -246,16 +271,12 @@ public static class CNGHelper
     }
 
     [SupportedOSPlatform("windows")]
-    public static RSACng CreateRSACngFromPublicKey(string publicKey, int keySize = 4096)
+    public static RSACng CreateRSACngFromPublicKey(string publicKey)
     {
         Guard.AgainstNullOrEmpty(publicKey, nameof(publicKey));
-        if (keySize != 2048 || keySize != 4096) throw new ArgumentOutOfRangeException("Keysize can only be 2048 or 4096.");
-        
+
         var publicKeyBytes = Encoding.UTF8.GetBytes(publicKey);
-        var rsaCng = new RSACng()
-        {
-            KeySize = keySize
-        };
+        var rsaCng = new RSACng();
 
         rsaCng.ImportRSAPublicKey(publicKeyBytes, out var bytesRead);
 
@@ -265,15 +286,11 @@ public static class CNGHelper
     }
 
     [SupportedOSPlatform("windows")]
-    public static RSACng CreateRSACngFromPrivateKey(byte[] privateKey, int keySize = 4096)
+    public static RSACng CreateRSACngFromPrivateKey(byte[] privateKey)
     {
         Guard.AgainstNullOrEmpty(privateKey, nameof(privateKey));
-        if (keySize != 2048 || keySize != 4096) throw new ArgumentOutOfRangeException("Keysize can only be 2048 or 4096.");
 
-        var rsaCng = new RSACng()
-        {
-            KeySize = keySize
-        };
+        var rsaCng = new RSACng();
 
         rsaCng.ImportRSAPrivateKey(privateKey, out var bytesRead);
 
@@ -283,16 +300,12 @@ public static class CNGHelper
     }
 
     [SupportedOSPlatform("windows")]
-    public static RSACng CreateRSACngFromPrivateKey(string privateKey, int keySize = 4096)
+    public static RSACng CreateRSACngFromPrivateKey(string privateKey)
     {
         Guard.AgainstNullOrEmpty(privateKey, nameof(privateKey));
-        if (keySize != 2048 || keySize != 4096) throw new ArgumentOutOfRangeException("Keysize can only be 2048 or 4096.");
-        
+
         var publicKeyBytes = Encoding.UTF8.GetBytes(privateKey);
-        var rsaCng = new RSACng()
-        {
-            KeySize = keySize
-        };
+        var rsaCng = new RSACng();
 
         rsaCng.ImportRSAPublicKey(publicKeyBytes, out var bytesRead);
 
@@ -411,7 +424,7 @@ public static class CNGHelper
             var aesKeyBytes = rsaCng.Decrypt(
                 Convert.FromBase64String(encryptedAesKey),
                 rsaPaddingMode ?? RSAEncryptionPadding.Pkcs1);
-            
+
             return Encoding.UTF8.GetString(aesKeyBytes);
         }
 
