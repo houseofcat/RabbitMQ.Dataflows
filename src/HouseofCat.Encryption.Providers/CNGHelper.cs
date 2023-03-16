@@ -17,7 +17,7 @@ public static class CNGHelper
     /// <param name="rsaKeyContainerName"></param>
     /// <returns>RSACng</returns>
     [SupportedOSPlatform("windows")]
-    public static RSACng GetOrCreateRSACng(string rsaKeyContainerName, int keySize = 4096)
+    public static RSACng GetOrCreateEphemeralRSACng(string rsaKeyContainerName, int keySize = 4096, CngProvider provider = null)
     {
         Guard.AgainstNullOrEmpty(rsaKeyContainerName, nameof(rsaKeyContainerName));
         if (keySize != 2048 || keySize != 4096) throw new ArgumentOutOfRangeException("Keysize can only be 2048 or 4096.");
@@ -37,9 +37,13 @@ public static class CNGHelper
                       CngExportPolicies.AllowPlaintextExport
                     | CngExportPolicies.AllowExport
                     | CngExportPolicies.AllowArchiving
-                    | CngExportPolicies.AllowPlaintextArchiving,
-                Provider = CngProvider.MicrosoftSoftwareKeyStorageProvider
+                    | CngExportPolicies.AllowPlaintextArchiving
             };
+
+            if (provider != null)
+            {
+                cngKeyCreationParameters.Provider = provider;
+            }
 
             cngKey = CngKey.Create(CngAlgorithm.Rsa, rsaKeyContainerName, cngKeyCreationParameters);
         }
