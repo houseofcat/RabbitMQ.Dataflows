@@ -8,25 +8,62 @@ namespace HouseofCat.RabbitMQ.Pools;
 
 public interface IRecoveryAwareChannelHost : IChannelHost
 {
-    bool? Recovered { get; }
     string RecordedConsumerTag { get; }
     string RecoveredConsumerTag { get; }
+    bool? Recovered { get; }
+
     void DeleteRecordedConsumerTag(string consumerTag);
-    void RecordConsumerTag(string consumerTag);
     Task DeleteRecordedConsumerTagAsync(string consumerTag);
+
+    void RecordConsumerTag(string consumerTag);
     Task RecordConsumerTagAsync(string consumerTag);
+
     Task<bool> RecoverChannelAsync(Func<Task<bool>> restartConsumingAsync);
 }
 
 public class RecoveryAwareChannelHost : ChannelHost, IRecoveryAwareChannelHost
 {
-    public bool? Recovered { get; private set; }
     public string RecordedConsumerTag { get; private set; }
     public string RecoveredConsumerTag { get; private set; }
+    public bool? Recovered { get; private set; }
 
     public RecoveryAwareChannelHost(ulong channelId, IConnectionHost connHost, bool ackable) :
         base(channelId, connHost, ackable)
     {
+    }
+
+    public void DeleteRecordedConsumerTag(string consumerTag)
+    {
+        EnterLock();
+        if (RecordedConsumerTag == consumerTag)
+        {
+            RecordedConsumerTag = null;
+        }
+        ExitLock();
+    }
+
+    public async Task DeleteRecordedConsumerTagAsync(string consumerTag)
+    {
+        await EnterLockAsync().ConfigureAwait(false);
+        if (RecordedConsumerTag == consumerTag)
+        {
+            RecordedConsumerTag = null;
+        }
+        ExitLock();
+    }
+
+    public void RecordConsumerTag(string consumerTag)
+    {
+        EnterLock();
+        RecordedConsumerTag = consumerTag;
+        ExitLock();
+    }
+
+    public async Task RecordConsumerTagAsync(string consumerTag)
+    {
+        await EnterLockAsync().ConfigureAwait(false);
+        RecordedConsumerTag = consumerTag;
+        ExitLock();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -66,40 +103,6 @@ public class RecoveryAwareChannelHost : ChannelHost, IRecoveryAwareChannelHost
 
     public override async Task<bool> HealthyAsync() => 
         Recovered is not false && await base.HealthyAsync().ConfigureAwait(false);
-
-    public void DeleteRecordedConsumerTag(string consumerTag)
-    {
-        EnterLock();
-        if (RecordedConsumerTag == consumerTag)
-        {
-            RecordedConsumerTag = null;
-        }
-        ExitLock();
-    }
-
-    public void RecordConsumerTag(string consumerTag)
-    {
-        EnterLock();
-        RecordedConsumerTag = consumerTag;
-        ExitLock();
-    }
-
-    public async Task DeleteRecordedConsumerTagAsync(string consumerTag)
-    {
-        await EnterLockAsync().ConfigureAwait(false);
-        if (RecordedConsumerTag == consumerTag)
-        {
-            RecordedConsumerTag = null;
-        }
-        ExitLock();
-    }
-
-    public async Task RecordConsumerTagAsync(string consumerTag)
-    {
-        await EnterLockAsync().ConfigureAwait(false);
-        RecordedConsumerTag = consumerTag;
-        ExitLock();
-    }
 
     protected override void AddEventHandlers()
     {
