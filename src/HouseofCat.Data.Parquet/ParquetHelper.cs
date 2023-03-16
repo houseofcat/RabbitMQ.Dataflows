@@ -350,7 +350,6 @@ public static class ParquetHelper
                 default:
                     return reader.GetComplexValueForParquet(index);
             }
-#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         throw new InvalidDataException(string.Format(InvalidValueErrorTemplate, normalizedDatabaseType));
@@ -706,3 +705,4 @@ public static class ParquetHelper
         }
     }
 }
+#pragma warning restore CS0618 // Type or member is obsolete
