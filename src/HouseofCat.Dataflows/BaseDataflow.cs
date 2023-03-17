@@ -1,5 +1,5 @@
 ﻿using HouseofCat.Compression;
-using HouseofCat.Encryption;
+using HouseofCat.Encryption.Providers;
 using HouseofCat.Metrics;
 using HouseofCat.Serialization;
 using System;
@@ -7,167 +7,166 @@ using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-namespace HouseofCat.Dataflows
+namespace HouseofCat.Dataflows;
+
+public abstract class BaseDataflow<TState> where TState : class, IWorkState, new()
 {
-    public abstract class BaseDataflow<TState> where TState : class, IWorkState, new()
+    protected ExecutionDataflowBlockOptions _executeStepOptions;
+    protected DataflowLinkOptions _linkStepOptions;
+
+    protected ISerializationProvider _serializationProvider;
+    protected IEncryptionProvider _encryptionProvider;
+    protected ICompressionProvider _compressProvider;
+    protected IMetricsProvider _metricsProvider;
+
+    protected ISourceBlock<TState> _currentBlock;
+    public Task Completion { get; protected set; }
+
+    protected void SetCurrentSourceBlock(IDataflowBlock block)
     {
-        protected ExecutionDataflowBlockOptions _executeStepOptions;
-        protected DataflowLinkOptions _linkStepOptions;
+        _currentBlock = (ISourceBlock<TState>)block;
+    }
 
-        protected ISerializationProvider _serializationProvider;
-        protected IEncryptionProvider _encryptionProvider;
-        protected ICompressionProvider _compressProvider;
-        protected IMetricsProvider _metricsProvider;
-
-        protected ISourceBlock<TState> _currentBlock;
-        public Task Completion { get; protected set; }
-
-        protected void SetCurrentSourceBlock(IDataflowBlock block)
+    protected ExecutionDataflowBlockOptions GetExecuteStepOptions(int? maxDoP, bool? ensureOrdered, int? boundedCapacity, TaskScheduler taskScheduler = null)
+    {
+        if (maxDoP.HasValue || ensureOrdered.HasValue || boundedCapacity.HasValue)
         {
-            _currentBlock = (ISourceBlock<TState>)block;
-        }
-
-        protected ExecutionDataflowBlockOptions GetExecuteStepOptions(int? maxDoP, bool? ensureOrdered, int? boundedCapacity, TaskScheduler taskScheduler = null)
-        {
-            if (maxDoP.HasValue || ensureOrdered.HasValue || boundedCapacity.HasValue)
+            return new ExecutionDataflowBlockOptions
             {
-                return new ExecutionDataflowBlockOptions
-                {
-                    BoundedCapacity = boundedCapacity ?? _executeStepOptions.BoundedCapacity,
-                    EnsureOrdered = ensureOrdered ?? _executeStepOptions.EnsureOrdered,
-                    MaxDegreeOfParallelism = maxDoP ?? _executeStepOptions.MaxDegreeOfParallelism,
-                    TaskScheduler = taskScheduler ?? TaskScheduler.Current,
-                };
-            }
-
-            return _executeStepOptions;
+                BoundedCapacity = boundedCapacity ?? _executeStepOptions.BoundedCapacity,
+                EnsureOrdered = ensureOrdered ?? _executeStepOptions.EnsureOrdered,
+                MaxDegreeOfParallelism = maxDoP ?? _executeStepOptions.MaxDegreeOfParallelism,
+                TaskScheduler = taskScheduler ?? TaskScheduler.Current,
+            };
         }
 
-        public TransformBlock<TState, TState> GetTransformBlock(
-            Func<TState, Task<TState>> action,
-            ExecutionDataflowBlockOptions options)
-        {
-            return new TransformBlock<TState, TState>(action, options);
-        }
+        return _executeStepOptions;
+    }
 
-        public TransformBlock<TState, TState> GetTransformBlock(
-            Func<TState, TState> action,
-            ExecutionDataflowBlockOptions options)
-        {
-            return new TransformBlock<TState, TState>(action, options);
-        }
+    public TransformBlock<TState, TState> GetTransformBlock(
+        Func<TState, Task<TState>> action,
+        ExecutionDataflowBlockOptions options)
+    {
+        return new TransformBlock<TState, TState>(action, options);
+    }
 
-        public TransformBlock<TState, TState> GetWrappedTransformBlock(
-            Func<TState, TState> action,
-            ExecutionDataflowBlockOptions options,
-            string metricIdentifier,
-            bool metricMicroScale = false,
-            string metricDescription = null)
+    public TransformBlock<TState, TState> GetTransformBlock(
+        Func<TState, TState> action,
+        ExecutionDataflowBlockOptions options)
+    {
+        return new TransformBlock<TState, TState>(action, options);
+    }
+
+    public TransformBlock<TState, TState> GetWrappedTransformBlock(
+        Func<TState, TState> action,
+        ExecutionDataflowBlockOptions options,
+        string metricIdentifier,
+        bool metricMicroScale = false,
+        string metricDescription = null)
+    {
+        TState WrapAction(TState state)
         {
-            TState WrapAction(TState state)
+            try
             {
-                try
-                {
-                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
-                    return action(state);
-                }
-                catch (Exception ex)
-                {
-                    state.IsFaulted = true;
-                    state.EDI = ExceptionDispatchInfo.Capture(ex);
-                    return state;
-                }
+                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
+                return action(state);
             }
-
-            return new TransformBlock<TState, TState>(WrapAction, options);
-        }
-
-        public TransformBlock<TState, TState> GetWrappedTransformBlock(
-            Func<TState, Task<TState>> action,
-            ExecutionDataflowBlockOptions options,
-            string metricIdentifier,
-            bool metricMicroScale = false,
-            string metricDescription = null)
-        {
-            async Task<TState> WrapActionAsync(TState state)
+            catch (Exception ex)
             {
-                try
-                {
-                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
-                    return await action(state).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    state.IsFaulted = true;
-                    state.EDI = ExceptionDispatchInfo.Capture(ex);
-                    return state;
-                }
+                state.IsFaulted = true;
+                state.EDI = ExceptionDispatchInfo.Capture(ex);
+                return state;
             }
-
-            return new TransformBlock<TState, TState>(WrapActionAsync, options);
         }
 
-        public ActionBlock<TState> GetWrappedActionBlock(
-            Action<TState> action,
-            ExecutionDataflowBlockOptions options,
-            string metricIdentifier,
-            bool metricMicroScale = false,
-            string metricDescription = null)
+        return new TransformBlock<TState, TState>(WrapAction, options);
+    }
+
+    public TransformBlock<TState, TState> GetWrappedTransformBlock(
+        Func<TState, Task<TState>> action,
+        ExecutionDataflowBlockOptions options,
+        string metricIdentifier,
+        bool metricMicroScale = false,
+        string metricDescription = null)
+    {
+        async Task<TState> WrapActionAsync(TState state)
         {
-            void WrapAction(TState state)
+            try
             {
-                try
-                {
-                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
-                    action(state);
-                }
-                catch
-                { /* Actions are terminating block, so swallow (maybe log) */ }
+                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
+                return await action(state).ConfigureAwait(false);
             }
-
-            return new ActionBlock<TState>(WrapAction, options);
+            catch (Exception ex)
+            {
+                state.IsFaulted = true;
+                state.EDI = ExceptionDispatchInfo.Capture(ex);
+                return state;
+            }
         }
 
-        public ActionBlock<TState> GetWrappedActionBlock(
-            Func<TState, TState> action,
-            ExecutionDataflowBlockOptions options,
-            string metricIdentifier,
-            bool metricMicroScale = false,
-            string metricDescription = null)
+        return new TransformBlock<TState, TState>(WrapActionAsync, options);
+    }
+
+    public ActionBlock<TState> GetWrappedActionBlock(
+        Action<TState> action,
+        ExecutionDataflowBlockOptions options,
+        string metricIdentifier,
+        bool metricMicroScale = false,
+        string metricDescription = null)
+    {
+        void WrapAction(TState state)
         {
-            void WrapAction(TState state)
+            try
             {
-                try
-                {
-                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
-                    action(state);
-                }
-                catch
-                { /* Actions are terminating block, so swallow (maybe log) */ }
+                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
+                action(state);
             }
-
-            return new ActionBlock<TState>(WrapAction, options);
+            catch
+            { /* Actions are terminating block, so swallow (maybe log) */ }
         }
 
-        public ActionBlock<TState> GetWrappedActionBlock(
-            Func<TState, Task> action,
-            ExecutionDataflowBlockOptions options,
-            string metricIdentifier,
-            bool metricMicroScale = false,
-            string metricDescription = null)
+        return new ActionBlock<TState>(WrapAction, options);
+    }
+
+    public ActionBlock<TState> GetWrappedActionBlock(
+        Func<TState, TState> action,
+        ExecutionDataflowBlockOptions options,
+        string metricIdentifier,
+        bool metricMicroScale = false,
+        string metricDescription = null)
+    {
+        void WrapAction(TState state)
         {
-            async Task WrapActionAsync(TState state)
+            try
             {
-                try
-                {
-                    using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
-                    await action(state).ConfigureAwait(false);
-                }
-                catch
-                { /* Actions are terminating block, so swallow (maybe log) */ }
+                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
+                action(state);
             }
-
-            return new ActionBlock<TState>(WrapActionAsync, options);
+            catch
+            { /* Actions are terminating block, so swallow (maybe log) */ }
         }
+
+        return new ActionBlock<TState>(WrapAction, options);
+    }
+
+    public ActionBlock<TState> GetWrappedActionBlock(
+        Func<TState, Task> action,
+        ExecutionDataflowBlockOptions options,
+        string metricIdentifier,
+        bool metricMicroScale = false,
+        string metricDescription = null)
+    {
+        async Task WrapActionAsync(TState state)
+        {
+            try
+            {
+                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
+                await action(state).ConfigureAwait(false);
+            }
+            catch
+            { /* Actions are terminating block, so swallow (maybe log) */ }
+        }
+
+        return new ActionBlock<TState>(WrapActionAsync, options);
     }
 }

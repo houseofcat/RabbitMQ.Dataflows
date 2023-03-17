@@ -155,13 +155,6 @@ A library that provides the base magic Dataflows for Tesseract.
 A library that provides the base magic Pipelines for Tesseract. 
 
 
-## HouseofCat.Encryption
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Encryption.svg)](https://www.nuget.org/packages/HouseofCat.Encryption/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Encryption.svg)](https://www.nuget.org/packages/HouseofCat.Encryption/)  
-
-A library that provides encryption contracts and a base AesGCM NetCore provider. 
-
-
 ## HouseofCat.Encryption.BouncyCastle
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Encryption.BouncyCastle.svg)](https://www.nuget.org/packages/HouseofCat.Encryption.BouncyCastle/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Encryption.BouncyCastle.svg)](https://www.nuget.org/packages/HouseofCat.Encryption.BouncyCastle/)  
@@ -174,6 +167,13 @@ A library that provides encryption from the BouncyCastle provider.
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Encryption.Recyclable.svg)](https://www.nuget.org/packages/HouseofCat.Encryption.Recyclable/)  
 
 A library that provides encryption from base AesGcm class in NetCore but with ArrayPools and RecyclableMemoryStreams.
+
+
+## HouseofCat.Encryption.Providers
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Encryption.Providers.svg)](https://www.nuget.org/packages/HouseofCat.Encryption.Providers/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Encryption.Providers.svg)](https://www.nuget.org/packages/HouseofCat.Encryption.Providers/)  
+
+A library that provides encryption contracts and a base AesGCM/AesCBC NetCore encryption providers. 
 
 
 ## HouseofCat.Extensions

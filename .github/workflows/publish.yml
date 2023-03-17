@@ -122,14 +122,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Dataflows.Pipelines/HouseofCat.Dataflows.Pipelines.csproj
 
-    - name: Publish HouseofCat.Encryption
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Encryption/HouseofCat.Encryption.csproj
-
     - name: Publish HouseofCat.Encryption.BouncyCastle
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -145,6 +137,14 @@ jobs:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Encryption.Recyclable/HouseofCat.Encryption.Recyclable.csproj
+
+    - name: Publish HouseofCat.Encryption.Providers
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      continue-on-error: true
+      with:
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_FILE_PATH: version.props
+          PROJECT_FILE_PATH: src/HouseofCat.Encryption.Providers/HouseofCat.Encryption.Providers.csproj
 
     - name: Publish HouseofCat.Extensions
       uses: brandedoutcast/publish-nuget@v2.5.2

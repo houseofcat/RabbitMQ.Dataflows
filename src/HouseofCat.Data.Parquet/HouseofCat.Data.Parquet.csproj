@@ -11,7 +11,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Data.Database\HouseofCat.Data.Database.csproj" />
-    <ProjectReference Include="..\HouseofCat.Encryption\HouseofCat.Encryption.csproj" />
+    <ProjectReference Include="..\HouseofCat.Encryption.Providers\HouseofCat.Encryption.Providers.csproj" />
+    <ProjectReference Include="..\HouseofCat.Encryption.Providers\HouseofCat.Encryption.Providers.csproj" />
     <ProjectReference Include="..\HouseofCat.Extensions\HouseofCat.Extensions.csproj" />
     <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
   </ItemGroup>
