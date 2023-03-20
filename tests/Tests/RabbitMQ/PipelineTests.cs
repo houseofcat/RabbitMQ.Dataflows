@@ -17,7 +17,7 @@ namespace RabbitMQ
             _fixture.Output = output;
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public void BuildSimplePipelineTest()
         {
             // Arrange

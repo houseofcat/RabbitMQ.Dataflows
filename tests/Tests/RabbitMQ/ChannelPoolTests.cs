@@ -18,22 +18,30 @@ namespace RabbitMQ
             _fixture.Output = output;
         }
 
-        [Fact(Skip = "only manual")]
-        public void CreateChannelPoolWithLocalHost()
+        [Fact]
+        public async Task CreateChannelPoolWithRabbitHost()    
         {
             var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
-
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            {
+                return;
+            }
+            
             var chanPool = new ChannelPool(options);
 
             Assert.NotNull(chanPool);
         }
 
-        [Fact(Skip = "only manual")]
-        public void InitializeChannelPoolAsync()
+        [Fact]
+        public async Task InitializeChannelPoolAsync()
         {
             var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            {
+                return;
+            }
 
             var chanPool = new ChannelPool(options);
 
@@ -41,20 +49,26 @@ namespace RabbitMQ
             Assert.True(chanPool.CurrentChannelId > 0);
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task OverLoopThroughChannelPoolAsync()
         {
             var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            {
+                return;
+            }
+
             options.PoolOptions.MaxConnections = 5;
             options.PoolOptions.MaxChannels = 25;
+            
             var successCount = 0;
             const int loopCount = 100_000;
             var chanPool = new ChannelPool(options);
 
             var sw = Stopwatch.StartNew();
 
-            for (int i = 0; i < loopCount; i++)
+            for (var i = 0; i < loopCount; i++)
             {
                 var channel = await chanPool
                     .GetChannelAsync()
@@ -69,7 +83,7 @@ namespace RabbitMQ
                 }
             }
 
-            for (int i = 0; i < loopCount; i++)
+            for (var i = 0; i < loopCount; i++)
             {
                 var channel = await chanPool
                     .GetAckChannelAsync()

@@ -1,4 +1,12 @@
-﻿using HouseofCat.Compression;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
+using DnsClient;
+using HouseofCat.Compression;
 using HouseofCat.Encryption.Providers;
 using HouseofCat.Hashing;
 using HouseofCat.Hashing.Argon;
@@ -8,27 +16,43 @@ using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.File;
 using Microsoft.Extensions.Logging;
+using Nito.AsyncEx;
 using Xunit.Abstractions;
 
 namespace RabbitMQ
 {
     public class RabbitFixture
     {
+        private static readonly string EnvironmentRabbitHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST");
+        
+        private readonly AsyncLazy<bool> _lazyConnectionCheck = 
+            new (() => CheckRabbitHostConnection().AsTask(), AsyncLazyFlags.ExecuteOnCallingThread);
+        
+        private readonly AsyncLazy<RabbitOptions> _lazyOptions;
+        private readonly AsyncLazy<RabbitService> _lazyService;
+        private readonly AsyncLazy<IChannelPool> _lazyChannelPool;
+        private readonly AsyncLazy<ITopologer> _lazyTopologer;
+        private readonly AsyncLazy<IPublisher> _lazyPublisher;
+        
         public ITestOutputHelper Output;
         public readonly ISerializationProvider SerializationProvider;
         public readonly IHashingProvider HashingProvider;
         public readonly IEncryptionProvider EncryptionProvider;
         public readonly ICompressionProvider CompressionProvider;
 
+        public static readonly string RabbitHost = 
+            string.IsNullOrEmpty(EnvironmentRabbitHost) ? "localhost" : EnvironmentRabbitHost;
+        public const int RabbitPort = 5672;
         public const string Passphrase = "SuperNintendoHadTheBestZelda";
         public const string Salt = "SegaGenesisIsTheBestConsole";
         public readonly byte[] HashKey;
-
-        public readonly RabbitOptions Options;
-        public readonly RabbitService RabbitService;
-        public readonly IChannelPool ChannelPool;
-        public readonly ITopologer Topologer;
-        public readonly IPublisher Publisher;
+        
+        public Task<bool> RabbitConnectionCheckAsync => _lazyConnectionCheck.Task;
+        public Task<RabbitOptions> OptionsAsync => _lazyOptions.Task;
+        public Task<RabbitService> RabbitServiceAsync => _lazyService.Task;
+        public Task<IChannelPool> ChannelPoolAsync => _lazyChannelPool.Task;
+        public Task<ITopologer> TopologerAsync => _lazyTopologer.Task;
+        public Task<IPublisher> PublisherAsync => _lazyPublisher.Task;
 
         public RabbitFixture()
         {
@@ -37,21 +61,109 @@ namespace RabbitMQ
             HashKey = HashingProvider.GetHashKey(Passphrase, Salt, 32);
             EncryptionProvider = new AesGcmEncryptionProvider(HashKey);
             SerializationProvider = new Utf8JsonProvider();
+            
+            _lazyOptions = new AsyncLazy<RabbitOptions>(async () =>
+            {
+                var options = 
+                    await JsonFileReader.ReadFileAsync<RabbitOptions>(Path.Combine("RabbitMQ", "TestConfig.json"));
+                await CheckRabbitHostConnectionAndUpdateFactoryOptions(options);
+                return options;
+            }, AsyncLazyFlags.ExecuteOnCallingThread);
+            _lazyService = new AsyncLazy<RabbitService>(
+                async () => new RabbitService(
+                    await OptionsAsync,
+                    SerializationProvider,
+                    EncryptionProvider,
+                    CompressionProvider,
+                    LoggerFactory
+                        .Create(
+                            builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information))), 
+                AsyncLazyFlags.ExecuteOnCallingThread);
+            _lazyChannelPool = new AsyncLazy<IChannelPool>(
+                async () => (await RabbitServiceAsync).ChannelPool, AsyncLazyFlags.ExecuteOnCallingThread);
+            _lazyTopologer = new AsyncLazy<ITopologer>(
+                async () => (await RabbitServiceAsync).Topologer, AsyncLazyFlags.ExecuteOnCallingThread);
+            _lazyPublisher = new AsyncLazy<IPublisher>(
+                async () => (await RabbitServiceAsync).Publisher, AsyncLazyFlags.ExecuteOnCallingThread);
+        }
 
-            Options = JsonFileReader.ReadFileAsync<RabbitOptions>("RabbitMQ\\TestConfig.json").GetAwaiter().GetResult();
+        public async ValueTask<bool> CheckRabbitHostConnectionAndUpdateFactoryOptions(RabbitOptions options)
+        {
+            if (!await RabbitConnectionCheckAsync)
+            {
+                Output?.WriteLine($"Could not connect to RabbitMQ at {RabbitHost}:{RabbitPort}");
+				return false;
+            }
 
-            RabbitService = new RabbitService(
-                Options,
-                SerializationProvider,
-                EncryptionProvider,
-                CompressionProvider,
-                LoggerFactory
-                    .Create(
-                        builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information)));
+			if (RabbitHost != "localhost")
+			{
+            	UpdateFactoryOptionsWithHost(options.FactoryOptions);
+			}
+            Output?.WriteLine($"RabbitMQ listening on {RabbitHost}:{RabbitPort}");
+            return true;
+        }
+        
+        private static async ValueTask<bool> CheckRabbitHostConnection()
+        {
+            var dnsEndPoint = new DnsEndPoint(RabbitHost, RabbitPort, AddressFamily.InterNetwork);
+            var lookupClient = new LookupClient();
+            try
+            {
+                using var cts = new CancellationTokenSource();
+                var cancellationToken = cts.Token;
+                var queryTask = 
+                    lookupClient.QueryAsync(dnsEndPoint.Host, QueryType.A, QueryClass.IN, cancellationToken);
+                var queryDelayTask = Task.Delay(500, cancellationToken);
+                
+                await Task.WhenAny(queryTask, queryDelayTask);
+                if (!queryTask.IsCompleted)
+                {
+                    cts.Cancel();
+                    return false;
+                }
+                
+                var queryResponse = await queryTask;
+                var addresses = queryResponse.Answers.ARecords().Select(aRecord => aRecord.Address).ToArray();
+                var socketDelayTask = Task.Delay(1500, cancellationToken);
+                using var socket = new Socket(dnsEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                var socketTask = socket.ConnectAsync(addresses, dnsEndPoint.Port, cancellationToken).AsTask();
+                await Task.WhenAny(socketTask, socketDelayTask);
+                if (socketTask.IsCompleted)
+                {
+                    return true;
+                }
 
-            ChannelPool = RabbitService.ChannelPool;
-            Topologer = RabbitService.Topologer;
-            Publisher = RabbitService.Publisher;
+                cts.Cancel();
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static void UpdateFactoryOptionsWithHost(FactoryOptions factoryOptions)
+        {
+            if (factoryOptions.Uri is not null)
+            {
+                var uri = factoryOptions.Uri;
+                var vhost = uri.AbsolutePath == "/" ? uri.AbsolutePath : uri.AbsolutePath[1..];
+                var userInfo = uri.UserInfo.Split(':');
+
+                factoryOptions.Uri = null;
+                factoryOptions.VirtualHost = vhost;
+                factoryOptions.UserName = userInfo[0];
+                factoryOptions.Password = userInfo[1];
+            }
+            else
+            {
+                factoryOptions.VirtualHost = "/";
+                factoryOptions.UserName = "guest";
+                factoryOptions.Password = "guest";
+            }
+            
+            factoryOptions.HostName = RabbitHost;
+            factoryOptions.Port = RabbitPort;
         }
     }
 }

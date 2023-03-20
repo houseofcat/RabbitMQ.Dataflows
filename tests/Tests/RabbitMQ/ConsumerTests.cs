@@ -2,6 +2,7 @@ using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.RabbitMQ;
 using HouseofCat.Utilities.File;
 using System;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -19,73 +20,111 @@ namespace RabbitMQ
             _fixture.Output = output;
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task CreateConsumer()
         {
-            var options = await JsonFileReader.ReadFileAsync<RabbitOptions>("TestConfig.json");
+            var options = 
+                await JsonFileReader.ReadFileAsync<RabbitOptions>(Path.Combine("RabbitMQ", "TestConfig.json"));
             Assert.NotNull(options);
+
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            {
+                return;
+            }
 
             var con = new Consumer(options, "TestMessageConsumer");
             Assert.NotNull(con);
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task CreateConsumerAndInitializeChannelPool()
         {
-            var options = await JsonFileReader.ReadFileAsync<RabbitOptions>("TestConfig.json");
+            var options = 
+                await JsonFileReader.ReadFileAsync<RabbitOptions>(Path.Combine("RabbitMQ", "TestConfig.json"));
             Assert.NotNull(options);
+
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            {
+                return;
+            }
 
             var con = new Consumer(options, "TestMessageConsumer");
             Assert.NotNull(con);
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task CreateConsumerAndStart()
         {
-            await _fixture.Topologer.CreateQueueAsync("TestConsumerQueue").ConfigureAwait(false);
-            var con = new Consumer(_fixture.ChannelPool, "TestMessageConsumer");
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
+
+            await (await _fixture.TopologerAsync).CreateQueueAsync("TestConsumerQueue").ConfigureAwait(false);
+            var con = new Consumer(await _fixture.ChannelPoolAsync, "TestMessageConsumer");
             await con.StartConsumerAsync().ConfigureAwait(false);
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task CreateConsumerStartAndStop()
         {
-            var con = new Consumer(_fixture.ChannelPool, "TestMessageConsumer");
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
+
+            var con = new Consumer(await _fixture.ChannelPoolAsync, "TestMessageConsumer");
 
             await con.StartConsumerAsync().ConfigureAwait(false);
             await con.StopConsumerAsync().ConfigureAwait(false);
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task CreateManyConsumersStartAndStop()
         {
-            for (int i = 0; i < 1000; i++)
+            if (!await _fixture.RabbitConnectionCheckAsync)
             {
-                var con = new Consumer(_fixture.ChannelPool, "TestMessageConsumer");
+                return;
+            }
+
+            for (var i = 0; i < 1000; i++)
+            {
+                var con = new Consumer(await _fixture.ChannelPoolAsync, "TestMessageConsumer");
 
                 await con.StartConsumerAsync().ConfigureAwait(false);
                 await con.StopConsumerAsync().ConfigureAwait(false);
             }
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task ConsumerStartAndStopTesting()
         {
-            var consumer = _fixture.RabbitService.GetConsumer("TestMessageConsumer");
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
 
-            for (int i = 0; i < 100; i++)
+            var consumer = (await _fixture.RabbitServiceAsync).GetConsumer("TestMessageConsumer");
+
+            for (var i = 0; i < 100; i++)
             {
                 await consumer.StartConsumerAsync().ConfigureAwait(false);
                 await consumer.StopConsumerAsync().ConfigureAwait(false);
             }
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task ConsumerPipelineStartAndStopTesting()
         {
-            var consumerPipeline = _fixture.RabbitService.CreateConsumerPipeline<WorkState>("TestMessageConsumer", 100, false, BuildPipeline);
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
 
-            for (int i = 0; i < 100; i++)
+            var consumerPipeline = (await _fixture.RabbitServiceAsync)
+                .CreateConsumerPipeline<WorkState>("TestMessageConsumer", 100, false, BuildPipeline);
+
+            for (var i = 0; i < 100; i++)
             {
                 await consumerPipeline.StartAsync(true);
                 await consumerPipeline.StopAsync();
@@ -95,7 +134,12 @@ namespace RabbitMQ
         [Fact(Skip = "only manual")]
         public async Task ConsumerChannelBlockTesting()
         {
-            var consumer = _fixture.RabbitService.GetConsumer("TestMessageConsumer");
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
+
+            var consumer = (await _fixture.RabbitServiceAsync).GetConsumer("TestMessageConsumer");
             await consumer.StartConsumerAsync();
 
             _ = Task.Run(
@@ -115,7 +159,12 @@ namespace RabbitMQ
         [Fact(Skip = "only manual")]
         public async Task ConsumerDirectChannelBlockTesting()
         {
-            var consumer = _fixture.RabbitService.GetConsumer("TestMessageConsumer");
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
+
+            var consumer = (await _fixture.RabbitServiceAsync).GetConsumer("TestMessageConsumer");
             await consumer.StartConsumerAsync();
 
             _ = Task.Run(

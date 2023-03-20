@@ -2,6 +2,7 @@ using HouseofCat.RabbitMQ;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Nito.AsyncEx;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -10,32 +11,42 @@ namespace RabbitMQ
     public class ChannelBlockTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
-        public Consumer Consumer;
-        public Publisher Publisher;
+        private readonly AsyncLazy<Consumer> _lazyConsumer;
+        private readonly AsyncLazy<Publisher> _lazyPublisher;
+        public Task<Consumer> ConsumerAsync => _lazyConsumer.Task;
+        public Task<Publisher> PublisherAsync => _lazyPublisher.Task;
 
         public ChannelBlockTests(RabbitFixture fixture, ITestOutputHelper output)
         {
             _fixture = fixture;
             _fixture.Output = output;
-            Consumer = new Consumer(_fixture.ChannelPool, "TestAutoPublisherConsumerName");
-            Publisher = new Publisher(
-                _fixture.ChannelPool,
+            _lazyConsumer = new AsyncLazy<Consumer>(
+                async () => new Consumer(await _fixture.ChannelPoolAsync, "TestAutoPublisherConsumerName"));
+            _lazyPublisher = new AsyncLazy<Publisher>(
+                async () => new Publisher(
+                await _fixture.ChannelPoolAsync,
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
-                _fixture.CompressionProvider);
+                _fixture.CompressionProvider));
         }
 
         [Fact(Skip = "only manual")]
         public async Task PublishAndConsume()
         {
-            await _fixture.Topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
-            await Publisher.StartAutoPublishAsync().ConfigureAwait(false);
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
+
+            await (await _fixture.TopologerAsync).CreateQueueAsync("TestAutoPublisherConsumerQueue")
+                .ConfigureAwait(false);
+            await (await PublisherAsync).StartAutoPublishAsync().ConfigureAwait(false);
 
             const ulong count = 1000;
 
-            var processReceiptsTask = ProcessReceiptsAsync(Publisher, count);
-            var publishLettersTask = PublishLettersAsync(Publisher, count);
-            var consumeMessagesTask = ConsumeMessagesAsync(Consumer, count);
+            var processReceiptsTask = ProcessReceiptsAsync(await PublisherAsync, count);
+            var publishLettersTask = PublishLettersAsync(await PublisherAsync, count);
+            var consumeMessagesTask = ConsumeMessagesAsync(await ConsumerAsync, count);
 
             await Task.Yield();
 
@@ -57,7 +68,8 @@ namespace RabbitMQ
             Assert.False(processReceiptsTask.Result);
             Assert.False(consumeMessagesTask.Result);
 
-            await _fixture.Topologer.DeleteQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
+            await (await _fixture.TopologerAsync).DeleteQueueAsync("TestAutoPublisherConsumerQueue")
+                .ConfigureAwait(false);
         }
 
         private async Task PublishLettersAsync(Publisher apub, ulong count)

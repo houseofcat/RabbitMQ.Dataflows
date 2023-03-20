@@ -18,33 +18,46 @@ namespace RabbitMQ
             _fixture.Output = output;
         }
 
-        [Fact(Skip = "only manual")]
-        public void CreateConnectionPoolWithLocalHost()
+        [Fact]
+        public async Task CreateConnectionPoolWithLocalHost()
         {
             var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            {
+                return;
+            }
 
             var connPool = new ConnectionPool(options);
 
             Assert.NotNull(connPool);
         }
 
-        [Fact(Skip = "only manual")]
-        public void InitializeConnectionPoolAsync()
+        [Fact]
+        public async Task InitializeConnectionPoolAsync()
         {
             var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            {
+                return;
+            }
 
             var connPool = new ConnectionPool(options);
 
             Assert.NotNull(connPool);
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task OverLoopThroughConnectionPoolAsync()
         {
             var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            {
+                return;
+            }
+
             options.PoolOptions.MaxConnections = 5;
             var successCount = 0;
             const int loopCount = 100_000;
@@ -52,7 +65,7 @@ namespace RabbitMQ
 
             var sw = Stopwatch.StartNew();
 
-            for (int i = 0; i < loopCount; i++)
+            for (var i = 0; i < loopCount; i++)
             {
                 var connHost = await connPool
                     .GetConnectionAsync()

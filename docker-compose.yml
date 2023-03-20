@@ -1,0 +1,22 @@
+version: '3.7'
+services:
+  builder:
+    build:
+      context: .
+      target: builder
+    user: root
+    container_name: builder
+  tests:
+    build:
+      context: .
+      target: tests
+    user: root
+    container_name: tests
+    environment:
+      RABBITMQ_HOST: rabbitmq
+    networks:
+      - tesseract
+networks:
+  tesseract:
+    name: houseofcat
+    external: true

@@ -1,4 +1,5 @@
 using HouseofCat.RabbitMQ.Services;
+using System.IO;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -18,8 +19,13 @@ namespace RabbitMQ
         [Fact(Skip = "only manual")]
         public async Task BuildRabbitService_AndTopology()
         {
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
+
             var rabbitService = new RabbitService(
-                "TestConfig.json",
+                Path.Combine("RabbitMQ", "TestConfig.json"),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);

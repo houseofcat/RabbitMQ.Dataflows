@@ -20,14 +20,16 @@ namespace RabbitMQ
             _fixture.Output = output;
         }
 
-        [Fact(Skip = "only manual")]
-        public void CreatePublisher()
+        [Fact]
+        public async Task CreatePublisher()
         {
-            var options = new RabbitOptions();
-            options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
 
             var pub = new Publisher(
-                _fixture.ChannelPool,
+                await _fixture.ChannelPoolAsync,
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -35,14 +37,16 @@ namespace RabbitMQ
             Assert.NotNull(pub);
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task CreatePublisherAndInitializeChannelPool()
         {
-            var options = new RabbitOptions();
-            options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
 
             var pub = new Publisher(
-                _fixture.ChannelPool,
+                await _fixture.ChannelPoolAsync,
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -52,15 +56,18 @@ namespace RabbitMQ
             Assert.NotNull(pub);
         }
 
-        [Fact(Skip = "only manual")]
-        public void CreatePublisherWithChannelPool()
+        [Fact]
+        public async Task CreatePublisherWithChannelPool()
         {
             var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            {
+                return;
+            }
 
-            var chanPool = new ChannelPool(options);
             var pub = new Publisher(
-                _fixture.ChannelPool,
+                new ChannelPool(options),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -68,14 +75,16 @@ namespace RabbitMQ
             Assert.NotNull(pub);
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task PublishToNonExistentQueueAsync()
         {
-            var options = new RabbitOptions();
-            options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
 
             var pub = new Publisher(
-                _fixture.ChannelPool,
+                await _fixture.ChannelPoolAsync,
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -89,21 +98,23 @@ namespace RabbitMQ
             {
                 var receiptBuffer = pub.GetReceiptBufferReader();
                 await receiptBuffer.WaitToReadAsync(cancellationToken);
-                var receipt = receiptBuffer.ReadAsync(cancellationToken);
+                _ = receiptBuffer.ReadAsync(cancellationToken);
             }
 
             await Assert
                 .ThrowsAnyAsync<OperationCanceledException>(() => ReadReceiptAsync(tokenSource.Token));
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task PublishAsync()
         {
-            var options = new RabbitOptions();
-            options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
 
             var pub = new Publisher(
-                _fixture.ChannelPool,
+                await _fixture.ChannelPoolAsync,
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -121,13 +132,16 @@ namespace RabbitMQ
         [Fact(Skip = "only manual")]
         public async Task PublishManyAsync()
         {
-            var options = new RabbitOptions();
-            options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
+
             const int letterCount = 10_000;
             const int byteCount = 500;
 
             var pub = new Publisher(
-                _fixture.ChannelPool,
+                await _fixture.ChannelPoolAsync,
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -169,8 +183,6 @@ namespace RabbitMQ
         [Fact(Skip = "only manual")]
         public void PublishBatchAsync()
         {
-            //var options = new Options();
-            //config.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
             //const int letterCount = 10_000;
             //const int byteCount = 500;
 

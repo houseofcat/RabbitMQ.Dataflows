@@ -18,10 +18,10 @@ namespace RabbitMQ
         }
 
         [Fact(Skip = "only manual")]
-        public void CreateAutoPublisher()
+        public async Task CreateAutoPublisher()
         {
             var pub = new Publisher(
-                _fixture.ChannelPool,
+                await _fixture.ChannelPoolAsync,
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -29,11 +29,11 @@ namespace RabbitMQ
             Assert.NotNull(pub);
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task CreateAutoPublisherAndStart()
         {
             var pub = new Publisher(
-                _fixture.ChannelPool,
+                await _fixture.ChannelPoolAsync,
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -43,11 +43,11 @@ namespace RabbitMQ
             Assert.NotNull(pub);
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task CreateAutoPublisherAndPublish()
         {
             var pub = new Publisher(
-                _fixture.ChannelPool,
+                await _fixture.ChannelPoolAsync,
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -56,11 +56,11 @@ namespace RabbitMQ
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await pub.QueueMessageAsync(letter));
         }
 
-        [Fact(Skip = "only manual")]
-        public void CreateAutoPublisherByOptions()
+        [Fact]
+        public async Task CreateAutoPublisherByOptions()
         {
             var pub = new Publisher(
-                _fixture.Options,
+                await _fixture.OptionsAsync,
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -68,11 +68,16 @@ namespace RabbitMQ
             Assert.NotNull(pub);
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task CreateAutoPublisherByConfigAndStart()
         {
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
+
             var pub = new Publisher(
-                _fixture.Options,
+                await _fixture.OptionsAsync,
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -82,11 +87,16 @@ namespace RabbitMQ
             Assert.NotNull(pub);
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task CreateAutoPublisherByConfigAndPublish()
         {
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
+
             var pub = new Publisher(
-                _fixture.Options,
+                await _fixture.OptionsAsync,
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -100,8 +110,13 @@ namespace RabbitMQ
         [Fact(Skip = "only manual")]
         public async Task CreateAutoPublisherByConfigQueueAndConcurrentPublish()
         {
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
+
             var pub = new Publisher(
-                _fixture.Options,
+                await _fixture.OptionsAsync,
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -131,8 +146,13 @@ namespace RabbitMQ
         [Fact(Skip = "only manual")]
         public async Task CreateAutoPublisherQueueConcurrentPublishAndProcessReceipts()
         {
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
+
             var pub = new Publisher(
-                _fixture.Options,
+                await _fixture.OptionsAsync,
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
