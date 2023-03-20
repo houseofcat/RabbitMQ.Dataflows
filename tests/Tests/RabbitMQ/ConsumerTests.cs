@@ -1,10 +1,12 @@
 using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.RabbitMQ;
+using HouseofCat.RabbitMQ.WorkState.Extensions;
 using HouseofCat.Utilities.File;
 using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using HouseofCat.RabbitMQ.WorkState;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -13,6 +15,12 @@ namespace RabbitMQ
     public class ConsumerTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
+
+        public class MessageState : RabbitWorkState
+        {
+            public string MessageAsString => Encoding.UTF8.GetString(ReceivedData.Data);
+            public bool AcknowledgeSuccess { get; set; }
+        }
 
         public ConsumerTests(RabbitFixture fixture, ITestOutputHelper output)
         {
@@ -131,7 +139,7 @@ namespace RabbitMQ
             }
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task ConsumerChannelBlockTesting()
         {
             if (!await _fixture.RabbitConnectionCheckAsync)
@@ -145,18 +153,14 @@ namespace RabbitMQ
             _ = Task.Run(
                 async () =>
                 {
-                    await Task.Delay(12000);
+                    await Task.Delay(1000);
                     await consumer.StopConsumerAsync();
                 });
 
-            await consumer.ChannelExecutionEngineAsync(
-                ProcessMessageAsync,
-                4,
-                true,
-                null);
+            await consumer.ChannelExecutionEngineAsync(TryProcessMessageAsync);
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task ConsumerDirectChannelBlockTesting()
         {
             if (!await _fixture.RabbitConnectionCheckAsync)
@@ -174,17 +178,48 @@ namespace RabbitMQ
                     await consumer.StopConsumerAsync();
                 });
 
-            await consumer.DirectChannelExecutionEngineAsync(
-                ProcessMessageAsync,
-                4,
-                true,
-                null);
+            await consumer.DirectChannelExecutionEngineAsync(TryProcessMessageAsync);
         }
 
-        public async Task<bool> ProcessMessageAsync(ReceivedData data)
+        [Fact]
+        public async Task ConsumerDirectChannelReaderBlockTesting()
         {
-            await Console.Out.WriteLineAsync(Encoding.UTF8.GetString(data.Data));
-            return data.AckMessage();
+            if (!await _fixture.RabbitConnectionCheckAsync)
+            {
+                return;
+            }
+
+            var consumer = (await _fixture.RabbitServiceAsync).GetConsumer("TestMessageConsumer");
+            await consumer.StartConsumerAsync();
+
+            _ = Task.Run(
+                async () =>
+                {
+                    await Task.Delay(1000);
+                    await consumer.StopConsumerAsync();
+                });
+
+            await consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync, FinaliseAsync);
+        }
+
+        public async Task<bool> TryProcessMessageAsync(ReceivedData data)
+        {
+            var state = await ProcessMessageAsync(data);
+            return state is MessageState { AcknowledgeSuccess: true };
+        }
+
+        public async Task<IRabbitWorkState> ProcessMessageAsync(ReceivedData data)
+        {
+            var state = new MessageState { ReceivedData = data };
+            await Console.Out.WriteLineAsync(state.MessageAsString);
+            state.AcknowledgeSuccess = data.AckMessage();
+            return state;
+        }
+
+        public async Task FinaliseAsync(IRabbitWorkState state)
+        {
+            await Task.Yield();
+            state.ReceivedData?.Complete();
         }
 
         private IPipeline<ReceivedData, WorkState> BuildPipeline(int maxDoP, bool? ensureOrdered = null)
