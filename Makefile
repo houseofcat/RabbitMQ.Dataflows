@@ -7,10 +7,10 @@ run_tests: build_tests
 	docker-compose --project-name tests up --no-build --exit-code-from tests tests
 
 rmq:
-	-docker network create $(if ${TESTS},--internal) -d bridge houseofcat
+	-docker network create $(if ${INTERNAL},--internal) -d bridge houseofcat
 	docker-compose -f docker-compose-rmq.yml --project-name hoc-rmq up -d
 
-tests: TESTS=true
+tests: INTERNAL ?= true
 tests: rmq run_tests
 
 stop_rmq:

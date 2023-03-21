@@ -8,7 +8,7 @@ COPY ./version.props /version.props
 
 WORKDIR /
 
-RUN dotnet restore && dotnet build --no-restore --configuration Release
+RUN dotnet build --configuration Release
 
 FROM builder as tests
 

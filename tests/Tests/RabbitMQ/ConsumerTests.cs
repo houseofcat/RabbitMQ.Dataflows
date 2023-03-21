@@ -4,6 +4,7 @@ using HouseofCat.RabbitMQ.WorkState.Extensions;
 using HouseofCat.Utilities.File;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using HouseofCat.RabbitMQ.WorkState;
 using Xunit;
@@ -125,14 +126,17 @@ namespace RabbitMQ
                 return;
             }
 
+            await PublishRandomLetter();
+
             var service = await _fixture.RabbitServiceAsync;
             var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
 
-            for (var i = 0; i < 100; i++)
+            await Task.WhenAll(Enumerable.Range(0, 100).Select(async _ =>
             {
                 await consumerPipeline.StartAsync(true);
+                await Task.Delay(500);
                 await consumerPipeline.StopAsync();
-            }
+            }));
         }
 
         [Fact]

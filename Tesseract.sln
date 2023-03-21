@@ -143,6 +143,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "stablediffusion", "stabledi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "tests\Tests\IntegrationTests.csproj", "{7C3E7BF7-837B-445E-BABE-3760D52813AA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{43C5D87A-9F20-481A-B228-1CA5F381F046}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -332,7 +334,6 @@ Global
 		{7C3E7BF7-837B-445E-BABE-3760D52813AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7C3E7BF7-837B-445E-BABE-3760D52813AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C3E7BF7-837B-445E-BABE-3760D52813AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7C3E7BF7-837B-445E-BABE-3760D52813AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -390,6 +391,7 @@ Global
 		{FE660A7F-A9A9-4CB5-A352-3D01FAA502AC} = {4FCA30F5-D19B-4756-BC68-6BA7E668F786}
 		{0BF90E18-A067-45AC-91D0-E27328A6FC39} = {1AB5E832-AD36-40AF-A7E9-A105A778116C}
 		{D61A9911-AC32-4D96-ABC0-E02763115885} = {0BF90E18-A067-45AC-91D0-E27328A6FC39}
+		{7C3E7BF7-837B-445E-BABE-3760D52813AA} = {43C5D87A-9F20-481A-B228-1CA5F381F046}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D7099845-267C-4232-8764-5DF25D6B2C79}
