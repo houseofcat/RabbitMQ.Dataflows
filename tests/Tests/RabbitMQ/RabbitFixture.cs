@@ -50,6 +50,62 @@ namespace RabbitMQ
         public Task<ITopologer> TopologerAsync => _lazyTopologer.Task;
         public Task<IPublisher> PublisherAsync => _lazyPublisher.Task;
 
+        public class Wait
+        {
+            private readonly TimeSpan _timeout;
+            private readonly TimeSpan _interval;
+            private const int DefaultInterval = 100;
+
+            public Wait(TimeSpan timeout, TimeSpan? interval = null)
+            {
+                _interval = interval ?? TimeSpan.FromMilliseconds(DefaultInterval);
+                _timeout = timeout;
+            }
+
+            public async ValueTask<bool> UntilAsync(
+                Func<ValueTask<bool>> condition, Func<double, ValueTask> success, Func<ValueTask> failure)
+            {
+                await Task.Yield();
+
+                var startTime = DateTime.UtcNow;
+                var timeIsUp = startTime.Add(_timeout);
+                while (DateTime.UtcNow.CompareTo(timeIsUp) < 0)
+                {
+                    if (await condition().ConfigureAwait(false))
+                    {
+                        var timeTaken = DateTime.UtcNow - startTime;
+                        await success(timeTaken.TotalSeconds).ConfigureAwait(false);
+                        return true;
+                    }
+
+                    await Task.Delay(_interval).ConfigureAwait(false);
+                }
+
+                await failure().ConfigureAwait(false);
+                return false;
+            }
+
+            public ValueTask<bool> UntilAsync(
+                Func<ValueTask<int>> current, int expected, string message, ITestOutputHelper writer, bool throwOnTimeout = true) =>
+                UntilAsync(
+                    async () => await current().ConfigureAwait(false) == expected,
+                    secondsTaken =>
+                    {
+                        writer.WriteLine($"{expected} {message} in {secondsTaken:f4}s");
+                        return ValueTask.CompletedTask;
+                    },
+                    async () =>
+                    {
+                        var actual = await current().ConfigureAwait(false);
+                        var errorMessage = $"{actual} {message} (expected ${expected}) after {_timeout.TotalSeconds:f4}s";
+                        if (throwOnTimeout)
+                        {
+                            throw new TimeoutException(errorMessage);
+                        }
+                        writer.WriteLine(errorMessage);
+                    });
+        }
+
         public RabbitFixture()
         {
             CompressionProvider = new GzipProvider();
@@ -112,7 +168,7 @@ namespace RabbitMQ
             Output?.WriteLine($"RabbitMQ listening on {RabbitHost}:{RabbitPort}");
             return true;
         }
-        
+
         private static async ValueTask CheckRabbitHostConnection()
         {
             using var cts = new CancellationTokenSource(millisecondsDelay: 1000);

@@ -126,11 +126,13 @@ namespace RabbitMQ
                 return;
             }
 
+            var service = await _fixture.RabbitServiceAsync;
+            var consumer = service.GetConsumer("TestMessageConsumer");
+            await consumer.StartConsumerAsync();
+
             await PublishRandomLetter();
 
-            var service = await _fixture.RabbitServiceAsync;
             var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
-
             await Task.WhenAll(Enumerable.Range(0, 100).Select(async _ =>
             {
                 await consumerPipeline.StartAsync(true);
@@ -147,11 +149,11 @@ namespace RabbitMQ
                 return;
             }
 
-            await PublishRandomLetter();
-
             var service = await _fixture.RabbitServiceAsync;
             var consumer = service.GetConsumer("TestMessageConsumer");
             await consumer.StartConsumerAsync();
+
+            await PublishRandomLetter();
 
             _ = Task.Run(
                 async () =>
@@ -171,11 +173,11 @@ namespace RabbitMQ
                 return;
             }
 
-            await PublishRandomLetter();
-
             var service = await _fixture.RabbitServiceAsync;
             var consumer = service.GetConsumer("TestMessageConsumer");
             await consumer.StartConsumerAsync();
+
+            await PublishRandomLetter();
 
             _ = Task.Run(
                 async () =>
@@ -195,11 +197,11 @@ namespace RabbitMQ
                 return;
             }
 
-            await PublishRandomLetter();
-
             var service = await _fixture.RabbitServiceAsync;
             var consumer = service.GetConsumer("TestMessageConsumer");
             await consumer.StartConsumerAsync();
+
+            await PublishRandomLetter();
 
             _ = Task.Run(
                 async () =>
