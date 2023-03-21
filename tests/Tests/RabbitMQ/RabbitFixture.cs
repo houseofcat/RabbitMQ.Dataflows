@@ -116,7 +116,7 @@ namespace RabbitMQ
         private static async ValueTask CheckRabbitHostConnection()
         {
             using var cts = new CancellationTokenSource(millisecondsDelay: 1000);
-            using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            using var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
             await socket.ConnectAsync(new DnsEndPoint(RabbitHost, RabbitPort), cts.Token);
         }
 
