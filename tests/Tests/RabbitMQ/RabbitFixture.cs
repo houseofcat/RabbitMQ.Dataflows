@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -117,15 +116,12 @@ namespace RabbitMQ
         
         private static async ValueTask CheckRabbitHostConnection()
         {
-            var dnsEndPoint = new DnsEndPoint(RabbitHost, RabbitPort, AddressFamily.InterNetwork);
-            var lookupClient = new LookupClient();
             using var cts = new CancellationTokenSource(millisecondsDelay: 1000);
-            await lookupClient.QueryAsync(dnsEndPoint.Host, QueryType.A, QueryClass.IN, cts.Token);
-            var queryResponse = 
-                await lookupClient.QueryAsync(dnsEndPoint.Host, QueryType.A, cancellationToken: cts.Token);
+            var lookupClient = new LookupClient();
+            var queryResponse = await lookupClient.QueryAsync(RabbitHost, QueryType.A, cancellationToken: cts.Token);
             var addresses = queryResponse.Answers.ARecords().Select(aRecord => aRecord.Address).ToArray();
-            using var socket = new Socket(dnsEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            await socket.ConnectAsync(addresses, dnsEndPoint.Port, cts.Token);
+            using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            await socket.ConnectAsync(addresses, RabbitPort, cts.Token);
         }
 
         private static void UpdateFactoryOptionsWithHost(FactoryOptions factoryOptions)
