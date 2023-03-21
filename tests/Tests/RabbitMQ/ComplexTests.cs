@@ -38,14 +38,16 @@ namespace RabbitMQ
                 return;
             }
 
-            await (await _fixture.TopologerAsync).CreateQueueAsync("TestAutoPublisherConsumerQueue")
-                .ConfigureAwait(false);
-            await (await PublisherAsync).StartAutoPublishAsync().ConfigureAwait(false);
+            var topologer = await _fixture.TopologerAsync;
+            await topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
+
+            var publisher = await PublisherAsync;
+            await publisher.StartAutoPublishAsync().ConfigureAwait(false);
 
             const ulong count = 1000;
 
-            var processReceiptsTask = ProcessReceiptsAsync(await PublisherAsync, count);
-            var publishLettersTask = PublishLettersAsync(await PublisherAsync, count);
+            var processReceiptsTask = ProcessReceiptsAsync(publisher, count);
+            var publishLettersTask = PublishLettersAsync(publisher, count);
 
             await Task.Yield();
 
@@ -62,8 +64,7 @@ namespace RabbitMQ
             Assert.True(processReceiptsTask.IsCompletedSuccessfully);
             Assert.False(processReceiptsTask.Result);
             
-            await (await _fixture.TopologerAsync).DeleteQueueAsync("TestAutoPublisherConsumerQueue")
-                .ConfigureAwait(false);
+            await topologer.DeleteQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
         }
 
         [Fact(Skip = "only manual")]
@@ -74,15 +75,18 @@ namespace RabbitMQ
                 return;
             }
 
-            await (await _fixture.TopologerAsync).CreateQueueAsync("TestAutoPublisherConsumerQueue")
-                .ConfigureAwait(false);
-            await (await PublisherAsync).StartAutoPublishAsync().ConfigureAwait(false);
+            var topologer = await _fixture.TopologerAsync;
+            await topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
+
+            var publisher = await PublisherAsync;
+            await publisher.StartAutoPublishAsync().ConfigureAwait(false);
 
             const ulong count = 1000;
 
-            var processReceiptsTask = ProcessReceiptsAsync(await PublisherAsync, count);
-            var publishLettersTask = PublishLettersAsync(await PublisherAsync, count);
-            var consumeMessagesTask = ConsumeMessagesAsync(await ConsumerAsync, count);
+            var consumer = await ConsumerAsync;
+            var processReceiptsTask = ProcessReceiptsAsync(publisher, count);
+            var publishLettersTask = PublishLettersAsync(publisher, count);
+            var consumeMessagesTask = ConsumeMessagesAsync(consumer, count);
 
             await Task.Yield();
 
@@ -104,8 +108,7 @@ namespace RabbitMQ
             Assert.False(processReceiptsTask.Result);
             Assert.False(consumeMessagesTask.Result);
             
-            await (await _fixture.TopologerAsync).DeleteQueueAsync("TestAutoPublisherConsumerQueue")
-                .ConfigureAwait(false);
+            await topologer.DeleteQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
         }
 
         private async Task PublishLettersAsync(Publisher apub, ulong count)

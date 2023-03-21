@@ -25,9 +25,7 @@ namespace RabbitMQ
     {
         private static readonly string EnvironmentRabbitHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST");
         
-        private readonly AsyncLazy<bool> _lazyConnectionCheck = 
-            new (() => CheckRabbitHostConnection().AsTask(), AsyncLazyFlags.ExecuteOnCallingThread);
-        
+        private readonly AsyncLazy<bool> _lazyConnectionCheck;
         private readonly AsyncLazy<RabbitOptions> _lazyOptions;
         private readonly AsyncLazy<RabbitService> _lazyService;
         private readonly AsyncLazy<IChannelPool> _lazyChannelPool;
@@ -62,6 +60,20 @@ namespace RabbitMQ
             EncryptionProvider = new AesGcmEncryptionProvider(HashKey);
             SerializationProvider = new Utf8JsonProvider();
             
+            _lazyConnectionCheck = new AsyncLazy<bool>(async () =>
+            {
+                try
+                {
+                    await CheckRabbitHostConnection();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Output?.WriteLine(
+                        $"Exception occurred trying to connect to RabbitMQ at {RabbitHost}:{RabbitPort}; {ex.Message}");
+                    return false;
+                }
+            }, AsyncLazyFlags.ExecuteOnCallingThread);
             _lazyOptions = new AsyncLazy<RabbitOptions>(async () =>
             {
                 var options = 
@@ -103,43 +115,17 @@ namespace RabbitMQ
             return true;
         }
         
-        private static async ValueTask<bool> CheckRabbitHostConnection()
+        private static async ValueTask CheckRabbitHostConnection()
         {
             var dnsEndPoint = new DnsEndPoint(RabbitHost, RabbitPort, AddressFamily.InterNetwork);
             var lookupClient = new LookupClient();
-            try
-            {
-                using var cts = new CancellationTokenSource();
-                var cancellationToken = cts.Token;
-                var queryTask = 
-                    lookupClient.QueryAsync(dnsEndPoint.Host, QueryType.A, QueryClass.IN, cancellationToken);
-                var queryDelayTask = Task.Delay(500, cancellationToken);
-                
-                await Task.WhenAny(queryTask, queryDelayTask);
-                if (!queryTask.IsCompleted)
-                {
-                    cts.Cancel();
-                    return false;
-                }
-                
-                var queryResponse = await queryTask;
-                var addresses = queryResponse.Answers.ARecords().Select(aRecord => aRecord.Address).ToArray();
-                var socketDelayTask = Task.Delay(1500, cancellationToken);
-                using var socket = new Socket(dnsEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                var socketTask = socket.ConnectAsync(addresses, dnsEndPoint.Port, cancellationToken).AsTask();
-                await Task.WhenAny(socketTask, socketDelayTask);
-                if (socketTask.IsCompleted)
-                {
-                    return true;
-                }
-
-                cts.Cancel();
-                return false;
-            }
-            catch
-            {
-                return false;
-            }
+            using var cts = new CancellationTokenSource(millisecondsDelay: 1000);
+            await lookupClient.QueryAsync(dnsEndPoint.Host, QueryType.A, QueryClass.IN, cts.Token);
+            var queryResponse = 
+                await lookupClient.QueryAsync(dnsEndPoint.Host, QueryType.A, cancellationToken: cts.Token);
+            var addresses = queryResponse.Answers.ARecords().Select(aRecord => aRecord.Address).ToArray();
+            using var socket = new Socket(dnsEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            await socket.ConnectAsync(addresses, dnsEndPoint.Port, cts.Token);
         }
 
         private static void UpdateFactoryOptionsWithHost(FactoryOptions factoryOptions)

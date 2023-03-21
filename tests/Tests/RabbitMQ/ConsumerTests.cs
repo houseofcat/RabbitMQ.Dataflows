@@ -4,7 +4,6 @@ using HouseofCat.RabbitMQ.WorkState.Extensions;
 using HouseofCat.Utilities.File;
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using HouseofCat.RabbitMQ.WorkState;
 using Xunit;
@@ -15,12 +14,6 @@ namespace RabbitMQ
     public class ConsumerTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
-
-        public class MessageState : RabbitWorkState
-        {
-            public string MessageAsString => Encoding.UTF8.GetString(ReceivedData.Data);
-            public bool AcknowledgeSuccess { get; set; }
-        }
 
         public ConsumerTests(RabbitFixture fixture, ITestOutputHelper output)
         {
@@ -68,7 +61,8 @@ namespace RabbitMQ
                 return;
             }
 
-            await (await _fixture.TopologerAsync).CreateQueueAsync("TestConsumerQueue").ConfigureAwait(false);
+            var topologer = await _fixture.TopologerAsync;
+            await topologer.CreateQueueAsync("TestConsumerQueue").ConfigureAwait(false);
             var con = new Consumer(await _fixture.ChannelPoolAsync, "TestMessageConsumer");
             await con.StartConsumerAsync().ConfigureAwait(false);
         }
@@ -95,9 +89,10 @@ namespace RabbitMQ
                 return;
             }
 
+            var channelPool = await _fixture.ChannelPoolAsync;
             for (var i = 0; i < 1000; i++)
             {
-                var con = new Consumer(await _fixture.ChannelPoolAsync, "TestMessageConsumer");
+                var con = new Consumer(channelPool, "TestMessageConsumer");
 
                 await con.StartConsumerAsync().ConfigureAwait(false);
                 await con.StopConsumerAsync().ConfigureAwait(false);
@@ -112,7 +107,8 @@ namespace RabbitMQ
                 return;
             }
 
-            var consumer = (await _fixture.RabbitServiceAsync).GetConsumer("TestMessageConsumer");
+            var service = await _fixture.RabbitServiceAsync;
+            var consumer = service.GetConsumer("TestMessageConsumer");
 
             for (var i = 0; i < 100; i++)
             {
@@ -129,8 +125,8 @@ namespace RabbitMQ
                 return;
             }
 
-            var consumerPipeline = (await _fixture.RabbitServiceAsync)
-                .CreateConsumerPipeline<WorkState>("TestMessageConsumer", 100, false, BuildPipeline);
+            var service = await _fixture.RabbitServiceAsync;
+            var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
 
             for (var i = 0; i < 100; i++)
             {
@@ -147,7 +143,10 @@ namespace RabbitMQ
                 return;
             }
 
-            var consumer = (await _fixture.RabbitServiceAsync).GetConsumer("TestMessageConsumer");
+            await PublishRandomLetter();
+
+            var service = await _fixture.RabbitServiceAsync;
+            var consumer = service.GetConsumer("TestMessageConsumer");
             await consumer.StartConsumerAsync();
 
             _ = Task.Run(
@@ -168,7 +167,10 @@ namespace RabbitMQ
                 return;
             }
 
-            var consumer = (await _fixture.RabbitServiceAsync).GetConsumer("TestMessageConsumer");
+            await PublishRandomLetter();
+
+            var service = await _fixture.RabbitServiceAsync;
+            var consumer = service.GetConsumer("TestMessageConsumer");
             await consumer.StartConsumerAsync();
 
             _ = Task.Run(
@@ -189,7 +191,10 @@ namespace RabbitMQ
                 return;
             }
 
-            var consumer = (await _fixture.RabbitServiceAsync).GetConsumer("TestMessageConsumer");
+            await PublishRandomLetter();
+
+            var service = await _fixture.RabbitServiceAsync;
+            var consumer = service.GetConsumer("TestMessageConsumer");
             await consumer.StartConsumerAsync();
 
             _ = Task.Run(
@@ -202,24 +207,26 @@ namespace RabbitMQ
             await consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync, FinaliseAsync);
         }
 
-        public async Task<bool> TryProcessMessageAsync(ReceivedData data)
+        public async Task<bool> TryProcessMessageAsync(ReceivedData receivedData)
         {
-            var state = await ProcessMessageAsync(data);
-            return state is MessageState { AcknowledgeSuccess: true };
+            var state = await ProcessMessageAsync(receivedData);
+            return state is WorkState { AcknowledgeStepSuccess: true };
         }
 
-        public async Task<IRabbitWorkState> ProcessMessageAsync(ReceivedData data)
+        public async Task<IRabbitWorkState> ProcessMessageAsync(ReceivedData receivedData)
         {
-            var state = new MessageState { ReceivedData = data };
-            await Console.Out.WriteLineAsync(state.MessageAsString);
-            state.AcknowledgeSuccess = data.AckMessage();
+            var state = DeserializeStep(receivedData);
+            await ProcessStepAsync(state).ConfigureAwait(false);
+            await AckMessageAsync(state).ConfigureAwait(false);
+
             return state;
         }
 
-        public async Task FinaliseAsync(IRabbitWorkState state)
+        private async Task PublishRandomLetter()
         {
-            await Task.Yield();
-            state.ReceivedData?.Complete();
+            var letter = MessageExtensions.CreateSimpleRandomLetter("TestRabbitServiceQueue", 2000);
+            var publisher = await _fixture.PublisherAsync;
+            await publisher.PublishAsync(letter, false).ConfigureAwait(false);
         }
 
         private IPipeline<ReceivedData, WorkState> BuildPipeline(int maxDoP, bool? ensureOrdered = null)
@@ -233,27 +240,14 @@ namespace RabbitMQ
             pipeline.AddStep<ReceivedData, WorkState>(DeserializeStep);
             pipeline.AddAsyncStep<WorkState, WorkState>(ProcessStepAsync);
             pipeline.AddAsyncStep<WorkState, WorkState>(AckMessageAsync);
-
-            pipeline
-                .Finalize((state) =>
-                {
-                    // Lastly mark the excution pipeline finished for this message.
-                    state.ReceivedData?.Complete(); // This impacts wait to completion step in the Pipeline.
-                });
+            pipeline.Finalize(FinaliseAsync);
 
             return pipeline;
         }
 
-        public class Message
+        public class WorkState : RabbitWorkState
         {
-            public long MessageId { get; set; }
-            public string StringMessage { get; set; }
-        }
-
-        public class WorkState : HouseofCat.RabbitMQ.WorkState.RabbitWorkState
-        {
-            public Message Message { get; set; }
-            public ulong LetterId { get; set; }
+            public Letter Letter { get; set; }
             public bool DeserializeStepSuccess { get; set; }
             public bool ProcessStepSuccess { get; set; }
             public bool AcknowledgeStepSuccess { get; set; }
@@ -269,17 +263,9 @@ namespace RabbitMQ
 
             try
             {
-                state.Message = state.ReceivedData.ContentType switch
-                {
-                    HouseofCat.RabbitMQ.Constants.HeaderValueForLetter =>
-                        _fixture.SerializationProvider
-                        .Deserialize<Message>(state.ReceivedData.Letter.Body),
+                state.Letter = _fixture.SerializationProvider.Deserialize<Letter>(state.ReceivedData.Data);
 
-                    _ => _fixture.SerializationProvider
-                        .Deserialize<Message>(state.ReceivedData.Data)
-                };
-
-                if (state.ReceivedData.Data.Length > 0 && state.Message != null && state.ReceivedData.Letter != null)
+                if (state.ReceivedData.Data.Length > 0 && state.Letter != null && state.ReceivedData.Letter != null)
                 { state.DeserializeStepSuccess = true; }
             }
             catch
@@ -316,6 +302,13 @@ namespace RabbitMQ
             }
 
             return state;
+        }
+
+        private async Task FinaliseAsync(IRabbitWorkState state)
+        {
+            await Task.Yield();
+            // Lastly mark the excution pipeline finished for this message.
+            state.ReceivedData?.Complete(); // This impacts wait to completion step in the Pipeline.
         }
     }
 }

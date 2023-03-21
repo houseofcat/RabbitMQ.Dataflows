@@ -38,9 +38,11 @@ namespace RabbitMQ
                 return;
             }
 
-            await (await _fixture.TopologerAsync).CreateQueueAsync("TestAutoPublisherConsumerQueue")
-                .ConfigureAwait(false);
-            await (await PublisherAsync).StartAutoPublishAsync().ConfigureAwait(false);
+            var topologer = await _fixture.TopologerAsync;
+            await topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
+
+            var publisher = await PublisherAsync;
+            await publisher.StartAutoPublishAsync().ConfigureAwait(false);
 
             const ulong count = 1000;
 
@@ -68,8 +70,7 @@ namespace RabbitMQ
             Assert.False(processReceiptsTask.Result);
             Assert.False(consumeMessagesTask.Result);
 
-            await (await _fixture.TopologerAsync).DeleteQueueAsync("TestAutoPublisherConsumerQueue")
-                .ConfigureAwait(false);
+            await topologer.DeleteQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
         }
 
         private async Task PublishLettersAsync(Publisher apub, ulong count)
@@ -122,11 +123,7 @@ namespace RabbitMQ
                 .StartConsumerAsync()
                 .ConfigureAwait(false);
 
-            _ = consumer.DirectChannelExecutionEngineAsync(
-                ProcessMessageAsync,
-                4,
-                true,
-                null);
+            _ = consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync);
 
             var sw = Stopwatch.StartNew();
             while (messageCount < count)
