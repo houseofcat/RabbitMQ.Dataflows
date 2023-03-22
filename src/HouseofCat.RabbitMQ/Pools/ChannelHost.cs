@@ -6,6 +6,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ.Pools
 {
@@ -25,10 +26,10 @@ namespace HouseofCat.RabbitMQ.Pools
     public class ChannelHost : IChannelHost, IDisposable
     {
         private readonly ILogger<ChannelHost> _logger;
-        private IModel _channel { get; set; }
-        private IConnectionHost _connHost { get; set; }
+        private IModel _channel;
+        private IConnectionHost _connHost;
 
-        public ulong ChannelId { get; set; }
+        public ulong ChannelId { get; }
 
         public bool Ackable { get; }
 
@@ -52,27 +53,30 @@ namespace HouseofCat.RabbitMQ.Pools
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IModel GetChannel()
         {
-            _hostLock.Wait();
+            EnterLock();
 
             try
-            { return _channel; }
+            {
+                return _channel;
+            }
             finally
-            { _hostLock.Release(); }
+            {
+                ExitLock();
+            }
         }
 
-        private static readonly string _makeChannelFailedError = "Making a channel failed. Error: {0}";
+        private const string MakeChannelFailedError = "Making a channel failed. Error: {0}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public async Task<bool> MakeChannelAsync()
         {
-            await _hostLock.WaitAsync().ConfigureAwait(false);
+            await EnterLockAsync().ConfigureAwait(false);
 
             try
             {
                 if (_channel != null)
                 {
-                    _channel.FlowControl -= FlowControl;
-                    _channel.ModelShutdown -= ChannelClose;
+                    RemoveEventHandlers(_channel);
                     Close();
                     _channel = null;
                 }
@@ -84,76 +88,94 @@ namespace HouseofCat.RabbitMQ.Pools
                     _channel.ConfirmSelect();
                 }
 
-                _channel.FlowControl += FlowControl;
-                _channel.ModelShutdown += ChannelClose;
+                AddEventHandlers(_channel);
 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(_makeChannelFailedError, ex.Message);
+                _logger.LogError(MakeChannelFailedError, ex.Message);
                 _channel = null;
                 return false;
             }
             finally
-            { _hostLock.Release(); }
+            {
+                ExitLock();
+            }
         }
+
+        protected virtual void AddEventHandlers(IModel channel)
+        {
+            channel.FlowControl += FlowControl;
+            channel.ModelShutdown += ChannelClose;
+        }
+
+        protected virtual void RemoveEventHandlers(IModel channel)
+        {
+            channel.FlowControl -= FlowControl;
+            channel.ModelShutdown -= ChannelClose;
+        }
+
+        protected void EnterLock() => _hostLock.Wait();
+        protected Task EnterLockAsync() => _hostLock.WaitAsync();
+        protected void ExitLock() => _hostLock.Release();
 
         protected virtual void ChannelClose(object sender, ShutdownEventArgs e)
         {
-            _hostLock.Wait();
+            EnterLock();
             _logger.LogDebug(e.ReplyText);
             Closed = true;
-            _hostLock.Release();
+            ExitLock();
         }
 
         protected virtual void FlowControl(object sender, FlowControlEventArgs e)
         {
-            _hostLock.Wait();
-
+            EnterLock();
             if (e.Active)
-            { _logger.LogWarning(LogMessages.ChannelHosts.FlowControlled, ChannelId); }
+            {
+                _logger.LogWarning(ChannelHosts.FlowControlled, ChannelId);
+            }
             else
-            { _logger.LogInformation(LogMessages.ChannelHosts.FlowControlFinished, ChannelId); }
-
+            {
+                _logger.LogInformation(ChannelHosts.FlowControlFinished, ChannelId);
+            }
             FlowControlled = e.Active;
-
-            _hostLock.Release();
+            ExitLock();
         }
 
-        public async Task<bool> HealthyAsync()
-        {
-            var connectionHealthy = await _connHost.HealthyAsync().ConfigureAwait(false);
-
-            return connectionHealthy && !FlowControlled && (_channel?.IsOpen ?? false);
-        }
+        public virtual async Task<bool> HealthyAsync() =>
+            await _connHost.HealthyAsync().ConfigureAwait(false) && !FlowControlled && (_channel?.IsOpen ?? false);
 
         private const int CloseCode = 200;
         private const string CloseMessage = "HouseofCat.RabbitMQ manual close channel initiated.";
 
         public void Close()
         {
-            if (!Closed || !_channel.IsOpen)
+            if (!Closed && _channel.IsOpen)
             {
                 try
-                { _channel.Close(CloseCode, CloseMessage); }
+                {
+                    _channel.Close(CloseCode, CloseMessage);
+                }
                 catch { /* SWALLOW */ }
             }
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (_disposedValue)
             {
-                if (disposing)
-                {
-                    _hostLock.Dispose();
-                }
-
-                _channel = null;
-                _connHost = null;
-                _disposedValue = true;
+                return;
             }
+
+            if (disposing)
+            {
+                _hostLock.Dispose();
+            }
+
+            _channel = null;
+            _connHost = null;
+            _disposedValue = true;
         }
 
         public void Dispose()
