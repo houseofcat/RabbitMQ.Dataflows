@@ -5,8 +5,10 @@ using HouseofCat.Utilities.File;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using HouseofCat.RabbitMQ.WorkState;
+using IntegrationTests.RabbitMQ;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,6 +17,7 @@ namespace RabbitMQ
     public class ConsumerTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
+        private long _paused;
 
         public ConsumerTests(RabbitFixture fixture, ITestOutputHelper output)
         {
@@ -153,7 +156,7 @@ namespace RabbitMQ
             var consumer = service.GetConsumer("TestMessageConsumer");
             await consumer.StartConsumerAsync();
 
-            await PublishRandomLetter();
+            Assert.True(await CloseConnectionsThenPublishRandomLetter());
 
             _ = Task.Run(
                 async () =>
@@ -228,6 +231,42 @@ namespace RabbitMQ
             return state;
         }
 
+        private void Pause() => Interlocked.CompareExchange(ref _paused, 1, 0);
+        private void Resume() => Interlocked.CompareExchange(ref _paused, 0, 1);
+
+        private async Task<bool> CloseConnectionsThenPublishRandomLetter()
+        {
+            var management = await CreateManagement();
+            var activeConnections = await management.WaitForActiveConnections("TestRabbitServiceQueue");
+            await management.WaitForQueueToHaveConsumers("TestRabbitServiceQueue", 1);
+
+            await management.CloseActiveConnections("TestRabbitServiceQueue", activeConnections);
+            await management.WaitForQueueToHaveNoConsumers("TestRabbitServiceQueue");
+
+            Pause();
+
+            await management.ClearQueue("TestRabbitServiceQueue");
+            await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue", 10, 100);
+
+            var letter = MessageExtensions.CreateSimpleRandomLetter("TestRabbitServiceQueue", 2000);
+            await management.Publish(letter);
+
+            await management.WaitForActiveConnections("TestRabbitServiceQueue");
+            await management.WaitForQueueToHaveConsumers("TestRabbitServiceQueue", 1);
+            await management.WaitForQueueToHaveUnacknowledgedMessages("TestRabbitServiceQueue", 1, 1, 20);
+
+            Resume();
+
+            return await management.WaitForQueueToHaveNoUnacknowledgedMessages("TestRabbitServiceQueue", false);
+        }
+
+        private async Task<Management> CreateManagement()
+        {
+            var options = await _fixture.OptionsAsync;
+            return new Management(
+                options.FactoryOptions, _fixture.SerializationProvider, _fixture.Output);
+        }
+
         private async Task PublishRandomLetter()
         {
             var letter = MessageExtensions.CreateSimpleRandomLetter("TestRabbitServiceQueue", 2000);
@@ -283,6 +322,11 @@ namespace RabbitMQ
         private async Task<WorkState> ProcessStepAsync(WorkState state)
         {
             await Task.Yield();
+
+            while (Interlocked.Read(ref _paused) == 1)
+            {
+                await Task.Delay(4);
+            }
 
             if (state.DeserializeStepSuccess)
             {

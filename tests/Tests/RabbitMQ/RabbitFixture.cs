@@ -50,62 +50,6 @@ namespace RabbitMQ
         public Task<ITopologer> TopologerAsync => _lazyTopologer.Task;
         public Task<IPublisher> PublisherAsync => _lazyPublisher.Task;
 
-        public class Wait
-        {
-            private readonly TimeSpan _timeout;
-            private readonly TimeSpan _interval;
-            private const int DefaultInterval = 100;
-
-            public Wait(TimeSpan timeout, TimeSpan? interval = null)
-            {
-                _interval = interval ?? TimeSpan.FromMilliseconds(DefaultInterval);
-                _timeout = timeout;
-            }
-
-            public async ValueTask<bool> UntilAsync(
-                Func<ValueTask<bool>> condition, Func<double, ValueTask> success, Func<ValueTask> failure)
-            {
-                await Task.Yield();
-
-                var startTime = DateTime.UtcNow;
-                var timeIsUp = startTime.Add(_timeout);
-                while (DateTime.UtcNow.CompareTo(timeIsUp) < 0)
-                {
-                    if (await condition().ConfigureAwait(false))
-                    {
-                        var timeTaken = DateTime.UtcNow - startTime;
-                        await success(timeTaken.TotalSeconds).ConfigureAwait(false);
-                        return true;
-                    }
-
-                    await Task.Delay(_interval).ConfigureAwait(false);
-                }
-
-                await failure().ConfigureAwait(false);
-                return false;
-            }
-
-            public ValueTask<bool> UntilAsync(
-                Func<ValueTask<int>> current, int expected, string message, ITestOutputHelper writer, bool throwOnTimeout = true) =>
-                UntilAsync(
-                    async () => await current().ConfigureAwait(false) == expected,
-                    secondsTaken =>
-                    {
-                        writer.WriteLine($"{expected} {message} in {secondsTaken:f4}s");
-                        return ValueTask.CompletedTask;
-                    },
-                    async () =>
-                    {
-                        var actual = await current().ConfigureAwait(false);
-                        var errorMessage = $"{actual} {message} (expected ${expected}) after {_timeout.TotalSeconds:f4}s";
-                        if (throwOnTimeout)
-                        {
-                            throw new TimeoutException(errorMessage);
-                        }
-                        writer.WriteLine(errorMessage);
-                    });
-        }
-
         public RabbitFixture()
         {
             CompressionProvider = new GzipProvider();
@@ -114,25 +58,14 @@ namespace RabbitMQ
             EncryptionProvider = new AesGcmEncryptionProvider(HashKey);
             SerializationProvider = new Utf8JsonProvider();
             
-            _lazyConnectionCheck = new AsyncLazy<bool>(async () =>
-            {
-                try
-                {
-                    await CheckRabbitHostConnection();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    Output?.WriteLine(
-                        $"Exception occurred trying to connect to RabbitMQ at {RabbitHost}:{RabbitPort}; {ex.Message}");
-                    return false;
-                }
-            }, AsyncLazyFlags.ExecuteOnCallingThread);
+            _lazyConnectionCheck = new AsyncLazy<bool>(
+                () => CheckRabbitHostConnection().AsTask(), AsyncLazyFlags.ExecuteOnCallingThread);
             _lazyOptions = new AsyncLazy<RabbitOptions>(async () =>
             {
                 var options = 
-                    await JsonFileReader.ReadFileAsync<RabbitOptions>(Path.Combine("RabbitMQ", "TestConfig.json"));
-                await CheckRabbitHostConnectionAndUpdateFactoryOptions(options);
+                    await JsonFileReader.ReadFileAsync<RabbitOptions>(Path.Combine("RabbitMQ", "TestConfig.json"))
+                        .ConfigureAwait(false);
+                await CheckRabbitHostConnectionAndUpdateFactoryOptions(options).ConfigureAwait(false);
                 return options;
             }, AsyncLazyFlags.ExecuteOnCallingThread);
             _lazyService = new AsyncLazy<RabbitService>(
@@ -169,11 +102,21 @@ namespace RabbitMQ
             return true;
         }
 
-        private static async ValueTask CheckRabbitHostConnection()
+        private async ValueTask<bool> CheckRabbitHostConnection()
         {
-            using var cts = new CancellationTokenSource(millisecondsDelay: 1000);
-            using var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            await socket.ConnectAsync(new DnsEndPoint(RabbitHost, RabbitPort), cts.Token);
+            try
+            {
+                using var cts = new CancellationTokenSource(1000);
+                using var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                await socket.ConnectAsync(new DnsEndPoint(RabbitHost, RabbitPort), cts.Token).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Output?.WriteLine(
+                    $"Exception occurred trying to connect to RabbitMQ at {RabbitHost}:{RabbitPort}; {ex.Message}");
+                return false;
+            }
         }
 
         private static void UpdateFactoryOptionsWithHost(FactoryOptions factoryOptions)
