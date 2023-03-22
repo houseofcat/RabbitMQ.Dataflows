@@ -27,8 +27,10 @@ namespace HouseofCat.RabbitMQ.Pools
     public class ChannelHost : IChannelHost, IDisposable
     {
         private readonly ILogger<ChannelHost> _logger;
-        private IModel _channel;
         private IConnectionHost _connHost;
+        private IModel _channel;
+
+        protected IConnection Connection => _connHost?.Connection;
 
         public ulong ChannelId { get; }
 
@@ -148,8 +150,10 @@ namespace HouseofCat.RabbitMQ.Pools
             ExitLock();
         }
 
+        protected Task<bool> ConnectionHostHealthyAsync() => _connHost.HealthyAsync();
+
         public virtual async Task<bool> HealthyAsync() =>
-            await _connHost.HealthyAsync().ConfigureAwait(false) && !FlowControlled && (_channel?.IsOpen ?? false);
+            await ConnectionHostHealthyAsync().ConfigureAwait(false) && !FlowControlled && (_channel?.IsOpen ?? false);
 
         private const int CloseCode = 200;
         private const string CloseMessage = "HouseofCat.RabbitMQ manual close channel initiated.";

@@ -74,7 +74,7 @@ namespace HouseofCat.RabbitMQ
         {
             public const string CreateConnections = "ConnectionPool creating Connections...";
             public const string CreateConnectionsComplete = "ConnectionPool initialized.";
-            public const string CreateConnectionException = "Connection () failed to be created.";
+            public const string CreateConnectionException = "Connection ({0}) failed to be created.";
             public const string Shutdown = "ConnectionPool shutdown was called.";
             public const string ShutdownComplete = "ConnectionPool shutdown complete.";
         }
