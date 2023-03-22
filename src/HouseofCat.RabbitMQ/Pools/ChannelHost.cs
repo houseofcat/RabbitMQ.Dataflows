@@ -19,6 +19,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
         IModel GetChannel();
         Task<bool> MakeChannelAsync();
+        Task<bool> RecoverChannelAsync(Func<Task<bool>> restartConsumingAsync);
         void Close();
         Task<bool> HealthyAsync();
     }
@@ -103,6 +104,10 @@ namespace HouseofCat.RabbitMQ.Pools
                 ExitLock();
             }
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual async Task<bool> RecoverChannelAsync(Func<Task<bool>> restartConsumingAsync) =>
+            await MakeChannelAsync().ConfigureAwait(false) && await restartConsumingAsync().ConfigureAwait(false);
 
         protected virtual void AddEventHandlers(IModel channel)
         {

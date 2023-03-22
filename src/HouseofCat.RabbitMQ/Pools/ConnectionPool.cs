@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ.Pools
 {
@@ -99,25 +100,27 @@ namespace HouseofCat.RabbitMQ.Pools
 
         private async Task CreateConnectionsAsync()
         {
-            _logger.LogTrace(LogMessages.ConnectionPools.CreateConnections);
+            _logger.LogTrace(ConnectionPools.CreateConnections);
 
-            for (int i = 0; i < Options.PoolOptions.MaxConnections; i++)
+            for (var i = 0; i < Options.PoolOptions.MaxConnections; i++)
             {
                 var serviceName = string.IsNullOrEmpty(Options.PoolOptions.ServiceName) ? $"HoC.RabbitMQ:{i}" : $"{Options.PoolOptions.ServiceName}:{i}";
                 try
                 {
+                    var connection = CreateConnection(serviceName);
                     await _connections
                         .Writer
-                        .WriteAsync(CreateConnectionHost(_currentConnectionId++, CreateConnection(serviceName)));
+                        .WriteAsync(CreateConnectionHost(_currentConnectionId++, connection))
+                        .ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, LogMessages.ConnectionPools.CreateConnectionException, serviceName);
+                    _logger.LogError(ex, ConnectionPools.CreateConnectionException, serviceName);
                     throw; // Non Optional Throw
                 }
             }
 
-            _logger.LogTrace(LogMessages.ConnectionPools.CreateConnectionsComplete);
+            _logger.LogTrace(ConnectionPools.CreateConnectionsComplete);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -135,7 +138,8 @@ namespace HouseofCat.RabbitMQ.Pools
             {
                 var connHost = await _connections
                     .Reader
-                    .ReadAsync().ConfigureAwait(false);
+                    .ReadAsync()
+                    .ConfigureAwait(false);
 
                 // Connection Health Check
                 var healthy = await connHost.HealthyAsync().ConfigureAwait(false);
@@ -168,7 +172,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
         public async Task ShutdownAsync()
         {
-            _logger.LogTrace(LogMessages.ConnectionPools.Shutdown);
+            _logger.LogTrace(ConnectionPools.Shutdown);
 
             await _poolLock
                 .WaitAsync()
@@ -177,7 +181,7 @@ namespace HouseofCat.RabbitMQ.Pools
             _connections.Writer.Complete();
 
             await _connections.Reader.WaitToReadAsync().ConfigureAwait(false);
-            while (_connections.Reader.TryRead(out IConnectionHost connHost))
+            while (_connections.Reader.TryRead(out var connHost))
             {
                 try
                 { connHost.Close(); }
@@ -186,7 +190,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
             _poolLock.Release();
 
-            _logger.LogTrace(LogMessages.ConnectionPools.ShutdownComplete);
+            _logger.LogTrace(ConnectionPools.ShutdownComplete);
         }
 
         protected virtual void Dispose(bool disposing)
