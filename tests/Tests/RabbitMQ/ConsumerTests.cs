@@ -134,7 +134,8 @@ namespace RabbitMQ
             var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
             var executeTask = consumerPipeline.StartAsync(true)
                 .ContinueWith(_ => consumerPipeline.AwaitCompletionAsync());
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetter(service);
+            // reconnectedConsumerCount should be 1
+            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service, reconnectedConsumerCount: 2);
             await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
             {
                 await Task.Delay(1000);
@@ -157,7 +158,7 @@ namespace RabbitMQ
             var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
             var executeTask = consumerPipeline.StartAsync(true)
                 .ContinueWith(_ => consumerPipeline.AwaitCompletionAsync());
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetter(service);
+            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service);
             await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
             {
                 await Task.Delay(1000);
@@ -179,7 +180,8 @@ namespace RabbitMQ
             var consumer = service.GetConsumer("TestMessageConsumer");
             var executeTask = consumer.StartConsumerAsync()
                 .ContinueWith(_ => consumer.ChannelExecutionEngineAsync(TryProcessMessageAsync));
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetter(service);
+            // reconnectedConsumerCount should be 1
+            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service, reconnectedConsumerCount: 2);
             await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
             {
                 await Task.Delay(1000);
@@ -201,7 +203,7 @@ namespace RabbitMQ
             var consumer = service.GetConsumer("TestMessageConsumer");
             var executeTask = consumer.StartConsumerAsync()
                 .ContinueWith(_ => consumer.ChannelExecutionEngineAsync(TryProcessMessageAsync));
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetter(service);
+            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service);
             await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
             {
                 await Task.Delay(1000);
@@ -222,7 +224,8 @@ namespace RabbitMQ
             var consumer = service.GetConsumer("TestMessageConsumer");
             var executeTask = consumer.StartConsumerAsync()
                 .ContinueWith(_ => consumer.DirectChannelExecutionEngineAsync(TryProcessMessageAsync));
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetter(service);
+            // reconnectedConsumerCount should be 1
+            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service, reconnectedConsumerCount: 2);
             await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
             {
                 await Task.Delay(1000);
@@ -244,7 +247,7 @@ namespace RabbitMQ
             var consumer = service.GetConsumer("TestMessageConsumer");
             var executeTask = consumer.StartConsumerAsync()
                 .ContinueWith(_ => consumer.DirectChannelExecutionEngineAsync(TryProcessMessageAsync));
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetter(service);
+            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service);
             await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
             {
                 await Task.Delay(1000);
@@ -265,7 +268,8 @@ namespace RabbitMQ
             var consumer = service.GetConsumer("TestMessageConsumer");
             var executeTask = consumer.StartConsumerAsync()
                 .ContinueWith(_ => consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync, FinaliseAsync));
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetter(service);
+            // reconnectedConsumerCount should be 1
+            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service, reconnectedConsumerCount: 2);
             await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
             {
                 await Task.Delay(1000);
@@ -287,7 +291,7 @@ namespace RabbitMQ
             var consumer = service.GetConsumer("TestMessageConsumer");
             var executeTask = consumer.StartConsumerAsync()
                 .ContinueWith(_ => consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync, FinaliseAsync));
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetter(service);
+            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service);
             await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
             {
                 await Task.Delay(1000);
@@ -314,7 +318,8 @@ namespace RabbitMQ
         private static void PauseProcessing() => Interlocked.CompareExchange(ref _processingPaused, 1, 0);
         private static void ResumeProcessing() => Interlocked.CompareExchange(ref _processingPaused, 0, 1);
 
-        private async Task<bool> CloseConnectionsThenPublishRandomLetter(IRabbitService service)
+        private async Task<bool> CloseConnectionsThenPublishRandomLetters(
+            IRabbitService service, int reconnectedConsumerCount = 1)
         {
             var management = new Management(service.Options.FactoryOptions, _fixture.Output);
             var connections = await management.WaitForActiveConnections("TestRabbitServiceQueue").ConfigureAwait(false);
@@ -327,12 +332,14 @@ namespace RabbitMQ
             await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue", 15, 50).ConfigureAwait(false);
 
             await management.WaitForActiveConnections("TestRabbitServiceQueue").ConfigureAwait(false);
-            await management.WaitForQueueToHaveConsumers("TestRabbitServiceQueue", 1, false).ConfigureAwait(false);
+            await management.WaitForQueueToHaveConsumers("TestRabbitServiceQueue", reconnectedConsumerCount)
+                .ConfigureAwait(false);
 
             PauseProcessing();
 
-            var prefetch = service.GetConsumer("TestMessageConsumer").ConsumerOptions.BatchSize!.Value;
-            await Task.WhenAll(Enumerable.Range(0, prefetch).Select(_ => PublishRandomLetter(service.Publisher)))
+            var prefetch =
+                service.GetConsumer("TestMessageConsumer").ConsumerOptions.BatchSize!.Value * reconnectedConsumerCount;
+            await Task.WhenAll(Enumerable.Range(0, prefetch + 10).Select(_ => PublishRandomLetter(service.Publisher)))
                 .ConfigureAwait(false);
             await management.WaitForQueueToHaveUnacknowledgedMessages("TestRabbitServiceQueue", prefetch, 15, 50)
                 .ConfigureAwait(false);
