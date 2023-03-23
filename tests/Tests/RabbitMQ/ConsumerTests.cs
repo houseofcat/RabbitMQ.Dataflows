@@ -30,45 +30,47 @@ namespace RabbitMQ
         public async Task CreateConsumer()
         {
             var options = 
-                await JsonFileReader.ReadFileAsync<RabbitOptions>(Path.Combine("RabbitMQ", "TestConfig.json"));
+                await JsonFileReader.ReadFileAsync<RabbitOptions>(Path.Combine("RabbitMQ", "TestConfig.json"))
+                .ConfigureAwait(false);
             Assert.NotNull(options);
 
-            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options).ConfigureAwait(false))
             {
                 return;
             }
 
             var con = new Consumer(options, "TestMessageConsumer");
             Assert.NotNull(con);
-            await con.ChannelPool.ShutdownAsync();
+            await con.ChannelPool.ShutdownAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task CreateConsumerAndInitializeChannelPool()
         {
             var options = 
-                await JsonFileReader.ReadFileAsync<RabbitOptions>(Path.Combine("RabbitMQ", "TestConfig.json"));
+                await JsonFileReader.ReadFileAsync<RabbitOptions>(Path.Combine("RabbitMQ", "TestConfig.json"))
+                .ConfigureAwait(false);
             Assert.NotNull(options);
 
-            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options).ConfigureAwait(false))
             {
                 return;
             }
 
             var con = new Consumer(new ChannelPool(options), "TestMessageConsumer");
             Assert.NotNull(con);
-            await con.ChannelPool.ShutdownAsync();
+            await con.ChannelPool.ShutdownAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task CreateManyConsumersStartAndStop()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var channelPool = await _fixture.GetChannelPoolAsync();
+            var channelPool = await _fixture.GetChannelPoolAsync().ConfigureAwait(false);
             for (var i = 0; i < 1000; i++)
             {
                 var con = new Consumer(channelPool, "TestMessageConsumer");
@@ -77,18 +79,18 @@ namespace RabbitMQ
                 await con.StopConsumerAsync().ConfigureAwait(false);
             }
 
-            await channelPool.ShutdownAsync();
+            await channelPool.ShutdownAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task ConsumerStartAndStopTesting()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRabbitServiceAsync();
+            var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
 
             for (var i = 0; i < 100; i++)
@@ -97,21 +99,18 @@ namespace RabbitMQ
                 await consumer.StopConsumerAsync().ConfigureAwait(false);
             }
 
-            await service.ShutdownAsync(true);
+            await service.ShutdownAsync(true).ConfigureAwait(false);
         }
 
         [Fact]
         public async Task ConsumerPipelineStartAndStopTesting()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRabbitServiceAsync();
-            var consumer = service.GetConsumer("TestMessageConsumer");
-            await consumer.StartConsumerAsync();
-
+            var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
             var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
             for (var i = 0; i < 100; i++)
             {
@@ -119,18 +118,18 @@ namespace RabbitMQ
                 await consumerPipeline.StopAsync().ConfigureAwait(false);
             }
 
-            await service.ShutdownAsync(true);
+            await service.ShutdownAsync(true).ConfigureAwait(false);
         }
 
         [Fact]
         public async Task ConsumerPipelineCompletionTesting()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRabbitServiceAsync();
+            var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
             var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
             var executeTask = consumerPipeline.StartAsync(true)
                 .ContinueWith(_ => consumerPipeline.AwaitCompletionAsync());
@@ -140,7 +139,7 @@ namespace RabbitMQ
                 await Task.Delay(1000);
                 await consumerPipeline.StopAsync(true);
                 await service.ShutdownAsync(true);
-            }));
+            })).ConfigureAwait(false);
             // this should be Assert.True
             Assert.False(await closeAndPublishTask);
         }
@@ -148,12 +147,12 @@ namespace RabbitMQ
         [Fact]
         public async Task RecoverableConsumerPipelineCompletionTesting()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRecoverableRabbitServiceAsync();
+            var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
             var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
             var executeTask = consumerPipeline.StartAsync(true)
                 .ContinueWith(_ => consumerPipeline.AwaitCompletionAsync());
@@ -163,19 +162,19 @@ namespace RabbitMQ
                 await Task.Delay(1000);
                 await consumerPipeline.StopAsync(true);
                 await service.ShutdownAsync(true);
-            }));
+            })).ConfigureAwait(false);
             Assert.True(await closeAndPublishTask);
         }
 
         [Fact]
         public async Task ConsumerChannelBlockTesting()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRabbitServiceAsync();
+            var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
             var executeTask = consumer.StartConsumerAsync()
                 .ContinueWith(_ => consumer.ChannelExecutionEngineAsync(TryProcessMessageAsync));
@@ -184,7 +183,7 @@ namespace RabbitMQ
             {
                 await Task.Delay(1000);
                 await service.ShutdownAsync(true);
-            }));
+            })).ConfigureAwait(false);
             // this should be Assert.True
             Assert.False(await closeAndPublishTask);
         }
@@ -192,12 +191,12 @@ namespace RabbitMQ
         [Fact]
         public async Task RecoverableConsumerChannelBlockTesting()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRecoverableRabbitServiceAsync();
+            var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
             var executeTask = consumer.StartConsumerAsync()
                 .ContinueWith(_ => consumer.ChannelExecutionEngineAsync(TryProcessMessageAsync));
@@ -206,19 +205,19 @@ namespace RabbitMQ
             {
                 await Task.Delay(1000);
                 await service.ShutdownAsync(true);
-            }));
+            })).ConfigureAwait(false);
             Assert.True(await closeAndPublishTask);
         }
 
         [Fact]
         public async Task ConsumerDirectChannelBlockTesting()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRabbitServiceAsync();
+            var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
             var executeTask = consumer.StartConsumerAsync()
                 .ContinueWith(_ => consumer.DirectChannelExecutionEngineAsync(TryProcessMessageAsync));
@@ -227,7 +226,7 @@ namespace RabbitMQ
             {
                 await Task.Delay(1000);
                 await service.ShutdownAsync(true);
-            }));
+            })).ConfigureAwait(false);
             // this should be Assert.True
             Assert.False(await closeAndPublishTask);
         }
@@ -235,12 +234,12 @@ namespace RabbitMQ
         [Fact]
         public async Task RecoverableConsumerDirectChannelBlockTesting()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRecoverableRabbitServiceAsync();
+            var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
             var executeTask = consumer.StartConsumerAsync()
                 .ContinueWith(_ => consumer.DirectChannelExecutionEngineAsync(TryProcessMessageAsync));
@@ -249,19 +248,19 @@ namespace RabbitMQ
             {
                 await Task.Delay(1000);
                 await service.ShutdownAsync(true);
-            }));
+            })).ConfigureAwait(false);
             Assert.True(await closeAndPublishTask);
         }
 
         [Fact]
         public async Task ConsumerDirectChannelReaderBlockTesting()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRabbitServiceAsync();
+            var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
             var executeTask = consumer.StartConsumerAsync()
                 .ContinueWith(_ => consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync, FinaliseAsync));
@@ -270,7 +269,7 @@ namespace RabbitMQ
             {
                 await Task.Delay(1000);
                 await service.ShutdownAsync(true);
-            }));
+            })).ConfigureAwait(false);
             // this should be Assert.True
             Assert.False(await closeAndPublishTask);
         }
@@ -278,12 +277,12 @@ namespace RabbitMQ
         [Fact]
         public async Task RecoverableConsumerDirectChannelReaderBlockTesting()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRecoverableRabbitServiceAsync();
+            var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
             var executeTask = consumer.StartConsumerAsync()
                 .ContinueWith(_ => consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync, FinaliseAsync));
@@ -292,13 +291,13 @@ namespace RabbitMQ
             {
                 await Task.Delay(1000);
                 await service.ShutdownAsync(true);
-            }));
+            })).ConfigureAwait(false);
             Assert.True(await closeAndPublishTask);
         }
 
         public async Task<bool> TryProcessMessageAsync(ReceivedData receivedData)
         {
-            var state = await ProcessMessageAsync(receivedData);
+            var state = await ProcessMessageAsync(receivedData).ConfigureAwait(false);
             return state is WorkState { AcknowledgeStepSuccess: true };
         }
 
@@ -316,35 +315,31 @@ namespace RabbitMQ
 
         private async Task<bool> CloseConnectionsThenPublishRandomLetter(IRabbitService service)
         {
-            var management = await CreateManagement();
-            var connections = await management.WaitForActiveConnections("TestRabbitServiceQueue");
-            await management.WaitForQueueToHaveConsumers("TestRabbitServiceQueue", 1);
+            var management = new Management(service.Options.FactoryOptions, _fixture.Output);
+            var connections = await management.WaitForActiveConnections("TestRabbitServiceQueue").ConfigureAwait(false);
+            await management.WaitForQueueToHaveConsumers("TestRabbitServiceQueue", 1).ConfigureAwait(false);
 
-            await management.CloseActiveConnections("TestRabbitServiceQueue", connections);
-            await management.WaitForQueueToHaveNoConsumers("TestRabbitServiceQueue");
+            await management.CloseActiveConnections("TestRabbitServiceQueue", connections).ConfigureAwait(false);
+            await management.WaitForQueueToHaveNoConsumers("TestRabbitServiceQueue").ConfigureAwait(false);
 
-            await management.ClearQueue("TestRabbitServiceQueue");
-            await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue", 15, 50);
+            await management.ClearQueue("TestRabbitServiceQueue").ConfigureAwait(false);
+            await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue", 15, 50).ConfigureAwait(false);
 
             Pause();
 
-            await management.WaitForActiveConnections("TestRabbitServiceQueue");
-            await management.WaitForQueueToHaveConsumers("TestRabbitServiceQueue", 1, false);
+            await management.WaitForActiveConnections("TestRabbitServiceQueue").ConfigureAwait(false);
+            await management.WaitForQueueToHaveConsumers("TestRabbitServiceQueue", 1, false).ConfigureAwait(false);
 
-            await PublishRandomLetter(service.Publisher);
-            await management.WaitForQueueToHaveUnacknowledgedMessages("TestRabbitServiceQueue", 1, 15, 50);
+            await PublishRandomLetter(service.Publisher).ConfigureAwait(false);
+            await management.WaitForQueueToHaveUnacknowledgedMessages("TestRabbitServiceQueue", 1, 15, 50)
+                .ConfigureAwait(false);
 
             Resume();
 
-            var allAcked = await management.WaitForQueueToHaveNoUnacknowledgedMessages("TestRabbitServiceQueue", false);
+            var allAcked = await management.WaitForQueueToHaveNoUnacknowledgedMessages("TestRabbitServiceQueue", false)
+                .ConfigureAwait(false);
             await service.Topologer.DeleteQueueAsync("TestRabbitServiceQueue").ConfigureAwait(false);
             return allAcked;
-        }
-
-        private async Task<Management> CreateManagement()
-        {
-            var options = await _fixture.OptionsAsync;
-            return new Management(options.FactoryOptions, _fixture.Output);
         }
 
         private static Task PublishRandomLetter(IPublisher publisher)
@@ -404,7 +399,7 @@ namespace RabbitMQ
 
             while (Interlocked.Read(ref _paused) == 1)
             {
-                await Task.Delay(4);
+                await Task.Delay(4).ConfigureAwait(false);
             }
 
             if (state.DeserializeStepSuccess)

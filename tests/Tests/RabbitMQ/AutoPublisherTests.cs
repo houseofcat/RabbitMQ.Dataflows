@@ -21,7 +21,7 @@ namespace RabbitMQ
         public async Task CreateAutoPublisher()
         {
             var pub = new Publisher(
-                await _fixture.GetChannelPoolAsync(),
+                await _fixture.GetChannelPoolAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -33,7 +33,7 @@ namespace RabbitMQ
         public async Task CreateAutoPublisherAndStart()
         {
             var pub = new Publisher(
-                await _fixture.GetChannelPoolAsync(),
+                await _fixture.GetChannelPoolAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -47,7 +47,7 @@ namespace RabbitMQ
         public async Task CreateAutoPublisherAndPublish()
         {
             var pub = new Publisher(
-                await _fixture.GetChannelPoolAsync(),
+                await _fixture.GetChannelPoolAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -60,7 +60,7 @@ namespace RabbitMQ
         public async Task CreateAutoPublisherByOptions()
         {
             var pub = new Publisher(
-                await _fixture.OptionsAsync,
+                await _fixture.GetOptionsAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -71,13 +71,13 @@ namespace RabbitMQ
         [Fact]
         public async Task CreateAutoPublisherByConfigAndStart()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
             var pub = new Publisher(
-                await _fixture.OptionsAsync,
+                await _fixture.GetOptionsAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -90,13 +90,13 @@ namespace RabbitMQ
         [Fact]
         public async Task CreateAutoPublisherByConfigAndPublish()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
             var pub = new Publisher(
-                await _fixture.OptionsAsync,
+                await _fixture.GetOptionsAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -110,13 +110,13 @@ namespace RabbitMQ
         [Fact(Skip = "only manual")]
         public async Task CreateAutoPublisherByConfigQueueAndConcurrentPublish()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
             var pub = new Publisher(
-                await _fixture.OptionsAsync,
+                await _fixture.GetOptionsAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -146,13 +146,13 @@ namespace RabbitMQ
         [Fact(Skip = "only manual")]
         public async Task CreateAutoPublisherQueueConcurrentPublishAndProcessReceipts()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
             var pub = new Publisher(
-                await _fixture.OptionsAsync,
+                await _fixture.GetOptionsAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);

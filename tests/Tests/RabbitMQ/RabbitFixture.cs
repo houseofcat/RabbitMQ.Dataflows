@@ -25,7 +25,6 @@ namespace RabbitMQ
         private static readonly string EnvironmentRabbitHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST");
         
         private readonly AsyncLazy<bool> _lazyConnectionCheck;
-        private readonly AsyncLazy<RabbitOptions> _lazyOptions;
         
         public ITestOutputHelper Output;
         public readonly ISerializationProvider SerializationProvider;
@@ -41,7 +40,6 @@ namespace RabbitMQ
         public readonly byte[] HashKey;
         
         public Task<bool> RabbitConnectionCheckAsync => _lazyConnectionCheck.Task;
-        public Task<RabbitOptions> OptionsAsync => _lazyOptions.Task;
 
         public RabbitFixture()
         {
@@ -53,31 +51,33 @@ namespace RabbitMQ
             
             _lazyConnectionCheck = new AsyncLazy<bool>(
                 () => CheckRabbitHostConnection().AsTask(), AsyncLazyFlags.ExecuteOnCallingThread);
-            _lazyOptions = new AsyncLazy<RabbitOptions>(async () =>
-            {
-                var options = 
-                    await JsonFileReader.ReadFileAsync<RabbitOptions>(Path.Combine("RabbitMQ", "TestConfig.json"))
-                        .ConfigureAwait(false);
-                await CheckRabbitHostConnectionAndUpdateFactoryOptions(options).ConfigureAwait(false);
-                return options;
-            }, AsyncLazyFlags.ExecuteOnCallingThread);
         }
 
-        public async ValueTask<IChannelPool> GetChannelPoolAsync() => new ChannelPool(await OptionsAsync);
+        public async ValueTask<RabbitOptions> GetOptionsAsync()
+        {
+            var options =
+                await JsonFileReader.ReadFileAsync<RabbitOptions>(Path.Combine("RabbitMQ", "TestConfig.json"))
+                    .ConfigureAwait(false);
+            await CheckRabbitHostConnectionAndUpdateFactoryOptions(options).ConfigureAwait(false);
+            return options;
+        }
+
+        public async ValueTask<IChannelPool> GetChannelPoolAsync() =>
+            new ChannelPool(await GetOptionsAsync().ConfigureAwait(false));
+
         public async ValueTask<IRabbitService> GetRabbitServiceAsync() =>
             new RabbitService(
-                await GetChannelPoolAsync(),
+                await GetChannelPoolAsync().ConfigureAwait(false),
                 SerializationProvider,
                 EncryptionProvider,
                 CompressionProvider,
                 LoggerFactory
                     .Create(
                         builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information)));
-        public async ValueTask<ITopologer> GetTopologerAsync() => (await GetRabbitServiceAsync()).Topologer;
 
         public async ValueTask<IRabbitService> GetRecoverableRabbitServiceAsync() =>
             new RecoverableRabbitService(
-                new RecoverableChannelPool(await OptionsAsync),
+                new RecoverableChannelPool(await GetOptionsAsync().ConfigureAwait(false)),
                 SerializationProvider,
                 EncryptionProvider,
                 CompressionProvider,
@@ -87,7 +87,7 @@ namespace RabbitMQ
 
         public async ValueTask<bool> CheckRabbitHostConnectionAndUpdateFactoryOptions(RabbitOptions options)
         {
-            if (!await RabbitConnectionCheckAsync)
+            if (!await RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 Output?.WriteLine($"Could not connect to RabbitMQ at {RabbitHost}:{RabbitPort}");
 				return false;

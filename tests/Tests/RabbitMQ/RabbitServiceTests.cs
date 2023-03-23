@@ -19,7 +19,7 @@ namespace RabbitMQ
         [Fact(Skip = "only manual")]
         public async Task BuildRabbitService_AndTopology()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }

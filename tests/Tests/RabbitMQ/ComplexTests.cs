@@ -2,7 +2,6 @@ using HouseofCat.RabbitMQ;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Nito.AsyncEx;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -11,37 +10,26 @@ namespace RabbitMQ
     public class ComplexTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
-        private readonly AsyncLazy<Consumer> _lazyConsumer;
-        private readonly AsyncLazy<Publisher> _lazyPublisher;
-        public Task<Consumer> ConsumerAsync => _lazyConsumer.Task;
-        public Task<Publisher> PublisherAsync => _lazyPublisher.Task;
 
         public ComplexTests(RabbitFixture fixture, ITestOutputHelper output)
         {
             _fixture = fixture;
             _fixture.Output = output;
-            _lazyConsumer = new AsyncLazy<Consumer>(
-                async () => new Consumer(await _fixture.GetChannelPoolAsync(), "TestAutoPublisherConsumerName"));
-            _lazyPublisher = new AsyncLazy<Publisher>(
-                async () => new Publisher(
-                await _fixture.GetChannelPoolAsync(),
-                _fixture.SerializationProvider,
-                _fixture.EncryptionProvider,
-                _fixture.CompressionProvider));
         }
 
         [Fact(Skip = "only manual")]
         public async Task PublishAndCountReceipts()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var topologer = await _fixture.GetTopologerAsync();
+            var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
+            var topologer = service.Topologer;
             await topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
 
-            var publisher = await PublisherAsync;
+            var publisher = service.Publisher;
             await publisher.StartAutoPublishAsync().ConfigureAwait(false);
 
             const ulong count = 1000;
@@ -70,20 +58,21 @@ namespace RabbitMQ
         [Fact(Skip = "only manual")]
         public async Task PublishAndConsume()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var topologer = await _fixture.GetTopologerAsync();
+            var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
+            var topologer = service.Topologer;
             await topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
 
-            var publisher = await PublisherAsync;
+            var publisher = service.Publisher;
             await publisher.StartAutoPublishAsync().ConfigureAwait(false);
 
             const ulong count = 1000;
 
-            var consumer = await ConsumerAsync;
+            var consumer = new Consumer(service.ChannelPool, "TestAutoPublisherConsumerName");
             var processReceiptsTask = ProcessReceiptsAsync(publisher, count);
             var publishLettersTask = PublishLettersAsync(publisher, count);
             var consumeMessagesTask = ConsumeMessagesAsync(consumer, count);
@@ -111,7 +100,7 @@ namespace RabbitMQ
             await topologer.DeleteQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
         }
 
-        private async Task PublishLettersAsync(Publisher apub, ulong count)
+        private async Task PublishLettersAsync(IPublisher apub, ulong count)
         {
             var sw = Stopwatch.StartNew();
             for (ulong i = 0; i < count; i++)
@@ -128,7 +117,7 @@ namespace RabbitMQ
             _fixture.Output.WriteLine($"Finished queueing all letters in {sw.ElapsedMilliseconds} ms.");
         }
 
-        private async Task<bool> ProcessReceiptsAsync(Publisher apub, ulong count)
+        private async Task<bool> ProcessReceiptsAsync(IPublisher apub, ulong count)
         {
             await Task.Yield();
 
@@ -139,7 +128,7 @@ namespace RabbitMQ
             var sw = Stopwatch.StartNew();
             while (receiptCount < count)
             {
-                var receipt = await buffer.ReadAsync();
+                var receipt = await buffer.ReadAsync().ConfigureAwait(false);
                 receiptCount++;
                 if (receipt.IsError)
                 { error = true; break; }
@@ -151,7 +140,7 @@ namespace RabbitMQ
             return error;
         }
 
-        private async Task<bool> ConsumeMessagesAsync(Consumer consumer, ulong count)
+        private async Task<bool> ConsumeMessagesAsync(IConsumer<ReceivedData> consumer, ulong count)
         {
             var messageCount = 0ul;
             var error = false;

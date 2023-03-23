@@ -23,7 +23,7 @@ namespace RabbitMQ
         {
             var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
-            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options).ConfigureAwait(false))
             {
                 return;
             }
@@ -38,7 +38,7 @@ namespace RabbitMQ
         {
             var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
-            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options).ConfigureAwait(false))
             {
                 return;
             }
@@ -53,7 +53,7 @@ namespace RabbitMQ
         {
             var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
-            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options).ConfigureAwait(false))
             {
                 return;
             }

@@ -23,13 +23,13 @@ namespace RabbitMQ
         [Fact]
         public async Task CreatePublisher()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
             var pub = new Publisher(
-                await _fixture.GetChannelPoolAsync(),
+                await _fixture.GetChannelPoolAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -40,13 +40,13 @@ namespace RabbitMQ
         [Fact]
         public async Task CreatePublisherAndInitializeChannelPool()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
             var pub = new Publisher(
-                await _fixture.GetChannelPoolAsync(),
+                await _fixture.GetChannelPoolAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -61,7 +61,7 @@ namespace RabbitMQ
         {
             var options = new RabbitOptions();
             options.FactoryOptions.Uri = new Uri("amqp://guest:guest@localhost:5672/");
-            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options))
+            if (!await _fixture.CheckRabbitHostConnectionAndUpdateFactoryOptions(options).ConfigureAwait(false))
             {
                 return;
             }
@@ -78,13 +78,13 @@ namespace RabbitMQ
         [Fact]
         public async Task PublishToNonExistentQueueAsync()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
             var pub = new Publisher(
-                await _fixture.GetChannelPoolAsync(),
+                await _fixture.GetChannelPoolAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -97,7 +97,7 @@ namespace RabbitMQ
             async Task ReadReceiptAsync(CancellationToken cancellationToken)
             {
                 var receiptBuffer = pub.GetReceiptBufferReader();
-                await receiptBuffer.WaitToReadAsync(cancellationToken);
+                await receiptBuffer.WaitToReadAsync(cancellationToken).ConfigureAwait(false);
                 _ = receiptBuffer.ReadAsync(cancellationToken);
             }
 
@@ -108,13 +108,13 @@ namespace RabbitMQ
         [Fact]
         public async Task PublishAsync()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
             var pub = new Publisher(
-                await _fixture.GetChannelPoolAsync(),
+                await _fixture.GetChannelPoolAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -132,7 +132,7 @@ namespace RabbitMQ
         [Fact(Skip = "only manual")]
         public async Task PublishManyAsync()
         {
-            if (!await _fixture.RabbitConnectionCheckAsync)
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
@@ -141,7 +141,7 @@ namespace RabbitMQ
             const int byteCount = 500;
 
             var pub = new Publisher(
-                await _fixture.GetChannelPoolAsync(),
+                await _fixture.GetChannelPoolAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
