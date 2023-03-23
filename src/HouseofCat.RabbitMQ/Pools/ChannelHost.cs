@@ -18,20 +18,13 @@ namespace HouseofCat.RabbitMQ.Pools
         bool FlowControlled { get; }
 
         IModel GetChannel();
-        Task<bool> MakeChannelAsync();
-        Task<bool> RecoverChannelAsync(Func<Task<bool>> restartConsumingAsync);
+        Task<bool> MakeChannelAsync(Func<ValueTask<bool>> startConsumingAsync = null);
         void Close();
         Task<bool> HealthyAsync();
     }
 
     public class ChannelHost : IChannelHost, IDisposable
     {
-        private readonly ILogger<ChannelHost> _logger;
-        private IConnectionHost _connHost;
-        private IModel _channel;
-
-        protected IConnection Connection => _connHost?.Connection;
-
         public ulong ChannelId { get; }
 
         public bool Ackable { get; }
@@ -39,7 +32,11 @@ namespace HouseofCat.RabbitMQ.Pools
         public bool Closed { get; private set; }
         public bool FlowControlled { get; private set; }
 
+        private readonly ILogger<ChannelHost> _logger;
         private readonly SemaphoreSlim _hostLock = new SemaphoreSlim(1, 1);
+
+        private IConnectionHost _connHost;
+        private IModel _channel;
         private bool _disposedValue;
 
         public ChannelHost(ulong channelId, IConnectionHost connHost, bool ackable)
@@ -71,7 +68,7 @@ namespace HouseofCat.RabbitMQ.Pools
         private const string MakeChannelFailedError = "Making a channel failed. Error: {0}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<bool> MakeChannelAsync()
+        public async Task<bool> MakeChannelAsync(Func<ValueTask<bool>> startConsumingAsync = null)
         {
             await EnterLockAsync().ConfigureAwait(false);
 
@@ -79,7 +76,7 @@ namespace HouseofCat.RabbitMQ.Pools
             {
                 if (_channel != null)
                 {
-                    RemoveEventHandlers(_channel);
+                    RemoveEventHandlers(_channel, _connHost.Connection);
                     Close();
                     _channel = null;
                 }
@@ -91,9 +88,7 @@ namespace HouseofCat.RabbitMQ.Pools
                     _channel.ConfirmSelect();
                 }
 
-                AddEventHandlers(_channel);
-
-                return true;
+                AddEventHandlers(_channel, _connHost.Connection);
             }
             catch (Exception ex)
             {
@@ -105,19 +100,17 @@ namespace HouseofCat.RabbitMQ.Pools
             {
                 ExitLock();
             }
+
+            return startConsumingAsync is null || await startConsumingAsync().ConfigureAwait(false);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual async Task<bool> RecoverChannelAsync(Func<Task<bool>> restartConsumingAsync) =>
-            await MakeChannelAsync().ConfigureAwait(false) && await restartConsumingAsync().ConfigureAwait(false);
-
-        protected virtual void AddEventHandlers(IModel channel)
+        protected virtual void AddEventHandlers(IModel channel, IConnection _)
         {
             channel.FlowControl += FlowControl;
             channel.ModelShutdown += ChannelClose;
         }
 
-        protected virtual void RemoveEventHandlers(IModel channel)
+        protected virtual void RemoveEventHandlers(IModel channel, IConnection _)
         {
             channel.FlowControl -= FlowControl;
             channel.ModelShutdown -= ChannelClose;

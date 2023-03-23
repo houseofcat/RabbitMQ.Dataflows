@@ -173,9 +173,12 @@ public class RabbitService : IRabbitService, IDisposable
             {
                 ConsumerPipelineNameToConsumerOptions.TryAdd(consumerSetting.Value.ConsumerPipelineOptions.ConsumerPipelineName, consumerSetting.Value);
             }
-            Consumers.TryAdd(consumerSetting.Value.ConsumerName, new Consumer(ChannelPool, consumerSetting.Value));
+            Consumers.TryAdd(consumerSetting.Value.ConsumerName, CreateConsumer(consumerSetting.Value));
         }
     }
+
+    protected virtual IConsumer<ReceivedData> CreateConsumer(ConsumerOptions consumerOptions) =>
+        new Consumer(ChannelPool, consumerOptions);
 
     private async Task BuildConsumerTopologyAsync()
     {

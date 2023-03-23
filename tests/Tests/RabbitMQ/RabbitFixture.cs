@@ -13,6 +13,7 @@ using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.File;
+using IntegrationTests.RabbitMQ.Recoverable;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
 using Xunit.Abstractions;
@@ -25,10 +26,6 @@ namespace RabbitMQ
         
         private readonly AsyncLazy<bool> _lazyConnectionCheck;
         private readonly AsyncLazy<RabbitOptions> _lazyOptions;
-        private readonly AsyncLazy<RabbitService> _lazyService;
-        private readonly AsyncLazy<IChannelPool> _lazyChannelPool;
-        private readonly AsyncLazy<ITopologer> _lazyTopologer;
-        private readonly AsyncLazy<IPublisher> _lazyPublisher;
         
         public ITestOutputHelper Output;
         public readonly ISerializationProvider SerializationProvider;
@@ -45,10 +42,6 @@ namespace RabbitMQ
         
         public Task<bool> RabbitConnectionCheckAsync => _lazyConnectionCheck.Task;
         public Task<RabbitOptions> OptionsAsync => _lazyOptions.Task;
-        public Task<RabbitService> RabbitServiceAsync => _lazyService.Task;
-        public Task<IChannelPool> ChannelPoolAsync => _lazyChannelPool.Task;
-        public Task<ITopologer> TopologerAsync => _lazyTopologer.Task;
-        public Task<IPublisher> PublisherAsync => _lazyPublisher.Task;
 
         public RabbitFixture()
         {
@@ -68,23 +61,29 @@ namespace RabbitMQ
                 await CheckRabbitHostConnectionAndUpdateFactoryOptions(options).ConfigureAwait(false);
                 return options;
             }, AsyncLazyFlags.ExecuteOnCallingThread);
-            _lazyService = new AsyncLazy<RabbitService>(
-                async () => new RabbitService(
-                    await OptionsAsync,
-                    SerializationProvider,
-                    EncryptionProvider,
-                    CompressionProvider,
-                    LoggerFactory
-                        .Create(
-                            builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information))), 
-                AsyncLazyFlags.ExecuteOnCallingThread);
-            _lazyChannelPool = new AsyncLazy<IChannelPool>(
-                async () => (await RabbitServiceAsync).ChannelPool, AsyncLazyFlags.ExecuteOnCallingThread);
-            _lazyTopologer = new AsyncLazy<ITopologer>(
-                async () => (await RabbitServiceAsync).Topologer, AsyncLazyFlags.ExecuteOnCallingThread);
-            _lazyPublisher = new AsyncLazy<IPublisher>(
-                async () => (await RabbitServiceAsync).Publisher, AsyncLazyFlags.ExecuteOnCallingThread);
         }
+
+        public async ValueTask<IChannelPool> GetChannelPoolAsync() => new ChannelPool(await OptionsAsync);
+        public async ValueTask<IRabbitService> GetRabbitServiceAsync() =>
+            new RabbitService(
+                await GetChannelPoolAsync(),
+                SerializationProvider,
+                EncryptionProvider,
+                CompressionProvider,
+                LoggerFactory
+                    .Create(
+                        builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information)));
+        public async ValueTask<ITopologer> GetTopologerAsync() => (await GetRabbitServiceAsync()).Topologer;
+
+        public async ValueTask<IRabbitService> GetRecoverableRabbitServiceAsync() =>
+            new RecoverableRabbitService(
+                new RecoverableChannelPool(await OptionsAsync),
+                SerializationProvider,
+                EncryptionProvider,
+                CompressionProvider,
+                LoggerFactory
+                    .Create(
+                        builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information)));
 
         public async ValueTask<bool> CheckRabbitHostConnectionAndUpdateFactoryOptions(RabbitOptions options)
         {

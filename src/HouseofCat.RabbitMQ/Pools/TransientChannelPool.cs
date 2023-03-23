@@ -81,8 +81,7 @@ public class TransientChannelPool : IChannelPool, IDisposable
         }
     }
     
-    private async ValueTask ReturnConnectionWithOptionalSleep(
-        IConnectionHost connHost, ulong channelId, int sleep = 0)
+    private async ValueTask ReturnConnectionWithOptionalSleep(IConnectionHost connHost, ulong channelId, int sleep = 0)
     {
         if (connHost != null)
         {

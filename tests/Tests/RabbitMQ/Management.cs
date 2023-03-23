@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using EasyNetQ.Management.Client;
 using EasyNetQ.Management.Client.Model;
 using HouseofCat.RabbitMQ;
-using HouseofCat.Serialization;
 using Utilities;
 using Xunit.Abstractions;
 
@@ -15,11 +14,9 @@ public class Management
 {
     private readonly ManagementClient _client;
     private readonly string _vhost;
-    private readonly ISerializationProvider _serializationProvider;
     private readonly ITestOutputHelper _output;
 
-    public Management(
-        FactoryOptions factoryOptions, ISerializationProvider serializationProvider, ITestOutputHelper output)
+    public Management(FactoryOptions factoryOptions, ITestOutputHelper output)
     {
         if (factoryOptions.Uri is not null)
         {
@@ -42,7 +39,6 @@ public class Management
             _vhost = factoryOptions.VirtualHost;
         }
 
-        _serializationProvider = serializationProvider;
         _output = output;
     }
 
@@ -50,9 +46,9 @@ public class Management
 
     private async Task<ICollection<ChannelDetail>> GetActiveChannelDetails(string queueName)
     {
-        var queue = await GetQueue(queueName);
         try
         {
+            var queue = await GetQueue(queueName);
             return 
                 queue.ConsumerDetails?.Count > 0
                     ? queue.ConsumerDetails
@@ -131,22 +127,6 @@ public class Management
 
     public Task ClearQueue(string queueName) => _client.PurgeAsync(_vhost, queueName);
 
-    public ValueTask<PublishResult> Publish(IMessage message) => new(
-        _client.PublishAsync(
-            _vhost,
-            message.Envelope.Exchange,
-            new PublishInfo(
-                message.Envelope.RoutingKey,
-                Convert.ToBase64String(message.GetBodyToPublish(_serializationProvider)),
-                PayloadEncoding.Base64,
-                new Dictionary<string, object>
-                {
-                    { "MessageId", Guid.NewGuid().ToString() },
-                    { "Headers", new Dictionary<string, object> { {
-                        Constants.HeaderForObjectType, Constants.HeaderValueForLetter
-                    } } }
-                })));
-
     public async ValueTask<IReadOnlyCollection<Connection>> WaitForActiveConnections(string queueName)
     {
         IReadOnlyCollection<Connection> activeConnections = null;
@@ -159,25 +139,48 @@ public class Management
         return activeConnections;
     }
 
-    public ValueTask<bool> WaitForQueueToHaveConsumers(string queueName, int expectedConsumerCount) =>
-        new Wait(TimeSpan.FromSeconds(20), TimeSpan.FromMilliseconds(100)).UntilAsync(
-            async () => Convert.ToInt32((await GetQueue(queueName)).Consumers),
-            expectedConsumerCount, $"consumer(s) on {queueName}", _output);
+    public ValueTask<bool> WaitForQueueToHaveConsumers(
+        string queueName, int expectedConsumerCount, bool throwOnTimeout = true) =>
+        new Wait(TimeSpan.FromSeconds(15), TimeSpan.FromMilliseconds(50)).UntilAsync(
+            async () =>
+            {
+                try
+                {
+                    var queue = await GetQueue(queueName);
+                    return Convert.ToInt32(queue.Consumers);
+                }
+                catch
+                {
+                    return 0;
+                }
+            },
+            expectedConsumerCount, $"consumer(s) on {queueName}", _output, throwOnTimeout);
 
     public ValueTask<bool> WaitForQueueToHaveNoConsumers(string queueName) => WaitForQueueToHaveConsumers(queueName, 0);
 
     public ValueTask<bool> WaitForQueueToHaveNoMessages(
         string queueName, double timeout, double interval) =>
         new Wait(TimeSpan.FromSeconds(timeout), TimeSpan.FromMilliseconds(interval)).UntilAsync(
-            async () => Convert.ToInt32((await GetQueue(queueName)).Messages),
+            async () =>
+            {
+                try
+                {
+                    var queue = await GetQueue(queueName);
+                    return Convert.ToInt32(queue.Messages);
+                }
+                catch
+                {
+                    return 0;
+                }
+            },
             0, $"messages on {queueName}", _output);
 
-    public ValueTask<bool> WaitForQueueToHaveNoUnacknowledgedMessages(string queueName, bool throwOnFailure = true) =>
-        WaitForQueueToHaveUnacknowledgedMessages(queueName, 0, 10, 100, throwOnFailure);
+    public ValueTask<bool> WaitForQueueToHaveNoUnacknowledgedMessages(string queueName, bool throwOnTimeout = true) =>
+        WaitForQueueToHaveUnacknowledgedMessages(queueName, 0, 15, 50, throwOnTimeout);
 
     public ValueTask<bool> WaitForQueueToHaveUnacknowledgedMessages(
-        string queueName, int unacknowledgedCount, double timeout, double interval, bool throwOnFailure = true) =>
+        string queueName, int unacknowledgedCount, double timeout, double interval, bool throwOnTimeout = true) =>
         new Wait(TimeSpan.FromSeconds(timeout), TimeSpan.FromMilliseconds(interval)).UntilAsync(
             async () => Convert.ToInt32((await GetQueue(queueName)).MessagesUnacknowledged),
-            unacknowledgedCount, $"unacknowledged on {queueName}", _output, throwOnFailure);
+            unacknowledgedCount, $"unacknowledged on {queueName}", _output, throwOnTimeout);
 }

@@ -236,6 +236,7 @@ namespace HouseofCat.RabbitMQ.Pools
         {
             if (DisposedValue)
             {
+                base.Dispose(disposing);
                 return;
             }
 

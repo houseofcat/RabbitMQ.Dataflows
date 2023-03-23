@@ -21,10 +21,10 @@ namespace RabbitMQ
             _fixture = fixture;
             _fixture.Output = output;
             _lazyConsumer = new AsyncLazy<Consumer>(
-                async () => new Consumer(await _fixture.ChannelPoolAsync, "TestAutoPublisherConsumerName"));
+                async () => new Consumer(await _fixture.GetChannelPoolAsync(), "TestAutoPublisherConsumerName"));
             _lazyPublisher = new AsyncLazy<Publisher>(
                 async () => new Publisher(
-                await _fixture.ChannelPoolAsync,
+                await _fixture.GetChannelPoolAsync(),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider));
@@ -38,7 +38,7 @@ namespace RabbitMQ
                 return;
             }
 
-            var topologer = await _fixture.TopologerAsync;
+            var topologer = await _fixture.GetTopologerAsync();
             await topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
 
             var publisher = await PublisherAsync;
@@ -75,7 +75,7 @@ namespace RabbitMQ
                 return;
             }
 
-            var topologer = await _fixture.TopologerAsync;
+            var topologer = await _fixture.GetTopologerAsync();
             await topologer.CreateQueueAsync("TestAutoPublisherConsumerQueue").ConfigureAwait(false);
 
             var publisher = await PublisherAsync;

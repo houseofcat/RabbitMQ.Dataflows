@@ -6,7 +6,7 @@ using HouseofCat.RabbitMQ.Pools;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Events;
 
-namespace IntegrationTests.RabbitMQ
+namespace IntegrationTests.RabbitMQ.Recoverable
 {
     public class RecoverableConsumer : Consumer
     {
@@ -18,14 +18,6 @@ namespace IntegrationTests.RabbitMQ
             public const string ConsumerAsyncUnregistered = "Consumer ({0}) async unregistered (CT:{1}).";
         }
         
-        public RecoverableConsumer(RabbitOptions options, string consumerName)
-            : base(new ChannelPool(options), consumerName)
-        { }
-
-        public RecoverableConsumer(IChannelPool channelPool, string consumerName)
-            : base(channelPool, channelPool.Options.GetConsumerOptions(consumerName))
-        { }
-
         public RecoverableConsumer(IChannelPool channelPool, ConsumerOptions consumerOptions)
             : base(channelPool, consumerOptions, LogHelper.GetLogger<RecoverableConsumer>())
         { }

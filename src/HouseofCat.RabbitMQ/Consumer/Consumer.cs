@@ -173,7 +173,7 @@ namespace HouseofCat.RabbitMQ
         private AsyncEventingBasicConsumer _asyncConsumer;
         private EventingBasicConsumer _consumer;
 
-        private async Task<bool> StartConsumingAsync()
+        private async ValueTask<bool> StartConsumingAsync()
         {
             if (_shutdown)
             { return false; }
@@ -348,7 +348,7 @@ namespace HouseofCat.RabbitMQ
 
         protected async ValueTask<bool> HandleMessage(BasicDeliverEventArgs bdea)
         {
-            if (_consumer is null || !await _consumerChannel.Writer.WaitToWriteAsync().ConfigureAwait(false))
+            if (!await _consumerChannel.Writer.WaitToWriteAsync().ConfigureAwait(false))
             {
                 return false;
             }
@@ -403,7 +403,7 @@ namespace HouseofCat.RabbitMQ
 
                 try
                 {
-                    success = await ChanHost.RecoverChannelAsync(StartConsumingAsync).ConfigureAwait(false);
+                    success = await ChanHost.MakeChannelAsync(StartConsumingAsync).ConfigureAwait(false);
                 }
                 finally
                 {

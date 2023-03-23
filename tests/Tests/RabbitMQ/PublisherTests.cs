@@ -29,7 +29,7 @@ namespace RabbitMQ
             }
 
             var pub = new Publisher(
-                await _fixture.ChannelPoolAsync,
+                await _fixture.GetChannelPoolAsync(),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -46,7 +46,7 @@ namespace RabbitMQ
             }
 
             var pub = new Publisher(
-                await _fixture.ChannelPoolAsync,
+                await _fixture.GetChannelPoolAsync(),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -84,7 +84,7 @@ namespace RabbitMQ
             }
 
             var pub = new Publisher(
-                await _fixture.ChannelPoolAsync,
+                await _fixture.GetChannelPoolAsync(),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -114,7 +114,7 @@ namespace RabbitMQ
             }
 
             var pub = new Publisher(
-                await _fixture.ChannelPoolAsync,
+                await _fixture.GetChannelPoolAsync(),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -141,7 +141,7 @@ namespace RabbitMQ
             const int byteCount = 500;
 
             var pub = new Publisher(
-                await _fixture.ChannelPoolAsync,
+                await _fixture.GetChannelPoolAsync(),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);

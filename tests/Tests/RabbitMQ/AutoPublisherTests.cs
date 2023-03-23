@@ -21,7 +21,7 @@ namespace RabbitMQ
         public async Task CreateAutoPublisher()
         {
             var pub = new Publisher(
-                await _fixture.ChannelPoolAsync,
+                await _fixture.GetChannelPoolAsync(),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -33,7 +33,7 @@ namespace RabbitMQ
         public async Task CreateAutoPublisherAndStart()
         {
             var pub = new Publisher(
-                await _fixture.ChannelPoolAsync,
+                await _fixture.GetChannelPoolAsync(),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
@@ -47,7 +47,7 @@ namespace RabbitMQ
         public async Task CreateAutoPublisherAndPublish()
         {
             var pub = new Publisher(
-                await _fixture.ChannelPoolAsync,
+                await _fixture.GetChannelPoolAsync(),
                 _fixture.SerializationProvider,
                 _fixture.EncryptionProvider,
                 _fixture.CompressionProvider);
