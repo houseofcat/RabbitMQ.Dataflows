@@ -59,20 +59,6 @@ namespace RabbitMQ
             Assert.NotNull(con);
             await con.ChannelPool.ShutdownAsync();
         }
-        
-        [Fact]
-        public async Task CreateConsumerStartAndStop()
-        {
-            if (!await _fixture.RabbitConnectionCheckAsync)
-            {
-                return;
-            }
-
-            var con = new Consumer(await _fixture.GetChannelPoolAsync(), "TestMessageConsumer");
-            await con.StartConsumerAsync().ConfigureAwait(false);
-            await con.StopConsumerAsync().ConfigureAwait(false);
-            await con.ChannelPool.ShutdownAsync();
-        }
 
         [Fact]
         public async Task CreateManyConsumersStartAndStop()
