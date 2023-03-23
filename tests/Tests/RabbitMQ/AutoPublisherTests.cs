@@ -17,9 +17,14 @@ namespace RabbitMQ
             _fixture.Output = output;
         }
 
-        [Fact(Skip = "only manual")]
+        [Fact]
         public async Task CreateAutoPublisher()
         {
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
+            {
+                return;
+            }
+
             var pub = new Publisher(
                 await _fixture.GetChannelPoolAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
@@ -32,6 +37,11 @@ namespace RabbitMQ
         [Fact]
         public async Task CreateAutoPublisherAndStart()
         {
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
+            {
+                return;
+            }
+
             var pub = new Publisher(
                 await _fixture.GetChannelPoolAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
@@ -46,6 +56,11 @@ namespace RabbitMQ
         [Fact]
         public async Task CreateAutoPublisherAndPublish()
         {
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
+            {
+                return;
+            }
+
             var pub = new Publisher(
                 await _fixture.GetChannelPoolAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
@@ -59,6 +74,11 @@ namespace RabbitMQ
         [Fact]
         public async Task CreateAutoPublisherByOptions()
         {
+            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
+            {
+                return;
+            }
+
             var pub = new Publisher(
                 await _fixture.GetOptionsAsync().ConfigureAwait(false),
                 _fixture.SerializationProvider,
