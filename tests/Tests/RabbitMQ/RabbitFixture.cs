@@ -93,10 +93,10 @@ namespace RabbitMQ
 				return false;
             }
 
-			if (RabbitHost != "localhost")
-			{
-            	UpdateFactoryOptionsWithHost(options.FactoryOptions);
-			}
+            if (RabbitHost != "localhost")
+            {
+                UpdateFactoryOptionsWithHost(options.FactoryOptions);
+            }
             Output?.WriteLine($"RabbitMQ listening on {RabbitHost}:{RabbitPort}");
             return true;
         }
