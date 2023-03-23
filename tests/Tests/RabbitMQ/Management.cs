@@ -158,8 +158,7 @@ public class Management
 
     public ValueTask<bool> WaitForQueueToHaveNoConsumers(string queueName) => WaitForQueueToHaveConsumers(queueName, 0);
 
-    public ValueTask<bool> WaitForQueueToHaveNoMessages(
-        string queueName, double timeout, double interval) =>
+    public ValueTask<bool> WaitForQueueToHaveNoMessages(string queueName, double timeout, double interval) =>
         new Wait(TimeSpan.FromSeconds(timeout), TimeSpan.FromMilliseconds(interval)).UntilAsync(
             async () =>
             {

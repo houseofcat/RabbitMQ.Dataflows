@@ -4,6 +4,7 @@ using HouseofCat.RabbitMQ.WorkState.Extensions;
 using HouseofCat.Utilities.File;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HouseofCat.RabbitMQ.Pools;
@@ -18,7 +19,7 @@ namespace RabbitMQ
     public class ConsumerTests : IClassFixture<RabbitFixture>
     {
         private readonly RabbitFixture _fixture;
-        private static long _paused;
+        private static long _processingPaused;
 
         public ConsumerTests(RabbitFixture fixture, ITestOutputHelper output)
         {
@@ -310,8 +311,8 @@ namespace RabbitMQ
             return state;
         }
 
-        private static void Pause() => Interlocked.CompareExchange(ref _paused, 1, 0);
-        private static void Resume() => Interlocked.CompareExchange(ref _paused, 0, 1);
+        private static void PauseProcessing() => Interlocked.CompareExchange(ref _processingPaused, 1, 0);
+        private static void ResumeProcessing() => Interlocked.CompareExchange(ref _processingPaused, 0, 1);
 
         private async Task<bool> CloseConnectionsThenPublishRandomLetter(IRabbitService service)
         {
@@ -325,16 +326,18 @@ namespace RabbitMQ
             await management.ClearQueue("TestRabbitServiceQueue").ConfigureAwait(false);
             await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue", 15, 50).ConfigureAwait(false);
 
-            Pause();
-
             await management.WaitForActiveConnections("TestRabbitServiceQueue").ConfigureAwait(false);
             await management.WaitForQueueToHaveConsumers("TestRabbitServiceQueue", 1, false).ConfigureAwait(false);
 
-            await PublishRandomLetter(service.Publisher).ConfigureAwait(false);
-            await management.WaitForQueueToHaveUnacknowledgedMessages("TestRabbitServiceQueue", 1, 15, 50)
+            PauseProcessing();
+
+            var prefetch = service.GetConsumer("TestMessageConsumer").ConsumerOptions.BatchSize!.Value;
+            await Task.WhenAll(Enumerable.Range(0, prefetch).Select(_ => PublishRandomLetter(service.Publisher)))
+                .ConfigureAwait(false);
+            await management.WaitForQueueToHaveUnacknowledgedMessages("TestRabbitServiceQueue", prefetch, 15, 50)
                 .ConfigureAwait(false);
 
-            Resume();
+            ResumeProcessing();
 
             var allAcked = await management.WaitForQueueToHaveNoUnacknowledgedMessages("TestRabbitServiceQueue", false)
                 .ConfigureAwait(false);
@@ -397,7 +400,7 @@ namespace RabbitMQ
         {
             await Task.Yield();
 
-            while (Interlocked.Read(ref _paused) == 1)
+            while (Interlocked.Read(ref _processingPaused) == 1)
             {
                 await Task.Delay(4).ConfigureAwait(false);
             }
