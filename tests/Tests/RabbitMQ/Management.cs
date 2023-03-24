@@ -48,13 +48,12 @@ public class Management
     {
         try
         {
-            var queue = await GetQueue(queueName);
+            var queue = await GetQueue(queueName).ConfigureAwait(false);
             return 
                 queue.ConsumerDetails?.Count > 0
                     ? queue.ConsumerDetails
                         .Where(d => d.ChannelDetails is not null).Select(d => d.ChannelDetails).ToArray()
                     : Array.Empty<ChannelDetail>();
-
         }
         catch
         {
@@ -64,13 +63,13 @@ public class Management
 
     private async Task<IReadOnlyCollection<Connection>> GetActiveConnections(string queueName)
     {
-        var allConnections = await GetConnections();
+        var allConnections = await GetConnections().ConfigureAwait(false);
         if (allConnections.Count == 0)
         {
             return allConnections;
         }
 
-        var activeChannels = await GetActiveChannelDetails(queueName);
+        var activeChannels = await GetActiveChannelDetails(queueName).ConfigureAwait(false);
         if (activeChannels.Count == 0)
         {
             return Array.Empty<Connection>();
@@ -99,33 +98,15 @@ public class Management
     }
 
     private Task<Queue> GetQueue(string queueName) => _client.GetQueueAsync(_vhost, queueName);
+    public Task ClearQueue(string queueName) => _client.PurgeAsync(_vhost, queueName);
 
     public async ValueTask CloseActiveConnections(string queueName, IEnumerable<Connection> activeConnections)
     {
-        await Task.WhenAll(activeConnections.Select(CloseConnection));
+        await Task.WhenAll(activeConnections.Select(CloseConnection)).ConfigureAwait(false);
         await new Wait(TimeSpan.FromSeconds(10), TimeSpan.FromMilliseconds(50)).UntilAsync(
-            async () => (await GetActiveConnections(queueName)).Count, 0, "active connection(s)", _output);
+            async () => (await GetActiveConnections(queueName).ConfigureAwait(false)).Count,
+            0, "active connection(s)", _output).ConfigureAwait(false);
     }
-
-    public async Task<IReadOnlyCollection<Channel>> GetChannels(bool throwOnError = false)
-    {
-        try
-        {
-            var channels = await _client.GetChannelsAsync().ConfigureAwait(false);
-            return channels.Where(c => c.Vhost == _vhost).ToArray();
-        }
-        catch
-        {
-            if (throwOnError)
-            {
-                throw;
-            }
-
-            return Array.Empty<Channel>();
-        }
-    }
-
-    public Task ClearQueue(string queueName) => _client.PurgeAsync(_vhost, queueName);
 
     public async ValueTask<IReadOnlyCollection<Connection>> WaitForActiveConnections(string queueName)
     {
@@ -133,7 +114,7 @@ public class Management
         await new Wait(TimeSpan.FromSeconds(20), TimeSpan.FromMilliseconds(100)).UntilAsync(
             async () =>
             {
-                activeConnections = await GetActiveConnections(queueName);
+                activeConnections = await GetActiveConnections(queueName).ConfigureAwait(false);
                 return activeConnections.Count;
             }, 1, "active connection(s)", _output, false);
         return activeConnections;
@@ -146,7 +127,7 @@ public class Management
             {
                 try
                 {
-                    var queue = await GetQueue(queueName);
+                    var queue = await GetQueue(queueName).ConfigureAwait(false);
                     return Convert.ToInt32(queue.Consumers);
                 }
                 catch
@@ -164,7 +145,7 @@ public class Management
             {
                 try
                 {
-                    var queue = await GetQueue(queueName);
+                    var queue = await GetQueue(queueName).ConfigureAwait(false);
                     return Convert.ToInt32(queue.Messages);
                 }
                 catch
@@ -180,6 +161,6 @@ public class Management
     public ValueTask<bool> WaitForQueueToHaveUnacknowledgedMessages(
         string queueName, int unacknowledgedCount, double timeout, double interval, bool throwOnTimeout = true) =>
         new Wait(TimeSpan.FromSeconds(timeout), TimeSpan.FromMilliseconds(interval)).UntilAsync(
-            async () => Convert.ToInt32((await GetQueue(queueName)).MessagesUnacknowledged),
+            async () => Convert.ToInt32((await GetQueue(queueName).ConfigureAwait(false)).MessagesUnacknowledged),
             unacknowledgedCount, $"unacknowledged on {queueName}", _output, throwOnTimeout);
 }
