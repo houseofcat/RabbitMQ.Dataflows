@@ -132,18 +132,11 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
             var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
-            var executeTask = consumerPipeline.StartAsync(true)
-                .ContinueWith(_ => consumerPipeline.AwaitCompletionAsync());
-            // reconnectedConsumerCount should be 1
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service, reconnectedConsumerCount: 2);
-            await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
-            {
-                await Task.Delay(1000);
-                await consumerPipeline.StopAsync(true);
-                await service.ShutdownAsync(true);
-            })).ConfigureAwait(false);
-            // this should be Assert.True
-            Assert.False(await closeAndPublishTask);
+            await AssertDuplicateConsumersAndUnackedMessages(
+                service,
+                () => consumerPipeline.StartAsync(true),
+                () => new ValueTask(consumerPipeline.AwaitCompletionAsync()),
+                () => consumerPipeline.StopAsync(true));
         }
 
         [Fact]
@@ -156,16 +149,11 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
             var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
-            var executeTask = consumerPipeline.StartAsync(true)
-                .ContinueWith(_ => consumerPipeline.AwaitCompletionAsync());
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service);
-            await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
-            {
-                await Task.Delay(1000);
-                await consumerPipeline.StopAsync(true);
-                await service.ShutdownAsync(true);
-            })).ConfigureAwait(false);
-            Assert.True(await closeAndPublishTask);
+            await AssertNoDuplicateConsumersOrUnackedMessages(
+                service,
+                () => consumerPipeline.StartAsync(true),
+                () => new ValueTask(consumerPipeline.AwaitCompletionAsync()),
+                () => consumerPipeline.StopAsync(true));
         }
 
         [Fact]
@@ -178,17 +166,10 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
-            var executeTask = consumer.StartConsumerAsync()
-                .ContinueWith(_ => consumer.ChannelExecutionEngineAsync(TryProcessMessageAsync));
-            // reconnectedConsumerCount should be 1
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service, reconnectedConsumerCount: 2);
-            await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
-            {
-                await Task.Delay(1000);
-                await service.ShutdownAsync(true);
-            })).ConfigureAwait(false);
-            // this should be Assert.True
-            Assert.False(await closeAndPublishTask);
+            await AssertDuplicateConsumersAndUnackedMessages(
+                service,
+                consumer.StartConsumerAsync,
+                () => new ValueTask(consumer.ChannelExecutionEngineAsync(TryProcessMessageAsync)));
         }
 
         [Fact]
@@ -201,15 +182,10 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
-            var executeTask = consumer.StartConsumerAsync()
-                .ContinueWith(_ => consumer.ChannelExecutionEngineAsync(TryProcessMessageAsync));
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service);
-            await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
-            {
-                await Task.Delay(1000);
-                await service.ShutdownAsync(true);
-            })).ConfigureAwait(false);
-            Assert.True(await closeAndPublishTask);
+            await AssertNoDuplicateConsumersOrUnackedMessages(
+                service,
+                consumer.StartConsumerAsync,
+                () => new ValueTask(consumer.ChannelExecutionEngineAsync(TryProcessMessageAsync)));
         }
 
         [Fact]
@@ -222,17 +198,10 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
-            var executeTask = consumer.StartConsumerAsync()
-                .ContinueWith(_ => consumer.DirectChannelExecutionEngineAsync(TryProcessMessageAsync));
-            // reconnectedConsumerCount should be 1
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service, reconnectedConsumerCount: 2);
-            await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
-            {
-                await Task.Delay(1000);
-                await service.ShutdownAsync(true);
-            })).ConfigureAwait(false);
-            // this should be Assert.True
-            Assert.False(await closeAndPublishTask);
+            await AssertDuplicateConsumersAndUnackedMessages(
+                service,
+                consumer.StartConsumerAsync,
+                () => new ValueTask(consumer.DirectChannelExecutionEngineAsync(TryProcessMessageAsync)));
         }
 
         [Fact]
@@ -245,15 +214,10 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
-            var executeTask = consumer.StartConsumerAsync()
-                .ContinueWith(_ => consumer.DirectChannelExecutionEngineAsync(TryProcessMessageAsync));
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service);
-            await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
-            {
-                await Task.Delay(1000);
-                await service.ShutdownAsync(true);
-            })).ConfigureAwait(false);
-            Assert.True(await closeAndPublishTask);
+            await AssertNoDuplicateConsumersOrUnackedMessages(
+                service,
+                consumer.StartConsumerAsync,
+                () => new ValueTask(consumer.DirectChannelExecutionEngineAsync(TryProcessMessageAsync)));
         }
 
         [Fact]
@@ -266,17 +230,10 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
-            var executeTask = consumer.StartConsumerAsync()
-                .ContinueWith(_ => consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync, FinaliseAsync));
-            // reconnectedConsumerCount should be 1
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service, reconnectedConsumerCount: 2);
-            await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
-            {
-                await Task.Delay(1000);
-                await service.ShutdownAsync(true);
-            })).ConfigureAwait(false);
-            // this should be Assert.True
-            Assert.False(await closeAndPublishTask);
+            await AssertDuplicateConsumersAndUnackedMessages(
+                service,
+                consumer.StartConsumerAsync,
+                () => consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync, FinaliseAsync));
         }
 
         [Fact]
@@ -289,16 +246,43 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
-            var executeTask = consumer.StartConsumerAsync()
-                .ContinueWith(_ => consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync, FinaliseAsync));
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service);
-            await Task.WhenAll(executeTask, closeAndPublishTask.ContinueWith(async _ =>
-            {
-                await Task.Delay(1000);
-                await service.ShutdownAsync(true);
-            })).ConfigureAwait(false);
+            await AssertNoDuplicateConsumersOrUnackedMessages(
+                service,
+                consumer.StartConsumerAsync,
+                () => consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync, FinaliseAsync));
+        }
+
+        private async Task AssertNoDuplicateConsumersOrUnackedMessages(
+            IRabbitService service, Func<Task> start, Func<ValueTask> execute, Func<Task> stop = null)
+        {
+            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service, reconnectedCount: 1);
+            await RunTasks(service, start, execute, closeAndPublishTask, stop).ConfigureAwait(false);
             Assert.True(await closeAndPublishTask);
         }
+
+        private async Task AssertDuplicateConsumersAndUnackedMessages(
+            IRabbitService service, Func<Task> start, Func<ValueTask> execute, Func<Task> stop = null)
+        {
+            // reconnectedCount should be 1
+            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service, reconnectedCount: 2);
+            await RunTasks(service, start, execute, closeAndPublishTask, stop).ConfigureAwait(false);
+            // this should be Assert.True
+            Assert.False(await closeAndPublishTask);
+        }
+
+        private static Task RunTasks(
+            IRabbitService service, Func<Task> start, Func<ValueTask> execute, Task<bool> publish, Func<Task> stop) =>
+            Task.WhenAll(
+                start().ContinueWith(_ => execute()),
+                publish.ContinueWith(async _ =>
+                {
+                    await Task.Delay(1000).ConfigureAwait(false);
+                    if (stop is not null)
+                    {
+                        await stop().ConfigureAwait(false);
+                    }
+                    await service.ShutdownAsync(true).ConfigureAwait(false);
+                }));
 
         public async Task<bool> TryProcessMessageAsync(ReceivedData receivedData)
         {
@@ -318,8 +302,7 @@ namespace RabbitMQ
         private static void PauseProcessing() => Interlocked.CompareExchange(ref _processingPaused, 1, 0);
         private static void ResumeProcessing() => Interlocked.CompareExchange(ref _processingPaused, 0, 1);
 
-        private async Task<bool> CloseConnectionsThenPublishRandomLetters(
-            IRabbitService service, int reconnectedConsumerCount = 1)
+        private async Task<bool> CloseConnectionsThenPublishRandomLetters(IRabbitService service, int reconnectedCount)
         {
             var management = new Management(service.Options.FactoryOptions, _fixture.Output);
             var connections = await management.WaitForActiveConnections("TestRabbitServiceQueue").ConfigureAwait(false);
@@ -332,13 +315,13 @@ namespace RabbitMQ
             await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue", 15, 50).ConfigureAwait(false);
 
             await management.WaitForActiveConnections("TestRabbitServiceQueue").ConfigureAwait(false);
-            await management.WaitForQueueToHaveConsumers("TestRabbitServiceQueue", reconnectedConsumerCount)
+            await management.WaitForQueueToHaveConsumers("TestRabbitServiceQueue", reconnectedCount)
                 .ConfigureAwait(false);
 
             PauseProcessing();
 
             var prefetch =
-                service.GetConsumer("TestMessageConsumer").ConsumerOptions.BatchSize!.Value * reconnectedConsumerCount;
+                service.GetConsumer("TestMessageConsumer").ConsumerOptions.BatchSize!.Value * reconnectedCount;
             await Task.WhenAll(Enumerable.Range(0, prefetch + 10).Select(_ => PublishRandomLetter(service.Publisher)))
                 .ConfigureAwait(false);
             await management.WaitForQueueToHaveUnacknowledgedMessages("TestRabbitServiceQueue", prefetch, 15, 50)
