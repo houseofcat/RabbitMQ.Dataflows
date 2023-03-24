@@ -5,13 +5,11 @@ services:
       context: .
       target: builder
     user: root
-    container_name: builder
   tests:
     build:
       context: .
       target: tests
     user: root
-    container_name: tests
     environment:
       RABBITMQ_HOST: rabbitmq
     networks:

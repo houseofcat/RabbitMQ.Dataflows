@@ -1,10 +1,10 @@
 SHELL := /bin/bash
 
 build_tests:
-	docker-compose --project-name tests build
+	docker-compose --project-name hoc-tests build tests
 
 run_tests: build_tests
-	docker-compose --project-name tests up --no-build --exit-code-from tests tests
+	docker-compose --project-name hoc-tests up --no-build --exit-code-from tests tests
 
 rmq:
 	-docker network create $(if ${INTERNAL},--internal) -d bridge houseofcat
@@ -19,7 +19,7 @@ stop_rmq:
 	-docker network rm houseofcat
 
 stop_tests:
-	-docker-compose --project-name tests down --remove-orphans
-	-docker-compose --project-name tests rm -f
+	-docker-compose --project-name hoc-tests down --remove-orphans
+	-docker-compose --project-name hoc-tests rm -f
 
 stop: stop_tests stop_rmq
