@@ -66,7 +66,7 @@ namespace HouseofCat.RabbitMQ
 
     public class Consumer : IConsumer<ReceivedData>, IDisposable
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<Consumer> _logger;
         private readonly SemaphoreSlim _conLock = new SemaphoreSlim(1, 1);
         private readonly SemaphoreSlim _executionLock = new SemaphoreSlim(1, 1);
         private IChannelHost _chanHost;
