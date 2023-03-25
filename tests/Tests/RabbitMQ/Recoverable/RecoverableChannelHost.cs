@@ -9,95 +9,47 @@ namespace IntegrationTests.RabbitMQ.Recoverable;
 
 public interface IRecoverableChannelHost : IChannelHost
 {
-    string RecordedConsumerTag { get; }
     string RecoveredConsumerTag { get; }
-    bool? Recovered { get; }
-
-    void DeleteRecordedConsumerTag(string consumerTag);
-    Task DeleteRecordedConsumerTagAsync(string consumerTag);
-
-    void RecordConsumerTag(string consumerTag);
-    Task RecordConsumerTagAsync(string consumerTag);
+    string RecoveringConsumerTag { get; }
+    bool Recovering { get; }
 }
 
 public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
 {
-    public string RecordedConsumerTag { get; private set; }
     public string RecoveredConsumerTag { get; private set; }
-    public bool? Recovered { get; private set; }
+    public string RecoveringConsumerTag { get; private set; }
+    public bool Recovering { get; private set; }
 
     public RecoverableChannelHost(ulong channelId, IConnectionHost connHost, bool ackable)
         : base(channelId, connHost, ackable)
     { }
-
-    public void DeleteRecordedConsumerTag(string consumerTag)
-    {
-        EnterLock();
-        if (RecordedConsumerTag == consumerTag)
-        {
-            RecordedConsumerTag = null;
-        }
-        ExitLock();
-    }
-
-    public async Task DeleteRecordedConsumerTagAsync(string consumerTag)
-    {
-        await EnterLockAsync().ConfigureAwait(false);
-        if (RecordedConsumerTag == consumerTag)
-        {
-            RecordedConsumerTag = null;
-        }
-        ExitLock();
-    }
-
-    public void RecordConsumerTag(string consumerTag)
-    {
-        EnterLock();
-        RecordedConsumerTag = consumerTag;
-        ExitLock();
-    }
-
-    public async Task RecordConsumerTagAsync(string consumerTag)
-    {
-        await EnterLockAsync().ConfigureAwait(false);
-        RecordedConsumerTag = consumerTag;
-        ExitLock();
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public new async Task<bool> MakeChannelAsync(Func<ValueTask<bool>> startConsumingAsync = null)
     {
         await EnterLockAsync().ConfigureAwait(false);
 
-        bool hasConsumerTag;
+        bool hasRecoveredTag;
         try
         {
-            if (Recovered is false || !await ConnectionHostHealthyAsync().ConfigureAwait(false))
+            if (Recovering || !await ConnectionHostHealthyAsync().ConfigureAwait(false))
             {
                 return false;
-            }
-
-            if (Recovered is true)
-            {
-                RecordedConsumerTag = RecoveredConsumerTag;
-                RecoveredConsumerTag = null;
-                Recovered = null;
             }
         }
         finally
         {
-            hasConsumerTag = !string.IsNullOrEmpty(RecordedConsumerTag);
+            hasRecoveredTag = !string.IsNullOrEmpty(RecoveredConsumerTag);
             ExitLock();
         }
 
         return
             await base.HealthyAsync().ConfigureAwait(false)
-                ? hasConsumerTag || startConsumingAsync is null || await startConsumingAsync().ConfigureAwait(false)
+                ? hasRecoveredTag || startConsumingAsync is null || await startConsumingAsync().ConfigureAwait(false)
                 : await base.MakeChannelAsync(startConsumingAsync).ConfigureAwait(false);
     }
 
-    public override async Task<bool> HealthyAsync() =>
-        Recovered is not false && await base.HealthyAsync().ConfigureAwait(false);
+    public override async Task<bool> HealthyAsync() => !Recovering && await base.HealthyAsync().ConfigureAwait(false);
 
     protected override void AddEventHandlers(IModel channel, IConnection connection)
     {
@@ -107,10 +59,12 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
             return;
         }
         recoverableChannel.Recovery += ChannelRecovered;
-        if (connection is IAutorecoveringConnection recoverableConnection)
+        if (connection is not IAutorecoveringConnection recoverableConnection)
         {
-            recoverableConnection.ConsumerTagChangeAfterRecovery += ConsumerTagChangedAfterRecovery;
+            return;
         }
+        recoverableConnection.ConsumerTagChangeAfterRecovery += ConsumerTagChangedAfterRecovery;
+        recoverableConnection.RecoveringConsumer += RecoveringConsumer;
     }
 
     protected override void RemoveEventHandlers(IModel channel, IConnection connection)
@@ -121,10 +75,12 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
             return;
         }
         recoverableChannel.Recovery -= ChannelRecovered;
-        if (connection is IAutorecoveringConnection recoverableConnection)
+        if (connection is not IAutorecoveringConnection recoverableConnection)
         {
-            recoverableConnection.ConsumerTagChangeAfterRecovery -= ConsumerTagChangedAfterRecovery;
+            return;
         }
+        recoverableConnection.ConsumerTagChangeAfterRecovery -= ConsumerTagChangedAfterRecovery;
+        recoverableConnection.RecoveringConsumer -= RecoveringConsumer;
     }
 
     protected override void ChannelClose(object sender, ShutdownEventArgs e)
@@ -132,8 +88,8 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
         EnterLock();
         if (sender is IRecoverable)
         {
-            Recovered = false;
             RecoveredConsumerTag = null;
+            Recovering = true;
         }
         ExitLock();
         base.ChannelClose(sender, e);
@@ -142,17 +98,28 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
     protected virtual void ChannelRecovered(object sender, EventArgs e)
     {
         EnterLock();
-        Recovered = true;
+        Recovering = false;
+        ExitLock();
+    }
+
+    protected virtual void RecoveringConsumer(object sender, RecoveringConsumerEventArgs e)
+    {
+        EnterLock();
+        if (e.ConsumerArguments.TryGetValue("ChannelNumber", out var channelNumber) &&
+            channelNumber.Equals(ChannelNumber))
+        {
+            RecoveringConsumerTag = e.ConsumerTag;
+        }
         ExitLock();
     }
 
     protected virtual void ConsumerTagChangedAfterRecovery(object sender, ConsumerTagChangedAfterRecoveryEventArgs e)
     {
         EnterLock();
-        // Check TagAfter in case of race condition where the consumer registers its tag before this handler fires
-        if (e.TagBefore == RecordedConsumerTag || e.TagAfter == RecordedConsumerTag)
+        if (e.TagBefore == RecoveringConsumerTag)
         {
             RecoveredConsumerTag = e.TagAfter;
+            RecoveringConsumerTag = null;
         }
         ExitLock();
     }

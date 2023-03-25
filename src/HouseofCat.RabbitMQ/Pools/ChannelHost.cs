@@ -14,6 +14,7 @@ namespace HouseofCat.RabbitMQ.Pools
     {
         bool Ackable { get; }
         ulong ChannelId { get; }
+        int? ChannelNumber { get; }
         bool Closed { get; }
         bool FlowControlled { get; }
 
@@ -25,10 +26,9 @@ namespace HouseofCat.RabbitMQ.Pools
 
     public class ChannelHost : IChannelHost, IDisposable
     {
-        public ulong ChannelId { get; }
-
         public bool Ackable { get; }
-
+        public ulong ChannelId { get; }
+        public int? ChannelNumber => _channel?.ChannelNumber;
         public bool Closed { get; private set; }
         public bool FlowControlled { get; private set; }
 

@@ -116,7 +116,7 @@ public class Management
             {
                 activeConnections = await GetActiveConnections(queueName).ConfigureAwait(false);
                 return activeConnections.Count;
-            }, 1, "active connection(s)", _output, false);
+            }, 1, "active connection(s)", _output);
         return activeConnections;
     }
 
