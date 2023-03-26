@@ -154,14 +154,18 @@ namespace HouseofCat.RabbitMQ.Pools
 
         public void Close()
         {
-            if (!Closed && _channel.IsOpen)
+            if (Closed)
             {
-                try
+                return;
+            }
+            try
+            {
+                if (_channel?.IsOpen ?? false)
                 {
                     _channel.Close(CloseCode, CloseMessage);
                 }
-                catch { /* SWALLOW */ }
             }
+            catch { /* SWALLOW */ }
         }
 
         protected virtual void Dispose(bool disposing)
