@@ -35,7 +35,15 @@ namespace HouseofCat.Utilities
         {
             Span<byte> guidBytes = stackalloc byte[16];
             MemoryMarshal.TryWrite(guidBytes, ref guid); // write bytes from the Guid
+            if (!BitConverter.IsLittleEndian)
+            {
+                return ConvertGuidBytesToBase64Url(guidBytes);
+            }
 
+            // reverse the byte order from little endian
+            guidBytes[..4].Reverse();
+            guidBytes[4..6].Reverse();
+            guidBytes[6..8].Reverse();
             return ConvertGuidBytesToBase64Url(guidBytes);
         }
 
