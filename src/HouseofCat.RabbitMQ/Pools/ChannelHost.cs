@@ -156,7 +156,7 @@ namespace HouseofCat.RabbitMQ.Pools
         {
             try
             {
-                if (_channel?.IsOpen ?? false)
+                if (!Closed || (_channel?.IsOpen ?? false))
                 {
                     _channel.Close(CloseCode, CloseMessage);
                 }
