@@ -6,6 +6,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using HouseofCat.Utilities;
 using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ.Pools
@@ -16,7 +17,7 @@ namespace HouseofCat.RabbitMQ.Pools
         ulong ChannelId { get; }
         bool Closed { get; }
         bool FlowControlled { get; }
-        int? InitialChannelNumber { get; }
+        string Id { get; }
 
         IModel GetChannel();
         Task<bool> MakeChannelAsync(Func<ValueTask<bool>> startConsumingAsync = null);
@@ -30,7 +31,7 @@ namespace HouseofCat.RabbitMQ.Pools
         public ulong ChannelId { get; }
         public bool Closed { get; private set; }
         public bool FlowControlled { get; private set; }
-        public int? InitialChannelNumber { get; private set; }
+        public string Id { get; } = Guid.NewGuid().ConvertToBase64Url();
 
         private readonly ILogger<ChannelHost> _logger;
         private readonly SemaphoreSlim _hostLock = new SemaphoreSlim(1, 1);
@@ -79,11 +80,9 @@ namespace HouseofCat.RabbitMQ.Pools
                     RemoveEventHandlers(_channel, _connHost.Connection);
                     Close();
                     _channel = null;
-                    InitialChannelNumber = null;
                 }
 
                 _channel = _connHost.Connection.CreateModel();
-                InitialChannelNumber = _channel.ChannelNumber;
 
                 if (Ackable)
                 {

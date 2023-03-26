@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using HouseofCat.Utilities;
 using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ
@@ -240,7 +241,7 @@ namespace HouseofCat.RabbitMQ
                     ConsumerOptions.ConsumerName,
                     ConsumerOptions.NoLocal ?? false,
                     ConsumerOptions.Exclusive ?? false,
-                    new Dictionary<string, object>{ { "InitialChannelNumber", _chanHost.InitialChannelNumber!.Value } },
+                    new Dictionary<string, object>{ { "ChannelHostId", _chanHost.Id } },
                     consumer);
 
         private async ValueTask SetChannelHostAsync()
