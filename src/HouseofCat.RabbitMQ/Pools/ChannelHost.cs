@@ -14,9 +14,9 @@ namespace HouseofCat.RabbitMQ.Pools
     {
         bool Ackable { get; }
         ulong ChannelId { get; }
-        int? ChannelNumber { get; }
         bool Closed { get; }
         bool FlowControlled { get; }
+        int? InitialChannelNumber { get; }
 
         IModel GetChannel();
         Task<bool> MakeChannelAsync(Func<ValueTask<bool>> startConsumingAsync = null);
@@ -28,9 +28,9 @@ namespace HouseofCat.RabbitMQ.Pools
     {
         public bool Ackable { get; }
         public ulong ChannelId { get; }
-        public int? ChannelNumber { get; private set; }
         public bool Closed { get; private set; }
         public bool FlowControlled { get; private set; }
+        public int? InitialChannelNumber { get; private set; }
 
         private readonly ILogger<ChannelHost> _logger;
         private readonly SemaphoreSlim _hostLock = new SemaphoreSlim(1, 1);
@@ -79,11 +79,11 @@ namespace HouseofCat.RabbitMQ.Pools
                     RemoveEventHandlers(_channel, _connHost.Connection);
                     Close();
                     _channel = null;
-                    ChannelNumber = null;
+                    InitialChannelNumber = null;
                 }
 
                 _channel = _connHost.Connection.CreateModel();
-                ChannelNumber = _channel.ChannelNumber;
+                InitialChannelNumber = _channel.ChannelNumber;
 
                 if (Ackable)
                 {

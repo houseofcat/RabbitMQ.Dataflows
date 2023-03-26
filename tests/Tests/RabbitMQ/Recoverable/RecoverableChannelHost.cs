@@ -105,8 +105,8 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
     protected virtual void RecoveringConsumer(object sender, RecoveringConsumerEventArgs e)
     {
         EnterLock();
-        if (e.ConsumerArguments.TryGetValue("ChannelNumber", out var channelNumber) &&
-            channelNumber.Equals(ChannelNumber))
+        if (e.ConsumerArguments.TryGetValue("InitialChannelNumber", out var initialChannelNumber) &&
+            initialChannelNumber.Equals(InitialChannelNumber))
         {
             RecoveringConsumerTag = e.ConsumerTag;
         }

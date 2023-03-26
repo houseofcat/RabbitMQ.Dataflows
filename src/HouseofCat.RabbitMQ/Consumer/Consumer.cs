@@ -240,7 +240,7 @@ namespace HouseofCat.RabbitMQ
                     ConsumerOptions.ConsumerName,
                     ConsumerOptions.NoLocal ?? false,
                     ConsumerOptions.Exclusive ?? false,
-                    new Dictionary<string, object>{ { "ChannelNumber", _chanHost.ChannelNumber!.Value } },
+                    new Dictionary<string, object>{ { "InitialChannelNumber", _chanHost.InitialChannelNumber!.Value } },
                     consumer);
 
         private async ValueTask SetChannelHostAsync()
