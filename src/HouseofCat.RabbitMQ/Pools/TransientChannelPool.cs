@@ -35,7 +35,7 @@ public class TransientChannelPool : IChannelPool, IDisposable
         Logger = logger;
     }
 
-    protected virtual Task CloseChannelsAsync() => Task.CompletedTask;
+    protected virtual ValueTask CloseChannelsAsync() => default;
 
     // Allows overriding the mechanism for creating ChannelHosts while a base one was implemented.
     protected virtual IChannelHost CreateChannelHost(ulong channelId, IConnectionHost connHost, bool ackable) =>

@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using HouseofCat.Utilities;
 using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ

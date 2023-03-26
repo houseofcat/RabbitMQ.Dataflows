@@ -209,7 +209,7 @@ namespace HouseofCat.RabbitMQ.Pools
             }
         }
 
-        protected override async Task CloseChannelsAsync()
+        protected override async ValueTask CloseChannelsAsync()
         {
             // Signal to Channel no more data is coming.
             _channels.Writer.Complete();
