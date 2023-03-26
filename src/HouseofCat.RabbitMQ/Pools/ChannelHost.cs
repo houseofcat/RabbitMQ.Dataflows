@@ -28,7 +28,7 @@ namespace HouseofCat.RabbitMQ.Pools
     {
         public bool Ackable { get; }
         public ulong ChannelId { get; }
-        public int? ChannelNumber => _channel?.ChannelNumber;
+        public int? ChannelNumber { get; private set; }
         public bool Closed { get; private set; }
         public bool FlowControlled { get; private set; }
 
@@ -79,9 +79,11 @@ namespace HouseofCat.RabbitMQ.Pools
                     RemoveEventHandlers(_channel, _connHost.Connection);
                     Close();
                     _channel = null;
+                    ChannelNumber = null;
                 }
 
                 _channel = _connHost.Connection.CreateModel();
+                ChannelNumber = _channel.ChannelNumber;
 
                 if (Ackable)
                 {
