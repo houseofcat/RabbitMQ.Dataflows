@@ -154,10 +154,6 @@ namespace HouseofCat.RabbitMQ.Pools
 
         public void Close()
         {
-            if (Closed)
-            {
-                return;
-            }
             try
             {
                 if (_channel?.IsOpen ?? false)
