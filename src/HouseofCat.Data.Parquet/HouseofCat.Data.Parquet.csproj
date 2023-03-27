@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\common.props" />
   <ItemGroup>
-	<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.2" />
+	<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
     <PackageReference Include="Microsoft.SqlServer.Server" Version="1.0.0" />
     <PackageReference Include="Microsoft.SqlServer.Types" Version="160.1000.6" />
-    <PackageReference Include="MySql.Data" Version="8.0.32" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-    <PackageReference Include="Parquet.Net" Version="4.4.7" />
+    <PackageReference Include="MySql.Data" Version="8.0.32.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Parquet.Net" Version="4.6.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HouseofCat.Data.Database\HouseofCat.Data.Database.csproj" />
