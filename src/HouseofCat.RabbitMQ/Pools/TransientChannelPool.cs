@@ -37,6 +37,7 @@ public class TransientChannelPool : IChannelPool, IDisposable
 
     protected virtual ValueTask CloseChannelsAsync() => default;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     // Allows overriding the mechanism for creating ChannelHosts while a base one was implemented.
     protected virtual IChannelHost CreateChannelHost(ulong channelId, IConnectionHost connHost, bool ackable) =>
         new ChannelHost(channelId, connHost, ackable);

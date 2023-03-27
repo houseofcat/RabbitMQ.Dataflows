@@ -82,6 +82,11 @@ namespace HouseofCat.RabbitMQ.Pools
                     _channel = null;
                 }
 
+                if (!_connHost.Connection.IsOpen)
+                {
+                    return false;
+                }
+
                 _channel = _connHost.Connection.CreateModel();
 
                 if (Ackable)
@@ -105,36 +110,45 @@ namespace HouseofCat.RabbitMQ.Pools
             return startConsumingAsync is null || await startConsumingAsync().ConfigureAwait(false);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void AddEventHandlers()
         {
             AddChannelEventHandlers(_channel);
             AddConnectionEventHandlers(_connHost.Connection);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual void AddChannelEventHandlers(IModel channel)
         {
             channel.FlowControl += FlowControl;
             channel.ModelShutdown += ChannelClose;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual void AddConnectionEventHandlers(IConnection _) { }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void RemoveEventHandlers()
         {
             RemoveChannelEventHandlers(_channel);
             RemoveConnectionEventHandlers(_connHost.Connection);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual void RemoveChannelEventHandlers(IModel channel)
         {
             channel.FlowControl -= FlowControl;
             channel.ModelShutdown -= ChannelClose;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual void RemoveConnectionEventHandlers(IConnection _) { }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void EnterLock() => _hostLock.Wait();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected Task EnterLockAsync() => _hostLock.WaitAsync();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void ExitLock() => _hostLock.Release();
 
         protected virtual void ChannelClose(object sender, ShutdownEventArgs e)
@@ -160,14 +174,16 @@ namespace HouseofCat.RabbitMQ.Pools
             ExitLock();
         }
 
-        protected Task<bool> ConnectionHostHealthyAsync() => _connHost.HealthyAsync();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected Task<bool> ConnectionHealthyAsync() => _connHost.HealthyAsync();
 
         public virtual async Task<bool> HealthyAsync() =>
-            await ConnectionHostHealthyAsync().ConfigureAwait(false) && !FlowControlled && (_channel?.IsOpen ?? false);
+            await ConnectionHealthyAsync().ConfigureAwait(false) && !FlowControlled && (_channel?.IsOpen ?? false);
 
         private const int CloseCode = 200;
         private const string CloseMessage = "HouseofCat.RabbitMQ manual close channel initiated.";
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Close()
         {
             try

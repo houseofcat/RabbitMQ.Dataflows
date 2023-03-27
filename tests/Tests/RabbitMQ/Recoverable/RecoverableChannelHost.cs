@@ -35,7 +35,7 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
         bool hasRecoveredTag;
         try
         {
-            if (Recovering || !await ConnectionHostHealthyAsync().ConfigureAwait(false))
+            if (Recovering || !await ConnectionHealthyAsync().ConfigureAwait(false))
             {
                 return false;
             }
@@ -52,8 +52,10 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
                 : await base.MakeChannelAsync(startConsumingAsync).ConfigureAwait(false);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override async Task<bool> HealthyAsync() => !Recovering && await base.HealthyAsync().ConfigureAwait(false);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override void AddChannelEventHandlers(IModel channel)
     {
         base.AddChannelEventHandlers(channel);
@@ -64,6 +66,7 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
         recoverableChannel.Recovery += ChannelRecovered;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override void AddConnectionEventHandlers(IConnection connection)
     {
         base.AddConnectionEventHandlers(connection);
@@ -75,6 +78,7 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
         recoverableConnection.RecoveringConsumer += RecoveringConsumer;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override void RemoveChannelEventHandlers(IModel channel)
     {
         base.RemoveChannelEventHandlers(channel);
@@ -85,6 +89,7 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
         recoverableChannel.Recovery -= ChannelRecovered;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override void RemoveConnectionEventHandlers(IConnection connection)
     {
         base.RemoveConnectionEventHandlers(connection);

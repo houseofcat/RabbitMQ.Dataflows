@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
 using RabbitMQ.Client;
@@ -14,6 +15,7 @@ public class RecoverableChannelPool : ChannelPool
     {
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override IChannelHost CreateChannelHost(ulong channelId, IConnectionHost connHost, bool ackable) =>
         connHost.Connection is IAutorecoveringConnection
             ? new RecoverableChannelHost(channelId, connHost, ackable)

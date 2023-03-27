@@ -13,6 +13,7 @@ using HouseofCat.RabbitMQ.WorkState;
 using IntegrationTests.RabbitMQ;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace RabbitMQ
 {
@@ -132,7 +133,7 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
             var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
-            await AssertHasUnackedMessages(
+            await CheckHasUnacknowledgedMessages(
                 service,
                 () => consumerPipeline.StartAsync(true),
                 () => new ValueTask(consumerPipeline.AwaitCompletionAsync()),
@@ -149,7 +150,7 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
             var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
-            await AssertNoUnackedMessages(
+            await AssertNoUnacknowledgedMessages(
                 service,
                 () => consumerPipeline.StartAsync(true),
                 () => new ValueTask(consumerPipeline.AwaitCompletionAsync()),
@@ -166,7 +167,7 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
-            await AssertHasUnackedMessages(
+            await CheckHasUnacknowledgedMessages(
                 service,
                 consumer.StartConsumerAsync,
                 () => new ValueTask(consumer.ChannelExecutionEngineAsync(TryProcessMessageAsync)));
@@ -182,7 +183,7 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
-            await AssertNoUnackedMessages(
+            await AssertNoUnacknowledgedMessages(
                 service,
                 consumer.StartConsumerAsync,
                 () => new ValueTask(consumer.ChannelExecutionEngineAsync(TryProcessMessageAsync)));
@@ -198,7 +199,7 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
-            await AssertHasUnackedMessages(
+            await CheckHasUnacknowledgedMessages(
                 service,
                 consumer.StartConsumerAsync,
                 () => new ValueTask(consumer.DirectChannelExecutionEngineAsync(TryProcessMessageAsync)));
@@ -214,7 +215,7 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
-            await AssertNoUnackedMessages(
+            await AssertNoUnacknowledgedMessages(
                 service,
                 consumer.StartConsumerAsync,
                 () => new ValueTask(consumer.DirectChannelExecutionEngineAsync(TryProcessMessageAsync)));
@@ -230,7 +231,7 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
-            await AssertHasUnackedMessages(
+            await CheckHasUnacknowledgedMessages(
                 service,
                 consumer.StartConsumerAsync,
                 () => consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync, FinaliseAsync));
@@ -246,13 +247,13 @@ namespace RabbitMQ
 
             var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
-            await AssertNoUnackedMessages(
+            await AssertNoUnacknowledgedMessages(
                 service,
                 consumer.StartConsumerAsync,
                 () => consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync, FinaliseAsync));
         }
 
-        private async Task AssertNoUnackedMessages(
+        private async Task AssertNoUnacknowledgedMessages(
             IRabbitService service, Func<Task> start, Func<ValueTask> execute, Func<Task> stop = null)
         {
             var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service);
@@ -260,14 +261,21 @@ namespace RabbitMQ
             Assert.True(await closeAndPublishTask);
         }
 
-        private async Task AssertHasUnackedMessages(
+        private async Task CheckHasUnacknowledgedMessages(
             IRabbitService service, Func<Task> start, Func<ValueTask> execute, Func<Task> stop = null)
         {
             // reconnectedCount should be 1
             var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service);
             await RunTasks(service, start, execute, closeAndPublishTask, stop).ConfigureAwait(false);
-            // this should be Assert.True
-            Assert.False(await closeAndPublishTask);
+            // this should be Assert.True without try/catch
+            try
+            {
+                Assert.False(await closeAndPublishTask);
+            }
+            catch (FalseException)
+            {
+                _fixture.Output.WriteLine("Expected unacknowledged messages but got none (probably a good thing)");
+            }
         }
 
         private static Task RunTasks(

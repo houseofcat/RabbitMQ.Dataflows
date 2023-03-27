@@ -18,4 +18,4 @@ COPY ./wait-for.sh /wait-for.sh
 WORKDIR /tests
 RUN dotnet restore
 CMD /wait-for.sh rabbitmq:5672 -t 30 -- \
-    dotnet test --no-restore --blame-crash
+    dotnet test --no-restore --blame-crash --logger "console;verbosity=detailed"
