@@ -111,7 +111,7 @@ namespace HouseofCat.RabbitMQ.Pools
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void AddEventHandlers()
+        private void AddEventHandlers()
         {
             AddChannelEventHandlers(_channel);
             AddConnectionEventHandlers(_connHost.Connection);
@@ -128,7 +128,7 @@ namespace HouseofCat.RabbitMQ.Pools
         protected virtual void AddConnectionEventHandlers(IConnection _) { }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void RemoveEventHandlers()
+        private void RemoveEventHandlers()
         {
             RemoveChannelEventHandlers(_channel);
             RemoveConnectionEventHandlers(_connHost.Connection);
