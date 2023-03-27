@@ -156,10 +156,7 @@ namespace HouseofCat.RabbitMQ.Pools
         {
             try
             {
-                if (!Closed || (_channel?.IsOpen ?? false))
-                {
-                    _channel.Close(CloseCode, CloseMessage);
-                }
+                _channel.Close(CloseCode, CloseMessage);
             }
             catch { /* SWALLOW */ }
         }
