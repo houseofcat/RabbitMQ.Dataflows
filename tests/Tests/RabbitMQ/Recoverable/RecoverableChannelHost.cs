@@ -16,6 +16,8 @@ public interface IRecoverableChannelHost : IChannelHost
 
 public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
 {
+    private bool _recoveringConsumer;
+
     public string RecoveredConsumerTag { get; private set; }
     public string RecoveringConsumerTag { get; private set; }
     public bool Recovering { get; private set; }
@@ -27,6 +29,7 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public new async Task<bool> MakeChannelAsync(Func<ValueTask<bool>> startConsumingAsync = null)
     {
+        _recoveringConsumer = startConsumingAsync is not null;
         await EnterLockAsync().ConfigureAwait(false);
 
         bool hasRecoveredTag;
@@ -51,14 +54,19 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
 
     public override async Task<bool> HealthyAsync() => !Recovering && await base.HealthyAsync().ConfigureAwait(false);
 
-    protected override void AddEventHandlers(IModel channel, IConnection connection)
+    protected override void AddChannelEventHandlers(IModel channel)
     {
-        base.AddEventHandlers(channel, connection);
+        base.AddChannelEventHandlers(channel);
         if (channel is not IRecoverable recoverableChannel)
         {
             return;
         }
         recoverableChannel.Recovery += ChannelRecovered;
+    }
+
+    protected override void AddConnectionEventHandlers(IConnection connection)
+    {
+        base.AddConnectionEventHandlers(connection);
         if (connection is not IAutorecoveringConnection recoverableConnection)
         {
             return;
@@ -67,14 +75,19 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
         recoverableConnection.RecoveringConsumer += RecoveringConsumer;
     }
 
-    protected override void RemoveEventHandlers(IModel channel, IConnection connection)
+    protected override void RemoveChannelEventHandlers(IModel channel)
     {
-        base.RemoveEventHandlers(channel, connection);
+        base.RemoveChannelEventHandlers(channel);
         if (channel is not IRecoverable recoverableChannel)
         {
             return;
         }
         recoverableChannel.Recovery -= ChannelRecovered;
+    }
+
+    protected override void RemoveConnectionEventHandlers(IConnection connection)
+    {
+        base.RemoveConnectionEventHandlers(connection);
         if (connection is not IAutorecoveringConnection recoverableConnection)
         {
             return;
@@ -104,6 +117,10 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
 
     protected virtual void RecoveringConsumer(object sender, RecoveringConsumerEventArgs e)
     {
+        if (!_recoveringConsumer)
+        {
+            return;
+        }
         EnterLock();
         if (e.ConsumerArguments.TryGetValue("ChannelHostId", out var channelHostId) && channelHostId.Equals(Id))
         {
@@ -114,6 +131,10 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
 
     protected virtual void ConsumerTagChangedAfterRecovery(object sender, ConsumerTagChangedAfterRecoveryEventArgs e)
     {
+        if (!_recoveringConsumer)
+        {
+            return;
+        }
         EnterLock();
         if (e.TagBefore == RecoveringConsumerTag)
         {

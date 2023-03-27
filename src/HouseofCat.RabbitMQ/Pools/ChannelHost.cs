@@ -47,7 +47,7 @@ namespace HouseofCat.RabbitMQ.Pools
             ChannelId = channelId;
             _connHost = connHost;
             Ackable = ackable;
-
+            
             MakeChannelAsync().GetAwaiter().GetResult();
         }
 
@@ -77,7 +77,7 @@ namespace HouseofCat.RabbitMQ.Pools
             {
                 if (_channel != null)
                 {
-                    RemoveEventHandlers(_channel, _connHost.Connection);
+                    RemoveEventHandlers();
                     Close();
                     _channel = null;
                 }
@@ -89,7 +89,7 @@ namespace HouseofCat.RabbitMQ.Pools
                     _channel.ConfirmSelect();
                 }
 
-                AddEventHandlers(_channel, _connHost.Connection);
+                AddEventHandlers();
             }
             catch (Exception ex)
             {
@@ -105,17 +105,33 @@ namespace HouseofCat.RabbitMQ.Pools
             return startConsumingAsync is null || await startConsumingAsync().ConfigureAwait(false);
         }
 
-        protected virtual void AddEventHandlers(IModel channel, IConnection _)
+        protected void AddEventHandlers()
+        {
+            AddChannelEventHandlers(_channel);
+            AddConnectionEventHandlers(_connHost.Connection);
+        }
+
+        protected virtual void AddChannelEventHandlers(IModel channel)
         {
             channel.FlowControl += FlowControl;
             channel.ModelShutdown += ChannelClose;
         }
 
-        protected virtual void RemoveEventHandlers(IModel channel, IConnection _)
+        protected virtual void AddConnectionEventHandlers(IConnection _) { }
+
+        protected void RemoveEventHandlers()
+        {
+            RemoveChannelEventHandlers(_channel);
+            RemoveConnectionEventHandlers(_connHost.Connection);
+        }
+
+        protected virtual void RemoveChannelEventHandlers(IModel channel)
         {
             channel.FlowControl -= FlowControl;
             channel.ModelShutdown -= ChannelClose;
         }
+
+        protected virtual void RemoveConnectionEventHandlers(IConnection _) { }
 
         protected void EnterLock() => _hostLock.Wait();
         protected Task EnterLockAsync() => _hostLock.WaitAsync();
