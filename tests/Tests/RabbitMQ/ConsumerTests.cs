@@ -313,11 +313,11 @@ namespace RabbitMQ
         private async Task<bool> RecoverConnectionsThenPublishRandomLetters(IRabbitService service)
         {
             var management = new Management(service.Options.FactoryOptions, _fixture.Output);
-            await management.ClearQueue("TestRabbitServiceQueue").ConfigureAwait(false);
-            await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue").ConfigureAwait(false);
-
             var connections = await management.WaitForConnectionsAndConsumers("TestRabbitServiceQueue", 1)
                 .ConfigureAwait(false);
+
+            await management.ClearQueue("TestRabbitServiceQueue").ConfigureAwait(false);
+            await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue").ConfigureAwait(false);
 
             PauseProcessing();
 
