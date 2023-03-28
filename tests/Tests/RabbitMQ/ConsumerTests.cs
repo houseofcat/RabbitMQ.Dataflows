@@ -256,7 +256,7 @@ namespace RabbitMQ
         private async Task AssertNoUnacknowledgedMessages(
             IRabbitService service, Func<Task> start, Func<ValueTask> execute, Func<Task> stop = null)
         {
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service);
+            var closeAndPublishTask = RecoverConnectionsThenPublishRandomLetters(service);
             await RunTasks(service, start, execute, closeAndPublishTask, stop).ConfigureAwait(false);
             Assert.True(await closeAndPublishTask);
         }
@@ -265,7 +265,7 @@ namespace RabbitMQ
             IRabbitService service, Func<Task> start, Func<ValueTask> execute, Func<Task> stop = null)
         {
             // reconnectedCount should be 1
-            var closeAndPublishTask = CloseConnectionsThenPublishRandomLetters(service);
+            var closeAndPublishTask = RecoverConnectionsThenPublishRandomLetters(service);
             await RunTasks(service, start, execute, closeAndPublishTask, stop).ConfigureAwait(false);
             // this should be Assert.True without try/catch
             try
@@ -310,33 +310,55 @@ namespace RabbitMQ
         private static void PauseProcessing() => Interlocked.CompareExchange(ref _processingPaused, 1, 0);
         private static void ResumeProcessing() => Interlocked.CompareExchange(ref _processingPaused, 0, 1);
 
-        private async Task<bool> CloseConnectionsThenPublishRandomLetters(IRabbitService service)
+        private async Task<bool> RecoverConnectionsThenPublishRandomLetters(IRabbitService service)
         {
             var management = new Management(service.Options.FactoryOptions, _fixture.Output);
-            var connections = await management.WaitForActiveConnections("TestRabbitServiceQueue").ConfigureAwait(false);
-            await management.WaitForQueueToHaveConsumers("TestRabbitServiceQueue", 1).ConfigureAwait(false);
-
-            await management.CloseActiveConnections("TestRabbitServiceQueue", connections).ConfigureAwait(false);
-            await management.WaitForQueueToHaveNoConsumers("TestRabbitServiceQueue").ConfigureAwait(false);
-
             await management.ClearQueue("TestRabbitServiceQueue").ConfigureAwait(false);
-            await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue", 15, 50).ConfigureAwait(false);
+            await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue").ConfigureAwait(false);
 
-            await management.WaitForActiveConnections("TestRabbitServiceQueue").ConfigureAwait(false);
-            await management.WaitForQueueToHaveConsumers("TestRabbitServiceQueue", 1)
+            var connections = await management.WaitForConnectionsAndConsumers("TestRabbitServiceQueue", 1)
                 .ConfigureAwait(false);
 
             PauseProcessing();
 
-            var prefetch = service.GetConsumer("TestMessageConsumer").ConsumerOptions.BatchSize!.Value;
-            await Task.WhenAll(Enumerable.Range(0, prefetch + 10).Select(_ => PublishRandomLetter(service.Publisher)))
-                .ConfigureAwait(false);
-            await management.WaitForQueueToHaveUnacknowledgedMessages("TestRabbitServiceQueue", prefetch, 15, 50)
+            await PublishRandomLetter(service.Publisher).ConfigureAwait(false);
+            await management.WaitForQueueToHaveUnacknowledgedMessages("TestRabbitServiceQueue", 1)
                 .ConfigureAwait(false);
 
             ResumeProcessing();
 
-            var allProcessed = await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue", 15, 50, false)
+            await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue").ConfigureAwait(false);
+
+            var onceRecoveredConnections = await management.RecoverConnectionsAndConsumers(
+                "TestRabbitServiceQueue", connections, 1).ConfigureAwait(false);
+
+            PauseProcessing();
+
+            var prefetch = service.GetConsumer("TestMessageConsumer").ConsumerOptions.BatchSize!.Value;
+            var firstBatchCount = prefetch / 2;
+            await Task.WhenAll(Enumerable.Range(0, firstBatchCount).Select(_ => PublishRandomLetter(service.Publisher)))
+                .ConfigureAwait(false);
+            await management.WaitForQueueToHaveUnacknowledgedMessages("TestRabbitServiceQueue", firstBatchCount)
+                .ConfigureAwait(false);
+
+            var twiceRecoveredConnections = await management.RecoverConnectionsAndConsumers(
+                "TestRabbitServiceQueue", onceRecoveredConnections, 1, false).ConfigureAwait(false);
+            if (twiceRecoveredConnections.Length == 0)
+            {
+                ResumeProcessing();
+                await service.Topologer.DeleteQueueAsync("TestRabbitServiceQueue").ConfigureAwait(false);
+                return false;
+            }
+
+            var remainingCount = prefetch - firstBatchCount + 10;
+            await Task.WhenAll(Enumerable.Range(0, remainingCount).Select(_ => PublishRandomLetter(service.Publisher)))
+                .ConfigureAwait(false);
+            await management.WaitForQueueToHaveUnacknowledgedMessages("TestRabbitServiceQueue", prefetch)
+                .ConfigureAwait(false);
+
+            ResumeProcessing();
+
+            var allProcessed = await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue", false)
                 .ConfigureAwait(false);
             await service.Topologer.DeleteQueueAsync("TestRabbitServiceQueue").ConfigureAwait(false);
             return allProcessed;

@@ -8,12 +8,13 @@ public class Wait
 {
     private readonly TimeSpan _timeout;
     private readonly TimeSpan _interval;
-    private const int DefaultInterval = 100;
+    private const int DefaultTimeout = 15000;
+    private const int DefaultInterval = 50;
 
-    public Wait(TimeSpan timeout, TimeSpan? interval = null)
+    public Wait(TimeSpan? timeout = null, TimeSpan? interval = null)
     {
+        _timeout = timeout ?? TimeSpan.FromMilliseconds(DefaultTimeout);
         _interval = interval ?? TimeSpan.FromMilliseconds(DefaultInterval);
-        _timeout = timeout;
     }
 
     public async ValueTask<bool> UntilAsync(

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using EasyNetQ.Management.Client;
@@ -61,10 +62,10 @@ public class Management
         }
     }
 
-    private async Task<IReadOnlyCollection<Connection>> GetActiveConnections(string queueName)
+    private async Task<ImmutableArray<Connection>> GetActiveConnections(string queueName)
     {
         var allConnections = await GetConnections().ConfigureAwait(false);
-        if (allConnections.Count == 0)
+        if (allConnections.Length == 0)
         {
             return allConnections;
         }
@@ -72,7 +73,7 @@ public class Management
         var activeChannels = await GetActiveChannelDetails(queueName).ConfigureAwait(false);
         if (activeChannels.Count == 0)
         {
-            return Array.Empty<Connection>();
+            return ImmutableArray<Connection>.Empty;
         }
 
         var connectionsByPeer = allConnections.ToDictionary(c => $"{c.PeerHost}:{c.PeerPort}", c => c);
@@ -81,19 +82,19 @@ public class Management
             .Distinct()
             .Select(peer => connectionsByPeer.TryGetValue(peer, out var connection) ? connection : null)
             .Where(connection => connection is not null)
-            .ToArray();
+            .ToImmutableArray();
     }
 
-    private async Task<IReadOnlyCollection<Connection>> GetConnections()
+    private async Task<ImmutableArray<Connection>> GetConnections()
     {
         try
         {
             var connections = await _client.GetConnectionsAsync().ConfigureAwait(false);
-            return connections.Where(c => c.Vhost == _vhost).ToArray();
+            return connections.Where(c => c.Vhost == _vhost).ToImmutableArray();
         }
         catch
         {
-            return Array.Empty<Connection>();
+            return ImmutableArray<Connection>.Empty;
         }
     }
 
@@ -103,26 +104,46 @@ public class Management
     public async ValueTask CloseActiveConnections(string queueName, IEnumerable<Connection> activeConnections)
     {
         await Task.WhenAll(activeConnections.Select(CloseConnection)).ConfigureAwait(false);
-        await new Wait(TimeSpan.FromSeconds(10), TimeSpan.FromMilliseconds(50)).UntilAsync(
-            async () => (await GetActiveConnections(queueName).ConfigureAwait(false)).Count,
+        await new Wait(TimeSpan.FromSeconds(10)).UntilAsync(
+            async () => (await GetActiveConnections(queueName).ConfigureAwait(false)).Length,
             0, "active connection(s)", _output).ConfigureAwait(false);
     }
 
-    public async ValueTask<IReadOnlyCollection<Connection>> WaitForActiveConnections(string queueName)
+    public async ValueTask<ImmutableArray<Connection>> RecoverConnectionsAndConsumers(
+        string queueName, ImmutableArray<Connection> activeConnections, int consumerCount, bool throwOnTimeout = true)
     {
-        IReadOnlyCollection<Connection> activeConnections = null;
-        await new Wait(TimeSpan.FromSeconds(20), TimeSpan.FromMilliseconds(100)).UntilAsync(
+        await CloseActiveConnections(queueName, activeConnections).ConfigureAwait(false);
+        await WaitForQueueToHaveNoConsumers(queueName).ConfigureAwait(false);
+        return await WaitForConnectionsAndConsumers(queueName, consumerCount, throwOnTimeout).ConfigureAwait(false);
+    }
+
+    public async ValueTask<ImmutableArray<Connection>> WaitForActiveConnections(string queueName, bool throwOnTimeout)
+    {
+        var activeConnections = ImmutableArray<Connection>.Empty;
+        await new Wait().UntilAsync(
             async () =>
             {
                 activeConnections = await GetActiveConnections(queueName).ConfigureAwait(false);
-                return activeConnections.Count;
-            }, 1, "active connection(s)", _output);
+                return activeConnections.Length;
+            }, 1, "active connection(s)", _output, throwOnTimeout);
         return activeConnections;
+    }
+
+    public async ValueTask<ImmutableArray<Connection>> WaitForConnectionsAndConsumers(
+        string queueName, int consumerCount, bool throwOnTimeout = true)
+    {
+        var connections = await WaitForActiveConnections(queueName, throwOnTimeout).ConfigureAwait(false);
+        if (connections.Length == 0)
+        {
+            return connections;
+        }
+        await WaitForQueueToHaveConsumers(queueName, consumerCount, throwOnTimeout).ConfigureAwait(false);
+        return connections;
     }
 
     public ValueTask<bool> WaitForQueueToHaveConsumers(
         string queueName, int expectedConsumerCount, bool throwOnTimeout = true) =>
-        new Wait(TimeSpan.FromSeconds(15), TimeSpan.FromMilliseconds(50)).UntilAsync(
+        new Wait().UntilAsync(
             async () =>
             {
                 try
@@ -139,9 +160,8 @@ public class Management
 
     public ValueTask<bool> WaitForQueueToHaveNoConsumers(string queueName) => WaitForQueueToHaveConsumers(queueName, 0);
 
-    public ValueTask<bool> WaitForQueueToHaveNoMessages(
-        string queueName, double timeout, double interval, bool throwOnTimeout = true) =>
-        new Wait(TimeSpan.FromSeconds(timeout), TimeSpan.FromMilliseconds(interval)).UntilAsync(
+    public ValueTask<bool> WaitForQueueToHaveNoMessages(string queueName, bool throwOnTimeout = true) =>
+        new Wait().UntilAsync(
             async () =>
             {
                 try
@@ -157,8 +177,8 @@ public class Management
             0, $"messages on {queueName}", _output, throwOnTimeout);
 
     public ValueTask<bool> WaitForQueueToHaveUnacknowledgedMessages(
-        string queueName, int unacknowledgedCount, double timeout, double interval, bool throwOnTimeout = true) =>
-        new Wait(TimeSpan.FromSeconds(timeout), TimeSpan.FromMilliseconds(interval)).UntilAsync(
+        string queueName, int unacknowledgedCount, bool throwOnTimeout = true) =>
+        new Wait().UntilAsync(
             async () => Convert.ToInt32((await GetQueue(queueName).ConfigureAwait(false)).MessagesUnacknowledged),
             unacknowledgedCount, $"unacknowledged on {queueName}", _output, throwOnTimeout);
 }
