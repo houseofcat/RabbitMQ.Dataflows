@@ -110,14 +110,19 @@ public class Management
     }
 
     public async ValueTask<ImmutableArray<Connection>> RecoverConnectionsAndConsumers(
-        string queueName, ImmutableArray<Connection> activeConnections, int consumerCount, bool throwOnTimeout = true)
+        string queueName, ImmutableArray<Connection> activeConnections, int consumerCount, bool clearQueue = false)
     {
         await CloseActiveConnections(queueName, activeConnections).ConfigureAwait(false);
         await WaitForQueueToHaveNoConsumers(queueName).ConfigureAwait(false);
-        return await WaitForConnectionsAndConsumers(queueName, consumerCount, throwOnTimeout).ConfigureAwait(false);
+        if (clearQueue)
+        {
+            await ClearQueue(queueName).ConfigureAwait(false);
+            await WaitForQueueToHaveNoMessages(queueName).ConfigureAwait(false);
+        }
+        return await WaitForConnectionsAndConsumers(queueName, consumerCount).ConfigureAwait(false);
     }
 
-    public async ValueTask<ImmutableArray<Connection>> WaitForActiveConnections(string queueName, bool throwOnTimeout)
+    public async ValueTask<ImmutableArray<Connection>> WaitForActiveConnections(string queueName)
     {
         var activeConnections = ImmutableArray<Connection>.Empty;
         await new Wait().UntilAsync(
@@ -125,19 +130,19 @@ public class Management
             {
                 activeConnections = await GetActiveConnections(queueName).ConfigureAwait(false);
                 return activeConnections.Length;
-            }, 1, "active connection(s)", _output, throwOnTimeout);
+            }, 1, "active connection(s)", _output);
         return activeConnections;
     }
 
     public async ValueTask<ImmutableArray<Connection>> WaitForConnectionsAndConsumers(
-        string queueName, int consumerCount, bool throwOnTimeout = true)
+        string queueName, int consumerCount)
     {
-        var connections = await WaitForActiveConnections(queueName, throwOnTimeout).ConfigureAwait(false);
+        var connections = await WaitForActiveConnections(queueName).ConfigureAwait(false);
         if (connections.Length == 0)
         {
             return connections;
         }
-        await WaitForQueueToHaveConsumers(queueName, consumerCount, throwOnTimeout).ConfigureAwait(false);
+        await WaitForQueueToHaveConsumers(queueName, consumerCount).ConfigureAwait(false);
         return connections;
     }
 

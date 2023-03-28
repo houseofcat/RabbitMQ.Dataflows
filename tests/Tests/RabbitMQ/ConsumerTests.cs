@@ -316,21 +316,8 @@ namespace RabbitMQ
             var connections = await management.WaitForConnectionsAndConsumers("TestRabbitServiceQueue", 1)
                 .ConfigureAwait(false);
 
-            await management.ClearQueue("TestRabbitServiceQueue").ConfigureAwait(false);
-            await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue").ConfigureAwait(false);
-
-            PauseProcessing();
-
-            await PublishRandomLetter(service.Publisher).ConfigureAwait(false);
-            await management.WaitForQueueToHaveUnacknowledgedMessages("TestRabbitServiceQueue", 1)
-                .ConfigureAwait(false);
-
-            ResumeProcessing();
-
-            await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue").ConfigureAwait(false);
-
-            var onceRecoveredConnections = await management.RecoverConnectionsAndConsumers(
-                "TestRabbitServiceQueue", connections, 1).ConfigureAwait(false);
+            var recoveredConnections = await management.RecoverConnectionsAndConsumers(
+                "TestRabbitServiceQueue", connections, 1, true).ConfigureAwait(false);
 
             PauseProcessing();
 
@@ -341,9 +328,12 @@ namespace RabbitMQ
             await management.WaitForQueueToHaveUnacknowledgedMessages("TestRabbitServiceQueue", firstBatchCount)
                 .ConfigureAwait(false);
 
-            var twiceRecoveredConnections = await management.RecoverConnectionsAndConsumers(
-                "TestRabbitServiceQueue", onceRecoveredConnections, 1, false).ConfigureAwait(false);
-            if (twiceRecoveredConnections.Length == 0)
+            try
+            {
+                await management.RecoverConnectionsAndConsumers("TestRabbitServiceQueue", recoveredConnections, 1)
+                    .ConfigureAwait(false);
+            }
+            catch (TimeoutException)
             {
                 ResumeProcessing();
                 await service.Topologer.DeleteQueueAsync("TestRabbitServiceQueue").ConfigureAwait(false);
