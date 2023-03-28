@@ -336,10 +336,10 @@ namespace RabbitMQ
 
             ResumeProcessing();
 
-            var allAcked = await management.WaitForQueueToHaveNoUnacknowledgedMessages("TestRabbitServiceQueue", false)
+            var allProcessed = await management.WaitForQueueToHaveNoMessages("TestRabbitServiceQueue", 15, 50, false)
                 .ConfigureAwait(false);
             await service.Topologer.DeleteQueueAsync("TestRabbitServiceQueue").ConfigureAwait(false);
-            return allAcked;
+            return allProcessed;
         }
 
         private static Task PublishRandomLetter(IPublisher publisher)

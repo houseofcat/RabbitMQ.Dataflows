@@ -139,7 +139,8 @@ public class Management
 
     public ValueTask<bool> WaitForQueueToHaveNoConsumers(string queueName) => WaitForQueueToHaveConsumers(queueName, 0);
 
-    public ValueTask<bool> WaitForQueueToHaveNoMessages(string queueName, double timeout, double interval) =>
+    public ValueTask<bool> WaitForQueueToHaveNoMessages(
+        string queueName, double timeout, double interval, bool throwOnTimeout = true) =>
         new Wait(TimeSpan.FromSeconds(timeout), TimeSpan.FromMilliseconds(interval)).UntilAsync(
             async () =>
             {
@@ -153,10 +154,7 @@ public class Management
                     return 0;
                 }
             },
-            0, $"messages on {queueName}", _output);
-
-    public ValueTask<bool> WaitForQueueToHaveNoUnacknowledgedMessages(string queueName, bool throwOnTimeout = true) =>
-        WaitForQueueToHaveUnacknowledgedMessages(queueName, 0, 15, 50, throwOnTimeout);
+            0, $"messages on {queueName}", _output, throwOnTimeout);
 
     public ValueTask<bool> WaitForQueueToHaveUnacknowledgedMessages(
         string queueName, int unacknowledgedCount, double timeout, double interval, bool throwOnTimeout = true) =>
