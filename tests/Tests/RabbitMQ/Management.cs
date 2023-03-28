@@ -119,7 +119,16 @@ public class Management
             await ClearQueue(queueName).ConfigureAwait(false);
             await WaitForQueueToHaveNoMessages(queueName).ConfigureAwait(false);
         }
-        return await WaitForConnectionsAndConsumers(queueName, consumerCount).ConfigureAwait(false);
+
+        try
+        {
+            return await WaitForConnectionsAndConsumers(queueName, consumerCount).ConfigureAwait(false);
+        }
+        catch (TimeoutException)
+        {
+            await _client.DeleteQueueAsync(_vhost, queueName).ConfigureAwait(false);
+            throw;
+        }
     }
 
     public async ValueTask<ImmutableArray<Connection>> WaitForActiveConnections(string queueName)
@@ -138,10 +147,6 @@ public class Management
         string queueName, int consumerCount)
     {
         var connections = await WaitForActiveConnections(queueName).ConfigureAwait(false);
-        if (connections.Length == 0)
-        {
-            return connections;
-        }
         await WaitForQueueToHaveConsumers(queueName, consumerCount).ConfigureAwait(false);
         return connections;
     }

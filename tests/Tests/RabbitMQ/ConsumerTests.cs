@@ -336,7 +336,6 @@ namespace RabbitMQ
             catch (TimeoutException)
             {
                 ResumeProcessing();
-                await service.Topologer.DeleteQueueAsync("TestRabbitServiceQueue").ConfigureAwait(false);
                 return false;
             }
 
