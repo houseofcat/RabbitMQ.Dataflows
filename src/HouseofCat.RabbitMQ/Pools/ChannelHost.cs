@@ -77,7 +77,7 @@ namespace HouseofCat.RabbitMQ.Pools
             {
                 if (_channel != null)
                 {
-                    RemoveEventHandlers();
+                    RemoveEventHandlers(_channel, _connHost);
                     Close();
                     _channel = null;
                 }
@@ -94,7 +94,7 @@ namespace HouseofCat.RabbitMQ.Pools
                     _channel.ConfirmSelect();
                 }
 
-                AddEventHandlers();
+                AddEventHandlers(_channel, _connHost);
             }
             catch (Exception ex)
             {
@@ -111,38 +111,18 @@ namespace HouseofCat.RabbitMQ.Pools
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void AddEventHandlers()
-        {
-            AddChannelEventHandlers(_channel);
-            AddConnectionEventHandlers(_connHost.Connection);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual void AddChannelEventHandlers(IModel channel)
+        protected virtual void AddEventHandlers(IModel channel, IConnectionHost _)
         {
             channel.FlowControl += FlowControl;
             channel.ModelShutdown += ChannelClose;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual void AddConnectionEventHandlers(IConnection _) { }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void RemoveEventHandlers()
-        {
-            RemoveChannelEventHandlers(_channel);
-            RemoveConnectionEventHandlers(_connHost.Connection);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual void RemoveChannelEventHandlers(IModel channel)
+        protected virtual void RemoveEventHandlers(IModel channel, IConnectionHost _)
         {
             channel.FlowControl -= FlowControl;
             channel.ModelShutdown -= ChannelClose;
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual void RemoveConnectionEventHandlers(IConnection _) { }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void EnterLock() => _hostLock.Wait();

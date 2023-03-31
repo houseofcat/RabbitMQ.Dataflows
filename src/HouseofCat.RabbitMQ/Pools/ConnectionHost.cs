@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -45,7 +46,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
         public void AssignConnection(IConnection connection)
         {
-            _hostLock.Wait();
+            EnterLock();
 
             if (Connection != null)
             {
@@ -66,31 +67,38 @@ namespace HouseofCat.RabbitMQ.Pools
             Connection.ConnectionUnblocked += ConnectionUnblocked;
             Connection.ConnectionShutdown += ConnectionClosed;
 
-            _hostLock.Release();
+            ExitLock();
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void EnterLock() => _hostLock.Wait();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected Task EnterLockAsync() => _hostLock.WaitAsync();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void ExitLock() => _hostLock.Release();
 
         protected virtual void ConnectionClosed(object sender, ShutdownEventArgs e)
         {
-            _hostLock.Wait();
+            EnterLock();
             _logger.LogWarning(e.ReplyText);
             Closed = true;
-            _hostLock.Release();
+            ExitLock();
         }
 
         protected virtual void ConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
         {
-            _hostLock.Wait();
+            EnterLock();
             _logger.LogWarning(e.Reason);
             Blocked = true;
-            _hostLock.Release();
+            ExitLock();
         }
 
         protected virtual void ConnectionUnblocked(object sender, EventArgs e)
         {
-            _hostLock.Wait();
+            EnterLock();
             _logger.LogInformation("Connection unblocked!");
             Blocked = false;
-            _hostLock.Release();
+            ExitLock();
         }
 
         private const int CloseCode = 200;
@@ -106,32 +114,32 @@ namespace HouseofCat.RabbitMQ.Pools
         /// </summary>
         public async Task<bool> HealthyAsync()
         {
-            await _hostLock
-                .WaitAsync()
-                .ConfigureAwait(false);
+            await EnterLockAsync().ConfigureAwait(false);
 
             if (Closed && Connection.IsOpen)
             { Closed = false; } // Means a Recovery took place.
             else if (Dead && Connection.IsOpen)
             { Dead = false; } // Means a Miracle took place.
 
-            _hostLock.Release();
+            ExitLock();
 
             return Connection.IsOpen && !Blocked; // TODO: See if we can incorporate Dead/Closed observations.
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (_disposedValue)
             {
-                if (disposing)
-                {
-                    _hostLock.Dispose();
-                }
-
-                Connection = null;
-                _disposedValue = true;
+                return;
             }
+
+            if (disposing)
+            {
+                _hostLock.Dispose();
+            }
+
+            Connection = null;
+            _disposedValue = true;
         }
 
         public void Dispose()

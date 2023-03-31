@@ -16,11 +16,11 @@ public interface IRecoverableChannelHost : IChannelHost
 
 public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
 {
-    private bool _recoveringConsumer;
-
     public string RecoveredConsumerTag { get; private set; }
     public string RecoveringConsumerTag { get; private set; }
     public bool Recovering { get; private set; }
+
+    private bool _recoveringConsumer;
 
     public RecoverableChannelHost(ulong channelId, IConnectionHost connHost, bool ackable)
         : base(channelId, connHost, ackable)
@@ -56,49 +56,37 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
     public override async Task<bool> HealthyAsync() => !Recovering && await base.HealthyAsync().ConfigureAwait(false);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected override void AddChannelEventHandlers(IModel channel)
+    protected override void AddEventHandlers(IModel channel, IConnectionHost connHost)
     {
-        base.AddChannelEventHandlers(channel);
+        base.AddEventHandlers(channel, connHost);
         if (channel is not IRecoverable recoverableChannel)
         {
             return;
         }
         recoverableChannel.Recovery += ChannelRecovered;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected override void AddConnectionEventHandlers(IConnection connection)
-    {
-        base.AddConnectionEventHandlers(connection);
-        if (connection is not IAutorecoveringConnection recoverableConnection)
+        if (connHost is not IRecoverableConnectionHost recoverableConnHost)
         {
             return;
         }
-        recoverableConnection.ConsumerTagChangeAfterRecovery += ConsumerTagChangedAfterRecovery;
-        recoverableConnection.RecoveringConsumer += RecoveringConsumer;
+        recoverableConnHost.ConsumerTagChangeAfterRecovery += ConsumerTagChangedAfterRecovery;
+        recoverableConnHost.RecoveringConsumer += RecoveringConsumer;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected override void RemoveChannelEventHandlers(IModel channel)
+    protected override void RemoveEventHandlers(IModel channel, IConnectionHost connHost)
     {
-        base.RemoveChannelEventHandlers(channel);
+        base.RemoveEventHandlers(channel, connHost);
         if (channel is not IRecoverable recoverableChannel)
         {
             return;
         }
         recoverableChannel.Recovery -= ChannelRecovered;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected override void RemoveConnectionEventHandlers(IConnection connection)
-    {
-        base.RemoveConnectionEventHandlers(connection);
-        if (connection is not IAutorecoveringConnection recoverableConnection)
+        if (connHost is not IRecoverableConnectionHost recoverableConnHost)
         {
             return;
         }
-        recoverableConnection.ConsumerTagChangeAfterRecovery -= ConsumerTagChangedAfterRecovery;
-        recoverableConnection.RecoveringConsumer -= RecoveringConsumer;
+        recoverableConnHost.ConsumerTagChangeAfterRecovery -= ConsumerTagChangedAfterRecovery;
+        recoverableConnHost.RecoveringConsumer -= RecoveringConsumer;
     }
 
     protected override void ChannelClose(object sender, ShutdownEventArgs e)
