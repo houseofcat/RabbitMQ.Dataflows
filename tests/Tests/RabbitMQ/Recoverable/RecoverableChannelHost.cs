@@ -11,6 +11,7 @@ public interface IRecoverableChannelHost : IChannelHost
 {
     string RecoveredConsumerTag { get; }
     string RecoveringConsumerTag { get; }
+    bool Recovered { get; }
     bool Recovering { get; }
 }
 
@@ -18,6 +19,7 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
 {
     public string RecoveredConsumerTag { get; private set; }
     public string RecoveringConsumerTag { get; private set; }
+    public bool Recovered { get; private set; }
     public bool Recovering { get; private set; }
 
     private bool _recoveringConsumer;
@@ -32,22 +34,23 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
         _recoveringConsumer = startConsumingAsync is not null;
         await EnterLockAsync().ConfigureAwait(false);
 
-        bool hasRecoveredTag;
+        bool hasRecovered, hasRecoveredTag;
         try
         {
-            if (Recovering || !await ConnectionHealthyAsync().ConfigureAwait(false))
+            if (Recovering || (Recovered && !await base.HealthyAsync().ConfigureAwait(false)))
             {
                 return false;
             }
+            hasRecovered = Recovered;
+            hasRecoveredTag = !string.IsNullOrEmpty(RecoveredConsumerTag);
         }
         finally
         {
-            hasRecoveredTag = !string.IsNullOrEmpty(RecoveredConsumerTag);
             ExitLock();
         }
 
         return
-            await base.HealthyAsync().ConfigureAwait(false)
+            hasRecovered
                 ? hasRecoveredTag || startConsumingAsync is null || await startConsumingAsync().ConfigureAwait(false)
                 : await base.MakeChannelAsync(startConsumingAsync).ConfigureAwait(false);
     }
@@ -95,6 +98,7 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
         if (sender is IRecoverable)
         {
             RecoveredConsumerTag = null;
+            Recovered = false;
             Recovering = true;
         }
         ExitLock();
@@ -104,6 +108,7 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
     protected virtual void ChannelRecovered(object sender, EventArgs e)
     {
         EnterLock();
+        Recovered = true;
         Recovering = false;
         ExitLock();
     }

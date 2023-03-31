@@ -154,11 +154,8 @@ namespace HouseofCat.RabbitMQ.Pools
             ExitLock();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected Task<bool> ConnectionHealthyAsync() => _connHost.HealthyAsync();
-
         public virtual async Task<bool> HealthyAsync() =>
-            await ConnectionHealthyAsync().ConfigureAwait(false) && !FlowControlled && (_channel?.IsOpen ?? false);
+            await _connHost.HealthyAsync().ConfigureAwait(false) && !FlowControlled && (_channel?.IsOpen ?? false);
 
         private const int CloseCode = 200;
         private const string CloseMessage = "HouseofCat.RabbitMQ manual close channel initiated.";
