@@ -43,6 +43,7 @@
     <ProjectReference Include="..\..\src\HouseofCat.Encryption.Recyclable\HouseofCat.Encryption.Recyclable.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Hashing.Argon\HouseofCat.Hashing.Argon.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ.Pipelines\HouseofCat.RabbitMQ.Pipelines.csproj" />
+    <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ.Recoverable\HouseofCat.RabbitMQ.Recoverable.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ.Services\HouseofCat.RabbitMQ.Services.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Serialization.Json.Newtonsoft\HouseofCat.Serialization.Json.Newtonsoft.csproj" />

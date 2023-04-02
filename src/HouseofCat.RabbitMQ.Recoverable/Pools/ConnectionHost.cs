@@ -1,20 +1,19 @@
 using System;
-using HouseofCat.RabbitMQ.Pools;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace IntegrationTests.RabbitMQ.Recoverable;
+namespace HouseofCat.RabbitMQ.Recoverable.Pools;
 
-public interface IRecoverableConnectionHost : IConnectionHost
+public interface IConnectionHost : HouseofCat.RabbitMQ.Pools.IConnectionHost
 {
     event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
     event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
     event EventHandler<RecoveringConsumerEventArgs> RecoveringConsumer;
 }
 
-public class RecoverableConnectionHost : ConnectionHost, IRecoverableConnectionHost
+public class ConnectionHost : HouseofCat.RabbitMQ.Pools.ConnectionHost, IConnectionHost
 {
-    public RecoverableConnectionHost(ulong connectionId, IConnection connection) : base(connectionId, connection) { }
+    public ConnectionHost(ulong connectionId, IConnection connection) : base(connectionId, connection) { }
 
     public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError
     {

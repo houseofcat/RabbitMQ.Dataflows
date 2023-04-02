@@ -51,23 +51,8 @@ public interface IRabbitService
     ValueTask ShutdownAsync(bool immediately);
 }
 
-public class RabbitService : IRabbitService, IDisposable
+public class RabbitService : RabbitService<Consumer>
 {
-    private readonly SemaphoreSlim _serviceLock = new SemaphoreSlim(1, 1);
-    private bool _disposedValue;
-
-    public RabbitOptions Options { get; }
-    public IChannelPool ChannelPool { get; }
-    public IPublisher Publisher { get; }
-    public ITopologer Topologer { get; }
-
-    public ISerializationProvider SerializationProvider { get; }
-    public IEncryptionProvider EncryptionProvider { get; }
-    public ICompressionProvider CompressionProvider { get; }
-
-    public ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<ReceivedData>>();
-    private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerOptions { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
-
     public RabbitService(
         string fileNamePath,
         ISerializationProvider serializationProvider,
@@ -75,10 +60,7 @@ public class RabbitService : IRabbitService, IDisposable
         ICompressionProvider compressionProvider = null,
         ILoggerFactory loggerFactory = null, Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
         : this(
-              Utf8JsonFileReader
-                .ReadFileAsync<RabbitOptions>(fileNamePath)
-                .GetAwaiter()
-                .GetResult(),
+              Utf8JsonFileReader.ReadFileAsync<RabbitOptions>(fileNamePath).GetAwaiter().GetResult(),
               serializationProvider,
               encryptionProvider,
               compressionProvider,
@@ -102,6 +84,41 @@ public class RabbitService : IRabbitService, IDisposable
     { }
 
     public RabbitService(
+        IChannelPool chanPool,
+        ISerializationProvider serializationProvider,
+        IEncryptionProvider encryptionProvider = null,
+        ICompressionProvider compressionProvider = null,
+        ILoggerFactory loggerFactory = null,
+        Func<IPublishReceipt, ValueTask> processReceiptAsync = null) : base(
+            chanPool,
+            serializationProvider,
+            encryptionProvider,
+            compressionProvider,
+            loggerFactory,
+            processReceiptAsync)
+    { }
+
+    protected override Consumer CreateConsumer(ConsumerOptions consumerOptions) => new(ChannelPool, consumerOptions);
+}
+
+public abstract class RabbitService<TConsumer> : IRabbitService, IDisposable where TConsumer : IConsumer<ReceivedData>
+{
+    private readonly SemaphoreSlim _serviceLock = new SemaphoreSlim(1, 1);
+    private bool _disposedValue;
+
+    public RabbitOptions Options { get; }
+    public IChannelPool ChannelPool { get; }
+    public IPublisher Publisher { get; }
+    public ITopologer Topologer { get; }
+
+    public ISerializationProvider SerializationProvider { get; }
+    public IEncryptionProvider EncryptionProvider { get; }
+    public ICompressionProvider CompressionProvider { get; }
+
+    public ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<ReceivedData>>();
+    private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerOptions { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
+    
+    protected RabbitService(
         IChannelPool chanPool,
         ISerializationProvider serializationProvider,
         IEncryptionProvider encryptionProvider = null,
@@ -173,7 +190,7 @@ public class RabbitService : IRabbitService, IDisposable
             {
                 ConsumerPipelineNameToConsumerOptions.TryAdd(consumerSetting.Value.ConsumerPipelineOptions.ConsumerPipelineName, consumerSetting.Value);
             }
-            Consumers.TryAdd(consumerSetting.Value.ConsumerName, new Consumer(ChannelPool, consumerSetting.Value));
+            Consumers.TryAdd(consumerSetting.Value.ConsumerName, CreateConsumer(consumerSetting.Value));
         }
     }
 
@@ -272,6 +289,8 @@ public class RabbitService : IRabbitService, IDisposable
             }
         }
     }
+
+    protected abstract TConsumer CreateConsumer(ConsumerOptions consumerOptions);
 
     public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
         string consumerName,

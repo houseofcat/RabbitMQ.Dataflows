@@ -240,7 +240,7 @@ namespace HouseofCat.RabbitMQ
                     ConsumerOptions.ConsumerName,
                     ConsumerOptions.NoLocal ?? false,
                     ConsumerOptions.Exclusive ?? false,
-                    new Dictionary<string, object>{ { "ChannelHostId", _chanHost.Id } },
+                    CreateConsumerArguments(_chanHost),
                     consumer);
 
         private async ValueTask SetChannelHostAsync()
@@ -284,6 +284,8 @@ namespace HouseofCat.RabbitMQ
 
             return consumer;
         }
+
+        protected virtual IDictionary<string, object> CreateConsumerArguments(IChannelHost chanHost) => null;
 
         protected virtual async void ReceiveHandler(object _, BasicDeliverEventArgs bdea)
         {

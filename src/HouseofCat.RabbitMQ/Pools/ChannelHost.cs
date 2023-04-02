@@ -17,7 +17,6 @@ namespace HouseofCat.RabbitMQ.Pools
         ulong ChannelId { get; }
         bool Closed { get; }
         bool FlowControlled { get; }
-        string Id { get; }
 
         IModel GetChannel();
         Task<bool> MakeChannelAsync(Func<ValueTask<bool>> startConsumingAsync = null);
@@ -31,7 +30,6 @@ namespace HouseofCat.RabbitMQ.Pools
         public ulong ChannelId { get; }
         public bool Closed { get; private set; }
         public bool FlowControlled { get; private set; }
-        public string Id { get; } = Guid.NewGuid().ConvertToBase64Url();
 
         private readonly ILogger<ChannelHost> _logger;
         private readonly SemaphoreSlim _hostLock = new SemaphoreSlim(1, 1);

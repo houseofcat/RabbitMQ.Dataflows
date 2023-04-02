@@ -13,7 +13,6 @@ using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.File;
-using IntegrationTests.RabbitMQ.Recoverable;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
 using Xunit.Abstractions;
@@ -76,8 +75,8 @@ namespace RabbitMQ
                         builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information)));
 
         public async ValueTask<IRabbitService> GetRecoverableRabbitServiceAsync() =>
-            new RabbitService(
-                new RecoverableChannelPool(await GetOptionsAsync().ConfigureAwait(false)),
+            new HouseofCat.RabbitMQ.Recoverable.Service.RabbitService(
+                await GetOptionsAsync().ConfigureAwait(false),
                 SerializationProvider,
                 EncryptionProvider,
                 CompressionProvider,

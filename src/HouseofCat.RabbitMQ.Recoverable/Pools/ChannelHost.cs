@@ -1,22 +1,24 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Utilities;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace IntegrationTests.RabbitMQ.Recoverable;
+namespace HouseofCat.RabbitMQ.Recoverable.Pools;
 
-public interface IRecoverableChannelHost : IChannelHost
+public interface IChannelHost : HouseofCat.RabbitMQ.Pools.IChannelHost
 {
+    string Id { get; }
     string RecoveredConsumerTag { get; }
     string RecoveringConsumerTag { get; }
     bool Recovered { get; }
     bool Recovering { get; }
 }
 
-public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
+public class ChannelHost : HouseofCat.RabbitMQ.Pools.ChannelHost, IChannelHost
 {
+    public string Id { get; } = Guid.NewGuid().ConvertToBase64Url();
     public string RecoveredConsumerTag { get; private set; }
     public string RecoveringConsumerTag { get; private set; }
     public bool Recovered { get; private set; }
@@ -24,9 +26,7 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
 
     private bool _recoveringConsumer;
 
-    public RecoverableChannelHost(ulong channelId, IConnectionHost connHost, bool ackable)
-        : base(channelId, connHost, ackable)
-    { }
+    public ChannelHost(ulong channelId, IConnectionHost connHost, bool ackable) : base(channelId, connHost, ackable) { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public new async Task<bool> MakeChannelAsync(Func<ValueTask<bool>> startConsumingAsync = null)
@@ -59,7 +59,7 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
     public override async Task<bool> HealthyAsync() => !Recovering && await base.HealthyAsync().ConfigureAwait(false);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected override void AddEventHandlers(IModel channel, IConnectionHost connHost)
+    protected override void AddEventHandlers(IModel channel, HouseofCat.RabbitMQ.Pools.IConnectionHost connHost)
     {
         base.AddEventHandlers(channel, connHost);
         if (channel is not IRecoverable recoverableChannel)
@@ -67,16 +67,16 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
             return;
         }
         recoverableChannel.Recovery += ChannelRecovered;
-        if (connHost is not IRecoverableConnectionHost recoverableConnHost)
+        if (connHost is not IConnectionHost recoverableConnectionHost)
         {
             return;
         }
-        recoverableConnHost.ConsumerTagChangeAfterRecovery += ConsumerTagChangedAfterRecovery;
-        recoverableConnHost.RecoveringConsumer += RecoveringConsumer;
+        recoverableConnectionHost.ConsumerTagChangeAfterRecovery += ConsumerTagChangedAfterRecovery;
+        recoverableConnectionHost.RecoveringConsumer += RecoveringConsumer;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected override void RemoveEventHandlers(IModel channel, IConnectionHost connHost)
+    protected override void RemoveEventHandlers(IModel channel, HouseofCat.RabbitMQ.Pools.IConnectionHost connHost)
     {
         base.RemoveEventHandlers(channel, connHost);
         if (channel is not IRecoverable recoverableChannel)
@@ -84,12 +84,12 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
             return;
         }
         recoverableChannel.Recovery -= ChannelRecovered;
-        if (connHost is not IRecoverableConnectionHost recoverableConnHost)
+        if (connHost is not IConnectionHost recoverableConnectionHost)
         {
             return;
         }
-        recoverableConnHost.ConsumerTagChangeAfterRecovery -= ConsumerTagChangedAfterRecovery;
-        recoverableConnHost.RecoveringConsumer -= RecoveringConsumer;
+        recoverableConnectionHost.ConsumerTagChangeAfterRecovery -= ConsumerTagChangedAfterRecovery;
+        recoverableConnectionHost.RecoveringConsumer -= RecoveringConsumer;
     }
 
     protected override void ChannelClose(object sender, ShutdownEventArgs e)
@@ -120,7 +120,7 @@ public class RecoverableChannelHost : ChannelHost, IRecoverableChannelHost
             return;
         }
         EnterLock();
-        if (e.ConsumerArguments.TryGetValue("ChannelHostId", out var channelHostId) && channelHostId.Equals(Id))
+        if (e.ConsumerArguments.TryGetValue("RecoverableChanHostId", out var channelHostId) && channelHostId.Equals(Id))
         {
             RecoveringConsumerTag = e.ConsumerTag;
         }
