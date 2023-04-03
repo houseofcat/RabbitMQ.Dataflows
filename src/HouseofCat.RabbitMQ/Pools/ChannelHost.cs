@@ -6,7 +6,6 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using HouseofCat.Utilities;
 using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ.Pools
@@ -19,7 +18,7 @@ namespace HouseofCat.RabbitMQ.Pools
         bool FlowControlled { get; }
 
         IModel GetChannel();
-        Task<bool> MakeChannelAsync(Func<ValueTask<bool>> startConsumingAsync = null);
+        Task<bool> MakeChannelAsync();
         void Close();
         Task<bool> HealthyAsync();
     }
@@ -67,7 +66,7 @@ namespace HouseofCat.RabbitMQ.Pools
         private const string MakeChannelFailedError = "Making a channel failed. Error: {0}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<bool> MakeChannelAsync(Func<ValueTask<bool>> startConsumingAsync = null)
+        public async Task<bool> MakeChannelAsync()
         {
             await EnterLockAsync().ConfigureAwait(false);
 
@@ -93,6 +92,7 @@ namespace HouseofCat.RabbitMQ.Pools
                 }
 
                 AddEventHandlers(_channel, _connHost);
+                return true;
             }
             catch (Exception ex)
             {
@@ -104,8 +104,6 @@ namespace HouseofCat.RabbitMQ.Pools
             {
                 ExitLock();
             }
-
-            return startConsumingAsync is null || await startConsumingAsync().ConfigureAwait(false);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

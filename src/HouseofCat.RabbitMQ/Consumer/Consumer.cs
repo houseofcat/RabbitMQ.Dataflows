@@ -168,7 +168,7 @@ namespace HouseofCat.RabbitMQ
         private AsyncEventingBasicConsumer _asyncConsumer;
         private EventingBasicConsumer _consumer;
 
-        private async ValueTask<bool> StartConsumingAsync()
+        protected async ValueTask<bool> StartConsumingAsync()
         {
             if (_shutdown)
             { return false; }
@@ -231,6 +231,12 @@ namespace HouseofCat.RabbitMQ
             return true;
         }
 
+        protected virtual async ValueTask<bool> RestartConsumingAsync(IChannelHost chanHost) =>
+            await chanHost.MakeChannelAsync().ConfigureAwait(false) &&
+            await StartConsumingAsync().ConfigureAwait(false);
+
+        protected virtual IDictionary<string, object> CreateConsumerArguments(IChannelHost chanHost) => null;
+
         private void BasicConsume(IBasicConsumer consumer) =>
             _chanHost
                 .GetChannel()
@@ -284,8 +290,6 @@ namespace HouseofCat.RabbitMQ
 
             return consumer;
         }
-
-        protected virtual IDictionary<string, object> CreateConsumerArguments(IChannelHost chanHost) => null;
 
         protected virtual async void ReceiveHandler(object _, BasicDeliverEventArgs bdea)
         {
@@ -377,7 +381,7 @@ namespace HouseofCat.RabbitMQ
 
                 try
                 {
-                    success = await _chanHost.MakeChannelAsync(StartConsumingAsync).ConfigureAwait(false);
+                    success = await RestartConsumingAsync(_chanHost).ConfigureAwait(false);
                 }
                 finally
                 {

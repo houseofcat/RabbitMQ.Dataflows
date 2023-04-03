@@ -9,16 +9,17 @@ namespace HouseofCat.RabbitMQ.Recoverable.Pools;
 
 public interface IChannelHost : HouseofCat.RabbitMQ.Pools.IChannelHost
 {
-    string Id { get; }
+    string RecoveryId { get; }
     string RecoveredConsumerTag { get; }
     string RecoveringConsumerTag { get; }
     bool Recovered { get; }
     bool Recovering { get; }
+    ValueTask<bool> RecoverChannelAsync(Func<ValueTask<bool>> startConsumingAsync);
 }
 
 public class ChannelHost : HouseofCat.RabbitMQ.Pools.ChannelHost, IChannelHost
 {
-    public string Id { get; } = Guid.NewGuid().ConvertToBase64Url();
+    public string RecoveryId { get; } = Guid.NewGuid().ConvertToBase64Url();
     public string RecoveredConsumerTag { get; private set; }
     public string RecoveringConsumerTag { get; private set; }
     public bool Recovered { get; private set; }
@@ -29,30 +30,52 @@ public class ChannelHost : HouseofCat.RabbitMQ.Pools.ChannelHost, IChannelHost
     public ChannelHost(ulong channelId, IConnectionHost connHost, bool ackable) : base(channelId, connHost, ackable) { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public new async Task<bool> MakeChannelAsync(Func<ValueTask<bool>> startConsumingAsync = null)
+    public new async Task<bool> MakeChannelAsync()
     {
-        _recoveringConsumer = startConsumingAsync is not null;
         await EnterLockAsync().ConfigureAwait(false);
-
-        bool hasRecovered, hasRecoveredTag;
         try
         {
-            if (Recovering || (Recovered && !await base.HealthyAsync().ConfigureAwait(false)))
+            if (Recovering)
             {
                 return false;
             }
-            hasRecovered = Recovered;
-            hasRecoveredTag = !string.IsNullOrEmpty(RecoveredConsumerTag);
+            if (Recovered)
+            {
+                return await base.HealthyAsync().ConfigureAwait(false);
+            }
         }
         finally
         {
             ExitLock();
         }
+        return await base.MakeChannelAsync().ConfigureAwait(false);
+    }
 
-        return
-            hasRecovered
-                ? hasRecoveredTag || startConsumingAsync is null || await startConsumingAsync().ConfigureAwait(false)
-                : await base.MakeChannelAsync(startConsumingAsync).ConfigureAwait(false);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public async ValueTask<bool> RecoverChannelAsync(Func<ValueTask<bool>> startConsumingAsync = null)
+    {
+        _recoveringConsumer = startConsumingAsync is not null;
+        if (!await MakeChannelAsync().ConfigureAwait(false))
+        {
+            return false;
+        }
+        if (startConsumingAsync is null)
+        {
+            return true;
+        }
+        await EnterLockAsync().ConfigureAwait(false);
+        try
+        {
+            if (Recovered && !string.IsNullOrEmpty(RecoveredConsumerTag))
+            {
+                return true;
+            }
+        }
+        finally
+        {
+            ExitLock();
+        }
+        return await startConsumingAsync().ConfigureAwait(false);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -120,7 +143,7 @@ public class ChannelHost : HouseofCat.RabbitMQ.Pools.ChannelHost, IChannelHost
             return;
         }
         EnterLock();
-        if (e.ConsumerArguments.TryGetValue("RecoverableChanHostId", out var channelHostId) && channelHostId.Equals(Id))
+        if (e.ConsumerArguments.TryGetValue("ChanHostRecoveryId", out var recoveryId) && recoveryId.Equals(RecoveryId))
         {
             RecoveringConsumerTag = e.ConsumerTag;
         }
