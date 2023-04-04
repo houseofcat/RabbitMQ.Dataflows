@@ -55,7 +55,7 @@ public class ChannelHost : HouseofCat.RabbitMQ.Pools.ChannelHost, IChannelHost
     public async ValueTask<bool> RecoverChannelAsync(Func<ValueTask<bool>> startConsumingAsync = null)
     {
         _recoveringConsumer = startConsumingAsync is not null;
-        if (!await MakeChannelAsync().ConfigureAwait(false))
+        if (!await HealthyAsync().ConfigureAwait(false) && !await MakeChannelAsync().ConfigureAwait(false))
         {
             return false;
         }
@@ -79,7 +79,22 @@ public class ChannelHost : HouseofCat.RabbitMQ.Pools.ChannelHost, IChannelHost
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override async Task<bool> HealthyAsync() => !Recovering && await base.HealthyAsync().ConfigureAwait(false);
+    public override async Task<bool> HealthyAsync()
+    {
+        await EnterLockAsync().ConfigureAwait(false);
+        try
+        {
+            if (Recovering)
+            {
+                return false;
+            }
+        }
+        finally
+        {
+            ExitLock();
+        }
+        return await base.HealthyAsync().ConfigureAwait(false);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override void AddEventHandlers(IModel channel, HouseofCat.RabbitMQ.Pools.IConnectionHost connHost)
