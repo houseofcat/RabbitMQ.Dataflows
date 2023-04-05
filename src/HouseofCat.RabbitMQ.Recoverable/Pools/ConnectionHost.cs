@@ -138,7 +138,7 @@ public class ConnectionHost : HouseofCat.RabbitMQ.Pools.ConnectionHost, IConnect
     protected override void AddEventHandlers(IConnection connection)
     {
         base.AddEventHandlers(connection);
-        if (Connection is not IAutorecoveringConnection recoverableConnection)
+        if (connection is not IAutorecoveringConnection recoverableConnection)
         {
             return;
         }
@@ -151,7 +151,7 @@ public class ConnectionHost : HouseofCat.RabbitMQ.Pools.ConnectionHost, IConnect
     protected override void RemoveEventHandlers(IConnection connection)
     {
         base.RemoveEventHandlers(connection);
-        if (Connection is not IAutorecoveringConnection recoverableConnection)
+        if (connection is not IAutorecoveringConnection recoverableConnection)
         {
             return;
         }
