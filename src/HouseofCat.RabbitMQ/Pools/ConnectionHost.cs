@@ -50,9 +50,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
             if (Connection != null)
             {
-                Connection.ConnectionBlocked -= ConnectionBlocked;
-                Connection.ConnectionUnblocked -= ConnectionUnblocked;
-                Connection.ConnectionShutdown -= ConnectionClosed;
+                RemoveEventHandlers(Connection);
 
                 try
                 { Close(); }
@@ -63,9 +61,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
             Connection = connection;
 
-            Connection.ConnectionBlocked += ConnectionBlocked;
-            Connection.ConnectionUnblocked += ConnectionUnblocked;
-            Connection.ConnectionShutdown += ConnectionClosed;
+            AddEventHandlers(connection);
 
             ExitLock();
         }
@@ -76,6 +72,22 @@ namespace HouseofCat.RabbitMQ.Pools
         protected Task EnterLockAsync() => _hostLock.WaitAsync();
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void ExitLock() => _hostLock.Release();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual void AddEventHandlers(IConnection connection)
+        {
+            connection.ConnectionBlocked += ConnectionBlocked;
+            connection.ConnectionUnblocked += ConnectionUnblocked;
+            connection.ConnectionShutdown += ConnectionClosed;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual void RemoveEventHandlers(IConnection connection)
+        {
+            connection.ConnectionBlocked -= ConnectionBlocked;
+            connection.ConnectionUnblocked -= ConnectionUnblocked;
+            connection.ConnectionShutdown -= ConnectionClosed;
+        }
 
         protected virtual void ConnectionClosed(object sender, ShutdownEventArgs e)
         {

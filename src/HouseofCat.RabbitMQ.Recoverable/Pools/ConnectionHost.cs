@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -13,6 +14,10 @@ public interface IConnectionHost : HouseofCat.RabbitMQ.Pools.IConnectionHost
 
 public class ConnectionHost : HouseofCat.RabbitMQ.Pools.ConnectionHost, IConnectionHost
 {
+    private EventHandler<ConnectionRecoveryErrorEventArgs> _recordedConnectionRecoveryErrorEventHandlers;
+    private EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> _recordedConsumerTagChangeAfterRecoveryEventHandlers;
+    private EventHandler<RecoveringConsumerEventArgs> _recordedRecoveringConsumerEventHandlers;
+
     public ConnectionHost(ulong connectionId, IConnection connection) : base(connectionId, connection) { }
 
     public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError
@@ -22,10 +27,12 @@ public class ConnectionHost : HouseofCat.RabbitMQ.Pools.ConnectionHost, IConnect
             EnterLock();
             try
             {
-                if (Connection is IAutorecoveringConnection recoverableConnection)
+                if (Connection is not IAutorecoveringConnection recoverableConnection)
                 {
-                    recoverableConnection.ConnectionRecoveryError += value;
+                    return;
                 }
+                _recordedConnectionRecoveryErrorEventHandlers += value;
+                recoverableConnection.ConnectionRecoveryError += value;
             }
             finally
             {
@@ -37,10 +44,12 @@ public class ConnectionHost : HouseofCat.RabbitMQ.Pools.ConnectionHost, IConnect
             EnterLock();
             try
             {
-                if (Connection is IAutorecoveringConnection recoverableConnection)
+                if (Connection is not IAutorecoveringConnection recoverableConnection)
                 {
-                    recoverableConnection.ConnectionRecoveryError -= value;
+                    return;
                 }
+                _recordedConnectionRecoveryErrorEventHandlers -= value;
+                recoverableConnection.ConnectionRecoveryError -= value;
             }
             finally
             {
@@ -56,10 +65,12 @@ public class ConnectionHost : HouseofCat.RabbitMQ.Pools.ConnectionHost, IConnect
             EnterLock();
             try
             {
-                if (Connection is IAutorecoveringConnection recoverableConnection)
+                if (Connection is not IAutorecoveringConnection recoverableConnection)
                 {
-                    recoverableConnection.ConsumerTagChangeAfterRecovery += value;
+                    return;
                 }
+                _recordedConsumerTagChangeAfterRecoveryEventHandlers += value;
+                recoverableConnection.ConsumerTagChangeAfterRecovery += value;
             }
             finally
             {
@@ -71,10 +82,12 @@ public class ConnectionHost : HouseofCat.RabbitMQ.Pools.ConnectionHost, IConnect
             EnterLock();
             try
             {
-                if (Connection is IAutorecoveringConnection recoverableConnection)
+                if (Connection is not IAutorecoveringConnection recoverableConnection)
                 {
-                    recoverableConnection.ConsumerTagChangeAfterRecovery -= value;
+                    return;
                 }
+                _recordedConsumerTagChangeAfterRecoveryEventHandlers -= value;
+                recoverableConnection.ConsumerTagChangeAfterRecovery -= value;
             }
             finally
             {
@@ -90,10 +103,12 @@ public class ConnectionHost : HouseofCat.RabbitMQ.Pools.ConnectionHost, IConnect
             EnterLock();
             try
             {
-                if (Connection is IAutorecoveringConnection recoverableConnection)
+                if (Connection is not IAutorecoveringConnection recoverableConnection)
                 {
-                    recoverableConnection.RecoveringConsumer += value;
+                    return;
                 }
+                recoverableConnection.RecoveringConsumer += value;
+                _recordedRecoveringConsumerEventHandlers += value;
             }
             finally
             {
@@ -105,15 +120,51 @@ public class ConnectionHost : HouseofCat.RabbitMQ.Pools.ConnectionHost, IConnect
             EnterLock();
             try
             {
-                if (Connection is IAutorecoveringConnection recoverableConnection)
+                if (Connection is not IAutorecoveringConnection recoverableConnection)
                 {
-                    recoverableConnection.RecoveringConsumer -= value;
+                    return;
                 }
+                recoverableConnection.RecoveringConsumer -= value;
+                _recordedRecoveringConsumerEventHandlers -= value;
             }
             finally
             {
                 ExitLock();
             }            
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected override void AddEventHandlers(IConnection connection)
+    {
+        base.AddEventHandlers(connection);
+        if (Connection is not IAutorecoveringConnection recoverableConnection)
+        {
+            return;
+        }
+        recoverableConnection.ConnectionRecoveryError += _recordedConnectionRecoveryErrorEventHandlers;
+        recoverableConnection.ConsumerTagChangeAfterRecovery += _recordedConsumerTagChangeAfterRecoveryEventHandlers;
+        recoverableConnection.RecoveringConsumer += _recordedRecoveringConsumerEventHandlers;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected override void RemoveEventHandlers(IConnection connection)
+    {
+        base.RemoveEventHandlers(connection);
+        if (Connection is not IAutorecoveringConnection recoverableConnection)
+        {
+            return;
+        }
+        recoverableConnection.ConnectionRecoveryError -= _recordedConnectionRecoveryErrorEventHandlers;
+        recoverableConnection.ConsumerTagChangeAfterRecovery -= _recordedConsumerTagChangeAfterRecoveryEventHandlers;
+        recoverableConnection.RecoveringConsumer -= _recordedRecoveringConsumerEventHandlers;
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        _recordedConnectionRecoveryErrorEventHandlers = null;
+        _recordedConsumerTagChangeAfterRecoveryEventHandlers = null;
+        _recordedRecoveringConsumerEventHandlers = null;
     }
 }
