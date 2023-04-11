@@ -46,13 +46,14 @@ public class Wait
             async () => await current().ConfigureAwait(false) == expected,
             secondsTaken =>
             {
-                writer.WriteLine($"{expected} {log} in {secondsTaken:f4}s");
+                writer.WriteLine($"{DateTime.UtcNow:T}: {expected} {log} in {secondsTaken:f4}s");
                 return ValueTask.CompletedTask;
             },
             async () =>
             {
                 var actual = await current().ConfigureAwait(false);
-                var errorMessage = $"{actual} {log} (expected {expected}) after {_timeout.TotalSeconds:f4}s";
+                var errorMessage =
+                    $"{DateTime.UtcNow:T}: {actual} {log} (expected {expected}) after {_timeout.TotalSeconds:f4}s";
                 if (throwOnTimeout)
                 {
                     throw new TimeoutException(errorMessage);
