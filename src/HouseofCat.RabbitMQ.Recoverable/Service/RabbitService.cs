@@ -11,7 +11,7 @@ using ChannelPool = HouseofCat.RabbitMQ.Recoverable.Pools.ChannelPool;
 
 namespace HouseofCat.RabbitMQ.Recoverable.Service;
 
-public class RabbitService : RabbitService<Consumer.Consumer>
+public class RabbitService : RabbitService<Consumer>
 {
     public RabbitService(
         string fileNamePath,
@@ -58,6 +58,5 @@ public class RabbitService : RabbitService<Consumer.Consumer>
             processReceiptAsync)
     { }
 
-    protected override Consumer.Consumer CreateConsumer(ConsumerOptions consumerOptions) =>
-        new(ChannelPool, consumerOptions);
+    protected override Consumer CreateConsumer(ConsumerOptions consumerOptions) => new(ChannelPool, consumerOptions);
 }

@@ -4,7 +4,7 @@ using HouseofCat.RabbitMQ.Pools;
 using ChannelPool = HouseofCat.RabbitMQ.Recoverable.Pools.ChannelPool;
 using IChannelHost = HouseofCat.RabbitMQ.Pools.IChannelHost;
 
-namespace HouseofCat.RabbitMQ.Recoverable.Consumer;
+namespace HouseofCat.RabbitMQ.Recoverable;
 
 public class Consumer : HouseofCat.RabbitMQ.Consumer
 {
