@@ -358,14 +358,14 @@ namespace HouseofCat.RabbitMQ
                 e.ReplyText);
 
             await Task.Yield();
-            bool success;
+            var success = false;
             do
             {
                 try
                 {
                     if (!await _conLock.WaitAsync(0).ConfigureAwait(false))
                     {
-                        break;
+                        continue;
                     }
                 }
                 catch (ObjectDisposedException)
