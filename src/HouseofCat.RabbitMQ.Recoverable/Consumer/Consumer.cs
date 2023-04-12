@@ -25,8 +25,8 @@ public class Consumer : HouseofCat.RabbitMQ.Consumer
             ? new Dictionary<string, object>{ { "ChanHostRecoveryId", recoverableChannelHost.RecoveryId } }
             : base.CreateConsumerArguments(chanHost);
 
-    protected override async ValueTask<bool> RestartConsumingAsync(IChannelHost chanHost) =>
+    protected override ValueTask<bool> RestartConsumingAsync(IChannelHost chanHost) =>
         chanHost is Pools.IChannelHost recoverableChannelHost
-            ? await recoverableChannelHost.RecoverChannelAsync(StartConsumingAsync).ConfigureAwait(false)
-            : await base.RestartConsumingAsync(chanHost).ConfigureAwait(false);
+            ? recoverableChannelHost.RecoverChannelAsync(StartConsumingAsync)
+            : base.RestartConsumingAsync(chanHost);
 }
