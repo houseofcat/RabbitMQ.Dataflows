@@ -232,9 +232,8 @@ namespace HouseofCat.RabbitMQ
         }
 
         protected virtual async ValueTask<bool> RestartConsumingAsync(IChannelHost chanHost) =>
-            chanHost is not null &&
-            await chanHost.MakeChannelAsync().ConfigureAwait(false) &&
-            await StartConsumingAsync().ConfigureAwait(false);
+            chanHost is null ||
+            (await chanHost.MakeChannelAsync().ConfigureAwait(false) && await StartConsumingAsync().ConfigureAwait(false));
 
         protected virtual IDictionary<string, object> CreateConsumerArguments(IChannelHost chanHost) => null;
 
