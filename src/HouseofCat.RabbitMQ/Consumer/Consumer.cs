@@ -232,8 +232,7 @@ namespace HouseofCat.RabbitMQ
         }
 
         protected virtual async ValueTask<bool> RestartConsumingAsync(IChannelHost chanHost) =>
-            chanHost is null ||
-            (await chanHost.MakeChannelAsync().ConfigureAwait(false) && await StartConsumingAsync().ConfigureAwait(false));
+            await chanHost.MakeChannelAsync().ConfigureAwait(false) && await StartConsumingAsync().ConfigureAwait(false);
 
         protected virtual IDictionary<string, object> CreateConsumerArguments(IChannelHost chanHost) => null;
 
@@ -353,47 +352,48 @@ namespace HouseofCat.RabbitMQ
 
         private async Task HandleUnexpectedShutdownAsync(ShutdownEventArgs e)
         {
-            if (_shutdown)
+            try
+            {
+                if (!await _conLock.WaitAsync(0).ConfigureAwait(false))
+                {
+                    return;
+                }
+            }
+            catch (ObjectDisposedException)
             {
                 return;
             }
 
-            _logger.LogWarning(
-                Consumers.ConsumerShutdownEvent,
-                ConsumerOptions.ConsumerName,
-                e.ReplyText);
+            try
+            {
+                if (_shutdown || _chanHost is null)
+                {
+                    return;
+                }
 
-            await Task.Yield();
-            var success = false;
-            do
+                _logger.LogWarning(
+                    Consumers.ConsumerShutdownEvent,
+                    ConsumerOptions.ConsumerName,
+                    e.ReplyText);
+
+                await Task.Yield();
+                bool success;
+                do
+                {
+                    success = await RestartConsumingAsync(_chanHost).ConfigureAwait(false);
+                } while (!_shutdown && !success);
+            }
+            finally
             {
                 try
                 {
-                    if (!await _conLock.WaitAsync(0).ConfigureAwait(false))
-                    {
-                        continue;
-                    }
+                    _conLock.Release();
                 }
                 catch (ObjectDisposedException)
                 {
-                    break;
+                    // ignored
                 }
-
-                try
-                {
-                    success = await RestartConsumingAsync(_chanHost).ConfigureAwait(false);
-                }
-                finally
-                {
-                    try
-                    {
-                        _conLock.Release();
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                    }
-                }
-            } while (!_shutdown && !success);
+            }
         }
 
         public ChannelReader<ReceivedData> GetConsumerBuffer() => _consumerChannel.Reader;
