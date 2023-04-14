@@ -102,7 +102,7 @@ namespace HouseofCat.RabbitMQ
 
         public async Task StartConsumerAsync()
         {
-            if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
+            if (!await TryEnterLockAsync(0).ConfigureAwait(false)) return;
 
             try
             {
@@ -130,12 +130,12 @@ namespace HouseofCat.RabbitMQ
                     Started = true;
                 }
             }
-            finally { _conLock.Release(); }
+            finally { TryExitLock(); }
         }
 
         public async Task StopConsumerAsync(bool immediate = false)
         {
-            await _conLock.WaitAsync().ConfigureAwait(false);
+            if (!await TryEnterLockAsync().ConfigureAwait(false)) return;
 
             _logger.LogDebug(Consumers.StopConsumer, ConsumerOptions.ConsumerName);
 
@@ -162,11 +162,35 @@ namespace HouseofCat.RabbitMQ
                         ConsumerOptions.ConsumerName);
                 }
             }
-            finally { _conLock.Release(); }
+            finally { TryExitLock(); }
         }
 
         private AsyncEventingBasicConsumer _asyncConsumer;
         private EventingBasicConsumer _consumer;
+
+        protected virtual async Task<bool> TryEnterLockAsync(int millisecondsTimeout = Timeout.Infinite)
+        {
+            try
+            {
+                return await _conLock.WaitAsync(millisecondsTimeout).ConfigureAwait(false);
+            }
+            catch (ObjectDisposedException)
+            {
+                return false;
+            }
+        }
+
+        protected void TryExitLock()
+        {
+            try
+            {
+                _conLock.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+                // ignored
+            }
+        }
 
         protected async ValueTask<bool> StartConsumingAsync()
         {
@@ -361,20 +385,21 @@ namespace HouseofCat.RabbitMQ
             var success = false;
             do
             {
-                try
-                {
-                    if (!await _conLock.WaitAsync(0).ConfigureAwait(false))
-                    {
-                        continue;
-                    }
-                }
-                catch (ObjectDisposedException)
+                // check early to avoid locking where possible.
+                if (_shutdown || _chanHost is null)
                 {
                     break;
                 }
 
+                // use 4 as a small enough value not to delay unnecessarily but could allow StopConsumerAsync to finish
+                if (!await TryEnterLockAsync(4).ConfigureAwait(false))
+                {
+                    continue;
+                }
+
                 try
                 {
+                    // check again, now we are locked.
                     if (_shutdown || _chanHost is null)
                     {
                         break;
@@ -384,14 +409,7 @@ namespace HouseofCat.RabbitMQ
                 }
                 finally
                 {
-                    try
-                    {
-                        _conLock.Release();
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        // ignored
-                    }
+                    TryExitLock();
                 }
             } while (!success);
         }
