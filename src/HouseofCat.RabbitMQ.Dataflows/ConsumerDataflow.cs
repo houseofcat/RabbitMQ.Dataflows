@@ -542,8 +542,8 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         Completion = _currentBlock.Completion;
     }
 
-    protected virtual Consumer CreateConsumer(IChannelPool channelPool, string consumerName) =>
-        new(channelPool, consumerName);
+    protected virtual IConsumer<ReceivedData> CreateConsumer(IChannelPool channelPool, string consumerName) =>
+        new Consumer(channelPool, consumerName);
 
     private void LinkPreProcessing(DataflowLinkOptions overrideOptions = null)
     {

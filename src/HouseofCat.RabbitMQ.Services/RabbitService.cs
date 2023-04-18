@@ -270,7 +270,8 @@ public class RabbitService : IRabbitService, IDisposable
         }
     }
 
-    protected virtual Consumer CreateConsumer(ConsumerOptions consumerOptions) => new(ChannelPool, consumerOptions);
+    protected virtual IConsumer<ReceivedData> CreateConsumer(ConsumerOptions consumerOptions) =>
+        new Consumer(ChannelPool, consumerOptions);
 
     public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
         string consumerName,

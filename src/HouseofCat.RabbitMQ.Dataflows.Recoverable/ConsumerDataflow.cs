@@ -53,6 +53,6 @@ public class ConsumerDataflow<TState> : RabbitMQ.Dataflows.ConsumerDataflow<TSta
         TaskScheduler taskScheduler = null)
         : base(rabbitService, workflowName, consumers, maxDoP, ensureOrdered, taskScheduler) { }
 
-    protected override Consumer CreateConsumer(IChannelPool channelPool, string consumerName) =>
-        new HouseofCat.RabbitMQ.Recoverable.Consumer(channelPool, consumerName);
+    protected override IConsumer<ReceivedData> CreateConsumer(IChannelPool channelPool, string consumerName) =>
+        new RabbitMQ.Recoverable.Consumer(channelPool, consumerName);
 }
