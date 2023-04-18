@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +17,7 @@ public class Consumer : HouseofCat.RabbitMQ.Consumer
 
     protected override IDictionary<string, object> CreateConsumerArguments(IChannelHost chanHost) =>
         chanHost is Pools.IChannelHost recoverableChannelHost
-            ? new Dictionary<string, object>{ { "ChanHostRecoveryId", recoverableChannelHost.RecoveryId } }
+            ? new Dictionary<string, object>{ { "ChannelRecoveryId", recoverableChannelHost.RecoveryId } }
             : base.CreateConsumerArguments(chanHost);
 
     protected override ValueTask<bool> RestartConsumingAsync(IChannelHost chanHost) =>

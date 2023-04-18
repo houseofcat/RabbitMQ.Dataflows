@@ -2,6 +2,7 @@
 using HouseofCat.Dataflows;
 using HouseofCat.Encryption.Providers;
 using HouseofCat.Metrics;
+using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.RabbitMQ.WorkState;
 using HouseofCat.Serialization;
@@ -513,7 +514,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             for (var i = 0; i < _consumerCount; i++)
             {
                 var consumerBlock = New<TConsumerBlock>.Instance.Invoke();
-                consumerBlock.Consumer = new Consumer(_rabbitService.ChannelPool, _consumerName);
+                consumerBlock.Consumer = CreateConsumer(_rabbitService.ChannelPool, _consumerName);
                 _consumerBlocks.Add(consumerBlock);
                 _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
             }
@@ -540,6 +541,9 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         ((ISourceBlock<TState>)_errorBuffer).LinkTo(_errorAction, overrideOptions ?? _linkStepOptions);
         Completion = _currentBlock.Completion;
     }
+
+    protected virtual Consumer CreateConsumer(IChannelPool channelPool, string consumerName) =>
+        new(channelPool, consumerName);
 
     private void LinkPreProcessing(DataflowLinkOptions overrideOptions = null)
     {

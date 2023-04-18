@@ -3,15 +3,14 @@ using System.Threading.Tasks;
 using HouseofCat.Compression;
 using HouseofCat.Encryption.Providers;
 using HouseofCat.RabbitMQ.Pools;
-using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.File;
 using Microsoft.Extensions.Logging;
 using ChannelPool = HouseofCat.RabbitMQ.Recoverable.Pools.ChannelPool;
 
-namespace HouseofCat.RabbitMQ.Recoverable.Service;
+namespace HouseofCat.RabbitMQ.Recoverable.Services;
 
-public class RabbitService : RabbitService<Consumer>
+public class RabbitService : HouseofCat.RabbitMQ.Services.RabbitService
 {
     public RabbitService(
         string fileNamePath,
@@ -34,13 +33,14 @@ public class RabbitService : RabbitService<Consumer>
         IEncryptionProvider encryptionProvider = null,
         ICompressionProvider compressionProvider = null,
         ILoggerFactory loggerFactory = null,
-        Func<IPublishReceipt, ValueTask> processReceiptAsync = null) : this(
-        new ChannelPool(options),
-        serializationProvider,
-        encryptionProvider,
-        compressionProvider,
-        loggerFactory,
-        processReceiptAsync)
+        Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
+        : this(
+            new ChannelPool(options),
+            serializationProvider,
+            encryptionProvider,
+            compressionProvider,
+            loggerFactory,
+            processReceiptAsync)
     { }
 
     public RabbitService(
@@ -49,7 +49,8 @@ public class RabbitService : RabbitService<Consumer>
         IEncryptionProvider encryptionProvider = null,
         ICompressionProvider compressionProvider = null,
         ILoggerFactory loggerFactory = null,
-        Func<IPublishReceipt, ValueTask> processReceiptAsync = null) : base(
+        Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
+        : base(
             chanPool,
             serializationProvider,
             encryptionProvider,

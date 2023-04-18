@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\common.props" />
+  <ItemGroup>
+    <ProjectReference Include="..\HouseofCat.RabbitMQ.Dataflows\HouseofCat.RabbitMQ.Dataflows.csproj" />
+    <ProjectReference Include="..\HouseofCat.RabbitMQ.Recoverable\HouseofCat.RabbitMQ.Recoverable.csproj" />
+  </ItemGroup>
+</Project>

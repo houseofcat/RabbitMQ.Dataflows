@@ -158,7 +158,7 @@ public class ChannelHost : HouseofCat.RabbitMQ.Pools.ChannelHost, IChannelHost
             return;
         }
         EnterLock();
-        if (e.ConsumerArguments.TryGetValue("ChanHostRecoveryId", out var recoveryId) && recoveryId.Equals(RecoveryId))
+        if (e.ConsumerArguments.TryGetValue("ChannelRecoveryId", out var recoveryId) && recoveryId.Equals(RecoveryId))
         {
             RecoveringConsumerTag = e.ConsumerTag;
         }

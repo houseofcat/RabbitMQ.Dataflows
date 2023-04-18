@@ -262,6 +262,13 @@ Formerly found at [RabbitMQ.Core](https://github.com/houseofcat/RabbitMQ.Core)
 A library that extends HouseofCat.RabbitMQ functionality by providing epic TPL Dataflow usage for Tesseract.  
 
 
+## HouseofCat.RabbitMQ.Recoverable.Dataflows
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Dataflows.Recoverable.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Dataflows.Recoverable/)
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Dataflows.Recoverable.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Dataflows.Recoverable/)
+
+A library that extends HouseofCat.RabbitMQ.Recoverable functionality by providing epic TPL Dataflow usage with built-in recovery for Tesseract.
+
+
 ## HouseofCat.RabbitMQ.Mailkit
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
@@ -276,11 +283,25 @@ A library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (E
 A library that extends HouseofCat.RabbitMQ functionality by providing simplified TPL Dataflow usage called Pipelines.  
 
 
+## HouseofCat.RabbitMQ.Recoverable
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Recoverable.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Recoverable/)
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Recoverable.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Recoverable/)
+
+A library that focuses on RabbitMQ connection and channel management with built-in recovery to create fault tolerant Publishers and Consumers.
+
+
 ## HouseofCat.RabbitMQ.Services
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services/)  
 
 A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.RabbitMQ library.   
+
+
+## HouseofCat.RabbitMQ.Services.Recoverable
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.Recoverable.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Recoverable/)
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Recoverable.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Recoverable/)
+
+A library that extends HouseofCat.RabbitMQ.Recoverable to simplify using the HouseofCat.RabbitMQ library with built-in recovery.
 
 
 ## HouseofCat.RabbitMQ.Twilio

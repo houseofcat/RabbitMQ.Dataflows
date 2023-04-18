@@ -51,8 +51,23 @@ public interface IRabbitService
     ValueTask ShutdownAsync(bool immediately);
 }
 
-public class RabbitService : RabbitService<Consumer>
+public class RabbitService : IRabbitService, IDisposable
 {
+    private readonly SemaphoreSlim _serviceLock = new SemaphoreSlim(1, 1);
+    private bool _disposedValue;
+
+    public RabbitOptions Options { get; }
+    public IChannelPool ChannelPool { get; }
+    public IPublisher Publisher { get; }
+    public ITopologer Topologer { get; }
+
+    public ISerializationProvider SerializationProvider { get; }
+    public IEncryptionProvider EncryptionProvider { get; }
+    public ICompressionProvider CompressionProvider { get; }
+
+    public ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<ReceivedData>>();
+    private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerOptions { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
+
     public RabbitService(
         string fileNamePath,
         ISerializationProvider serializationProvider,
@@ -84,41 +99,6 @@ public class RabbitService : RabbitService<Consumer>
     { }
 
     public RabbitService(
-        IChannelPool chanPool,
-        ISerializationProvider serializationProvider,
-        IEncryptionProvider encryptionProvider = null,
-        ICompressionProvider compressionProvider = null,
-        ILoggerFactory loggerFactory = null,
-        Func<IPublishReceipt, ValueTask> processReceiptAsync = null) : base(
-            chanPool,
-            serializationProvider,
-            encryptionProvider,
-            compressionProvider,
-            loggerFactory,
-            processReceiptAsync)
-    { }
-
-    protected override Consumer CreateConsumer(ConsumerOptions consumerOptions) => new(ChannelPool, consumerOptions);
-}
-
-public abstract class RabbitService<TConsumer> : IRabbitService, IDisposable where TConsumer : IConsumer<ReceivedData>
-{
-    private readonly SemaphoreSlim _serviceLock = new SemaphoreSlim(1, 1);
-    private bool _disposedValue;
-
-    public RabbitOptions Options { get; }
-    public IChannelPool ChannelPool { get; }
-    public IPublisher Publisher { get; }
-    public ITopologer Topologer { get; }
-
-    public ISerializationProvider SerializationProvider { get; }
-    public IEncryptionProvider EncryptionProvider { get; }
-    public ICompressionProvider CompressionProvider { get; }
-
-    public ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<ReceivedData>>();
-    private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerOptions { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
-    
-    protected RabbitService(
         IChannelPool chanPool,
         ISerializationProvider serializationProvider,
         IEncryptionProvider encryptionProvider = null,
@@ -290,7 +270,7 @@ public abstract class RabbitService<TConsumer> : IRabbitService, IDisposable whe
         }
     }
 
-    protected abstract TConsumer CreateConsumer(ConsumerOptions consumerOptions);
+    protected virtual Consumer CreateConsumer(ConsumerOptions consumerOptions) => new(ChannelPool, consumerOptions);
 
     public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
         string consumerName,
