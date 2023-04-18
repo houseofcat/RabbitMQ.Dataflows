@@ -59,5 +59,6 @@ public class RabbitService : HouseofCat.RabbitMQ.Services.RabbitService
             processReceiptAsync)
     { }
 
-    protected override Consumer CreateConsumer(ConsumerOptions consumerOptions) => new(ChannelPool, consumerOptions);
+    protected override Consumer CreateConsumer(ConsumerOptions consumerOptions) =>
+        new HouseofCat.RabbitMQ.Recoverable.Consumer(ChannelPool, consumerOptions);
 }
