@@ -8,7 +8,7 @@ using HouseofCat.Utilities.File;
 using Microsoft.Extensions.Logging;
 using ChannelPool = HouseofCat.RabbitMQ.Recoverable.Pools.ChannelPool;
 
-namespace HouseofCat.RabbitMQ.Recoverable.Services;
+namespace HouseofCat.RabbitMQ.Services.Recoverable;
 
 public class RabbitService : HouseofCat.RabbitMQ.Services.RabbitService
 {

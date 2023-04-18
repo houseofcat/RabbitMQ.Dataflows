@@ -75,7 +75,7 @@ namespace RabbitMQ
                         builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information)));
 
         public async ValueTask<IRabbitService> GetRecoverableRabbitServiceAsync() =>
-            new HouseofCat.RabbitMQ.Recoverable.Services.RabbitService(
+            new HouseofCat.RabbitMQ.Services.Recoverable.RabbitService(
                 await GetOptionsAsync().ConfigureAwait(false),
                 SerializationProvider,
                 EncryptionProvider,
