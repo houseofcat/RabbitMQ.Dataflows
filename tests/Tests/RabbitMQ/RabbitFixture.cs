@@ -52,21 +52,22 @@ namespace RabbitMQ
                 () => CheckRabbitHostConnection().AsTask(), AsyncLazyFlags.ExecuteOnCallingThread);
         }
 
-        public async ValueTask<RabbitOptions> GetOptionsAsync()
+        public async ValueTask<RabbitOptions> GetOptionsAsync(bool? withTopologyRecovery = null)
         {
             var options =
                 await JsonFileReader.ReadFileAsync<RabbitOptions>(Path.Combine("RabbitMQ", "TestConfig.json"))
                     .ConfigureAwait(false);
+            options.FactoryOptions.TopologyRecovery = withTopologyRecovery ?? options.FactoryOptions.TopologyRecovery;
             await CheckRabbitHostConnectionAndUpdateFactoryOptions(options).ConfigureAwait(false);
             return options;
         }
 
-        public async ValueTask<IChannelPool> GetChannelPoolAsync() =>
-            new ChannelPool(await GetOptionsAsync().ConfigureAwait(false));
+        public async ValueTask<IChannelPool> GetChannelPoolAsync(bool? withTopologyRecovery = null) =>
+            new ChannelPool(await GetOptionsAsync(withTopologyRecovery).ConfigureAwait(false));
 
-        public async ValueTask<IRabbitService> GetRabbitServiceAsync() =>
+        public async ValueTask<IRabbitService> GetRabbitServiceAsync(bool? withTopologyRecovery = null) =>
             new RabbitService(
-                await GetChannelPoolAsync().ConfigureAwait(false),
+                await GetChannelPoolAsync(withTopologyRecovery).ConfigureAwait(false),
                 SerializationProvider,
                 EncryptionProvider,
                 CompressionProvider,
@@ -74,9 +75,9 @@ namespace RabbitMQ
                     .Create(
                         builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information)));
 
-        public async ValueTask<IRabbitService> GetRecoverableRabbitServiceAsync() =>
+        public async ValueTask<IRabbitService> GetRecoverableRabbitServiceAsync(bool? withTopologyRecovery = null) =>
             new HouseofCat.RabbitMQ.Services.Recoverable.RabbitService(
-                await GetOptionsAsync().ConfigureAwait(false),
+                await GetOptionsAsync(withTopologyRecovery).ConfigureAwait(false),
                 SerializationProvider,
                 EncryptionProvider,
                 CompressionProvider,

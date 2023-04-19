@@ -64,18 +64,24 @@ namespace RabbitMQ
             await con.ChannelPool.ShutdownAsync().ConfigureAwait(false);
         }
 
-        [Fact]
-        public async Task CreateManyConsumersStartAndStop()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task CreateManyConsumersStartAndStop(bool withTopologyRecovery)
         {
             if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var channelPool = await _fixture.GetChannelPoolAsync().ConfigureAwait(false);
+            var channelPool = await _fixture.GetChannelPoolAsync(withTopologyRecovery).ConfigureAwait(false);
+            var topologer = new Topologer(channelPool);
             for (var i = 0; i < 1000; i++)
             {
                 var con = new Consumer(channelPool, "TestMessageConsumer");
+                await topologer.CreateQueueAsync(
+                    con.ConsumerOptions.QueueName, true, false, false, con.ConsumerOptions.QueueArgs)
+                    .ConfigureAwait(false);
 
                 await con.StartConsumerAsync().ConfigureAwait(false);
                 await con.StopConsumerAsync().ConfigureAwait(false);
@@ -84,15 +90,17 @@ namespace RabbitMQ
             await channelPool.ShutdownAsync().ConfigureAwait(false);
         }
 
-        [Fact]
-        public async Task ConsumerStartAndStopTesting()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task ConsumerStartAndStopTesting(bool withTopologyRecovery)
         {
             if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
+            var service = await _fixture.GetRabbitServiceAsync(withTopologyRecovery).ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
 
             for (var i = 0; i < 100; i++)
@@ -104,15 +112,17 @@ namespace RabbitMQ
             await service.ShutdownAsync(true).ConfigureAwait(false);
         }
 
-        [Fact]
-        public async Task ConsumerPipelineStartAndStopTesting()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task ConsumerPipelineStartAndStopTesting(bool withTopologyRecovery)
         {
             if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
+            var service = await _fixture.GetRabbitServiceAsync(withTopologyRecovery).ConfigureAwait(false);
             var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
             for (var i = 0; i < 100; i++)
             {
@@ -123,151 +133,115 @@ namespace RabbitMQ
             await service.ShutdownAsync(true).ConfigureAwait(false);
         }
 
-        [Fact]
-        public async Task ConsumerPipelineCompletionTesting()
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public async Task ConsumerChannelBlockTesting(bool recoverable, bool withTopologyRecovery)
         {
             if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
-            var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
-            await CheckHasUnacknowledgedMessages(
-                service,
-                () => consumerPipeline.StartAsync(true),
-                () => new ValueTask(consumerPipeline.AwaitCompletionAsync()),
-                () => consumerPipeline.StopAsync(true));
-        }
-
-        [Fact]
-        public async Task RecoverableConsumerPipelineCompletionTesting()
-        {
-            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
-            {
-                return;
-            }
-
-            var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
-            var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
-            await AssertNoUnacknowledgedMessages(
-                service,
-                () => consumerPipeline.StartAsync(true),
-                () => new ValueTask(consumerPipeline.AwaitCompletionAsync()),
-                () => consumerPipeline.StopAsync(true));
-        }
-
-        [Fact]
-        public async Task ConsumerChannelBlockTesting()
-        {
-            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
-            {
-                return;
-            }
-
-            var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
+            var service =
+                recoverable
+                    ? await _fixture.GetRecoverableRabbitServiceAsync(withTopologyRecovery).ConfigureAwait(false)
+                    : await _fixture.GetRabbitServiceAsync(withTopologyRecovery).ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
             await CheckHasUnacknowledgedMessages(
                 service,
+                recoverable,
                 consumer.StartConsumerAsync,
                 () => new ValueTask(consumer.ChannelExecutionEngineAsync(TryProcessMessageAsync)));
         }
 
-        [Fact]
-        public async Task RecoverableConsumerChannelBlockTesting()
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public async Task ConsumerDirectChannelBlockTesting(bool recoverable, bool withTopologyRecovery)
         {
             if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
-            var consumer = service.GetConsumer("TestMessageConsumer");
-            await AssertNoUnacknowledgedMessages(
-                service,
-                consumer.StartConsumerAsync,
-                () => new ValueTask(consumer.ChannelExecutionEngineAsync(TryProcessMessageAsync)));
-        }
-
-        [Fact]
-        public async Task ConsumerDirectChannelBlockTesting()
-        {
-            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
-            {
-                return;
-            }
-
-            var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
+            var service =
+                recoverable
+                    ? await _fixture.GetRecoverableRabbitServiceAsync(withTopologyRecovery).ConfigureAwait(false)
+                    : await _fixture.GetRabbitServiceAsync(withTopologyRecovery).ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
             await CheckHasUnacknowledgedMessages(
                 service,
+                recoverable || !withTopologyRecovery,
                 consumer.StartConsumerAsync,
                 () => new ValueTask(consumer.DirectChannelExecutionEngineAsync(TryProcessMessageAsync)));
         }
 
-        [Fact]
-        public async Task RecoverableConsumerDirectChannelBlockTesting()
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public async Task ConsumerDirectChannelReaderBlockTesting(bool recoverable, bool withTopologyRecovery)
         {
             if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
-            var consumer = service.GetConsumer("TestMessageConsumer");
-            await AssertNoUnacknowledgedMessages(
-                service,
-                consumer.StartConsumerAsync,
-                () => new ValueTask(consumer.DirectChannelExecutionEngineAsync(TryProcessMessageAsync)));
-        }
-
-        [Fact]
-        public async Task ConsumerDirectChannelReaderBlockTesting()
-        {
-            if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
-            {
-                return;
-            }
-
-            var service = await _fixture.GetRabbitServiceAsync().ConfigureAwait(false);
+            var service =
+                recoverable
+                    ? await _fixture.GetRecoverableRabbitServiceAsync(withTopologyRecovery).ConfigureAwait(false)
+                    : await _fixture.GetRabbitServiceAsync(withTopologyRecovery).ConfigureAwait(false);
             var consumer = service.GetConsumer("TestMessageConsumer");
             await CheckHasUnacknowledgedMessages(
                 service,
+                recoverable || !withTopologyRecovery,
                 consumer.StartConsumerAsync,
                 () => consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync, FinaliseAsync));
         }
 
-        [Fact]
-        public async Task RecoverableConsumerDirectChannelReaderBlockTesting()
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public async Task ConsumerPipelineCompletionTesting(bool recoverable, bool withTopologyRecovery)
         {
             if (!await _fixture.RabbitConnectionCheckAsync.ConfigureAwait(false))
             {
                 return;
             }
 
-            var service = await _fixture.GetRecoverableRabbitServiceAsync().ConfigureAwait(false);
-            var consumer = service.GetConsumer("TestMessageConsumer");
-            await AssertNoUnacknowledgedMessages(
+            var service =
+                recoverable
+                    ? await _fixture.GetRecoverableRabbitServiceAsync(withTopologyRecovery).ConfigureAwait(false)
+                    : await _fixture.GetRabbitServiceAsync(withTopologyRecovery).ConfigureAwait(false);
+            var consumerPipeline = service.CreateConsumerPipeline("TestMessageConsumer", 100, false, BuildPipeline);
+            await CheckHasUnacknowledgedMessages(
                 service,
-                consumer.StartConsumerAsync,
-                () => consumer.DirectChannelExecutionEngineAsync(ProcessMessageAsync, FinaliseAsync));
-        }
-
-        private async Task AssertNoUnacknowledgedMessages(
-            IRabbitService service, Func<Task> start, Func<ValueTask> execute, Func<Task> stop = null)
-        {
-            var closeAndPublishTask = RecoverConnectionsThenPublishRandomLetters(service);
-            await RunTasks(service, start, execute, closeAndPublishTask, stop).ConfigureAwait(false);
-            Assert.True(await closeAndPublishTask);
+                recoverable || !withTopologyRecovery,
+                () => consumerPipeline.StartAsync(true),
+                () => new ValueTask(consumerPipeline.AwaitCompletionAsync()),
+                () => consumerPipeline.StopAsync(true));
         }
 
         private async Task CheckHasUnacknowledgedMessages(
-            IRabbitService service, Func<Task> start, Func<ValueTask> execute, Func<Task> stop = null)
+            IRabbitService service, bool assertTrue, Func<Task> start, Func<ValueTask> execute, Func<Task> stop = null)
         {
             // reconnectedCount should be 1
             var closeAndPublishTask = RecoverConnectionsThenPublishRandomLetters(service);
             await RunTasks(service, start, execute, closeAndPublishTask, stop).ConfigureAwait(false);
-            // this should be Assert.True without try/catch
+            // this should always be Assert.True without try/catch for a False condition
+            if (assertTrue)
+            {
+                Assert.True(await closeAndPublishTask);
+                return;
+            }
             try
             {
                 Assert.False(await closeAndPublishTask);
