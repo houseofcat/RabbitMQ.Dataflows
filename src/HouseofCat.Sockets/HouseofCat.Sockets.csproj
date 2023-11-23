@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\common.props" />
-  <ItemGroup>
-    <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Framing\HouseofCat.Framing.csproj" />
-    <ProjectReference Include="..\HouseofCat.Network\HouseofCat.Network.csproj" />
-  </ItemGroup>
+	<Import Project="..\..\common.props" />
+	<ItemGroup>
+		<PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\HouseofCat.Framing\HouseofCat.Framing.csproj" />
+		<ProjectReference Include="..\HouseofCat.Network\HouseofCat.Network.csproj" />
+	</ItemGroup>
 </Project>

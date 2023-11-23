@@ -1,6 +1,6 @@
 using ConsumerDataflowMetrics.Services;
 using HouseofCat.Compression;
-using HouseofCat.Encryption;
+using HouseofCat.Encryption.Providers;
 using HouseofCat.Hashing.Argon;
 using HouseofCat.Metrics;
 using HouseofCat.RabbitMQ.Services;

@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\common.props" />
-  <ItemGroup>
-    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.1" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
-    <ProjectReference Include="..\HouseofCat.Recyclable\HouseofCat.Recyclable.csproj" />
-  </ItemGroup>
+	<Import Project="..\..\common.props" />
+	<ItemGroup>
+		<PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
+		<PackageReference Include="System.Memory" Version="4.5.5" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
+		<ProjectReference Include="..\HouseofCat.Recyclable\HouseofCat.Recyclable.csproj" />
+	</ItemGroup>
 </Project>

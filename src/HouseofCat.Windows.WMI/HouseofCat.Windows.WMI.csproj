@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\common.props" />
-  <PropertyGroup>
-    <TargetFrameworks>net6.0-windows;net7.0-windows</TargetFrameworks>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Windows.Compatibility" Version="7.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Windows.NativeMethods\HouseofCat.Windows.NativeMethods.csproj" />
-  </ItemGroup>
+	<Import Project="..\..\common.props" />
+	<PropertyGroup>
+		<TargetFrameworks>net7.0-windows;net8.0-windows</TargetFrameworks>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Windows.Compatibility" Version="8.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\HouseofCat.Windows.NativeMethods\HouseofCat.Windows.NativeMethods.csproj" />
+	</ItemGroup>
 </Project>

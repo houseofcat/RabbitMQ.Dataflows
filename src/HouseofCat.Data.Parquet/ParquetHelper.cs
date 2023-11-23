@@ -1,5 +1,4 @@
-﻿using HouseofCat.Encryption;
-using HouseofCat.Encryption.Providers;
+﻿using HouseofCat.Encryption.Providers;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.Time;
 using Microsoft.Extensions.Configuration;

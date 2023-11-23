@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\common.props" />
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
-    <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
-  </ItemGroup>
+	<Import Project="..\..\common.props" />
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
+		<ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
+	</ItemGroup>
 </Project>

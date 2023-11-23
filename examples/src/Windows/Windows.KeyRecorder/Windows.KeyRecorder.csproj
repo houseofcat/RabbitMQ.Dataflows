@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<UseWindowsForms>true</UseWindowsForms>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\src\HouseofCat.Windows.Keyboard\HouseofCat.Windows.Keyboard.csproj" />
-    <ProjectReference Include="..\..\..\..\src\HouseofCat.Windows.NativeMethods\HouseofCat.Windows.NativeMethods.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\..\src\HouseofCat.Windows.Keyboard\HouseofCat.Windows.Keyboard.csproj" />
+		<ProjectReference Include="..\..\..\..\src\HouseofCat.Windows.NativeMethods\HouseofCat.Windows.NativeMethods.csproj" />
+	</ItemGroup>
 
 </Project>

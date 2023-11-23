@@ -312,8 +312,6 @@ namespace HouseofCat.Data.Database
 
             if (!string.IsNullOrWhiteSpace(details.Username))
             { csb.Username = details.Username; }
-            else // If username is not provided, use built-in current Windows user Account.
-            { csb.IntegratedSecurity = true; }
 
             if (!string.IsNullOrWhiteSpace(details.Password))
             { csb.Password = details.Password; }
@@ -329,13 +327,6 @@ namespace HouseofCat.Data.Database
 
             if (details.Metadata.NpgsqlOptions != null)
             {
-                // These are all the same. Use built-in Window Authentication.
-                // Trusted_Connection=true
-                // IntegratedSecurity=true
-                // IntegratedSecurity=SSPI 
-                if (csb.IntegratedSecurity)
-                { csb.IntegratedSecurity = details.Metadata.NpgsqlOptions.IntegratedSecurity; }
-
                 if (Enum.TryParse<Npgsql.SslMode>(
                     details.Metadata.NpgsqlOptions.SslMode,
                     out var mode))

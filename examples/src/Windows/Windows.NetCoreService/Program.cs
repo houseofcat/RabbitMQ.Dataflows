@@ -1,4 +1,4 @@
-using HouseofCat.Extensions;
+using HouseofCat.Serilog;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;

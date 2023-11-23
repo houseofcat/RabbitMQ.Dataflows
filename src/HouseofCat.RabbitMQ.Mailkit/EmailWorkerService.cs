@@ -75,7 +75,7 @@ namespace HouseofCat.RabbitMQ.Services
                     if (RunningTask.Exception is not null)
                     {
                         var ex = RunningTask.Exception.Flatten().InnerException;
-                        _logger.LogError("Error in excution.", ex);
+                        _logger.LogError(ex, "Error in excution.");
                     }
                 }
 

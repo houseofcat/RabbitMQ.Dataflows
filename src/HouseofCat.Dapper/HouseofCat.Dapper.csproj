@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\common.props" />
-  <ItemGroup>
-	<PackageReference Include="dotMorten.Microsoft.SqlServer.Types" Version="2.5.0" />
-    <PackageReference Include="Dapper" Version="2.0.123" />
-	<PackageReference Include="Microsoft.Spatial" Version="7.14.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Data.Database\HouseofCat.Data.Database.csproj" />
-    <ProjectReference Include="..\HouseofCat.Reflection\HouseofCat.Reflection.csproj" />
-    <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
-  </ItemGroup>
+	<Import Project="..\..\common.props" />
+	<ItemGroup>
+		<PackageReference Include="dotMorten.Microsoft.SqlServer.Types" Version="2.5.0" />
+		<PackageReference Include="Dapper" Version="2.1.24" />
+		<PackageReference Include="Microsoft.Spatial" Version="7.18.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\HouseofCat.Data.Database\HouseofCat.Data.Database.csproj" />
+		<ProjectReference Include="..\HouseofCat.Reflection\HouseofCat.Reflection.csproj" />
+		<ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
+	</ItemGroup>
 </Project>

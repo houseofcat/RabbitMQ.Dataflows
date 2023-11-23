@@ -1,5 +1,6 @@
 ﻿using HouseofCat.Compression;
-using HouseofCat.Encryption;
+using HouseofCat.Encryption.Providers;
+using HouseofCat.Encryption.Recyclable;
 using HouseofCat.Hashing;
 using HouseofCat.Hashing.Argon;
 using HouseofCat.Logger;

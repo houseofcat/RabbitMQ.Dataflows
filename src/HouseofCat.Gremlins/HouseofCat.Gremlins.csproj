@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\common.props" />
-  <PropertyGroup>
-	<TargetFrameworks>net6.0-windows;net7.0-windows</TargetFrameworks>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Windows.Threading\HouseofCat.Windows.Threading.csproj" />
-    <ProjectReference Include="..\HouseofCat.Windows.WMI\HouseofCat.Windows.WMI.csproj" />
-  </ItemGroup>
+	<Import Project="..\..\common.props" />
+	<PropertyGroup>
+		<TargetFrameworks>net7.0-windows;net8.0-windows</TargetFrameworks>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\HouseofCat.Windows.Threading\HouseofCat.Windows.Threading.csproj" />
+		<ProjectReference Include="..\HouseofCat.Windows.WMI\HouseofCat.Windows.WMI.csproj" />
+	</ItemGroup>
 </Project>

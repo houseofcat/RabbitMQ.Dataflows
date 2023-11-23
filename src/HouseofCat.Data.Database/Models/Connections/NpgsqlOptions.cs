@@ -5,8 +5,6 @@ namespace HouseofCat.Data.Database
 {
     public class NpgsqlOptions
     {
-        public bool IntegratedSecurity { get; set; }
-
         public string SslMode { get; set; }
 
         [DefaultValue(true)]

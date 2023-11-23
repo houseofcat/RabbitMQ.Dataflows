@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\common.props" />
-  <ItemGroup>
-    <PackageReference Include="FastMember" Version="1.5.0" />
-  </ItemGroup>
+	<Import Project="..\..\common.props" />
+	<ItemGroup>
+		<PackageReference Include="FastMember" Version="1.5.0" />
+	</ItemGroup>
 </Project>

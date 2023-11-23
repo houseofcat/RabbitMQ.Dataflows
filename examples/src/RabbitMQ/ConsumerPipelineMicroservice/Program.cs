@@ -1,6 +1,6 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Dataflows.Pipelines;
-using HouseofCat.Encryption;
+using HouseofCat.Encryption.Providers;
 using HouseofCat.Hashing;
 using HouseofCat.Hashing.Argon;
 using HouseofCat.RabbitMQ;

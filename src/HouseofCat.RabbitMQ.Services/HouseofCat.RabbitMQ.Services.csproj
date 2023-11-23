@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\common.props" />
-  <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
-    <ProjectReference Include="..\HouseofCat.Dataflows.Pipelines\HouseofCat.Dataflows.Pipelines.csproj" />
-    <ProjectReference Include="..\HouseofCat.Dataflows\HouseofCat.Dataflows.csproj" />
-    <ProjectReference Include="..\HouseofCat.Encryption.Providers\HouseofCat.Encryption.Providers.csproj" />
-    <ProjectReference Include="..\HouseofCat.RabbitMQ.Pipelines\HouseofCat.RabbitMQ.Pipelines.csproj" />
-    <ProjectReference Include="..\HouseofCat.RabbitMQ.WorkState\HouseofCat.RabbitMQ.WorkState.csproj" />
-    <ProjectReference Include="..\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
-    <ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
-    <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
-  </ItemGroup>
+	<Import Project="..\..\common.props" />
+	<ItemGroup>
+		<ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
+		<ProjectReference Include="..\HouseofCat.Dataflows.Pipelines\HouseofCat.Dataflows.Pipelines.csproj" />
+		<ProjectReference Include="..\HouseofCat.Dataflows\HouseofCat.Dataflows.csproj" />
+		<ProjectReference Include="..\HouseofCat.Encryption.Providers\HouseofCat.Encryption.Providers.csproj" />
+		<ProjectReference Include="..\HouseofCat.RabbitMQ.Pipelines\HouseofCat.RabbitMQ.Pipelines.csproj" />
+		<ProjectReference Include="..\HouseofCat.RabbitMQ.WorkState\HouseofCat.RabbitMQ.WorkState.csproj" />
+		<ProjectReference Include="..\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
+		<ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
+		<ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
+	</ItemGroup>
 </Project>

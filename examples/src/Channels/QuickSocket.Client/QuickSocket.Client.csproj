@@ -1,16 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\src\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
-    <ProjectReference Include="..\..\..\..\src\HouseofCat.Sockets\HouseofCat.Sockets.csproj" />
-    <ProjectReference Include="..\..\..\..\src\HouseofCat.Sockets.Utf8Json\HouseofCat.Sockets.Utf8Json.csproj" />
-    <ProjectReference Include="..\..\..\..\src\HouseofCat.Framing\HouseofCat.Framing.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\..\src\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
+		<ProjectReference Include="..\..\..\..\src\HouseofCat.Sockets\HouseofCat.Sockets.csproj" />
+		<ProjectReference Include="..\..\..\..\src\HouseofCat.Sockets.Utf8Json\HouseofCat.Sockets.Utf8Json.csproj" />
+		<ProjectReference Include="..\..\..\..\src\HouseofCat.Framing\HouseofCat.Framing.csproj" />
+	</ItemGroup>
 
 </Project>
