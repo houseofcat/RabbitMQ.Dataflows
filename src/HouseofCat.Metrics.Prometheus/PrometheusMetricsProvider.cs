@@ -47,26 +47,20 @@ namespace HouseofCat.Metrics
             CaptureLevel threadPoolCaptureLevel = CaptureLevel.Counters,
             ThreadPoolMetricsProducer.Options threadPoolOptions = null)
         {
-            if (_collector == null)
-            {
-                _collector = DotNetRuntimeStatsBuilder
+            _collector ??= DotNetRuntimeStatsBuilder
                     .Customize()
                     .WithContentionStats(contentionCaptureLevel, contentionSampleRate)
                     .WithJitStats(jitCaptureLevel, jitSampleRate)
                     .WithThreadPoolStats(threadPoolCaptureLevel, threadPoolOptions)
                     .WithGcStats()
                     .StartCollecting();
-            }
 
             return this;
         }
 
         public PrometheusMetricsProvider AddDotNetRuntimeStats(DotNetRuntimeStatsBuilder.Builder builder)
         {
-            if (_collector == null)
-            {
-                _collector = builder.StartCollecting();
-            }
+            _collector ??= builder.StartCollecting();
 
             return this;
         }

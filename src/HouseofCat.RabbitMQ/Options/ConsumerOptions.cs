@@ -37,8 +37,7 @@ namespace HouseofCat.RabbitMQ
 
             if (globalConsumerOptions.GlobalConsumerPipelineOptions != null)
             {
-                if (ConsumerPipelineOptions == null)
-                { ConsumerPipelineOptions = new ConsumerPipelineOptions(); }
+                ConsumerPipelineOptions ??= new ConsumerPipelineOptions();
 
                 ConsumerPipelineOptions.WaitForCompletion =
                     globalConsumerOptions.GlobalConsumerPipelineOptions.WaitForCompletion

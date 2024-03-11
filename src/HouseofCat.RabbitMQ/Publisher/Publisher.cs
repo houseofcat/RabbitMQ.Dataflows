@@ -178,13 +178,9 @@ namespace HouseofCat.RabbitMQ
 
             _publishingTask = ProcessMessagesAsync(_messageQueue.Reader);
 
-            if (processReceiptAsync == null)
-            { processReceiptAsync = ProcessReceiptAsync; }
+            processReceiptAsync ??= ProcessReceiptAsync;
 
-            if (_processReceiptsAsync == null)
-            {
-                _processReceiptsAsync = ProcessReceiptsAsync(processReceiptAsync);
-            }
+            _processReceiptsAsync ??= ProcessReceiptsAsync(processReceiptAsync);
 
             AutoPublisherStarted = true;
         }

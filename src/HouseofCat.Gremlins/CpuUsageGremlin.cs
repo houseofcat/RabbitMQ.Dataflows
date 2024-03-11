@@ -49,10 +49,7 @@ namespace HouseofCat.Gremlins
         /// </summary>
         public async Task StartCpuCoreThreadsAsync(ThreadPriority threadPriority = ThreadPriority.Lowest)
         {
-            if (CpuCoreThreadContainers == null)
-            {
-                CpuCoreThreadContainers = await CreateCpuCoreThreadContainersAsync(threadPriority).ConfigureAwait(false);
-            }
+            CpuCoreThreadContainers ??= await CreateCpuCoreThreadContainersAsync(threadPriority).ConfigureAwait(false);
 
             for (int i = 0; i < CpuCoreThreadContainers.Length; i++)
             {

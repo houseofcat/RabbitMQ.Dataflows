@@ -39,8 +39,7 @@ namespace HouseofCat.RabbitMQ
 
         public static void UpsertHeader(this IMetadata metadata, string key, object value)
         {
-            if (metadata.CustomFields == null)
-            { metadata.CustomFields = new Dictionary<string, object>(); }
+            metadata.CustomFields ??= new Dictionary<string, object>();
 
             metadata.CustomFields[key] = value;
         }
@@ -75,8 +74,7 @@ namespace HouseofCat.RabbitMQ
 
         public static void WriteHeadersToMetadata(this IMetadata metadata, IDictionary<string, object> headers)
         {
-            if (metadata.CustomFields == null)
-            { metadata.CustomFields = new Dictionary<string, object>(); }
+            metadata.CustomFields ??= new Dictionary<string, object>();
 
             foreach (var kvp in headers)
             {

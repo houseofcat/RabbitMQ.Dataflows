@@ -263,10 +263,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
     public ConsumerDataflow<TState> WithReadyToProcessBuffer(int boundedCapacity, TaskScheduler taskScheduler = null)
     {
-        if (_readyBuffer == null)
-        {
-            _readyBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
-        }
+        _readyBuffer ??= CreateTargetBlock(boundedCapacity, taskScheduler);
         return this;
     }
 
@@ -307,10 +304,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     public ConsumerDataflow<TState> WithPostProcessingBuffer(
         int boundedCapacity, TaskScheduler taskScheduler = null)
     {
-        if (_postProcessingBuffer == null)
-        {
-            _postProcessingBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
-        }
+        _postProcessingBuffer ??= CreateTargetBlock(boundedCapacity, taskScheduler);
         return this;
     }
 
@@ -499,14 +493,11 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         Guard.AgainstNull(_finalization, nameof(_finalization)); // Leaving The Workflow Is Mandatory
         Guard.AgainstNull(_errorAction, nameof(_errorAction)); // Processing Errors Is Mandatory
 
-        if (_inputBuffer == null)
-        { _inputBuffer = new BufferBlock<ReceivedData>(); }
+        _inputBuffer ??= new BufferBlock<ReceivedData>();
 
-        if (_readyBuffer == null)
-        { _readyBuffer = new BufferBlock<TState>(); }
+        _readyBuffer ??= new BufferBlock<TState>();
 
-        if (_postProcessingBuffer == null)
-        { _postProcessingBuffer = new BufferBlock<TState>(); }
+        _postProcessingBuffer ??= new BufferBlock<TState>();
 
         if (_consumers == null)
         {
