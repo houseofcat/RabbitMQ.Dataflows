@@ -2,7 +2,7 @@
 	<Import Project="version.props" />
 	<PropertyGroup>
 		<!-- Shared Project Properties -->
-		<TargetFrameworks>net7.0;net8.0</TargetFrameworks>
+		<TargetFrameworks>net8.0</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
 		<NoWarn>1591</NoWarn>
 		<IsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</IsWindows>
@@ -12,7 +12,7 @@
 		<!-- NuGet Attributes -->
 		<Authors>HouseofCat.io</Authors>
 		<Description>HouseofCat.io Tesseract library is used across many projects.</Description>
-		<Copyright>Copyright © 2022</Copyright>
+		<Copyright>Copyright © 2024</Copyright>
 		<Product>HouseofCat.io - Tesseract</Product>
 		<PackageIcon>houseofcat.png</PackageIcon>
 		<PackageTags>C# NetCore HouseofCat HouseofCat.io</PackageTags>

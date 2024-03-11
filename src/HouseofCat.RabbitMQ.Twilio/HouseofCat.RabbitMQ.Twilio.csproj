@@ -2,9 +2,9 @@
 	<Import Project="..\..\common.props" />
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
-		<PackageReference Include="Twilio" Version="6.15.1" />
+		<PackageReference Include="Twilio" Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\HouseofCat.Dataflows.Pipelines\HouseofCat.Dataflows.Pipelines.csproj" />

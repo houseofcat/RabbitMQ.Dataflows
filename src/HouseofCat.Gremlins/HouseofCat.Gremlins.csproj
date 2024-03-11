@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="..\..\common.props" />
 	<PropertyGroup>
-		<TargetFrameworks>net7.0-windows;net8.0-windows</TargetFrameworks>
+		<TargetFrameworks>net8.0-windows</TargetFrameworks>
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\HouseofCat.Windows.Threading\HouseofCat.Windows.Threading.csproj" />
