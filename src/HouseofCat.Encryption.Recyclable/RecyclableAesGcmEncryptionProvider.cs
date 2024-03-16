@@ -40,7 +40,7 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
     {
         Guard.AgainstEmpty(unencryptedData, nameof(unencryptedData));
 
-        using var aes = new AesGcm(_key.Span);
+        using var aes = new AesGcm(_key.Span, AesGcm.TagByteSizes.MaxSize);
 
         // Slicing Version
         // Rented arrays sizes are minimums, not guarantees.
@@ -75,7 +75,7 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
     {
         Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
 
-        using var aes = new AesGcm(_key.Span);
+        using var aes = new AesGcm(_key.Span, AesGcm.TagByteSizes.MaxSize);
 
         var length = (int)unencryptedStream.Length;
         (var buffer, var returnBuffer) = unencryptedStream.GetSafeBuffer(length);
@@ -126,7 +126,7 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
     {
         Guard.AgainstNullOrEmpty(unencryptedStream, nameof(unencryptedStream));
 
-        using var aes = new AesGcm(_key.Span);
+        using var aes = new AesGcm(_key.Span, AesGcm.TagByteSizes.MaxSize);
 
         var length = (int)unencryptedStream.Length;
         (var buffer, var returnTobuffer) = await unencryptedStream.GetSafeBufferAsync(length);
@@ -184,7 +184,7 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
     {
         Guard.AgainstEmpty(encryptedData, nameof(encryptedData));
 
-        using var aes = new AesGcm(_key.Span);
+        using var aes = new AesGcm(_key.Span, AesGcm.TagByteSizes.MaxSize);
 
         // Slicing Version
         var nonce = encryptedData
@@ -212,7 +212,7 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
 
         if (encryptedStream.Position == encryptedStream.Length) { encryptedStream.Seek(0, SeekOrigin.Begin); }
 
-        using var aes = new AesGcm(_key.Span);
+        using var aes = new AesGcm(_key.Span, AesGcm.TagByteSizes.MaxSize);
 
         var encryptedByteLength = (int)encryptedStream.Length - AesGcm.NonceByteSizes.MaxSize - AesGcm.TagByteSizes.MaxSize;
         var encryptedBufferBytes = _pool.Rent(encryptedByteLength);

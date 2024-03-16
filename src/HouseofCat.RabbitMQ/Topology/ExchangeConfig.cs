@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 
-namespace HouseofCat.RabbitMQ
+namespace HouseofCat.RabbitMQ;
+
+public class ExchangeConfig
 {
-    public class ExchangeConfig
-    {
-        public string Name { get; set; }
-        public string Type { get; set; }
-        public bool Durable { get; set; }
-        public bool AutoDelete { get; set; }
-        public IDictionary<string, object> Args { get; set; }
-    }
+    public string Name { get; set; }
+    public string Type { get; set; }
+    public bool Durable { get; set; }
+    public bool AutoDelete { get; set; }
+    public IDictionary<string, object> Args { get; set; }
 }

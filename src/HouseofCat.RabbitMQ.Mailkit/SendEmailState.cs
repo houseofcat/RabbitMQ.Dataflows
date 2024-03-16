@@ -1,9 +1,8 @@
 ﻿using HouseofCat.RabbitMQ.WorkState;
 
-namespace HouseofCat.RabbitMQ.Services
+namespace HouseofCat.RabbitMQ.Services;
+
+public class SendEmailState : RabbitWorkState
 {
-    public class SendEmailState : RabbitWorkState
-    {
-        public SendEmail SendEmail { get; set; }
-    }
+    public SendEmail SendEmail { get; set; }
 }

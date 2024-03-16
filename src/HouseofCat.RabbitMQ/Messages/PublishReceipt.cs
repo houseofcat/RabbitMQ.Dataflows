@@ -1,19 +1,18 @@
-namespace HouseofCat.RabbitMQ
+namespace HouseofCat.RabbitMQ;
+
+public interface IPublishReceipt
 {
-    public interface IPublishReceipt
-    {
-        bool IsError { get; set; }
-        string MessageId { get; set; }
+    bool IsError { get; set; }
+    string MessageId { get; set; }
 
-        IMessage GetOriginalMessage();
-    }
+    IMessage GetOriginalMessage();
+}
 
-    public struct PublishReceipt : IPublishReceipt
-    {
-        public bool IsError { get; set; }
-        public string MessageId { get; set; }
-        public IMessage OriginalLetter { get; set; }
+public struct PublishReceipt : IPublishReceipt
+{
+    public bool IsError { get; set; }
+    public string MessageId { get; set; }
+    public IMessage OriginalLetter { get; set; }
 
-        public IMessage GetOriginalMessage() => OriginalLetter;
-    }
+    public IMessage GetOriginalMessage() => OriginalLetter;
 }

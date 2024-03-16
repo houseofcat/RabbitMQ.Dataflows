@@ -199,7 +199,7 @@ namespace HouseofCat.RabbitMQ
                 {
                     _logger.LogError(ex, "Exception creating internal RabbitMQ consumer. Retrying...");
                     await Task.Delay(1000).ConfigureAwait(false);
-                    await _chanHost.MakeChannelAsync().ConfigureAwait(false);
+                    await _chanHost.BuildRabbitMQChannelAsync().ConfigureAwait(false);
                     return false;
                 }
             }
@@ -222,7 +222,7 @@ namespace HouseofCat.RabbitMQ
                 {
                     _logger.LogError(ex, "Exception creating internal RabbitMQ consumer. Retrying...");
                     await Task.Delay(1000).ConfigureAwait(false);
-                    await _chanHost.MakeChannelAsync().ConfigureAwait(false);
+                    await _chanHost.BuildRabbitMQChannelAsync().ConfigureAwait(false);
                     return false;
                 }
             }
@@ -373,23 +373,22 @@ namespace HouseofCat.RabbitMQ
         {
             if (!_shutdown)
             {
-                await Task.Yield();
-                bool success;
-                do
+                var healthy = false;
+                while (!_shutdown && !healthy)
                 {
-                    success = await _chanHost.MakeChannelAsync().ConfigureAwait(false);
+                    healthy = await _chanHost.HealthyAsync().ConfigureAwait(false);
 
-                    if (success)
+                    if (healthy)
                     {
-                        _logger.LogWarning(
+                        _logger.LogInformation(
                             LogMessages.Consumers.ConsumerShutdownEvent,
                             ConsumerOptions.ConsumerName,
                             e.ReplyText);
-
-                        success = await StartConsumingAsync().ConfigureAwait(false);
+                        return;
                     }
+
+                    await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
                 }
-                while (!_shutdown && !success);
             }
         }
 

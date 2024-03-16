@@ -133,12 +133,7 @@ namespace HouseofCat.RabbitMQ.Pools
             {
                 _logger.LogWarning(LogMessages.ChannelPools.DeadChannel, chanHost.ChannelId);
 
-                var success = false;
-                while (!success)
-                {
-                    success = await chanHost.MakeChannelAsync().ConfigureAwait(false);
-                    await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
-                }
+                await chanHost.WaitUntilReadyAsync(Options.PoolOptions.SleepOnErrorInterval);
             }
 
             return chanHost;
@@ -176,12 +171,7 @@ namespace HouseofCat.RabbitMQ.Pools
             {
                 _logger.LogWarning(LogMessages.ChannelPools.DeadChannel, chanHost.ChannelId);
 
-                var success = false;
-                while (!success)
-                {
-                    await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
-                    success = await chanHost.MakeChannelAsync().ConfigureAwait(false);
-                }
+                await chanHost.WaitUntilReadyAsync(Options.PoolOptions.SleepOnErrorInterval);
             }
 
             return chanHost;

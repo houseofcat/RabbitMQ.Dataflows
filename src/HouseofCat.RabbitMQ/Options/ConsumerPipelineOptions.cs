@@ -1,7 +1,6 @@
-﻿namespace HouseofCat.RabbitMQ
+﻿namespace HouseofCat.RabbitMQ;
+
+public class ConsumerPipelineOptions : GlobalConsumerPipelineOptions
 {
-    public class ConsumerPipelineOptions : GlobalConsumerPipelineOptions
-    {
-        public string ConsumerPipelineName { get; set; }
-    }
+    public string ConsumerPipelineName { get; set; }
 }
