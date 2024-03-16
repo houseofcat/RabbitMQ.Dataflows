@@ -30,7 +30,6 @@ public class ConsumerOptions : GlobalConsumerOptions
         BatchSize = globalConsumerOptions.BatchSize ?? BatchSize;
 
         AutoAck = globalConsumerOptions.AutoAck ?? AutoAck;
-        UseTransientChannels = globalConsumerOptions.UseTransientChannels ?? UseTransientChannels;
         ErrorSuffix = globalConsumerOptions.ErrorSuffix ?? ErrorSuffix;
         AltSuffix = globalConsumerOptions.AltSuffix ?? AltSuffix;
         BehaviorWhenFull = globalConsumerOptions.BehaviorWhenFull ?? BehaviorWhenFull;
