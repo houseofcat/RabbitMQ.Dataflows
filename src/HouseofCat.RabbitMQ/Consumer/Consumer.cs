@@ -101,6 +101,9 @@ namespace HouseofCat.RabbitMQ
             Options = channelPool.Options;
             ChannelPool = channelPool;
             ConsumerOptions = consumerOptions;
+
+            if (Options.PoolOptions.MaxLastChannelHealthCheck < 1)
+            { Options.PoolOptions.MaxLastChannelHealthCheck = 1; }
         }
 
         public async Task StartConsumerAsync()
@@ -389,6 +392,7 @@ namespace HouseofCat.RabbitMQ
                         _shutdownAutoRecoveryLoopCount = 0;
 
                         await ReviewConnectionHealthInsteadOfChannelHealthAsync();
+                        break;
                     }
 
                     await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
@@ -414,15 +418,21 @@ namespace HouseofCat.RabbitMQ
             if (!connectionHealthy) return;
 
             // We give a brief sleep to allow the channel to recover one last time while
-            // the connection state has been confirmed healthy. If it does not recovered by now,
+            // the connection state has been confirmed healthy. If it has not recovered by now,
             // we no longer wait. We will stop here until we rebuild RabbitMQ channel which for most
             // use cases will be immediately.
-            await Task.Delay(Options.PoolOptions.SleepOnErrorInterval)
-                .ConfigureAwait(false);
+            var counter = 0;
+            var channelHealthy = false;
+            while (!channelHealthy || counter < Options.PoolOptions.MaxLastChannelHealthCheck)
+            {
+                await Task.Delay(Options.PoolOptions.SleepOnErrorInterval)
+                    .ConfigureAwait(false);
 
-            var lastHealthyCheck = await _chanHost.ChannelHealthyAsync().ConfigureAwait(false);
+                channelHealthy = await _chanHost.ChannelHealthyAsync().ConfigureAwait(false);
+                counter++;
+            }
 
-            if (!lastHealthyCheck)
+            if (!channelHealthy)
             {   // This is an inner infinite loop, until Channel is healthy/rebuilt.
                 _logger.LogWarning(
                     LogMessages.Consumers.ConsumerChannelReplacedEvent,

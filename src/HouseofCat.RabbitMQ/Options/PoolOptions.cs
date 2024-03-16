@@ -26,6 +26,16 @@ public class PoolOptions
     public ushort MaxAckableChannels { get; set; } = 10;
 
     /// <summary>
+    /// During retry, the library may have determined the Connection is healthy but Channel is still not open. This is the number
+    /// of times it will attempt to re-check a channel's health before destroying it and creating a new one. Internal AutoRecovery
+    /// of channels has a known delay from the connection. Each check will sleep once using SleepOnErrorInterval before
+    /// checking the status of the channel again.
+    /// <para>Default value is 1.</para>
+    /// <para>Recommended maximum value is 5.</para>
+    /// </summary>
+    public ushort MaxLastChannelHealthCheck { get; set; } = 1;
+
+    /// <summary>
     /// The time to sleep (in ms) when an error occurs on Channel or Connection creation. It's best not to be hyper aggressive with this value.
     /// <para>Default value is 1000.</para>
     /// </summary>
