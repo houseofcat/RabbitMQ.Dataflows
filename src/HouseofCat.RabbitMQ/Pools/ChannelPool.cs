@@ -82,7 +82,10 @@ namespace HouseofCat.RabbitMQ.Pools
             _channels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
             _ackChannels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
 
-            CreateChannelsAsync().GetAwaiter().GetResult();
+            if (!Options.PoolOptions.OnlyTransientChannels)
+            {
+                CreateChannelsAsync().GetAwaiter().GetResult();
+            }
         }
 
         private async Task CreateChannelsAsync()
@@ -96,7 +99,7 @@ namespace HouseofCat.RabbitMQ.Pools
                     .WriteAsync(chanHost);
             }
 
-            for (int i = 0; i < Options.PoolOptions.MaxChannels; i++)
+            for (int i = 0; i < Options.PoolOptions.MaxAckableChannels; i++)
             {
                 var chanHost = await CreateChannelAsync(CurrentChannelId++, true).ConfigureAwait(false);
 
@@ -118,6 +121,12 @@ namespace HouseofCat.RabbitMQ.Pools
         public async ValueTask<IChannelHost> GetChannelAsync()
         {
             if (Shutdown) throw new InvalidOperationException(ExceptionMessages.ChannelPoolValidationMessage);
+
+            if (Options.PoolOptions.OnlyTransientChannels)
+            {
+                return await GetTransientChannelAsync(false)
+                    .ConfigureAwait(false);
+            }
 
             if (!await _channels
                 .Reader
@@ -156,6 +165,12 @@ namespace HouseofCat.RabbitMQ.Pools
         public async ValueTask<IChannelHost> GetAckChannelAsync()
         {
             if (Shutdown) throw new InvalidOperationException(ExceptionMessages.ChannelPoolValidationMessage);
+
+            if (Options.PoolOptions.OnlyTransientChannels)
+            {
+                return await GetTransientChannelAsync(true)
+                    .ConfigureAwait(false);
+            }
 
             if (!await _ackChannels
                 .Reader
