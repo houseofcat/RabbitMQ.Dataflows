@@ -71,7 +71,7 @@ namespace HouseofCat.RabbitMQ.Pools
             Guard.AgainstNull(connPool, nameof(connPool));
             Options = connPool.Options;
 
-            _currentTansientChannelId = 
+            _currentTansientChannelId =
                 Options.PoolOptions.TansientChannelStartRange < 10000
                 ? 10000
                 : Options.PoolOptions.TansientChannelStartRange;
@@ -79,8 +79,16 @@ namespace HouseofCat.RabbitMQ.Pools
             _logger = LogHelper.GetLogger<ChannelPool>();
             _connectionPool = connPool;
             _flaggedChannels = new ConcurrentDictionary<ulong, bool>();
-            _channels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
-            _ackChannels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
+
+            if (Options.PoolOptions.MaxChannels > 0)
+            {
+                _channels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
+            }
+
+            if (Options.PoolOptions.MaxAckableChannels > 0)
+            {
+                _ackChannels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
+            }
 
             if (!Options.PoolOptions.OnlyTransientChannels)
             {
@@ -90,7 +98,7 @@ namespace HouseofCat.RabbitMQ.Pools
 
         private async Task CreateChannelsAsync()
         {
-            for (int i = 0; i < Options.PoolOptions.MaxChannels; i++)
+            for (var i = 0; i < Options.PoolOptions.MaxChannels; i++)
             {
                 var chanHost = await CreateChannelAsync(CurrentChannelId++, false).ConfigureAwait(false);
 
@@ -99,7 +107,7 @@ namespace HouseofCat.RabbitMQ.Pools
                     .WriteAsync(chanHost);
             }
 
-            for (int i = 0; i < Options.PoolOptions.MaxAckableChannels; i++)
+            for (var i = 0; i < Options.PoolOptions.MaxAckableChannels; i++)
             {
                 var chanHost = await CreateChannelAsync(CurrentChannelId++, true).ConfigureAwait(false);
 
@@ -128,12 +136,17 @@ namespace HouseofCat.RabbitMQ.Pools
                     .ConfigureAwait(false);
             }
 
+            if (_channels == null)
+            {
+                throw new InvalidOperationException(ExceptionMessages.ChannelPoolBadOptionMaxChannelError);
+            }
+
             if (!await _channels
                 .Reader
                 .WaitToReadAsync()
                 .ConfigureAwait(false))
             {
-                throw new InvalidOperationException(ExceptionMessages.ChannelPoolGetChannelError);
+                throw new InvalidOperationException(ExceptionMessages.ChannelPoolBadOptionMaxChannelError);
             }
 
             var chanHost = await _channels
@@ -170,6 +183,11 @@ namespace HouseofCat.RabbitMQ.Pools
             {
                 return await GetTransientChannelAsync(true)
                     .ConfigureAwait(false);
+            }
+
+            if (_channels == null)
+            {
+                throw new InvalidOperationException(ExceptionMessages.ChannelPoolBadOptionMaxAckChannelError);
             }
 
             if (!await _ackChannels

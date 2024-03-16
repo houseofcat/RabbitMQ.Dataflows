@@ -14,13 +14,13 @@ public class PoolOptions
     public ushort MaxConnections { get; set; } = 2;
 
     /// <summary>
-    /// Number of channels to keep in each of the channel pools. Used in round-robin to perform actions.
+    /// Number of channels to keep in each of the channel pool. Used in round-robin to perform actions.
     /// <para>Default value is 0.</para>
     /// </summary>
     public ushort MaxChannels { get; set; }
 
     /// <summary>
-    /// Number of channels to keep in each of the channel pools. Used in round-robin to perform actions.
+    /// Number of ackable channels to keep in each of the channel pool. Used in round-robin to perform actions.
     /// <para>Default value is 10.</para>
     /// </summary>
     public ushort MaxAckableChannels { get; set; } = 10;

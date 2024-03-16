@@ -47,6 +47,8 @@ public static class ExceptionMessages
     // ChannelPool
     public const string ChannelPoolValidationMessage = "ChannelPool is not initialized or is shutdown.";
     public const string ChannelPoolShutdownValidationMessage = "ChannelPool is not initialized. Can't be Shutdown.";
+    public const string ChannelPoolBadOptionMaxChannelError = "Check your PoolOptions, MaxChannels was less than 1.";
+    public const string ChannelPoolBadOptionMaxAckChannelError = "Check your PoolOptions, MaxAckChannels was less than 1.";
     public const string ChannelPoolGetChannelError = "Threading.Channel used for reading RabbitMQ channels has been closed.";
 
     // Pipeline Messages
