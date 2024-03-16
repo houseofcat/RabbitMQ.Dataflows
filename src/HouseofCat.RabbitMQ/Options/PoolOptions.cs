@@ -30,7 +30,7 @@ public class PoolOptions
     /// of times it will attempt to re-check a channel's health before destroying it and creating a new one. Internal AutoRecovery
     /// of channels has a known delay from the connection. Each check will sleep once using SleepOnErrorInterval before
     /// checking the status of the channel again.
-    /// <para>Default value is 1.</para>
+    /// <para>Default and minimum value is 1.</para>
     /// <para>Recommended maximum value is 5.</para>
     /// </summary>
     public ushort MaxLastChannelHealthCheck { get; set; } = 1;
