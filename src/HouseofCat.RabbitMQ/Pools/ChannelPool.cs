@@ -71,6 +71,11 @@ namespace HouseofCat.RabbitMQ.Pools
             Guard.AgainstNull(connPool, nameof(connPool));
             Options = connPool.Options;
 
+            _currentTansientChannelId = 
+                Options.PoolOptions.TansientChannelStartRange < 10000
+                ? 10000
+                : Options.PoolOptions.TansientChannelStartRange;
+
             _logger = LogHelper.GetLogger<ChannelPool>();
             _connectionPool = connPool;
             _flaggedChannels = new ConcurrentDictionary<ulong, bool>();
@@ -127,13 +132,13 @@ namespace HouseofCat.RabbitMQ.Pools
                 .ReadAsync()
                 .ConfigureAwait(false);
 
-            var healthy = await chanHost.HealthyAsync().ConfigureAwait(false);
+            var healthy = await chanHost.ChannelHealthyAsync().ConfigureAwait(false);
             var flagged = _flaggedChannels.ContainsKey(chanHost.ChannelId) && _flaggedChannels[chanHost.ChannelId];
             if (flagged || !healthy)
             {
                 _logger.LogWarning(LogMessages.ChannelPools.DeadChannel, chanHost.ChannelId);
 
-                await chanHost.WaitUntilReadyAsync(Options.PoolOptions.SleepOnErrorInterval);
+                await chanHost.WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval);
             }
 
             return chanHost;
@@ -165,17 +170,22 @@ namespace HouseofCat.RabbitMQ.Pools
                 .ReadAsync()
                 .ConfigureAwait(false);
 
-            var healthy = await chanHost.HealthyAsync().ConfigureAwait(false);
+            var healthy = await chanHost.ChannelHealthyAsync().ConfigureAwait(false);
             var flagged = _flaggedChannels.ContainsKey(chanHost.ChannelId) && _flaggedChannels[chanHost.ChannelId];
             if (flagged || !healthy)
             {
                 _logger.LogWarning(LogMessages.ChannelPools.DeadChannel, chanHost.ChannelId);
 
-                await chanHost.WaitUntilReadyAsync(Options.PoolOptions.SleepOnErrorInterval);
+                await chanHost.WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval);
             }
 
             return chanHost;
         }
+
+        // This is a simple counter to give a unique id to transient channels.
+        private ulong _currentTansientChannelId = 10000;
+
+        private ulong GetNextTransientChannelId() => Interlocked.Increment(ref _currentTansientChannelId);
 
         /// <summary>
         /// <para>Gives user a transient <see cref="IChannelHost"/> is simply a channel not managed by this library.</para>
@@ -184,12 +194,11 @@ namespace HouseofCat.RabbitMQ.Pools
         /// <param name="ackable"></param>
         /// <returns><see cref="IChannelHost"/></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async ValueTask<IChannelHost> GetTransientChannelAsync(bool ackable) => await CreateChannelAsync(0, ackable).ConfigureAwait(false);
+        public async ValueTask<IChannelHost> GetTransientChannelAsync(bool ackable) => await CreateChannelAsync(GetNextTransientChannelId(), ackable).ConfigureAwait(false);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private async Task<IChannelHost> CreateChannelAsync(ulong channelId, bool ackable)
         {
-            IChannelHost chanHost = null;
             IConnectionHost connHost = null;
 
             while (true)
@@ -209,7 +218,7 @@ namespace HouseofCat.RabbitMQ.Pools
                 // Create a Channel Host
                 try
                 {
-                    chanHost = new ChannelHost(channelId, connHost, ackable);
+                    var chanHost = new ChannelHost(channelId, connHost, ackable);
                     await ReturnConnectionWithOptionalSleep(connHost, channelId, 0).ConfigureAwait(false);
                     _flaggedChannels[chanHost.ChannelId] = false;
                     _logger.LogDebug(LogMessages.ChannelPools.CreateChannelSuccess, channelId);

@@ -487,7 +487,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     #region Step Linking
 
     protected virtual void BuildLinkages<TConsumerBlock>(DataflowLinkOptions overrideOptions = null)
-        where TConsumerBlock : ConsumerBlock<ReceivedData>
+        where TConsumerBlock : ConsumerBlock<ReceivedData>, new()
     {
         Guard.AgainstNull(_buildStateBlock, nameof(_buildStateBlock)); // Create State Is Mandatory
         Guard.AgainstNull(_finalization, nameof(_finalization)); // Leaving The Workflow Is Mandatory
@@ -503,8 +503,10 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         {
             for (var i = 0; i < _consumerCount; i++)
             {
-                var consumerBlock = New<TConsumerBlock>.Instance.Invoke();
-                consumerBlock.Consumer = new Consumer(_rabbitService.ChannelPool, _consumerName);
+                var consumerBlock = new TConsumerBlock
+                {
+                    Consumer = new Consumer(_rabbitService.ChannelPool, _consumerName)
+                };
                 _consumerBlocks.Add(consumerBlock);
                 _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
             }
@@ -513,8 +515,11 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         {
             for (var i = 0; i < _consumers.Count; i++)
             {
-                var consumerBlock = New<TConsumerBlock>.Instance.Invoke();
-                consumerBlock.Consumer = _consumers.ElementAt(i);
+                var consumerBlock = new TConsumerBlock
+                {
+                    Consumer = _consumers.ElementAt(i)
+                };
+
                 _consumerBlocks.Add(consumerBlock);
                 _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
             }
@@ -601,9 +606,11 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     private string StateIdentifier => $"{WorkflowName}_StateBuild";
     public virtual TState BuildState<TOut>(ISerializationProvider provider, string key, ReceivedData data)
     {
-        var state = New<TState>.Instance.Invoke();
-        state.ReceivedData = data;
-        state.Data = new Dictionary<string, object>();
+        var state = new TState
+        {
+            ReceivedData = data,
+            Data = new Dictionary<string, object>()
+        };
 
         // If the SerializationProvider was assigned, use it, else it's raw bytes.
         if (provider != null)

@@ -17,10 +17,11 @@ public interface IChannelHost
     bool FlowControlled { get; }
 
     IModel GetChannel();
-    Task WaitUntilReadyAsync(int sleepInterval, CancellationToken token = default);
+    Task WaitUntilChannelIsReadyAsync(int sleepInterval, CancellationToken token = default);
     Task<bool> BuildRabbitMQChannelAsync();
     void Close();
-    Task<bool> HealthyAsync();
+    Task<bool> ChannelHealthyAsync();
+    Task<bool> ConnectionHealthyAsync();
 }
 
 public class ChannelHost : IChannelHost, IDisposable
@@ -61,7 +62,7 @@ public class ChannelHost : IChannelHost, IDisposable
         { _hostLock.Release(); }
     }
 
-    public async Task WaitUntilReadyAsync(int sleepInterval, CancellationToken token = default)
+    public async Task WaitUntilChannelIsReadyAsync(int sleepInterval, CancellationToken token = default)
     {
         var success = false;
         while (!token.IsCancellationRequested && !success)
@@ -147,11 +148,16 @@ public class ChannelHost : IChannelHost, IDisposable
         _hostLock.Release();
     }
 
-    public async Task<bool> HealthyAsync()
+    public async Task<bool> ChannelHealthyAsync()
     {
         var connectionHealthy = await _connHost.HealthyAsync().ConfigureAwait(false);
 
         return connectionHealthy && !FlowControlled && (_channel?.IsOpen ?? false);
+    }
+
+    public async Task<bool> ConnectionHealthyAsync()
+    {
+        return await _connHost.HealthyAsync().ConfigureAwait(false);
     }
 
     private const int CloseCode = 200;
@@ -159,12 +165,9 @@ public class ChannelHost : IChannelHost, IDisposable
 
     public void Close()
     {
-        if (!Closed || !_channel.IsOpen)
-        {
-            try
-            { _channel.Close(CloseCode, CloseMessage); }
-            catch { /* SWALLOW */ }
-        }
+        try
+        { _channel.Close(CloseCode, CloseMessage); }
+        catch { /* SWALLOW */ }
     }
 
     protected virtual void Dispose(bool disposing)

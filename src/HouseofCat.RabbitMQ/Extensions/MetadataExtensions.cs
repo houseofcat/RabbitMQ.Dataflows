@@ -1,7 +1,6 @@
 using HouseofCat.Utilities.Errors;
 using System;
 using System.Collections.Generic;
-using static HouseofCat.Reflection.Generics;
 
 namespace HouseofCat.RabbitMQ;
 
@@ -10,9 +9,11 @@ public static class MetadataExtensions
     public static T Clone<T>(this IMetadata metadata)
         where T : IMetadata, new()
     {
-        var clonedMetadata = New<T>.Instance();
-        clonedMetadata.Compressed = metadata.Compressed;
-        clonedMetadata.Encrypted = metadata.Encrypted;
+        var clonedMetadata = new T
+        {
+            Compressed = metadata.Compressed,
+            Encrypted = metadata.Encrypted
+        };
 
         foreach (var kvp in metadata.CustomFields)
         {
@@ -27,9 +28,9 @@ public static class MetadataExtensions
         Guard.AgainstNull(metadata, nameof(LetterMetadata));
         Guard.AgainstNullOrEmpty(metadata.CustomFields, nameof(LetterMetadata.CustomFields));
 
-        if (metadata.CustomFields.ContainsKey(key))
+        if (metadata.CustomFields.TryGetValue(key, out object value))
         {
-            if (metadata.CustomFields[key] is T temp)
+            if (value is T temp)
             { return temp; }
             else { throw new InvalidCastException(); }
         }

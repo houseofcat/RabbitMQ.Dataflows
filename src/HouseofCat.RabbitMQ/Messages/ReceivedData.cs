@@ -91,9 +91,9 @@ public class ReceivedData : IReceivedData, IDisposable
 
     private void ReadHeaders()
     {
-        if (Properties?.Headers != null && Properties.Headers.ContainsKey(Constants.HeaderForObjectType))
+        if (Properties?.Headers != null && Properties.Headers.TryGetValue(Constants.HeaderForObjectType, out object objectType))
         {
-            ContentType = Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForObjectType]);
+            ContentType = Encoding.UTF8.GetString((byte[])objectType);
 
             // ADD SERIALIZER TO HEADER AND && JSON THIS ONE
             if (ContentType == Constants.HeaderValueForLetter && Data?.Length > 0)
@@ -111,20 +111,20 @@ public class ReceivedData : IReceivedData, IDisposable
                 }
             }
 
-            if (Properties.Headers.ContainsKey(Constants.HeaderForEncrypted))
-            { Encrypted = (bool)Properties.Headers[Constants.HeaderForEncrypted]; }
+            if (Properties.Headers.TryGetValue(Constants.HeaderForEncrypted, out object encryptedValue))
+            { Encrypted = (bool)encryptedValue; }
 
-            if (Properties.Headers.ContainsKey(Constants.HeaderForEncryption))
-            { EncryptionType = Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForEncryption]); }
+            if (Properties.Headers.TryGetValue(Constants.HeaderForEncryption, out object encryptedType))
+            { EncryptionType = Encoding.UTF8.GetString((byte[])encryptedType); }
 
-            if (Properties.Headers.ContainsKey(Constants.HeaderForEncryptDate))
-            { EncryptedDateTime = DateTime.Parse(Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForEncryptDate])); }
+            if (Properties.Headers.TryGetValue(Constants.HeaderForEncryptDate, out object encryptedDate))
+            { EncryptedDateTime = DateTime.Parse(Encoding.UTF8.GetString((byte[])encryptedDate)); }
 
-            if (Properties.Headers.ContainsKey(Constants.HeaderForCompressed))
-            { Compressed = (bool)Properties.Headers[Constants.HeaderForCompressed]; }
+            if (Properties.Headers.TryGetValue(Constants.HeaderForCompressed, out object compressedValue))
+            { Compressed = (bool)compressedValue; }
 
-            if (Properties.Headers.ContainsKey(Constants.HeaderForCompression))
-            { CompressionType = Encoding.UTF8.GetString((byte[])Properties.Headers[Constants.HeaderForCompression]); }
+            if (Properties.Headers.TryGetValue(Constants.HeaderForCompression, out object compressedType))
+            { CompressionType = Encoding.UTF8.GetString((byte[])compressedType); }
         }
         else
         {

@@ -33,8 +33,8 @@ public class RabbitOptions
 
     public ConsumerOptions GetConsumerOptions(string consumerName)
     {
-        if (!ConsumerOptions.ContainsKey(consumerName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerOptionsMessage, consumerName));
-        return ConsumerOptions[consumerName];
+        if (!ConsumerOptions.TryGetValue(consumerName, out ConsumerOptions value)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerOptionsMessage, consumerName));
+        return value;
     }
 
     public void ApplyGlobalConsumerOptions()
@@ -45,9 +45,9 @@ public class RabbitOptions
             // on top of (overriding) individual consumer settings. Opt out by not setting
             // the global settings field.
             if (!string.IsNullOrWhiteSpace(kvp.Value.GlobalSettings)
-                && GlobalConsumerOptions.ContainsKey(kvp.Value.GlobalSettings))
+                && GlobalConsumerOptions.TryGetValue(kvp.Value.GlobalSettings, out GlobalConsumerOptions value))
             {
-                kvp.Value.ApplyGlobalOptions(GlobalConsumerOptions[kvp.Value.GlobalSettings]);
+                kvp.Value.ApplyGlobalOptions(value);
             }
         }
     }

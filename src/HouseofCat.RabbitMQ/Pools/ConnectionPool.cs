@@ -2,7 +2,9 @@ using HouseofCat.Logger;
 using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
+using RabbitMQ.Client.OAuth2;
 using System;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
@@ -33,6 +35,27 @@ public class ConnectionPool : IConnectionPool, IDisposable
 
     public RabbitOptions Options { get; }
 
+    public ConnectionPool(RabbitOptions options, HttpClientHandler oauth2ClientHandler = null)
+    {
+        Guard.AgainstNull(options, nameof(options));
+        Options = options;
+
+        _logger = LogHelper.GetLogger<ConnectionPool>();
+
+        _connections = Channel.CreateBounded<IConnectionHost>(Options.PoolOptions.MaxConnections);
+
+        if (oauth2ClientHandler is not null)
+        {
+
+        }
+        else
+        {
+            _connectionFactory = BuildConnectionFactory();
+        }
+
+        CreateConnectionsAsync().GetAwaiter().GetResult();
+    }
+
     public ConnectionPool(RabbitOptions options)
     {
         Guard.AgainstNull(options, nameof(options));
@@ -41,12 +64,12 @@ public class ConnectionPool : IConnectionPool, IDisposable
         _logger = LogHelper.GetLogger<ConnectionPool>();
 
         _connections = Channel.CreateBounded<IConnectionHost>(Options.PoolOptions.MaxConnections);
-        _connectionFactory = CreateConnectionFactory();
+        _connectionFactory = BuildConnectionFactory();
 
         CreateConnectionsAsync().GetAwaiter().GetResult();
     }
 
-    private ConnectionFactory CreateConnectionFactory()
+    protected virtual ConnectionFactory BuildConnectionFactory()
     {
         var cf = new ConnectionFactory
         {
@@ -91,6 +114,36 @@ public class ConnectionPool : IConnectionPool, IDisposable
         return cf;
     }
 
+    protected virtual ConnectionFactory CreateConnectionFactory(RabbitOptions options, HttpClientHandler oauth2ClientHandler)
+    {
+        var oAuth2ClientBuilder = new OAuth2ClientBuilder(
+            Options.FactoryOptions.OAuth2Options.ClientId,
+            Options.FactoryOptions.OAuth2Options.ClientSecret,
+            new Uri(Options.FactoryOptions.OAuth2Options.TokenEndpointUrl));
+
+        oAuth2ClientBuilder.SetHttpClientHandler(oauth2ClientHandler);
+        var oAuth2Client = oAuth2ClientBuilder.Build();
+
+        var credentialsProvider = new OAuth2ClientCredentialsProvider(
+            Options.FactoryOptions.OAuth2Options.OAuth2ClientName,
+            oAuth2Client);
+
+        var cf = new ConnectionFactory
+        {
+            AutomaticRecoveryEnabled = true,
+            TopologyRecoveryEnabled = Options.FactoryOptions.TopologyRecovery,
+            NetworkRecoveryInterval = TimeSpan.FromSeconds(Options.FactoryOptions.NetRecoveryTimeout),
+            ContinuationTimeout = TimeSpan.FromSeconds(Options.FactoryOptions.ContinuationTimeout),
+            RequestedHeartbeat = TimeSpan.FromSeconds(Options.FactoryOptions.HeartbeatInterval),
+            RequestedChannelMax = Options.FactoryOptions.MaxChannelsPerConnection,
+            DispatchConsumersAsync = Options.FactoryOptions.EnableDispatchConsumersAsync,
+            CredentialsProvider = credentialsProvider,
+            CredentialsRefresher = new TimerBasedCredentialRefresher()
+        };
+
+        return cf;
+    }
+
     public IConnection CreateConnection(string connectionName) => _connectionFactory.CreateConnection(connectionName);
 
     // Allows overriding the mechanism for creating ConnectionHosts while a base one was implemented.
@@ -103,7 +156,9 @@ public class ConnectionPool : IConnectionPool, IDisposable
 
         for (int i = 0; i < Options.PoolOptions.MaxConnections; i++)
         {
-            var serviceName = string.IsNullOrEmpty(Options.PoolOptions.ServiceName) ? $"HoC.RabbitMQ:{i}" : $"{Options.PoolOptions.ServiceName}:{i}";
+            var serviceName = string.IsNullOrEmpty(Options.PoolOptions.ServiceName)
+                ? $"HoC.RabbitMQ:{i}"
+                : $"{Options.PoolOptions.ServiceName}:{i}";
             try
             {
                 await _connections

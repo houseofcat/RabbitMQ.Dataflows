@@ -358,10 +358,12 @@ namespace HouseofCat.RabbitMQ
             }
         }
 
-        private async Task ConsumerShutdownAsync(object sender, ShutdownEventArgs e)
+        protected async Task ConsumerShutdownAsync(object sender, ShutdownEventArgs e)
         {
             if (await _conLock.WaitAsync(0))
             {
+                _shutdownAutoRecoveryLoopCount = 0;
+
                 try
                 { await HandleUnexpectedShutdownAsync(e).ConfigureAwait(false); }
                 finally
@@ -369,26 +371,55 @@ namespace HouseofCat.RabbitMQ
             }
         }
 
-        private async Task HandleUnexpectedShutdownAsync(ShutdownEventArgs e)
+        private static int _maxAutoRecoveryChannelHealthChecks = 0;
+        private int _shutdownAutoRecoveryLoopCount = 0;
+
+        /// <summary>
+        /// This method used to rebuild channels/connections for Consumers. Due to recent
+        /// changes in RabbitMQ.Client, it is now possible for the consumer to be in a state
+        /// of self-recovery. Unfortunately, there are still some edge cases where the channel
+        /// has exception and is closed server side and this library needs to be able to recover
+        /// from those events.
+        /// </summary>
+        /// <para>Docs: https://www.rabbitmq.com/client-libraries/dotnet-api-guide#recovery</para>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        protected async Task HandleUnexpectedShutdownAsync(ShutdownEventArgs e)
         {
             if (!_shutdown)
             {
                 var healthy = false;
                 while (!_shutdown && !healthy)
                 {
-                    healthy = await _chanHost.HealthyAsync().ConfigureAwait(false);
-
+                    healthy = await _chanHost.ChannelHealthyAsync().ConfigureAwait(false);
                     if (healthy)
                     {
-                        _logger.LogInformation(
-                            LogMessages.Consumers.ConsumerShutdownEvent,
-                            ConsumerOptions.ConsumerName,
-                            e.ReplyText);
-                        return;
+                        break;
+                    }
+                    else if (_shutdownAutoRecoveryLoopCount > _maxAutoRecoveryChannelHealthChecks)
+                    {
+                        _shutdownAutoRecoveryLoopCount = 0;
+                        var connectionHealthy = await _chanHost
+                            .ConnectionHealthyAsync()
+                            .ConfigureAwait(false);
+
+                        if (connectionHealthy)
+                        {
+                            // Inner infinite loop, until Channel is healthy/rebuilt.
+                            await _chanHost
+                                .WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval)
+                                .ConfigureAwait(false);
+                        }
                     }
 
                     await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
+                    _shutdownAutoRecoveryLoopCount++;
                 }
+
+                _logger.LogInformation(
+                    LogMessages.Consumers.ConsumerShutdownEvent,
+                    ConsumerOptions.ConsumerName,
+                    e.ReplyText);
             }
         }
 

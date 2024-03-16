@@ -54,7 +54,7 @@ public class FactoryOptions
     /// <summary>
     /// ConnectionFactory (RabbitMQ) the amount of time to wait before netrecovery begins (seconds).
     /// </summary>
-    public ushort NetRecoveryTimeout { get; set; } = 10;
+    public ushort NetRecoveryTimeout { get; set; } = 5;
 
     /// <summary>
     /// ConnectionFactory (RabbitMQ) specify the amount of time before timeout on protocol operations (seconds).
@@ -70,4 +70,9 @@ public class FactoryOptions
     /// Class to hold settings for ChannelFactory/SSL (RabbitMQ) settings.
     /// </summary>
     public SslOptions SslOptions { get; set; } = new SslOptions();
+
+    /// <summary>
+    /// Class to hold settings for OAuth2 (RabbitMQ) settings.
+    /// </summary>
+    public OAuth2Options OAuth2Options { get; set; } = new OAuth2Options();
 }
