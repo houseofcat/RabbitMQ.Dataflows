@@ -123,6 +123,7 @@ public static class LogMessages
         public const string ConsumerMessageReceived = "Consumer ({0}) message received (DT:{1}). Adding to buffer...";
         public const string ConsumerAsyncMessageReceived = "Consumer ({0}) async message received (DT:{1}). Adding to buffer...";
         public const string ConsumerShutdownEvent = "Consumer ({0}) shutdown event has occurred. Reason: {1}. Attempting to restart consuming...";
+        public const string ConsumerChannelReplacedEvent = "Consumer ({0}) shutdown event is ongoing. Connection is healthy. Channel appears to be dead and replacing it...";
         public const string ConsumerMessageWriteToBufferError = "Consumer ({0}) was unable to write to channel buffer. Error: {1}";
 
         public const string ConsumerDataflowActionCancelled = "Consumer ({0}) dataflow engine actions were cancelled.";

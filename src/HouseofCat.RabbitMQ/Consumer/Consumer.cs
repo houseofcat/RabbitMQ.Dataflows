@@ -248,35 +248,18 @@ namespace HouseofCat.RabbitMQ
                     consumer);
         }
 
-        private async Task SetChannelHostAsync()
+        protected virtual async Task SetChannelHostAsync()
         {
-            if (ConsumerOptions.UseTransientChannels ?? true)
-            {
-                var autoAck = ConsumerOptions.AutoAck ?? false;
-                _logger.LogTrace(LogMessages.Consumers.GettingTransientChannelHost, ConsumerOptions.ConsumerName);
-                _chanHost = await ChannelPool
-                    .GetTransientChannelAsync(!autoAck)
-                    .ConfigureAwait(false);
-            }
-            else if (ConsumerOptions.AutoAck ?? false)
-            {
-                _logger.LogTrace(LogMessages.Consumers.GettingChannelHost, ConsumerOptions.ConsumerName);
-                _chanHost = await ChannelPool
-                    .GetChannelAsync()
-                    .ConfigureAwait(false);
-            }
-            else
-            {
-                _logger.LogTrace(LogMessages.Consumers.GettingAckChannelHost, ConsumerOptions.ConsumerName);
-                _chanHost = await ChannelPool
-                    .GetAckChannelAsync()
-                    .ConfigureAwait(false);
-            }
+            var autoAck = ConsumerOptions.AutoAck ?? false;
+            _logger.LogTrace(LogMessages.Consumers.GettingTransientChannelHost, ConsumerOptions.ConsumerName);
+            _chanHost = await ChannelPool
+                .GetTransientChannelAsync(!autoAck)
+                .ConfigureAwait(false);
 
             _logger.LogDebug(
                 LogMessages.Consumers.ChannelEstablished,
                 ConsumerOptions.ConsumerName,
-                _chanHost?.ChannelId ?? 0ul);
+                _chanHost?.ChannelId.ToString() ?? "ChannelHost: null");
         }
 
         private EventingBasicConsumer CreateConsumer()
@@ -371,8 +354,8 @@ namespace HouseofCat.RabbitMQ
             }
         }
 
-        private static int _maxAutoRecoveryChannelHealthChecks = 0;
-        private int _shutdownAutoRecoveryLoopCount = 0;
+        protected static readonly int _maxAutoRecoveryChannelHealthChecks = 10;
+        protected int _shutdownAutoRecoveryLoopCount = 0;
 
         /// <summary>
         /// This method used to rebuild channels/connections for Consumers. Due to recent
@@ -384,42 +367,70 @@ namespace HouseofCat.RabbitMQ
         /// <para>Docs: https://www.rabbitmq.com/client-libraries/dotnet-api-guide#recovery</para>
         /// <param name="e"></param>
         /// <returns></returns>
-        protected async Task HandleUnexpectedShutdownAsync(ShutdownEventArgs e)
+        protected virtual async Task HandleUnexpectedShutdownAsync(ShutdownEventArgs e)
         {
             if (!_shutdown)
             {
                 var healthy = false;
                 while (!_shutdown && !healthy)
                 {
+                    _shutdownAutoRecoveryLoopCount++;
+
+                    // With normal AutoRecovery enabled, the Channel will come back to life.
                     healthy = await _chanHost.ChannelHealthyAsync().ConfigureAwait(false);
                     if (healthy)
                     {
                         break;
                     }
+                    // Periodically, we will check if the connection is healthy but the channel
+                    // is still closed.
                     else if (_shutdownAutoRecoveryLoopCount > _maxAutoRecoveryChannelHealthChecks)
                     {
                         _shutdownAutoRecoveryLoopCount = 0;
-                        var connectionHealthy = await _chanHost
-                            .ConnectionHealthyAsync()
-                            .ConfigureAwait(false);
 
-                        if (connectionHealthy)
-                        {
-                            // Inner infinite loop, until Channel is healthy/rebuilt.
-                            await _chanHost
-                                .WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval)
-                                .ConfigureAwait(false);
-                        }
+                        await ReviewConnectionHealthInsteadOfChannelHealthAsync();
                     }
 
                     await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
-                    _shutdownAutoRecoveryLoopCount++;
                 }
 
                 _logger.LogInformation(
                     LogMessages.Consumers.ConsumerShutdownEvent,
                     ConsumerOptions.ConsumerName,
                     e.ReplyText);
+            }
+        }
+
+        protected virtual async Task ReviewConnectionHealthInsteadOfChannelHealthAsync()
+        {
+            var connectionHealthy = await _chanHost
+                .ConnectionHealthyAsync()
+                .ConfigureAwait(false);
+
+            // WE ONLY EVER REPLACE THE CHANNEL NOW IF THE CONNECTION IS HEALTHY BUT
+            // THE CHANNEL STILL IS NOT.
+            //
+            // If connection is not healthy, we do nothing.
+            if (!connectionHealthy) return;
+
+            // We give a brief sleep to allow the channel to recover one last time while
+            // the connection state has been confirmed healthy. If it does not recovered by now,
+            // we no longer wait. We will stop here until we rebuild RabbitMQ channel which for most
+            // use cases will be immediately.
+            await Task.Delay(Options.PoolOptions.SleepOnErrorInterval)
+                .ConfigureAwait(false);
+
+            var lastHealthyCheck = await _chanHost.ChannelHealthyAsync().ConfigureAwait(false);
+
+            if (!lastHealthyCheck)
+            {   // This is an inner infinite loop, until Channel is healthy/rebuilt.
+                _logger.LogWarning(
+                    LogMessages.Consumers.ConsumerChannelReplacedEvent,
+                    ConsumerOptions.ConsumerName);
+
+                await _chanHost
+                    .WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval)
+                    .ConfigureAwait(false);
             }
         }
 

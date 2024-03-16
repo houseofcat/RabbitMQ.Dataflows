@@ -11,7 +11,6 @@ public class GlobalConsumerOptions
     public bool? Exclusive { get; set; }
     public ushort? BatchSize { get; set; } = 5;
     public bool? AutoAck { get; set; }
-    public bool? UseTransientChannels { get; set; } = true;
 
     public string ErrorSuffix { get; set; }
     public string AltSuffix { get; set; }

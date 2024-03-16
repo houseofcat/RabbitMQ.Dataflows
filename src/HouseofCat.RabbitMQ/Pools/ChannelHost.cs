@@ -62,7 +62,7 @@ public class ChannelHost : IChannelHost, IDisposable
         { _hostLock.Release(); }
     }
 
-    public async Task WaitUntilChannelIsReadyAsync(int sleepInterval, CancellationToken token = default)
+    public virtual async Task WaitUntilChannelIsReadyAsync(int sleepInterval, CancellationToken token = default)
     {
         var success = false;
         while (!token.IsCancellationRequested && !success)
