@@ -6,9 +6,9 @@ A library of `NetCore` tools to help rapidly develop well performant micro/macro
 
 Prototypes you could send to production!  
 
-## Why Make A RabbitMQ Powered Dataflow  
+## Why Make A RabbitMQ Powered Dataflow?  
 
-`Dataflows` have concurrency, serialization, monitoring, compression, and encryption all as first class citizens. This paradigm allows developers to just focus on the important stuff - getting work done. Dataflows pay attention to the extra dimensions so you don't have to!
+`Dataflows` have configurable concurrency, serialization, monitoring, compression, and encryption all as first class citizens. This paradigm allows developers to just focus on the important stuff - getting work done. Dataflows pay attention to the extra dimensions so you don't have to!
 
 Here are some features ready with RabbitMQ today, tomorrow - the world!
 
@@ -22,7 +22,7 @@ Here are some features ready with RabbitMQ today, tomorrow - the world!
 * Supports `ILogger<T>`  
 * Concurrency/Parallelism - baked in from the ground up.  
 * Contracted `WorkState`/WorkObject simplifies development and integration.  
-* Has `Json` (3 flavors) and `MessagePack` serialization providers.
+* Has `Json` (2 flavors) and `MessagePack` serialization providers.
 * Allow transparent encryption/decryption steps.  
 * Allow compression/decompression steps to reduce trip time over the wire.  
 * Async Error Handling with Predicate triggers and an actionable callback.  
@@ -49,7 +49,7 @@ The benefits of a dataflow pattern extend beyond fancy machine learning and Tens
 Lastly, after everything is said and done, all your business code is re-usable. Should you decide to abandon this workflow (:worried:) for a different mechanism, engine, or what not, all of your code will happily port to whatever other project / flow you are working with and so will all your testing making it a win win.
 
 ## Help
-You will find library usage examples in the `examples` folder. You also can find generic NetCore how-tos and tutorials located in there. The code quality of the entire library will improve over time. Codacy allows me to review code and openly share any pain points so submit a PR to help keep this an A rated library!
+You will find library usage examples in the `old\examples` folder. You also can find generic NetCore how-tos and tutorials located in there. The code quality of the entire library will improve over time. Codacy allows me to review code and openly share any pain points so submit a PR to help keep this an A rated library!
 
 Check out each project for additional `README.md`. They will provide additional instructions/examples.
 
