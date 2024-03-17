@@ -13,7 +13,7 @@ public static class Shared
 
     public static async Task<IChannelPool> SetupTestsAsync(ILogger logger, string configFileNamePath)
     {
-        var rabbitOptions = await RabbitExtensions.GetRabbitOptionsFromJsonAsync(configFileNamePath);
+        var rabbitOptions = await RabbitExtensions.GetRabbitOptionsFromJsonFileAsync(configFileNamePath);
         var channelPool = new ChannelPool(rabbitOptions);
 
         var channelHost = await channelPool.GetTransientChannelAsync(true);

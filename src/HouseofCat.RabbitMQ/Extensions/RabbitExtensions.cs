@@ -15,7 +15,7 @@ public static class RabbitExtensions
         return options;
     }
 
-    public static async Task<RabbitOptions> GetRabbitOptionsFromJsonAsync(string fileNamePath)
+    public static async Task<RabbitOptions> GetRabbitOptionsFromJsonFileAsync(string fileNamePath)
     {
         if (!File.Exists(fileNamePath))
         {
