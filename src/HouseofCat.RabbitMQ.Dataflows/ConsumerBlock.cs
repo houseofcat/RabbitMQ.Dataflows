@@ -47,7 +47,7 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
     {
         _cts = new CancellationTokenSource();
         await _consumer.StartConsumerAsync().ConfigureAwait(false);
-        _bufferProcessor = PushToBufferAsync(_cts.Token);
+        _bufferProcessor = PushToBufferBlockAsync(_cts.Token);
     }
 
     public async Task StopConsumingAsync(bool immediate = false)
@@ -93,7 +93,7 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
     }
 
     // Fast
-    protected virtual async Task PushToBufferAsync(CancellationToken token = default)
+    protected virtual async Task PushToBufferBlockAsync(CancellationToken token = default)
     {
         try
         {

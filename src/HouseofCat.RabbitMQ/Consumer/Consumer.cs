@@ -126,13 +126,12 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
                     });
 
                 await Task.Yield();
-                bool success;
-                do
+                var success = false;
+                while (!success)
                 {
                     _logger.LogTrace(Consumers.StartingConsumerLoop, ConsumerOptions.ConsumerName);
                     success = await StartConsumingAsync().ConfigureAwait(false);
                 }
-                while (!success);
 
                 _logger.LogDebug(Consumers.Started, ConsumerOptions.ConsumerName);
 
@@ -433,11 +432,12 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         }
 
         if (!channelHealthy)
-        {   // This is an inner infinite loop, until Channel is healthy/rebuilt.
+        {
             _logger.LogWarning(
                 Consumers.ConsumerChannelReplacedEvent,
                 ConsumerOptions.ConsumerName);
 
+            // This is an inner infinite loop, until Channel is healthy/rebuilt.
             await _chanHost
                 .WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval)
                 .ConfigureAwait(false);
