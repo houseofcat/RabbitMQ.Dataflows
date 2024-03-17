@@ -24,14 +24,14 @@ public static class Shared
         var channelHost = await channelPool.GetTransientChannelAsync(true);
         var channel = channelHost.GetChannel();
 
-        logger.LogInformation("Declaring Exchange: {ExchangeName}", ExchangeName);
+        logger.LogInformation("Declaring Exchange: [{ExchangeName}]", ExchangeName);
         channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, true, false, null);
 
-        logger.LogInformation("Declaring Queue: {QueueName}", QueueName);
+        logger.LogInformation("Declaring Queue: [{QueueName}]", QueueName);
         channel.QueueDeclare(QueueName, true, false, false, null);
 
         logger.LogInformation(
-            "Binding Queue {queueName} To Queue: {exchangeName}. RoutingKey: {routingKey}",
+            "Binding Queue [{queueName}] To Exchange: [{exchangeName}]. RoutingKey: [{routingKey}]",
             QueueName,
             ExchangeName,
             RoutingKey);

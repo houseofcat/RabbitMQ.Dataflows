@@ -9,4 +9,6 @@ var logger = loggerFactory.CreateLogger<Program>();
 var channelPool = await Shared.SetupChannelPoolAsync(logger);
 await BasicGetTests.RunBasicGetAsync(logger, channelPool);
 
+logger.LogInformation("Tests complete! Press return to exit....");
+
 Console.ReadLine();

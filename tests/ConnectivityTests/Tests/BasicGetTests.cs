@@ -27,7 +27,7 @@ public static class BasicGetTests
                 if (result is not null && result.Body.Length > 0)
                 {
                     var message = Encoding.UTF8.GetString(result.Body.Span);
-                    logger.LogInformation("Received message: {message}", message);
+                    logger.LogInformation("Received message: [{message}]", message);
                 }
                 else
                 {
@@ -35,7 +35,7 @@ public static class BasicGetTests
                 }
             } while (result is not null);
 
-            logger.LogInformation("BasicGet finished. Closing channel.");
+            logger.LogInformation("[BasicGet] finished. Closing channel.");
 
             channelHost.Close();
         }
