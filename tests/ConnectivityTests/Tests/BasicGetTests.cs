@@ -1,5 +1,4 @@
-﻿using HouseofCat.RabbitMQ.Pools;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System.Text;
 
@@ -7,8 +6,9 @@ namespace ConnectivityTests.Tests;
 
 public static class BasicGetTests
 {
-    public static async Task RunBasicGetAsync(ILogger logger, IChannelPool channelPool)
+    public static async Task RunBasicGetAsync(ILogger logger, string configFileNamePath)
     {
+        var channelPool = await Shared.SetupTestsAsync(logger, configFileNamePath);
         var channelHost = await channelPool.GetTransientChannelAsync(true);
         var channel = channelHost.GetChannel();
 

@@ -6,8 +6,7 @@ var loggerFactory = LogHelper.CreateConsoleLoggerFactory();
 LogHelper.LoggerFactory = loggerFactory;
 var logger = loggerFactory.CreateLogger<Program>();
 
-var channelPool = await Shared.SetupChannelPoolAsync(logger);
-await BasicGetTests.RunBasicGetAsync(logger, channelPool);
+await BasicGetTests.RunBasicGetAsync(logger, "./RabbitMQ.BasicGet.json");
 
 logger.LogInformation("Tests complete! Press return to exit....");
 

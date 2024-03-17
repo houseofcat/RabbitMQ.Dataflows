@@ -13,9 +13,15 @@ public static class Shared
     public static readonly string QueueName = "TestQueue";
     public static readonly string RoutingKey = "TestRoutingKey";
 
-    public static async Task<IChannelPool> SetupChannelPoolAsync(ILogger logger)
+    public static async Task<IChannelPool> SetupTestsAsync(ILogger logger, string configFileNamePath)
     {
-        var rabbitOptionsJson = await File.ReadAllTextAsync("./RabbitMQ.json");
+        if (!File.Exists(configFileNamePath))
+        {
+            logger.LogError("RabbitMQ config was not found: {configFileNamePath}", configFileNamePath);
+            throw new FileNotFoundException(configFileNamePath);
+        }
+
+        var rabbitOptionsJson = await File.ReadAllTextAsync(configFileNamePath);
         Guard.AgainstNullOrEmpty(rabbitOptionsJson, nameof(rabbitOptionsJson));
 
         var rabbitOptions = JsonSerializer.Deserialize<RabbitOptions>(rabbitOptionsJson);
