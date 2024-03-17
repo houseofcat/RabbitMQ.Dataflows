@@ -2,7 +2,7 @@
 using HouseofCat.Logger;
 using Microsoft.Extensions.Logging;
 
-var loggerFactory = LogHelper.CreateConsoleLoggerFactory();
+var loggerFactory = LogHelper.CreateConsoleLoggerFactory(LogLevel.Trace);
 LogHelper.LoggerFactory = loggerFactory;
 var logger = loggerFactory.CreateLogger<Program>();
 

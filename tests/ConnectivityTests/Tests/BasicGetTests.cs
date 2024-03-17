@@ -14,20 +14,26 @@ public static class BasicGetTests
 
         try
         {
-            channel.BasicPublish(Shared.ExchangeName, Shared.RoutingKey, null, Encoding.UTF8.GetBytes("Hello World"));
+            var properties = channel.CreateBasicProperties();
+            properties.DeliveryMode = 2;
+
+            var messageAsBytes = Encoding.UTF8.GetBytes("Hello World");
+
+            channel.BasicPublish(Shared.ExchangeName, Shared.RoutingKey, properties, messageAsBytes);
 
             logger.LogInformation(
-                "Getting message to from Queue [{queueName}]",
+                "Getting message from Queue [{queueName}]",
                 Shared.QueueName);
 
             BasicGetResult result = null;
             do
             {
-                result = channel.BasicGet(Shared.QueueName, true);
-                if (result is not null && result.Body.Length > 0)
+                result = channel.BasicGet(Shared.QueueName, false);
+                if (result is not null)
                 {
                     var message = Encoding.UTF8.GetString(result.Body.Span);
                     logger.LogInformation("Received message: [{message}]", message);
+                    channel.BasicAck(result.DeliveryTag, false);
                 }
                 else
                 {

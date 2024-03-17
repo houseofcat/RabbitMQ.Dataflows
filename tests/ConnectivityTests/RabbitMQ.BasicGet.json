@@ -13,9 +13,9 @@
     "ServiceName": "HoC.RabbitMQ",
     "MaxConnections": 1,
     "MaxChannels": 0,
-    "MaxAckChannels": 0,
+    "MaxAckableChannels": 0,
     "SleepOnErrorInterval": 1000,
-    "TransientStartChanelRange": 10000,
+    "TansientChannelStartRange": 10000,
     "UseTransientChannels": false
   },
   "GlobalConsumerOptions": { },
