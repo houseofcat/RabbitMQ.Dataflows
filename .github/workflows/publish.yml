@@ -29,10 +29,10 @@ jobs:
         dotnet-version: '8.x.x'
 
     - name: Install dependencies
-      run: dotnet restore Tesseract.sln
+      run: dotnet restore RabbitDataflows.sln
 
     - name: Build
-      run: dotnet build Tesseract.sln --configuration Release --no-restore
+      run: dotnet build RabbitDataflows.sln --configuration Release --no-restore
           
     - name: Publish HouseofCat.Compression
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -226,14 +226,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Recyclable/HouseofCat.Recyclable.csproj
 
-    - name: Publish HouseofCat.Reflection
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Reflection/HouseofCat.Reflection.csproj
-
     - name: Publish HouseofCat.Serialization
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -257,14 +249,6 @@ jobs:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Serialization.MessagePack/HouseofCat.Serialization.MessagePack.csproj
-
-    - name: Publish HouseofCat.Serilog
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Serilog/HouseofCat.Serilog.csproj
 
     - name: Publish HouseofCat.Utilities
       uses: brandedoutcast/publish-nuget@v2.5.2
