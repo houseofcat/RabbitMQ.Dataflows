@@ -109,7 +109,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "stablediffusion", "stabledi
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D01D59E9-75CC-4C74-A887-22B0A55C994B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectionTests", "tests\Tests\ConnectionTests\ConnectionTests.csproj", "{0930ACF5-372E-49AF-B53F-A06C3A5FA997}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectivityTests", "tests\ConnectivityTests\ConnectivityTests.csproj", "{0930ACF5-372E-49AF-B53F-A06C3A5FA997}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

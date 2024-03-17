@@ -55,6 +55,10 @@ Check out each project for additional `README.md`. They will provide additional 
 
 ## Status
 
+Test Server: `Windows 11`  
+RabbitMQ Server: `v3.13`  
+Erlang: `v26.2.3`  
+
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9dbb20a30ada48caae4b92a83628f45e)](https://app.codacy.com/gh/houseofcat/RabbitDataflows/dashboard)  
 
 [![build](https://github.com/houseofcat/HouseofCat.Library/workflows/build/badge.svg)](https://github.com/houseofcat/RabbitDataflows/actions/workflows/build.yml)
