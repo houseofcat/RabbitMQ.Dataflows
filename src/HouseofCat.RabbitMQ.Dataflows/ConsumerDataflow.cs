@@ -12,7 +12,6 @@ using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using static HouseofCat.Reflection.Generics;
 
 namespace HouseofCat.RabbitMQ.Dataflows;
 

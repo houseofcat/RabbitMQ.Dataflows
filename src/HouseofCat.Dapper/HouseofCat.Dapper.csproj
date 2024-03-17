@@ -7,7 +7,6 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\HouseofCat.Data.Database\HouseofCat.Data.Database.csproj" />
-		<ProjectReference Include="..\HouseofCat.Reflection\HouseofCat.Reflection.csproj" />
 		<ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
 	</ItemGroup>
 </Project>

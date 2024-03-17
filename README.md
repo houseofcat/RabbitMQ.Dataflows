@@ -120,7 +120,7 @@ These libraries are here to help you build powerful Dataflows for your messages.
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Logger.svg)](https://www.nuget.org/packages/HouseofCat.Logger/)  
 
 A library that focuses on getting Microsoft.Extensions.LoggerFactory implemented adhoc globally since Dependency Injection with
-the Factory/Builder pattern can be difficult to maintain. 
+the Factory/Builder pattern can be problematic. 
 
 ## HouseofCat.Compression
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Compression.svg)](https://www.nuget.org/packages/HouseofCat.Compression/)  
@@ -235,13 +235,7 @@ A library that focuses on making it easier to deal with MessagePack Serializatio
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Recyclable.svg)](https://www.nuget.org/packages/HouseofCat.Recyclable/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Recyclable.svg)](https://www.nuget.org/packages/HouseofCat.Recyclable/)  
 
-A library that focuses on Recyclable classes and pooling. 
-
-## HouseofCat.Reflection
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Reflection.svg)](https://www.nuget.org/packages/HouseofCat.Reflection/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Reflection.svg)](https://www.nuget.org/packages/HouseofCat.Reflection/)  
-
-A library that focuses on Reflection hackery.  
+A library that focuses on providing a thin abstraction for a simple global singleton wrapper for RecyclableMemoryStreamManager class. 
 
 ## HouseofCat.Utilities
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Utilities.svg)](https://www.nuget.org/packages/HouseofCat.Utilities/)  
@@ -257,7 +251,7 @@ An example project/library that extends HouseofCat.RabbitMQ.Services to simplify
 ### HouseofCat.RabbitMQ.Mailkit
 An example project/library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (Email) with the HouseofCat.RabbitMQ library. 
 
-## Extra Side Projects
+## Extra/Old Side Projects
 
 ### HouseofCat.Algorithms
 An example project/library that has a collection of algorithms as I have time to learn and play with them.  
@@ -276,6 +270,9 @@ An example project/library that focuses on Chaos Engineering with SqlServer. Cur
 
 ### HouseofCat.Network
 An example project/library that focuses on making it easier to deal with systems networking.  
+
+## HouseofCat.Reflection
+A library that focuses on Reflection hackery.  
 
 ### HouseofCat.Serialization.Json.Utf8Json
 An example project/library that focuses on making it easier to deal with Utf8Json (cysharp/neuecc) Json Serialization.  

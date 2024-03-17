@@ -12,7 +12,6 @@
 		<ProjectReference Include="..\HouseofCat.Dataflows\HouseofCat.Dataflows.csproj" />
 		<ProjectReference Include="..\HouseofCat.Encryption.Providers\HouseofCat.Encryption.Providers.csproj" />
 		<ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
-		<ProjectReference Include="..\HouseofCat.Reflection\HouseofCat.Reflection.csproj" />
 		<ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
 		<ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
 	</ItemGroup>
