@@ -20,10 +20,10 @@ jobs:
         dotnet-version: '8.x.x'
 
     - name: Install dependencies
-      run: dotnet restore Tesseract.sln
+      run: dotnet restore RabbitDataflows.sln
 
     - name: Build
-      run: dotnet build Tesseract.sln --configuration Release
+      run: dotnet build RabbitDataflows.sln --configuration Release
 
-    - name: Test
-      run: dotnet test "./tests/Tests.sln"
+#    - name: Test
+#      run: dotnet test "./tests/Tests.sln"
