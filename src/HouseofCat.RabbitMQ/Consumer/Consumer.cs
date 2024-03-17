@@ -285,8 +285,22 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     {
         if (await _conLock.WaitAsync(0))
         {
+            _shutdownAutoRecoveryLoopCount = 0;
+
             try
-            { await HandleRecoverableShutdownAsync(e).ConfigureAwait(false); }
+            {
+                if (!_shutdown)
+                {
+                    await HandleRecoverableShutdownAsync(e)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    await _chanHost
+                        .StopConsumingAsync()
+                        .ConfigureAwait(false);
+                }
+            }
             finally
             { _conLock.Release(); }
         }
@@ -347,13 +361,14 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             {
                 if (!_shutdown)
                 {
-                    await HandleRecoverableShutdownAsync(e).ConfigureAwait(false);
+                    await HandleRecoverableShutdownAsync(e)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
-                    _chanHost
-                        .GetChannel()
-                        .BasicCancel(_consumerTag);
+                    await _chanHost
+                        .StopConsumingAsync()
+                        .ConfigureAwait(false);
                 }
             }
             finally
