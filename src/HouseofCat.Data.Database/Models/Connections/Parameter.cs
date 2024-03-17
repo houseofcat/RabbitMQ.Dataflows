@@ -1,18 +1,17 @@
 ﻿using System.Data;
 using System.Text.Json.Serialization;
 
-namespace HouseofCat.Data.Database
+namespace HouseofCat.Data.Database;
+
+public class Parameter
 {
-    public class Parameter
-    {
-        public string Name { get; set; }
-        public object Value { get; set; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public DbType? DbType { get; set; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public ParameterDirection? Direction { get; set; }
-        public int? Size { get; set; }
-        public byte? Precision { get; set; }
-        public byte? Scale { get; set; }
-    }
+    public string Name { get; set; }
+    public object Value { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public DbType? DbType { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public ParameterDirection? Direction { get; set; }
+    public int? Size { get; set; }
+    public byte? Precision { get; set; }
+    public byte? Scale { get; set; }
 }

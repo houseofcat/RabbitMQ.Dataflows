@@ -4,141 +4,140 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Sockets
-{
-    public interface IQuickSocketFactory
-    {
-        IDnsCaching DnsCaching { get; }
+namespace HouseofCat.Sockets;
 
-        ValueTask<IQuickListeningSocket> GetListeningTcpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false);
-        ValueTask<IQuickListeningSocket> GetListeningUdpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false);
-        ValueTask<IQuickSocket> GetTcpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false);
-        ValueTask<IQuickSocket> GetUdpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false);
+public interface IQuickSocketFactory
+{
+    IDnsCaching DnsCaching { get; }
+
+    ValueTask<IQuickListeningSocket> GetListeningTcpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false);
+    ValueTask<IQuickListeningSocket> GetListeningUdpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false);
+    ValueTask<IQuickSocket> GetTcpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false);
+    ValueTask<IQuickSocket> GetUdpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false);
+}
+
+public class QuickSocketFactory : IQuickSocketFactory
+{
+    public IDnsCaching DnsCaching { get; }
+    private ConcurrentDictionary<string, QuickSocket> Sockets { get; }
+    private ConcurrentDictionary<string, QuickListeningSocket> ListeningSockets { get; }
+
+    private const string SocketKeyFormat = "{0}{1}:{2}:{3}";
+    private const int CachingExpiryInHours = 1;
+
+    public QuickSocketFactory()
+    {
+        DnsCaching = new DnsCaching(TimeSpan.FromHours(CachingExpiryInHours));
+        Sockets = new ConcurrentDictionary<string, QuickSocket>();
+        ListeningSockets = new ConcurrentDictionary<string, QuickListeningSocket>();
     }
 
-    public class QuickSocketFactory : IQuickSocketFactory
+    private string GetSocketKey(ProtocolType protocolType, SocketType socketType, string hostNameOrAddresss, int bindingPort)
     {
-        public IDnsCaching DnsCaching { get; }
-        private ConcurrentDictionary<string, QuickSocket> Sockets { get; }
-        private ConcurrentDictionary<string, QuickListeningSocket> ListeningSockets { get; }
+        return string.Format(SocketKeyFormat, protocolType, socketType, hostNameOrAddresss, bindingPort);
+    }
 
-        private const string SocketKeyFormat = "{0}{1}:{2}:{3}";
-        private const int CachingExpiryInHours = 1;
+    public async ValueTask<IQuickSocket> GetTcpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false)
+    {
+        var key = GetSocketKey(ProtocolType.Tcp, SocketType.Stream, hostNameOrAddresss, bindingPort);
 
-        public QuickSocketFactory()
+        if (Sockets.ContainsKey(key))
         {
-            DnsCaching = new DnsCaching(TimeSpan.FromHours(CachingExpiryInHours));
-            Sockets = new ConcurrentDictionary<string, QuickSocket>();
-            ListeningSockets = new ConcurrentDictionary<string, QuickListeningSocket>();
+            return Sockets[key];
         }
-
-        private string GetSocketKey(ProtocolType protocolType, SocketType socketType, string hostNameOrAddresss, int bindingPort)
+        else
         {
-            return string.Format(SocketKeyFormat, protocolType, socketType, hostNameOrAddresss, bindingPort);
+            var dnsEntry = await DnsCaching
+                .GetDnsEntryAsync(hostNameOrAddresss, bindingPort, overideAsLocal, verbatimAddress)
+                .ConfigureAwait(false);
+
+            var quickSocket = new QuickSocket
+            {
+                Socket = new Socket(dnsEntry.PrimaryAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp),
+                DnsEntry = dnsEntry,
+            };
+
+            Sockets[key] = quickSocket;
+
+            return quickSocket;
         }
+    }
 
-        public async ValueTask<IQuickSocket> GetTcpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false)
+    public async ValueTask<IQuickSocket> GetUdpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false)
+    {
+        var key = GetSocketKey(ProtocolType.Udp, SocketType.Stream, hostNameOrAddresss, bindingPort);
+
+        if (Sockets.ContainsKey(key))
         {
-            var key = GetSocketKey(ProtocolType.Tcp, SocketType.Stream, hostNameOrAddresss, bindingPort);
-
-            if (Sockets.ContainsKey(key))
-            {
-                return Sockets[key];
-            }
-            else
-            {
-                var dnsEntry = await DnsCaching
-                    .GetDnsEntryAsync(hostNameOrAddresss, bindingPort, overideAsLocal, verbatimAddress)
-                    .ConfigureAwait(false);
-
-                var quickSocket = new QuickSocket
-                {
-                    Socket = new Socket(dnsEntry.PrimaryAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp),
-                    DnsEntry = dnsEntry,
-                };
-
-                Sockets[key] = quickSocket;
-
-                return quickSocket;
-            }
+            return Sockets[key];
         }
-
-        public async ValueTask<IQuickSocket> GetUdpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false)
+        else
         {
-            var key = GetSocketKey(ProtocolType.Udp, SocketType.Stream, hostNameOrAddresss, bindingPort);
+            var dnsEntry = await DnsCaching
+                .GetDnsEntryAsync(hostNameOrAddresss, bindingPort, overideAsLocal, verbatimAddress)
+                .ConfigureAwait(false);
 
-            if (Sockets.ContainsKey(key))
+            var quickSocket = new QuickSocket
             {
-                return Sockets[key];
-            }
-            else
-            {
-                var dnsEntry = await DnsCaching
-                    .GetDnsEntryAsync(hostNameOrAddresss, bindingPort, overideAsLocal, verbatimAddress)
-                    .ConfigureAwait(false);
+                Socket = new Socket(dnsEntry.PrimaryAddress.AddressFamily, SocketType.Stream, ProtocolType.Udp),
+                DnsEntry = dnsEntry,
+            };
 
-                var quickSocket = new QuickSocket
-                {
-                    Socket = new Socket(dnsEntry.PrimaryAddress.AddressFamily, SocketType.Stream, ProtocolType.Udp),
-                    DnsEntry = dnsEntry,
-                };
+            Sockets[key] = quickSocket;
 
-                Sockets[key] = quickSocket;
-
-                return quickSocket;
-            }
+            return quickSocket;
         }
+    }
 
-        public async ValueTask<IQuickListeningSocket> GetListeningTcpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false)
+    public async ValueTask<IQuickListeningSocket> GetListeningTcpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false)
+    {
+        var key = GetSocketKey(ProtocolType.Tcp, SocketType.Stream, hostNameOrAddresss, bindingPort);
+
+        if (ListeningSockets.ContainsKey(key))
         {
-            var key = GetSocketKey(ProtocolType.Tcp, SocketType.Stream, hostNameOrAddresss, bindingPort);
-
-            if (ListeningSockets.ContainsKey(key))
-            {
-                return ListeningSockets[key];
-            }
-            else
-            {
-                var dnsEntry = await DnsCaching
-                    .GetDnsEntryAsync(hostNameOrAddresss, bindingPort, overideAsLocal, verbatimAddress)
-                    .ConfigureAwait(false);
-
-                var quickListeningSocket = new QuickListeningSocket
-                {
-                    Socket = new Socket(dnsEntry.PrimaryAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp),
-                    DnsEntry = dnsEntry,
-                };
-
-                ListeningSockets[key] = quickListeningSocket;
-
-                return quickListeningSocket;
-            }
+            return ListeningSockets[key];
         }
-
-        public async ValueTask<IQuickListeningSocket> GetListeningUdpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false)
+        else
         {
-            var key = GetSocketKey(ProtocolType.Udp, SocketType.Stream, hostNameOrAddresss, bindingPort);
+            var dnsEntry = await DnsCaching
+                .GetDnsEntryAsync(hostNameOrAddresss, bindingPort, overideAsLocal, verbatimAddress)
+                .ConfigureAwait(false);
 
-            if (ListeningSockets.ContainsKey(key))
+            var quickListeningSocket = new QuickListeningSocket
             {
-                return ListeningSockets[key];
-            }
-            else
+                Socket = new Socket(dnsEntry.PrimaryAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp),
+                DnsEntry = dnsEntry,
+            };
+
+            ListeningSockets[key] = quickListeningSocket;
+
+            return quickListeningSocket;
+        }
+    }
+
+    public async ValueTask<IQuickListeningSocket> GetListeningUdpSocketAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal = false, bool verbatimAddress = false)
+    {
+        var key = GetSocketKey(ProtocolType.Udp, SocketType.Stream, hostNameOrAddresss, bindingPort);
+
+        if (ListeningSockets.ContainsKey(key))
+        {
+            return ListeningSockets[key];
+        }
+        else
+        {
+            var dnsEntry = await DnsCaching
+                .GetDnsEntryAsync(hostNameOrAddresss, bindingPort, overideAsLocal, verbatimAddress)
+                .ConfigureAwait(false);
+
+            var quickListeningSocket = new QuickListeningSocket
             {
-                var dnsEntry = await DnsCaching
-                    .GetDnsEntryAsync(hostNameOrAddresss, bindingPort, overideAsLocal, verbatimAddress)
-                    .ConfigureAwait(false);
+                Socket = new Socket(dnsEntry.PrimaryAddress.AddressFamily, SocketType.Stream, ProtocolType.Udp),
+                DnsEntry = dnsEntry,
+            };
 
-                var quickListeningSocket = new QuickListeningSocket
-                {
-                    Socket = new Socket(dnsEntry.PrimaryAddress.AddressFamily, SocketType.Stream, ProtocolType.Udp),
-                    DnsEntry = dnsEntry,
-                };
+            ListeningSockets[key] = quickListeningSocket;
 
-                ListeningSockets[key] = quickListeningSocket;
-
-                return quickListeningSocket;
-            }
+            return quickListeningSocket;
         }
     }
 }

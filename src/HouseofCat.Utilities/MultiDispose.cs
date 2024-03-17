@@ -1,42 +1,41 @@
 ﻿using System;
 
-namespace HouseofCat.Utilities
+namespace HouseofCat.Utilities;
+
+public class MultiDispose : IDisposable
 {
-    public class MultiDispose : IDisposable
+    private bool disposedValue;
+
+    private readonly IDisposable[] _disposables;
+
+    public MultiDispose(params IDisposable[] disposables)
     {
-        private bool disposedValue;
+        _disposables = disposables;
+    }
 
-        private readonly IDisposable[] _disposables;
-
-        public MultiDispose(params IDisposable[] disposables)
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposedValue)
         {
-            _disposables = disposables;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
+            if (disposing)
             {
-                if (disposing)
+                for (int i = 0; i < _disposables.Length; i++)
                 {
-                    for (int i = 0; i < _disposables.Length; i++)
+                    try
                     {
-                        try
-                        {
-                            _disposables[i]?.Dispose();
-                        }
-                        catch { /* Swallow */ }
+                        _disposables[i]?.Dispose();
                     }
+                    catch { /* Swallow */ }
                 }
-
-                disposedValue = true;
             }
-        }
 
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            disposedValue = true;
         }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

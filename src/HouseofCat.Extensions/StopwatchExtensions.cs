@@ -1,23 +1,22 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace HouseofCat.Extensions
+namespace HouseofCat.Extensions;
+
+public static class StopwatchExtensions
 {
-    public static class StopwatchExtensions
+    private const long Billion = 1_000_000_000L;
+    private const long Million = 1_000_000L;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static long ElapsedNanoseconds(this Stopwatch watch)
     {
-        private const long Billion = 1_000_000_000L;
-        private const long Million = 1_000_000L;
+        return (long)((double)watch.ElapsedTicks / Stopwatch.Frequency * Billion);
+    }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long ElapsedNanoseconds(this Stopwatch watch)
-        {
-            return (long)((double)watch.ElapsedTicks / Stopwatch.Frequency * Billion);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long ElapsedMicroseconds(this Stopwatch watch)
-        {
-            return (long)((double)watch.ElapsedTicks / Stopwatch.Frequency * Million);
-        }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static long ElapsedMicroseconds(this Stopwatch watch)
+    {
+        return (long)((double)watch.ElapsedTicks / Stopwatch.Frequency * Million);
     }
 }

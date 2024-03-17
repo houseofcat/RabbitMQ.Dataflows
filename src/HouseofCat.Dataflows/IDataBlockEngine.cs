@@ -1,9 +1,8 @@
 ﻿using System.Threading.Tasks;
 
-namespace HouseofCat.Dataflows
+namespace HouseofCat.Dataflows;
+
+public interface IDataBlockEngine<TIn>
 {
-    public interface IDataBlockEngine<TIn>
-    {
-        ValueTask EnqueueWorkAsync(TIn data);
-    }
+    ValueTask EnqueueWorkAsync(TIn data);
 }

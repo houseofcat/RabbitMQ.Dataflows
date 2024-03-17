@@ -17,8 +17,8 @@ public static class MessageExtensions
         {
             Envelope = new Envelope
             {
-                Exchange = message.Envelope.Exchange,
-                RoutingKey = message.Envelope.RoutingKey,
+                Exchange = new string(message.Envelope.Exchange),
+                RoutingKey = new string(message.Envelope.RoutingKey),
                 RoutingOptions = new RoutingOptions
                 {
                     DeliveryMode = message.Envelope.RoutingOptions?.DeliveryMode ?? 2,
@@ -50,9 +50,11 @@ public static class MessageExtensions
         var props = channelHost.GetChannel().CreateBasicProperties();
 
         props.DeliveryMode = message.Envelope.RoutingOptions.DeliveryMode;
-        props.ContentType = message.Envelope.RoutingOptions.MessageType;
+        props.ContentType = new string(message.Envelope.RoutingOptions.MessageType);
         props.Priority = message.Envelope.RoutingOptions.PriorityLevel;
-        props.MessageId = message.MessageId ?? Guid.NewGuid().ToString();
+        props.MessageId = message.MessageId == null
+            ? new string(message.MessageId)
+            : Guid.NewGuid().ToString();
 
         if (!props.IsHeadersPresent())
         {
@@ -85,7 +87,7 @@ public static class MessageExtensions
             Envelope = new Envelope
             {
                 Exchange = string.Empty,
-                RoutingKey = queueName,
+                RoutingKey = new string(queueName),
                 RoutingOptions = new RoutingOptions
                 {
                     DeliveryMode = 1,

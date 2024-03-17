@@ -1,14 +1,13 @@
 ﻿using static HouseofCat.Data.Database.Enums;
 
-namespace HouseofCat.Data.Database.QueryBuilding
+namespace HouseofCat.Data.Database.QueryBuilding;
+
+public class Join
 {
-    public class Join
-    {
-        public JoinType Type { get; set; }
+    public JoinType Type { get; set; }
 
-        public Table ToTable { get; set; }
+    public Table ToTable { get; set; }
 
-        public string Field { get; set; }
-        public string OnField { get; set; }
-    }
+    public string Field { get; set; }
+    public string OnField { get; set; }
 }

@@ -8,36 +8,35 @@ using Serilog.Sinks.SystemConsole.Themes;
 using System;
 using S = Serilog; // For debugging call.
 
-namespace HouseofCat.Serilog
+namespace HouseofCat.Serilog;
+
+public static class HostExtensions
 {
-    public static class HostExtensions
+    /// <summary>
+    /// Bootstrap Serilog for IHost that enriches with context, basic overrides, minimum level to debug, and enable self-log if in debug mode.
+    /// <para>It also receives the Configuration so that you can override based on appsettings.json/Configuration.</para>
+    /// </summary>
+    /// <param name="host"></param>
+    /// <param name="applicationName"></param>
+    public static void CreateSerilogLogger(this IHost host, string applicationName)
     {
-        /// <summary>
-        /// Bootstrap Serilog for IHost that enriches with context, basic overrides, minimum level to debug, and enable self-log if in debug mode.
-        /// <para>It also receives the Configuration so that you can override based on appsettings.json/Configuration.</para>
-        /// </summary>
-        /// <param name="host"></param>
-        /// <param name="applicationName"></param>
-        public static void CreateSerilogLogger(this IHost host, string applicationName)
-        {
-            using var scope = host.Services.CreateScope();
-            var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        using var scope = host.Services.CreateScope();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                .MinimumLevel.Override("System", LogEventLevel.Information)
-                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Information)
-                .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Information)
-                .Enrich.FromLogContext()
-                .Enrich.WithProperty("ApplicationName", applicationName)
-                .WriteTo.Console(
-                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
-                    theme: AnsiConsoleTheme.Literate)
-                .ReadFrom.Configuration(configuration)
-                .CreateLogger();
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .MinimumLevel.Override("System", LogEventLevel.Information)
+            .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Information)
+            .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .Enrich.WithProperty("ApplicationName", applicationName)
+            .WriteTo.Console(
+                outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
+                theme: AnsiConsoleTheme.Literate)
+            .ReadFrom.Configuration(configuration)
+            .CreateLogger();
 
-            if (App.IsDebug) { S.Debugging.SelfLog.Enable(Console.WriteLine); }
-        }
+        if (App.IsDebug) { S.Debugging.SelfLog.Enable(Console.WriteLine); }
     }
 }

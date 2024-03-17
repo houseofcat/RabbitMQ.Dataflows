@@ -1,19 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace HouseofCat.Data.Database
+namespace HouseofCat.Data.Database;
+
+public class OracleOptions
 {
-    public class OracleOptions
-    {
-        public string IntegratedSecurity { get; set; }
+    public string IntegratedSecurity { get; set; }
 
-        [DefaultValue(true)]
-        public bool Pooling { get; set; } = true;
+    [DefaultValue(true)]
+    public bool Pooling { get; set; } = true;
 
-        [DefaultValue(100)]
-        public int MaxPoolSize { get; set; } = 100;
-        public int MinPoolSize { get; set; }
+    [DefaultValue(100)]
+    public int MaxPoolSize { get; set; } = 100;
+    public int MinPoolSize { get; set; }
 
-        public Dictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
-    }
+    public Dictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
 }

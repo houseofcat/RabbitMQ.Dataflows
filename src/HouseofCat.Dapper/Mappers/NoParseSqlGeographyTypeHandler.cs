@@ -2,14 +2,13 @@
 using Microsoft.SqlServer.Types;
 using System.Data;
 
-namespace HouseofCat.Dapper
-{
-    public class NoParseSqlGeographyTypeHandler : SqlMapper.TypeHandler<SqlGeography>
-    {
-        public override Microsoft.SqlServer.Types.SqlGeography Parse(object value)
-        { return default; }
+namespace HouseofCat.Dapper;
 
-        public override void SetValue(IDbDataParameter parameter, Microsoft.SqlServer.Types.SqlGeography value)
-        { /* NO-OP */ }
-    }
+public class NoParseSqlGeographyTypeHandler : SqlMapper.TypeHandler<SqlGeography>
+{
+    public override Microsoft.SqlServer.Types.SqlGeography Parse(object value)
+    { return default; }
+
+    public override void SetValue(IDbDataParameter parameter, Microsoft.SqlServer.Types.SqlGeography value)
+    { /* NO-OP */ }
 }

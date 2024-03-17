@@ -4,72 +4,71 @@ using System.Data;
 using System.Threading.Tasks;
 using static Dapper.SqlMapper;
 
-namespace HouseofCat.Dapper
-{
-    public interface IDapperGridReader
-    {
-        bool IsReaderConsumed { get; }
+namespace HouseofCat.Dapper;
 
-        Task<T> GetSingleAsync<T>() where T : class, new();
-        Task<T> GetFirstAsync<T>() where T : class, new();
-        Task<IEnumerable<T>> GetManyAsync<T>(bool buffered = true) where T : class, new();
+public interface IDapperGridReader
+{
+    bool IsReaderConsumed { get; }
+
+    Task<T> GetSingleAsync<T>() where T : class, new();
+    Task<T> GetFirstAsync<T>() where T : class, new();
+    Task<IEnumerable<T>> GetManyAsync<T>(bool buffered = true) where T : class, new();
+}
+
+public class DapperGridReader : IDapperGridReader, IDisposable
+{
+    private readonly IDbConnection _connection;
+    private readonly GridReader _reader;
+
+    public bool IsReaderConsumed => _reader.IsConsumed;
+
+    public DapperGridReader(IDbConnection connection, GridReader reader)
+    {
+        _connection = connection;
+        _reader = reader;
     }
 
-    public class DapperGridReader : IDapperGridReader, IDisposable
+    public Task<T> GetSingleAsync<T>() where T : class, new()
     {
-        private readonly IDbConnection _connection;
-        private readonly GridReader _reader;
+        if (IsReaderConsumed) throw new InvalidOperationException();
 
-        public bool IsReaderConsumed => _reader.IsConsumed;
+        return _reader.ReadSingleOrDefaultAsync<T>();
+    }
 
-        public DapperGridReader(IDbConnection connection, GridReader reader)
+    public Task<T> GetFirstAsync<T>() where T : class, new()
+    {
+        if (IsReaderConsumed) throw new InvalidOperationException();
+
+        return _reader.ReadFirstOrDefaultAsync<T>();
+    }
+
+    public Task<IEnumerable<T>> GetManyAsync<T>(bool buffered = true) where T : class, new()
+    {
+        if (IsReaderConsumed) throw new InvalidOperationException();
+
+        return _reader.ReadAsync<T>(buffered);
+    }
+
+    private bool _disposedValue;
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposedValue)
         {
-            _connection = connection;
-            _reader = reader;
-        }
-
-        public Task<T> GetSingleAsync<T>() where T : class, new()
-        {
-            if (IsReaderConsumed) throw new InvalidOperationException();
-
-            return _reader.ReadSingleOrDefaultAsync<T>();
-        }
-
-        public Task<T> GetFirstAsync<T>() where T : class, new()
-        {
-            if (IsReaderConsumed) throw new InvalidOperationException();
-
-            return _reader.ReadFirstOrDefaultAsync<T>();
-        }
-
-        public Task<IEnumerable<T>> GetManyAsync<T>(bool buffered = true) where T : class, new()
-        {
-            if (IsReaderConsumed) throw new InvalidOperationException();
-
-            return _reader.ReadAsync<T>(buffered);
-        }
-
-        private bool _disposedValue;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
+            if (disposing)
             {
-                if (disposing)
-                {
-                    _reader.Dispose();
-                    _connection.Dispose();
-                }
-
-                _disposedValue = true;
+                _reader.Dispose();
+                _connection.Dispose();
             }
-        }
 
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            _disposedValue = true;
         }
+    }
+
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

@@ -1,20 +1,19 @@
 ﻿using System;
 
-namespace HouseofCat.Utilities.Runtime
+namespace HouseofCat.Utilities.Runtime;
+
+public static class App
 {
-    public static class App
+    public static bool IsDebug
     {
-        public static bool IsDebug
+        get
         {
-            get
-            {
 #if DEBUG
-                return true;
+            return true;
 #else
-                return false;
+            return false;
 #endif
-            }
         }
-        public static string Env => Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Debug";
     }
+    public static string Env => Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Debug";
 }

@@ -1,15 +1,14 @@
 ﻿using System.Collections.Generic;
 
-namespace HouseofCat.Data.Database
+namespace HouseofCat.Data.Database;
+
+public class OleDbOptions
 {
-    public class OleDbOptions
-    {
-        public bool PersistSecurityInfo { get; set; }
-        public int OleDbServices { get; set; }
+    public bool PersistSecurityInfo { get; set; }
+    public int OleDbServices { get; set; }
 
-        public string FileName { get; set; }
-        public string Provider { get; set; }
+    public string FileName { get; set; }
+    public string Provider { get; set; }
 
-        public Dictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
-    }
+    public Dictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
 }

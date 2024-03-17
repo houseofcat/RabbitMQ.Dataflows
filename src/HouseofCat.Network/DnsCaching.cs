@@ -4,91 +4,90 @@ using System;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Network
+namespace HouseofCat.Network;
+
+public interface IDnsCaching
 {
-    public interface IDnsCaching
+    ValueTask<DnsEntry> GetDnsEntryAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal, bool verbatimAddress);
+    void RemoveDnsEntry(string hostNameOrAddresss, int bindingPort);
+}
+
+public class DnsCaching : IDnsCaching
+{
+    private readonly TimeSpan _expiration;
+    private readonly MemoryCache _memoryCache = new MemoryCache(Options.Create(new MemoryCacheOptions()));
+    private const string DnsKeyFormat = "{0}:{1}";
+
+    public DnsCaching(TimeSpan expiration)
     {
-        ValueTask<DnsEntry> GetDnsEntryAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal, bool verbatimAddress);
-        void RemoveDnsEntry(string hostNameOrAddresss, int bindingPort);
+        _expiration = expiration;
     }
 
-    public class DnsCaching : IDnsCaching
+    private string GetDnsKey(string hostName, int bindingPort)
     {
-        private readonly TimeSpan _expiration;
-        private readonly MemoryCache _memoryCache = new MemoryCache(Options.Create(new MemoryCacheOptions()));
-        private const string DnsKeyFormat = "{0}:{1}";
+        return string.Format(DnsKeyFormat, hostName, bindingPort);
+    }
 
-        public DnsCaching(TimeSpan expiration)
+    public async ValueTask<DnsEntry> GetDnsEntryAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal, bool verbatimAddress)
+    {
+        // See if we already have a cached DnsEntry
+        var key = GetDnsKey(hostNameOrAddresss, bindingPort);
+
+        var dnsEntry = _memoryCache.Get<DnsEntry>(key);
+        if (dnsEntry != null)
         {
-            _expiration = expiration;
+            return dnsEntry;
         }
-
-        private string GetDnsKey(string hostName, int bindingPort)
+        else // Else build one, cache it, and return.
         {
-            return string.Format(DnsKeyFormat, hostName, bindingPort);
-        }
-
-        public async ValueTask<DnsEntry> GetDnsEntryAsync(string hostNameOrAddresss, int bindingPort, bool overideAsLocal, bool verbatimAddress)
-        {
-            // See if we already have a cached DnsEntry
-            var key = GetDnsKey(hostNameOrAddresss, bindingPort);
-
-            var dnsEntry = _memoryCache.Get<DnsEntry>(key);
-            if (dnsEntry != null)
+            dnsEntry = new DnsEntry
             {
-                return dnsEntry;
+                HostName = hostNameOrAddresss,
+                Port = bindingPort,
+                Addresses = await Dns.GetHostAddressesAsync(hostNameOrAddresss).ConfigureAwait(false),
+            };
+
+            if (overideAsLocal)
+            {
+                dnsEntry.PrimaryAddress = IPAddress.Loopback;
+                dnsEntry.Endpoint = new IPEndPoint(IPAddress.Loopback, bindingPort);
             }
-            else // Else build one, cache it, and return.
+            else if (verbatimAddress)
             {
-                dnsEntry = new DnsEntry
+                // Find verbatim IP address match based on the hostname or address.
+                for (int i = 0; i < dnsEntry.Addresses.Length; i++)
                 {
-                    HostName = hostNameOrAddresss,
-                    Port = bindingPort,
-                    Addresses = await Dns.GetHostAddressesAsync(hostNameOrAddresss).ConfigureAwait(false),
-                };
-
-                if (overideAsLocal)
-                {
-                    dnsEntry.PrimaryAddress = IPAddress.Loopback;
-                    dnsEntry.Endpoint = new IPEndPoint(IPAddress.Loopback, bindingPort);
-                }
-                else if (verbatimAddress)
-                {
-                    // Find verbatim IP address match based on the hostname or address.
-                    for (int i = 0; i < dnsEntry.Addresses.Length; i++)
+                    if (dnsEntry.Addresses[i].ToString() == hostNameOrAddresss)
                     {
-                        if (dnsEntry.Addresses[i].ToString() == hostNameOrAddresss)
-                        {
-                            dnsEntry.Endpoint = new IPEndPoint(dnsEntry.Addresses[i], bindingPort);
-                            break;
-                        }
+                        dnsEntry.Endpoint = new IPEndPoint(dnsEntry.Addresses[i], bindingPort);
+                        break;
                     }
                 }
-                else
+            }
+            else
+            {
+                // Find first non-Loopback address for PrimaryAddress.
+                for (int i = 0; i < dnsEntry.Addresses.Length; i++)
                 {
-                    // Find first non-Loopback address for PrimaryAddress.
-                    for (int i = 0; i < dnsEntry.Addresses.Length; i++)
+                    if (!IPAddress.IsLoopback(dnsEntry.Addresses[i]))
                     {
-                        if (!IPAddress.IsLoopback(dnsEntry.Addresses[i]))
-                        {
-                            dnsEntry.Endpoint = new IPEndPoint(dnsEntry.Addresses[i], bindingPort);
-                            break;
-                        }
+                        dnsEntry.Endpoint = new IPEndPoint(dnsEntry.Addresses[i], bindingPort);
+                        break;
                     }
                 }
-
-                _memoryCache.Set(key, dnsEntry, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = _expiration });
-
-                return dnsEntry;
             }
-        }
 
-        public void RemoveDnsEntry(string hostNameOrAddresss, int bindingPort)
-        {
-            // See if we already have a cached DnsEntry
-            var key = GetDnsKey(hostNameOrAddresss, bindingPort);
+            _memoryCache.Set(key, dnsEntry, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = _expiration });
 
-            _memoryCache.Remove(key);
+            return dnsEntry;
         }
+    }
+
+    public void RemoveDnsEntry(string hostNameOrAddresss, int bindingPort)
+    {
+        // See if we already have a cached DnsEntry
+        var key = GetDnsKey(hostNameOrAddresss, bindingPort);
+
+        _memoryCache.Remove(key);
     }
 }
