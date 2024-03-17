@@ -68,10 +68,7 @@ Check out each project for additional `README.md`. They will provide additional 
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ/)  
 
 A library that focuses on RabbitMQ connection and channel management to create fault tolerant Publishers and Consumers.  
-
-Formerly found at [RabbitMQ.Core](https://github.com/houseofcat/RabbitMQ.Core/tree/master/CookedRabbit.Core)  
-[![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.svg)](https://www.nuget.org/packages/CookedRabbit.Core/)    
-[![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Core.svg)](https://www.nuget.org/packages/CookedRabbit.Core/)  
+Formerly called CookedRabbit.Core/Tesseract.
 
 ## HouseofCat.RabbitMQ.Dataflows
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Dataflows/)  
@@ -97,7 +94,7 @@ A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.Rabb
 
 A library that creates a shareable WorkState class for HouseofCat.RabbitMQ.
 
-## DataFlow Libraries
+# DataFlow Libraries
 
 ## HouseofCat.Dataflows
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.Dataflows/)  
@@ -111,7 +108,7 @@ A library that provides the base magic Dataflows for RabbitDataflows.
 
 A library that provides the base magic Pipelines for RabbitDataflows. 
 
-## Core Dataflow Libraries
+# Core Dataflow Libraries
 These libraries are here to help you build powerful Dataflows for your messages.
 
 ## HouseofCat.Logger
@@ -175,7 +172,7 @@ A library that provides encryption from the BouncyCastle provider.
 
 A library that provides encryption from base AesGcm class in NetCore but with ArrayPools and RecyclableMemoryStreams.
 
-### Non-Critical Library Integrations
+# Non-Critical Library Integrations
 
 ## HouseofCat.Dapper
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Dapper.svg)](https://www.nuget.org/packages/HouseofCat.Dapper/)  
@@ -248,56 +245,56 @@ A library that focuses on Reflection hackery.
 
 A library that focuses on general purpose utilities and functions that simplify the coding experience.  
 
-### Example Integration Project Ideas
+## Example Integration Project Ideas
 
-#### HouseofCat.RabbitMQ.Twilio
+### HouseofCat.RabbitMQ.Twilio
 An example/library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio (SMS/TextMessages) with the HouseofCat.RabbitMQ library. 
 
-#### HouseofCat.RabbitMQ.Mailkit
+### HouseofCat.RabbitMQ.Mailkit
 An example/library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (Email) with the HouseofCat.RabbitMQ library. 
 
-### Extra Side Projects
+## Extra Side Projects
 
-#### HouseofCat.Algorithms
+### HouseofCat.Algorithms
 An example/library that has a collection of algorithms as I have time to learn and play with them.  
 
-#### HouseofCat.Data.Parquet
+### HouseofCat.Data.Parquet
 An example project/library that helps extract databases to parquet file (IDataReader -> Snappy compressed Parquet files.)
 
-#### HouseofCat.Framing
+### HouseofCat.Framing
 An example/library that focuses on simplifying reading groups of byte[] (designated as frames).  
 
-#### HouseofCat.Gremlins
+### HouseofCat.Gremlins
 An example library that focuses on Chaos Engineering. Currently targets Windows OS.  
 
-#### HouseofCat.Gremlins.SqlServer
+### HouseofCat.Gremlins.SqlServer
 An example/library that focuses on Chaos Engineering with SqlServer. Currently targets System.Data.SqlClient.  
 
-#### HouseofCat.Network
+### HouseofCat.Network
 An example/library that focuses on making it easier to deal with systems networking.  
 
-#### HouseofCat.Serialization.Json.Utf8Json
+### HouseofCat.Serialization.Json.Utf8Json
 An example/library that focuses on making it easier to deal with Utf8Json (cysharp/neuecc) Json Serialization.  
 
-#### HouseofCat.Serilog
+### HouseofCat.Serilog
 An example/library that focuses on extending IHost functionality to quickly setup Serilog.  
 
-#### HouseofCat.Sockets
+### HouseofCat.Sockets
 An example/library that focuses on making it easier to deal with socket communication.  
 
-#### HouseofCat.Sockets.Utf8Json
+### HouseofCat.Sockets.Utf8Json
 An example/library that focuses on making it easier to deal with sockets communication with Utf8Json.  
 
-#### HouseofCat.Windows.Keyboard
+### HouseofCat.Windows.Keyboard
 An example/library that focuses on interacting, filtering, and/or replaying user inputs on Windows, specifically Keyboard.  
 
-#### HouseofCat.Windows.NativeMethods
+### HouseofCat.Windows.NativeMethods
 An example/library that focuses on consolidating Windows NativeMethods calls used by my libaries.  
 
-#### HouseofCat.Windows.Threading
+### HouseofCat.Windows.Threading
 An example/library that focuses on simplifying affinity and thread management.  
 
-#### HouseofCat.Windows.WMI
+### HouseofCat.Windows.WMI
 An example/library that focuses on performing System.Management (Windows.Compatibility.Pack) WMI Queries.  
 
 # [HouseofCat.io](https://houseofcat.io)
