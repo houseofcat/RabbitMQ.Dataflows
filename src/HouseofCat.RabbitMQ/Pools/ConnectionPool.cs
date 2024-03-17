@@ -46,7 +46,7 @@ public class ConnectionPool : IConnectionPool, IDisposable
 
         if (oauth2ClientHandler is not null)
         {
-
+            _connectionFactory = BuildConnectionFactory(options, oauth2ClientHandler);
         }
         else
         {
@@ -114,7 +114,7 @@ public class ConnectionPool : IConnectionPool, IDisposable
         return cf;
     }
 
-    protected virtual ConnectionFactory CreateConnectionFactory(RabbitOptions options, HttpClientHandler oauth2ClientHandler)
+    protected virtual ConnectionFactory BuildConnectionFactory(RabbitOptions options, HttpClientHandler oauth2ClientHandler)
     {
         var oAuth2ClientBuilder = new OAuth2ClientBuilder(
             Options.FactoryOptions.OAuth2Options.ClientId,
