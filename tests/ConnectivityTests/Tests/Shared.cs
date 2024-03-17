@@ -1,9 +1,7 @@
 ﻿using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
-using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using System.Text.Json;
 
 namespace ConnectivityTests.Tests;
 
@@ -15,16 +13,7 @@ public static class Shared
 
     public static async Task<IChannelPool> SetupTestsAsync(ILogger logger, string configFileNamePath)
     {
-        if (!File.Exists(configFileNamePath))
-        {
-            logger.LogError("RabbitMQ config was not found: {configFileNamePath}", configFileNamePath);
-            throw new FileNotFoundException(configFileNamePath);
-        }
-
-        var rabbitOptionsJson = await File.ReadAllTextAsync(configFileNamePath);
-        Guard.AgainstNullOrEmpty(rabbitOptionsJson, nameof(rabbitOptionsJson));
-
-        var rabbitOptions = JsonSerializer.Deserialize<RabbitOptions>(rabbitOptionsJson);
+        var rabbitOptions = await RabbitExtensions.GetRabbitOptionsFromJsonAsync(configFileNamePath);
         var channelPool = new ChannelPool(rabbitOptions);
 
         var channelHost = await channelPool.GetTransientChannelAsync(true);
