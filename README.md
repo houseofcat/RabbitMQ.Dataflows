@@ -108,7 +108,7 @@ A library that provides the base magic Dataflows for RabbitDataflows.
 
 A library that provides the base magic Pipelines for RabbitDataflows. 
 
-# Core Dataflow Libraries
+# Core Productivity Libraries
 These libraries are here to help you build powerful Dataflows for your messages.
 
 ## HouseofCat.Logger
@@ -248,53 +248,53 @@ A library that focuses on general purpose utilities and functions that simplify 
 ## Example Integration Project Ideas
 
 ### HouseofCat.RabbitMQ.Twilio
-An example/library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio (SMS/TextMessages) with the HouseofCat.RabbitMQ library. 
+An example project/library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio (SMS/TextMessages) with the HouseofCat.RabbitMQ library. 
 
 ### HouseofCat.RabbitMQ.Mailkit
-An example/library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (Email) with the HouseofCat.RabbitMQ library. 
+An example project/library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (Email) with the HouseofCat.RabbitMQ library. 
 
 ## Extra Side Projects
 
 ### HouseofCat.Algorithms
-An example/library that has a collection of algorithms as I have time to learn and play with them.  
+An example project/library that has a collection of algorithms as I have time to learn and play with them.  
 
 ### HouseofCat.Data.Parquet
 An example project/library that helps extract databases to parquet file (IDataReader -> Snappy compressed Parquet files.)
 
 ### HouseofCat.Framing
-An example/library that focuses on simplifying reading groups of byte[] (designated as frames).  
+An example project/library that focuses on simplifying reading groups of byte[] (designated as frames).  
 
 ### HouseofCat.Gremlins
-An example library that focuses on Chaos Engineering. Currently targets Windows OS.  
+An example project/library that focuses on Chaos Engineering. Currently targets Windows OS.  
 
 ### HouseofCat.Gremlins.SqlServer
-An example/library that focuses on Chaos Engineering with SqlServer. Currently targets System.Data.SqlClient.  
+An example project/library that focuses on Chaos Engineering with SqlServer. Currently targets System.Data.SqlClient.  
 
 ### HouseofCat.Network
-An example/library that focuses on making it easier to deal with systems networking.  
+An example project/library that focuses on making it easier to deal with systems networking.  
 
 ### HouseofCat.Serialization.Json.Utf8Json
-An example/library that focuses on making it easier to deal with Utf8Json (cysharp/neuecc) Json Serialization.  
+An example project/library that focuses on making it easier to deal with Utf8Json (cysharp/neuecc) Json Serialization.  
 
 ### HouseofCat.Serilog
-An example/library that focuses on extending IHost functionality to quickly setup Serilog.  
+An example project/library that focuses on extending IHost functionality to quickly setup Serilog.  
 
 ### HouseofCat.Sockets
-An example/library that focuses on making it easier to deal with socket communication.  
+An example project/library that focuses on making it easier to deal with socket communication.  
 
 ### HouseofCat.Sockets.Utf8Json
-An example/library that focuses on making it easier to deal with sockets communication with Utf8Json.  
+An example project/library that focuses on making it easier to deal with sockets communication with Utf8Json.  
 
 ### HouseofCat.Windows.Keyboard
-An example/library that focuses on interacting, filtering, and/or replaying user inputs on Windows, specifically Keyboard.  
+An example project/library that focuses on interacting, filtering, and/or replaying user inputs on Windows, specifically Keyboard.  
 
 ### HouseofCat.Windows.NativeMethods
-An example/library that focuses on consolidating Windows NativeMethods calls used by my libaries.  
+An example project/library that focuses on consolidating Windows NativeMethods calls used by my libaries.  
 
 ### HouseofCat.Windows.Threading
-An example/library that focuses on simplifying affinity and thread management.  
+An example project/library that focuses on simplifying affinity and thread management.  
 
 ### HouseofCat.Windows.WMI
-An example/library that focuses on performing System.Management (Windows.Compatibility.Pack) WMI Queries.  
+An example project/library that focuses on performing System.Management (Windows.Compatibility.Pack) WMI Queries.  
 
 # [HouseofCat.io](https://houseofcat.io)
