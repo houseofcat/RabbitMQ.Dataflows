@@ -1,0 +1,10 @@
+﻿{
+  "Queues": [
+    {
+      "Name": "ICrashedProduction",
+      "Durable": true,
+      "Exclusive": false,
+      "AutoDelete": false
+    }
+  ]
+}

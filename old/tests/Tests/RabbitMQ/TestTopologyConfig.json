@@ -1,0 +1,73 @@
+﻿{
+  "Exchanges": [
+    {
+      "Name": "MyTestExchangeRoot",
+      "Type": "direct",
+      "Durable": true,
+      "AutoDelete": false
+    },
+    {
+      "Name": "MyTestExchange.Child01",
+      "Type": "direct",
+      "Durable": true,
+      "AutoDelete": false
+    },
+    {
+      "Name": "MyTestExchange.Child02",
+      "Type": "direct",
+      "Durable": true,
+      "AutoDelete": false
+    }
+  ],
+  "Queues": [
+    {
+      "Name": "QueueAttachedToRoot",
+      "Durable": true,
+      "Exclusive": false,
+      "AutoDelete": false
+    },
+    {
+      "Name": "QueueAttachedToExch01",
+      "Durable": true,
+      "Exclusive": false,
+      "AutoDelete": false
+    },
+    {
+      "Name": "QueueAttachedToExch02",
+      "Durable": true,
+      "Exclusive": false,
+      "AutoDelete": false
+    }
+  ],
+  "QueueBindings": [
+    {
+      "QueueName": "QueueAttachedToRoot",
+      "ExchangeName": "MyTestExchangeRoot",
+      "RoutingKey": "RoutingKeyRoot"
+    },
+    {
+      "QueueName": "QueueAttachedToExch01",
+      "ExchangeName": "MyTestExchange.Child01",
+      "RoutingKey": "RoutingKey1"
+    },
+    {
+      "QueueName": "QueueAttachedToExch02",
+      "ExchangeName": "MyTestExchange.Child02",
+      "RoutingKey": "RoutingKey2"
+    }
+  ],
+  "ExchangeBindings": [
+    {
+        "ChildExchange": "MyTestExchange.Child01",
+        "ParentExchange": "MyTestExchangeRoot",
+        "RoutingKey": "ExchangeKey1",
+        "Args":  null
+    },
+    {
+        "ChildExchange": "MyTestExchange.Child02",
+        "ParentExchange": "MyTestExchange.Child01",
+        "RoutingKey": "ExchangeKey2",
+        "Args": null
+    }
+  ]
+}
