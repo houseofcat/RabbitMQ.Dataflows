@@ -73,7 +73,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     private bool _disposedValue;
     private Channel<ReceivedData> _consumerChannel;
 
-    private string _consumerTag;
+    public string ConsumerTag { get; private set; }
     private bool _shutdown;
 
     public RabbitOptions Options { get; }
@@ -178,8 +178,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
 
     private async Task<bool> StartConsumingAsync()
     {
-        if (_shutdown)
-        { return false; }
+        if (_shutdown) return false;
 
         _logger.LogInformation(
             Consumers.StartingConsumer,
@@ -196,11 +195,11 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             try
             {
                 _asyncConsumer = CreateAsyncConsumer();
-                _consumerTag = _chanHost.StartConsuming(_consumer, ConsumerOptions);
+                ConsumerTag = _chanHost.StartConsuming(_consumer, ConsumerOptions);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception creating internal RabbitMQ consumer. Retrying...");
+                _logger.LogError(ex, Consumers.StartingConsumerError);
                 await Task.Delay(1000).ConfigureAwait(false);
                 await _chanHost.BuildRabbitMQChannelAsync().ConfigureAwait(false);
                 return false;
@@ -217,11 +216,11 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             try
             {
                 _consumer = CreateConsumer();
-                _consumerTag = _chanHost.StartConsuming(_consumer, ConsumerOptions);
+                ConsumerTag = _chanHost.StartConsuming(_consumer, ConsumerOptions);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception creating internal RabbitMQ consumer. Retrying...");
+                _logger.LogError(ex, Consumers.StartingConsumerError);
                 await Task.Delay(1000).ConfigureAwait(false);
                 await _chanHost.BuildRabbitMQChannelAsync().ConfigureAwait(false);
                 return false;
@@ -239,6 +238,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     {
         var autoAck = ConsumerOptions.AutoAck ?? false;
         _logger.LogTrace(Consumers.GettingTransientChannelHost, ConsumerOptions.ConsumerName);
+
         _chanHost = await ChannelPool
             .GetTransientChannelAsync(!autoAck)
             .ConfigureAwait(false);

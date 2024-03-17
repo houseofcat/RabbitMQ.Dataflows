@@ -115,6 +115,7 @@ public static class LogMessages
     public static class Consumers
     {
         public const string StartingConsumer = "Consumer ({0}) starting...";
+        public const string StartingConsumerError = "Exception creating internal RabbitMQ consumer. Retrying...";
         public const string StartedConsumer = "Consumer ({0}) started.";
         public const string StartingConsumerLoop = "Consumer ({0}) startup loop executing...";
         public const string Started = "Consumer ({0}) started.";

@@ -87,7 +87,7 @@ public class ChannelPool : IChannelPool, IDisposable
 
         if (Options.PoolOptions.MaxAckableChannels > 0)
         {
-            _ackChannels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
+            _ackChannels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxAckableChannels);
         }
 
         if (!Options.PoolOptions.OnlyTransientChannels)

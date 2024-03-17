@@ -33,4 +33,14 @@ public static class LogHelper
     {
         LoggerFactory.AddProvider(provider);
     }
+
+    public static ILoggerFactory CreateConsoleLoggerFactory(LogLevel logLevel = LogLevel.Information)
+    {
+        return Microsoft.Extensions.Logging
+            .LoggerFactory
+                .Create(
+                    builder => builder
+                        .AddConsole()
+                        .SetMinimumLevel(logLevel));
+    }
 }

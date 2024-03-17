@@ -8,8 +8,12 @@
     "NetRecoveryTimeout": 10,
     "ContinuationTimeout": 10,
     "EnableDispatchConsumersAsync": true,
+    "OAuth2Options": {
+      "TokenEndpointUrl": false,
+      "ClientId": "",
+      "ClientSecret": ""
+    },
     "SslOptions": {
-      "EnableSsl": false,
       "CertServerName": "",
       "LocalCertPath": "",
       "LocalCertPassword": "",
@@ -19,8 +23,11 @@
   "PoolOptions": {
     "ServiceName": "HoC.RabbitMQ",
     "MaxConnections": 5,
-    "MaxChannels": 25,
-    "SleepOnErrorInterval": 1000
+    "MaxChannels": 0,
+    "MaxAckChannels": 0,
+    "SleepOnErrorInterval": 1000,
+    "TransientStartChanelRange": 10000,
+    "UseTransientChannels": false
   },
   "PublisherOptions": {
     "LetterQueueBufferSize": 100,
@@ -28,8 +35,8 @@
     "BehaviorWhenFull": 0,
     "AutoPublisherSleepInterval": 0,
     "CreatePublishReceipts": true,
-    "Compress": true,
-    "Encrypt": true
+    "Compress": false,
+    "Encrypt": false
   },
   "GlobalConsumerOptions": {
     "AggressiveSettings": {
@@ -44,6 +51,36 @@
       "GlobalConsumerPipelineOptions": {
         "WaitForCompletion": false,
         "MaxDegreesOfParallelism": 64,
+        "EnsureOrdered": false
+      }
+    },
+    "ModerateSettings": {
+      "ErrorSuffix": "Error",
+      "BatchSize": 48,
+      "BehaviorWhenFull": 0,
+      "SleepOnIdleInterval": 100,
+      "UseTransientChannels": true,
+      "AutoAck": false,
+      "NoLocal": false,
+      "Exclusive": false,
+      "GlobalConsumerPipelineOptions": {
+        "WaitForCompletion": true,
+        "MaxDegreesOfParallelism": 24,
+        "EnsureOrdered": false
+      }
+    },
+    "LightSettings": {
+      "ErrorSuffix": "Error",
+      "BatchSize": 8,
+      "BehaviorWhenFull": 0,
+      "SleepOnIdleInterval": 100,
+      "UseTransientChannels": true,
+      "AutoAck": false,
+      "NoLocal": false,
+      "Exclusive": false,
+      "GlobalConsumerPipelineOptions": {
+        "WaitForCompletion": true,
+        "MaxDegreesOfParallelism": 4,
         "EnsureOrdered": false
       }
     },
@@ -64,23 +101,11 @@
     }
   },
   "ConsumerOptions": {
-    "TestMessageConsumer": {
+    "ConsumerFromConfig": {
       "Enabled": true,
       "GlobalSettings": "AggressiveSettings",
-      "ConsumerName": "TestMessageConsumer",
+      "ConsumerName": "ConsumerFromConfig",
       "QueueName": "TestRabbitServiceQueue"
-    },
-    "TestConsumer": {
-      "Enabled": true,
-      "GlobalSettings": "AggressiveSettings",
-      "ConsumerName": "TestConsumer",
-      "QueueName": "TestRabbitServiceQueue"
-    },
-    "TestAutoPublisherConsumerName": {
-      "Enabled": true,
-      "GlobalSettings": "AggressiveSettings",
-      "ConsumerName": "TestAutoPublisherConsumerName",
-      "QueueName": "TestAutoPublisherConsumerQueue"
     }
   }
 }
