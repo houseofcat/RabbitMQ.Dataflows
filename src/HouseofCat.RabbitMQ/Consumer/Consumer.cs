@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ;
 
@@ -71,6 +72,8 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     private IChannelHost _chanHost;
     private bool _disposedValue;
     private Channel<ReceivedData> _consumerChannel;
+
+    private string _consumerTag;
     private bool _shutdown;
 
     public RabbitOptions Options { get; }
@@ -126,12 +129,12 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
                 bool success;
                 do
                 {
-                    _logger.LogTrace(LogMessages.Consumers.StartingConsumerLoop, ConsumerOptions.ConsumerName);
+                    _logger.LogTrace(Consumers.StartingConsumerLoop, ConsumerOptions.ConsumerName);
                     success = await StartConsumingAsync().ConfigureAwait(false);
                 }
                 while (!success);
 
-                _logger.LogDebug(LogMessages.Consumers.Started, ConsumerOptions.ConsumerName);
+                _logger.LogDebug(Consumers.Started, ConsumerOptions.ConsumerName);
 
                 Started = true;
             }
@@ -143,7 +146,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     {
         if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
 
-        _logger.LogDebug(LogMessages.Consumers.StopConsumer, ConsumerOptions.ConsumerName);
+        _logger.LogDebug(Consumers.StopConsumer, ConsumerOptions.ConsumerName);
 
         try
         {
@@ -164,7 +167,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
 
                 Started = false;
                 _logger.LogDebug(
-                    LogMessages.Consumers.StoppedConsumer,
+                    Consumers.StoppedConsumer,
                     ConsumerOptions.ConsumerName);
             }
         }
@@ -180,7 +183,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         { return false; }
 
         _logger.LogInformation(
-            LogMessages.Consumers.StartingConsumer,
+            Consumers.StartingConsumer,
             ConsumerOptions.ConsumerName);
 
         if (Options.FactoryOptions.EnableDispatchConsumersAsync)
@@ -196,7 +199,9 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
                 _asyncConsumer = CreateAsyncConsumer();
                 if (_asyncConsumer == null) { return false; }
 
-                BasicConsume(_asyncConsumer);
+                _consumerTag = await _chanHost
+                    .StartConsumingAsync(_consumer, ConsumerOptions)
+                    .ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -219,7 +224,9 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
                 _consumer = CreateConsumer();
                 if (_consumer == null) { return false; }
 
-                BasicConsume(_consumer);
+                _consumerTag = await _chanHost
+                    .StartConsumingAsync(_consumer, ConsumerOptions)
+                    .ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -231,36 +238,22 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         }
 
         _logger.LogInformation(
-            LogMessages.Consumers.StartedConsumer,
+            Consumers.StartedConsumer,
             ConsumerOptions.ConsumerName);
 
         return true;
     }
 
-    private void BasicConsume(IBasicConsumer consumer)
-    {
-        _chanHost
-            .GetChannel()
-            .BasicConsume(
-                ConsumerOptions.QueueName,
-                ConsumerOptions.AutoAck ?? false,
-                ConsumerOptions.ConsumerName,
-                ConsumerOptions.NoLocal ?? false,
-                ConsumerOptions.Exclusive ?? false,
-                null,
-                consumer);
-    }
-
     protected virtual async Task SetChannelHostAsync()
     {
         var autoAck = ConsumerOptions.AutoAck ?? false;
-        _logger.LogTrace(LogMessages.Consumers.GettingTransientChannelHost, ConsumerOptions.ConsumerName);
+        _logger.LogTrace(Consumers.GettingTransientChannelHost, ConsumerOptions.ConsumerName);
         _chanHost = await ChannelPool
             .GetTransientChannelAsync(!autoAck)
             .ConfigureAwait(false);
 
         _logger.LogDebug(
-            LogMessages.Consumers.ChannelEstablished,
+            Consumers.ChannelEstablished,
             ConsumerOptions.ConsumerName,
             _chanHost?.ChannelId.ToString() ?? "ChannelHost: null");
     }
@@ -281,7 +274,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     protected virtual async void ReceiveHandler(object _, BasicDeliverEventArgs bdea)
     {
         _logger.LogDebug(
-            LogMessages.Consumers.ConsumerMessageReceived,
+            Consumers.ConsumerMessageReceived,
             ConsumerOptions.ConsumerName,
             bdea.DeliveryTag);
 
@@ -293,7 +286,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         if (await _conLock.WaitAsync(0))
         {
             try
-            { await HandleUnexpectedShutdownAsync(e).ConfigureAwait(false); }
+            { await HandleRecoverableShutdownAsync(e).ConfigureAwait(false); }
             finally
             { _conLock.Release(); }
         }
@@ -315,7 +308,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     protected virtual async Task ReceiveHandlerAsync(object _, BasicDeliverEventArgs bdea)
     {
         _logger.LogDebug(
-            LogMessages.Consumers.ConsumerAsyncMessageReceived,
+            Consumers.ConsumerAsyncMessageReceived,
             ConsumerOptions.ConsumerName,
             bdea.DeliveryTag);
 
@@ -337,7 +330,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(
-                LogMessages.Consumers.ConsumerMessageWriteToBufferError,
+                Consumers.ConsumerMessageWriteToBufferError,
                 ConsumerOptions.ConsumerName,
                 ex.Message);
             return false;
@@ -351,7 +344,18 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             _shutdownAutoRecoveryLoopCount = 0;
 
             try
-            { await HandleUnexpectedShutdownAsync(e).ConfigureAwait(false); }
+            {
+                if (!_shutdown)
+                {
+                    await HandleRecoverableShutdownAsync(e).ConfigureAwait(false);
+                }
+                else
+                {
+                    _chanHost
+                        .GetChannel()
+                        .BasicCancel(_consumerTag);
+                }
+            }
             finally
             { _conLock.Release(); }
         }
@@ -370,42 +374,39 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     /// <para>Docs: https://www.rabbitmq.com/client-libraries/dotnet-api-guide#recovery</para>
     /// <param name="e"></param>
     /// <returns></returns>
-    protected virtual async Task HandleUnexpectedShutdownAsync(ShutdownEventArgs e)
+    protected virtual async Task HandleRecoverableShutdownAsync(ShutdownEventArgs e)
     {
-        if (!_shutdown)
+        var healthy = false;
+        while (!_shutdown && !healthy)
         {
-            var healthy = false;
-            while (!_shutdown && !healthy)
+            _shutdownAutoRecoveryLoopCount++;
+
+            // With normal AutoRecovery enabled, the Channel will come back to life.
+            healthy = await _chanHost.ChannelHealthyAsync().ConfigureAwait(false);
+            if (healthy)
             {
-                _shutdownAutoRecoveryLoopCount++;
+                break;
+            }
+            // Periodically, we will check if the connection is healthy but the channel
+            // is still closed.
+            else if (_shutdownAutoRecoveryLoopCount > _maxAutoRecoveryChannelHealthChecks)
+            {
+                _shutdownAutoRecoveryLoopCount = 0;
 
-                // With normal AutoRecovery enabled, the Channel will come back to life.
-                healthy = await _chanHost.ChannelHealthyAsync().ConfigureAwait(false);
-                if (healthy)
-                {
-                    break;
-                }
-                // Periodically, we will check if the connection is healthy but the channel
-                // is still closed.
-                else if (_shutdownAutoRecoveryLoopCount > _maxAutoRecoveryChannelHealthChecks)
-                {
-                    _shutdownAutoRecoveryLoopCount = 0;
-
-                    await ReviewConnectionHealthInsteadOfChannelHealthAsync();
-                    break;
-                }
-
-                await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
+                await ReviewConnectionHealthAsync();
+                break;
             }
 
-            _logger.LogInformation(
-                LogMessages.Consumers.ConsumerShutdownEvent,
-                ConsumerOptions.ConsumerName,
-                e.ReplyText);
+            await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
         }
+
+        _logger.LogInformation(
+            Consumers.ConsumerShutdownEvent,
+            ConsumerOptions.ConsumerName,
+            e.ReplyText);
     }
 
-    protected virtual async Task ReviewConnectionHealthInsteadOfChannelHealthAsync()
+    protected virtual async Task ReviewConnectionHealthAsync()
     {
         var connectionHealthy = await _chanHost
             .ConnectionHealthyAsync()
@@ -435,7 +436,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         if (!channelHealthy)
         {   // This is an inner infinite loop, until Channel is healthy/rebuilt.
             _logger.LogWarning(
-                LogMessages.Consumers.ConsumerChannelReplacedEvent,
+                Consumers.ConsumerChannelReplacedEvent,
                 ConsumerOptions.ConsumerName);
 
             await _chanHost
@@ -543,7 +544,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
                     if (receivedData != null)
                     {
                         _logger.LogDebug(
-                            LogMessages.Consumers.ConsumerDataflowQueueing,
+                            Consumers.ConsumerDataflowQueueing,
                             ConsumerOptions.ConsumerName,
                             receivedData.DeliveryTag);
 
@@ -557,13 +558,13 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         catch (OperationCanceledException)
         {
             _logger.LogWarning(
-                LogMessages.Consumers.ConsumerDataflowActionCancelled,
+                Consumers.ConsumerDataflowActionCancelled,
                 ConsumerOptions.ConsumerName);
         }
         catch (Exception ex)
         {
             _logger.LogError(
-                LogMessages.Consumers.ConsumerDataflowError,
+                Consumers.ConsumerDataflowError,
                 ConsumerOptions.ConsumerName,
                 ex.Message);
         }
@@ -613,13 +614,13 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         catch (OperationCanceledException)
         {
             _logger.LogWarning(
-                LogMessages.Consumers.ConsumerDataflowActionCancelled,
+                Consumers.ConsumerDataflowActionCancelled,
                 ConsumerOptions.ConsumerName);
         }
         catch (Exception ex)
         {
             _logger.LogError(
-                LogMessages.Consumers.ConsumerDataflowError,
+                Consumers.ConsumerDataflowError,
                 ConsumerOptions.ConsumerName,
                 ex.Message);
         }
@@ -640,7 +641,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
                 if (receivedData != null)
                 {
                     _logger.LogDebug(
-                        LogMessages.Consumers.ConsumerDataflowQueueing,
+                        Consumers.ConsumerDataflowQueueing,
                         ConsumerOptions.ConsumerName,
                         receivedData.DeliveryTag);
 
@@ -653,13 +654,13 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         catch (OperationCanceledException)
         {
             _logger.LogWarning(
-                LogMessages.Consumers.ConsumerDataflowActionCancelled,
+                Consumers.ConsumerDataflowActionCancelled,
                 ConsumerOptions.ConsumerName);
         }
         catch (Exception ex)
         {
             _logger.LogError(
-                LogMessages.Consumers.ConsumerDataflowError,
+                Consumers.ConsumerDataflowError,
                 ConsumerOptions.ConsumerName,
                 ex.Message);
         }

@@ -68,8 +68,10 @@ public static class LogMessages
 {
     public static class ChannelHosts
     {
-        public const string FlowControlled = "Flow control detected on ChannelHost {0}";
-        public const string FlowControlFinished = "Flow control is finished on ChannelHost {0}";
+        public const string FlowControlled = "[ChannelHost {0}] - Flow control event has triggered.";
+        public const string FlowControlFinished = "[ChannelHost {0}] - Flow control event has resolved itself.";
+        public const string ConsumerStartedConsumer = "[ChannelHost {0}] - Starting Consumer. ConsumerTag: [{1}]";
+        public const string ConsumerStopConsumerError = "[ChannelHost {0}] - Error stopping Consumer using ConsumerTag: [{1}]";
     }
 
     public static class ConnectionPools
@@ -124,8 +126,8 @@ public static class LogMessages
         public const string ChannelNotEstablished = "Consumer ({0}) channel host could not be assigned.";
         public const string ConsumerMessageReceived = "Consumer ({0}) message received (DT:{1}). Adding to buffer...";
         public const string ConsumerAsyncMessageReceived = "Consumer ({0}) async message received (DT:{1}). Adding to buffer...";
-        public const string ConsumerShutdownEvent = "Consumer ({0}) shutdown event has occurred. Reason: {1}. Attempting to restart consuming...";
-        public const string ConsumerChannelReplacedEvent = "Consumer ({0}) shutdown event is ongoing. Connection is healthy. Channel appears to be dead and replacing it...";
+        public const string ConsumerShutdownEvent = "Consumer ({0}) recoverable shutdown event has occurred. Reason: {1}. Attempting to restart consuming...";
+        public const string ConsumerChannelReplacedEvent = "Consumer ({0}) recoverable shutdown event is ongoing. Connection is healthy. Channel appears to be dead and replacing it...";
         public const string ConsumerMessageWriteToBufferError = "Consumer ({0}) was unable to write to channel buffer. Error: {1}";
 
         public const string ConsumerDataflowActionCancelled = "Consumer ({0}) dataflow engine actions were cancelled.";

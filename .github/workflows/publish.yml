@@ -33,14 +33,6 @@ jobs:
 
     - name: Build
       run: dotnet build Tesseract.sln --configuration Release --no-restore
-
-    - name: Publish HouseofCat.Algorithms
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Algorithms/HouseofCat.Algorithms.csproj   
           
     - name: Publish HouseofCat.Compression
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -146,30 +138,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Extensions/HouseofCat.Extensions.csproj
 
-    - name: Publish HouseofCat.Framing
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Framing/HouseofCat.Framing.csproj
-
-    - name: Publish HouseofCat.Gremlins
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Gremlins/HouseofCat.Gremlins.csproj
-
-    - name: Publish HouseofCat.Gremlins.SqlServer
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Gremlins.SqlServer/HouseofCat.Gremlins.SqlServer.csproj
-
     - name: Publish HouseofCat.Hashing
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -210,14 +178,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Metrics.Prometheus/HouseofCat.Metrics.Prometheus.csproj
 
-    - name: Publish HouseofCat.Network
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Network/HouseofCat.Network.csproj
-
     - name: Publish HouseofCat.RabbitMQ
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -234,14 +194,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Dataflows/HouseofCat.RabbitMQ.Dataflows.csproj
 
-    - name: Publish HouseofCat.RabbitMQ.Mailkit
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Mailkit/HouseofCat.RabbitMQ.Mailkit.csproj
-
     - name: Publish HouseofCat.RabbitMQ.Pipelines
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -257,14 +209,6 @@ jobs:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Services/HouseofCat.RabbitMQ.Services.csproj
-
-    - name: Publish HouseofCat.RabbitMQ.Twilio
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Twilio/HouseofCat.RabbitMQ.Twilio.csproj
 
     - name: Publish HouseofCat.RabbitMQ.WorkState
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -306,14 +250,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Serialization.Json.Newtonsoft/HouseofCat.Serialization.Json.Newtonsoft.csproj
 
-    - name: Publish HouseofCat.Serialization.Json.Utf8Json
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Serialization.Json.Utf8Json/HouseofCat.Serialization.Json.Utf8Json.csproj
-
     - name: Publish HouseofCat.Serialization.MessagePack
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -330,22 +266,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Serilog/HouseofCat.Serilog.csproj
 
-    - name: Publish HouseofCat.Sockets
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Sockets/HouseofCat.Sockets.csproj
-
-    - name: Publish HouseofCat.Sockets.Utf8Json
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Sockets.Utf8Json/HouseofCat.Sockets.Utf8Json.csproj
-
     - name: Publish HouseofCat.Utilities
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -354,34 +274,3 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Utilities/HouseofCat.Utilities.csproj
 
-    - name: Publish HouseofCat.Windows.Keyboard
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Windows.Keyboard/HouseofCat.Windows.Keyboard.csproj
-
-    - name: Publish HouseofCat.Windows.NativeMethods
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Windows.NativeMethods/HouseofCat.Windows.NativeMethods.csproj
-
-    - name: Publish HouseofCat.Windows.Threading
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Windows.Threading/HouseofCat.Windows.Threading.csproj
-
-    - name: Publish HouseofCat.Windows.WMI
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Windows.WMI/HouseofCat.Windows.WMI.csproj

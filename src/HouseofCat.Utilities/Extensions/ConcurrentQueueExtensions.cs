@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace HouseofCat.Extensions;
+namespace HouseofCat.Utilities.Extensions;
 
 public static class ConcurrentQueueExtensions
 {

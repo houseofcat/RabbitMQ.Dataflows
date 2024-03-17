@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 using System;
 using S = Serilog; // For debugging call.
@@ -25,15 +24,12 @@ public static class HostExtensions
 
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-            .MinimumLevel.Override("System", LogEventLevel.Information)
-            .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Information)
-            .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Information)
             .Enrich.FromLogContext()
             .Enrich.WithProperty("ApplicationName", applicationName)
             .WriteTo.Console(
                 outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
                 theme: AnsiConsoleTheme.Literate)
+            // Configure LogLevel defaults with appsettings.json `Serilog` section and `Logging` section.
             .ReadFrom.Configuration(configuration)
             .CreateLogger();
 

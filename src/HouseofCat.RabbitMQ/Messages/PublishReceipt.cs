@@ -14,5 +14,5 @@ public struct PublishReceipt : IPublishReceipt
     public string MessageId { get; set; }
     public IMessage OriginalLetter { get; set; }
 
-    public IMessage GetOriginalMessage() => OriginalLetter;
+    public readonly IMessage GetOriginalMessage() => OriginalLetter;
 }

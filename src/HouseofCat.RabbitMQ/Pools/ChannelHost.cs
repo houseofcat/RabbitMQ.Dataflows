@@ -1,4 +1,5 @@
 using HouseofCat.Logger;
+using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -15,10 +16,16 @@ public interface IChannelHost
     ulong ChannelId { get; }
     bool Closed { get; }
     bool FlowControlled { get; }
+    bool UsedByConsumer { get; }
 
     IModel GetChannel();
+
+    Task<string> StartConsumingAsync(IBasicConsumer internalConsumer, ConsumerOptions options);
+    Task StopConsumingAsync();
+
     Task WaitUntilChannelIsReadyAsync(int sleepInterval, CancellationToken token = default);
     Task<bool> BuildRabbitMQChannelAsync();
+
     void Close();
     Task<bool> ChannelHealthyAsync();
     Task<bool> ConnectionHealthyAsync();
@@ -36,6 +43,7 @@ public class ChannelHost : IChannelHost, IDisposable
 
     public bool Closed { get; private set; }
     public bool FlowControlled { get; private set; }
+    public bool UsedByConsumer { get; private set; }
 
     private readonly SemaphoreSlim _hostLock = new SemaphoreSlim(1, 1);
     private bool _disposedValue;
@@ -162,6 +170,58 @@ public class ChannelHost : IChannelHost, IDisposable
 
     private const int CloseCode = 200;
     private const string CloseMessage = "HouseofCat.RabbitMQ manual close channel initiated.";
+
+    private string _consumerTag = null;
+
+    public async Task<string> StartConsumingAsync(IBasicConsumer internalConsumer, ConsumerOptions options)
+    {
+        Guard.AgainstNull(options, nameof(options));
+        Guard.AgainstNullOrEmpty(options.QueueName, nameof(options.QueueName));
+        Guard.AgainstNullOrEmpty(options.ConsumerName, nameof(options.ConsumerName));
+
+        await _hostLock.WaitAsync().ConfigureAwait(false);
+
+        try
+        {
+            _consumerTag = GetChannel()
+                .BasicConsume(
+                    options.QueueName,
+                    options.AutoAck ?? false,
+                    options.ConsumerName,
+                    options.NoLocal ?? false,
+                    options.Exclusive ?? false,
+                    null,
+                    internalConsumer);
+
+            UsedByConsumer = true;
+
+            return _consumerTag;
+        }
+        finally
+        {
+            _hostLock.Release();
+        }
+    }
+
+    public async Task StopConsumingAsync()
+    {
+        if (string.IsNullOrEmpty(_consumerTag) || !UsedByConsumer) return;
+
+        if (!await _hostLock.WaitAsync(0).ConfigureAwait(false))
+        {
+            try
+            {
+                GetChannel().BasicCancel(_consumerTag);
+                _hostLock.Release();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, LogMessages.ChannelHosts.ConsumerStopConsumerError, ChannelId, _consumerTag);
+            }
+            finally
+            { _hostLock.Release(); }
+        }
+    }
 
     public void Close()
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace HouseofCat.Extensions;
+namespace HouseofCat.Utilities.Extensions;
 
 public static class EnumExtensions
 {

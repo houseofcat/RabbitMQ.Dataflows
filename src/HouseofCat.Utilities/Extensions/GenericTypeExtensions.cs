@@ -1,8 +1,8 @@
-﻿namespace HouseofCat.Extensions;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+
+namespace HouseofCat.Utilities.Extensions;
 
 public static class GenericTypeExtensions
 {

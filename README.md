@@ -128,10 +128,7 @@ A library that provides the provides a Database Connection Factory and Sql Gener
 
 
 ## HouseofCat.Data.Parquet
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Data.Parquet.svg)](https://www.nuget.org/packages/HouseofCat.Data.Parquet/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Data.Parquet.svg)](https://www.nuget.org/packages/HouseofCat.Data.Parquet/)  
-
-A library that helps extract databases to parquet file (IDataReader -> Snappy compressed Parquet files.)
+An example project/library that helps extract databases to parquet file (IDataReader -> Snappy compressed Parquet files.)
 
 
 ## HouseofCat.Data.Recyclable
@@ -184,24 +181,15 @@ A library that focuses on extending functionality to other objects.
 
 
 ## HouseofCat.Framing
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Framing.svg)](https://www.nuget.org/packages/HouseofCat.Framing/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Framing.svg)](https://www.nuget.org/packages/HouseofCat.Framing/)  
-
-A library that focuses on simplifying reading groups of byte[] (designated as frames).  
+An example/library that focuses on simplifying reading groups of byte[] (designated as frames).  
 
 
 ## HouseofCat.Gremlins
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Gremlins.svg)](https://www.nuget.org/packages/HouseofCat.Gremlins/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Gremlins.svg)](https://www.nuget.org/packages/HouseofCat.Gremlins/)  
-
-A library that focuses on Chaos Engineering. Currently targets Windows OS.  
+An example library that focuses on Chaos Engineering. Currently targets Windows OS.  
 
 
 ## HouseofCat.Gremlins.SqlServer
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Gremlins.SqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Gremlins.SqlServer/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Gremlins.SqlServer.svg)](https://www.nuget.org/packages/HouseofCat.Gremlins.SqlServer/)  
-
-A library that focuses on Chaos Engineering with SqlServer. Currently targets System.Data.SqlClient.  
+An example/library that focuses on Chaos Engineering with SqlServer. Currently targets System.Data.SqlClient.  
 
 
 ## HouseofCat.Hashing
@@ -226,10 +214,7 @@ A library that focuses on getting Microsoft.Extensions.LoggerFactory implemented
 
 
 ## HouseofCat.Network
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Network.svg)](https://www.nuget.org/packages/HouseofCat.Network/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Network.svg)](https://www.nuget.org/packages/HouseofCat.Network/)  
-
-A library that focuses on making it easier to deal with systems networking.  
+An example/library that focuses on making it easier to deal with systems networking.  
 
 
 ## HouseofCat.RabbitMQ
@@ -243,18 +228,6 @@ Formerly found at [RabbitMQ.Core](https://github.com/houseofcat/RabbitMQ.Core/tr
 [![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Core.svg)](https://www.nuget.org/packages/CookedRabbit.Core/)   
 
 
-# Deprecated - Using Official Pivotal/VMWare client again.
-## HouseofCat.RabbitMQ.Client
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Client.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Client/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Client.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Client/)  
-
-A library that focuses on cloning the official Pivotal/VMWare RabbitMQ DotNetClient but ported to pure NetCore 3.1/5.x with small code enhancements.  
-
-Formerly found at [RabbitMQ.Core](https://github.com/houseofcat/RabbitMQ.Core)  
-[![NuGet](https://img.shields.io/nuget/dt/RabbitMQ.Core.Client.svg)](https://www.nuget.org/packages/RabbitMQ.Core.Client/)   
-[![NuGet](https://img.shields.io/nuget/v/RabbitMQ.Core.Client.svg)](https://www.nuget.org/packages/RabbitMQ.Core.Client/)  
-
-
 ## HouseofCat.RabbitMQ.Dataflows
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Dataflows/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Dataflows/)  
@@ -263,10 +236,7 @@ A library that extends HouseofCat.RabbitMQ functionality by providing epic TPL D
 
 
 ## HouseofCat.RabbitMQ.Mailkit
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Services.Mailkit.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Services.Mailkit/)  
-
-A library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (Email) with the HouseofCat.RabbitMQ library. 
+An example/library that extends HouseofCat.RabbitMQ.Services to simplify using Mailkit (Email) with the HouseofCat.RabbitMQ library. 
 
 
 ## HouseofCat.RabbitMQ.Pipelines
@@ -284,10 +254,7 @@ A library that extends HouseofCat.RabbitMQ to simplify using the HouseofCat.Rabb
 
 
 ## HouseofCat.RabbitMQ.Twilio
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.RabbitMQ.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Twilio/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.RabbitMQ.Twilio.svg)](https://www.nuget.org/packages/HouseofCat.RabbitMQ.Twilio/)  
-
-A library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio (SMS/TextMessages) with the HouseofCat.RabbitMQ library.  
+An example/library that extends HouseofCat.RabbitMQ.Services to simplify using Twilio (SMS/TextMessages) with the HouseofCat.RabbitMQ library.  
 
 
 ## HouseofCat.RabbitMQ.WorkState
@@ -326,10 +293,7 @@ A library that focuses on making it easier to deal with Newtonsoft Json Serializ
 
 
 ## HouseofCat.Serialization.Json.Utf8Json
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Utf8Json/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.Json.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Serialization.Json.Utf8Json/)  
-
-A library that focuses on making it easier to deal with Utf8Json Json Serialization.  
+An example/library that focuses on making it easier to deal with Utf8Json (cysharp/neuecc) Json Serialization.  
 
 
 ## HouseofCat.Serialization.MessagePack
@@ -340,24 +304,15 @@ A library that focuses on making it easier to deal with MessagePack Serializatio
 
 
 ## HouseofCat.Serilog
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serilog.svg)](https://www.nuget.org/packages/HouseofCat.Serilog/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serilog.svg)](https://www.nuget.org/packages/HouseofCat.Serilog/)  
-
-A library that focuses on extending IHost functionality to quickly setup Serilog.  
+An example/library that focuses on extending IHost functionality to quickly setup Serilog.  
 
 
 ## HouseofCat.Sockets
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Sockets.svg)](https://www.nuget.org/packages/HouseofCat.Sockets/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Sockets.svg)](https://www.nuget.org/packages/HouseofCat.Sockets/)  
-
-A library that focuses on making it easier to deal with socket communication.  
+An example/library that focuses on making it easier to deal with socket communication.  
 
 
 ## HouseofCat.Sockets.Utf8Json
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Sockets.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Sockets.Utf8Json/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Sockets.Utf8Json.svg)](https://www.nuget.org/packages/HouseofCat.Sockets.Utf8Json/)  
-
-A library that focuses on making it easier to deal with sockets communication with Utf8Json.  
+An example/library that focuses on making it easier to deal with sockets communication with Utf8Json.  
 
 
 ## HouseofCat.Utilities
@@ -368,31 +323,19 @@ A library that focuses on general purpose utilities and functions that simplify 
 
 
 ## HouseofCat.Windows.Keyboard
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Windows.Keyboard.svg)](https://www.nuget.org/packages/HouseofCat.Windows.Keyboard/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Windows.Keyboard.svg)](https://www.nuget.org/packages/HouseofCat.Windows.Keyboard/)  
-
-A library that focuses on interacting, filtering, and/or replaying user inputs on Windows, specifically Keyboard.  
+An example/library that focuses on interacting, filtering, and/or replaying user inputs on Windows, specifically Keyboard.  
 
 
 ## HouseofCat.Windows.NativeMethods
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Windows.NativeMethods.svg)](https://www.nuget.org/packages/HouseofCat.Windows.NativeMethods/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Windows.NativeMethods.svg)](https://www.nuget.org/packages/HouseofCat.Windows.NativeMethods/)  
-
-A library that focuses on consolidating Windows NativeMethods calls used by my libaries.  
+An example/library that focuses on consolidating Windows NativeMethods calls used by my libaries.  
 
 
 ## HouseofCat.Windows.Threading
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Windows.Threading.svg)](https://www.nuget.org/packages/HouseofCat.Windows.Threading/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Windows.Threading.svg)](https://www.nuget.org/packages/HouseofCat.Windows.Threading/)  
-
-A library that focuses on simplifying affinity and thread management.  
+An example/library that focuses on simplifying affinity and thread management.  
 
 
 ## HouseofCat.Windows.WMI
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Windows.WMI.svg)](https://www.nuget.org/packages/HouseofCat.Windows.WMI/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Windows.WMI.svg)](https://www.nuget.org/packages/HouseofCat.Windows.WMI/)  
-
-A library that focuses on performing System.Management (Windows.Compatibility.Pack) WMI Queries.  
+An example/library that focuses on performing System.Management (Windows.Compatibility.Pack) WMI Queries.  
 
 
 # [HouseofCat.io](https://houseofcat.io)

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace HouseofCat.Extensions;
+namespace HouseofCat.Utilities.Extensions;
 
 public static class ObjectExtensions
 {
@@ -15,14 +15,14 @@ public static class ObjectExtensions
         if (input == null) return 0;
         var type = input.GetType();
 
-        if (_primitiveTypeSizes.ContainsKey(type))
+        if (_primitiveTypeSizes.TryGetValue(type, out int sizeValue))
         {
-            return _primitiveTypeSizes[type];
+            return sizeValue;
         }
 
-        if (_primitiveArrayTypeMultiplier.ContainsKey(type))
+        if (_primitiveArrayTypeMultiplier.TryGetValue(type, out int multiplierValue))
         {
-            return (_primitiveArrayTypeMultiplier[type] * ((Array)input).Length)
+            return (multiplierValue * ((Array)input).Length)
                 + _syncBlockSize
                 + _methodTableReferenceSize
                 + _lengthSize;

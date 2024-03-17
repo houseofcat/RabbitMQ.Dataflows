@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Extensions;
+namespace HouseofCat.Utilities.Extensions;
 
 public static class MemoryStreamExtensions
 {

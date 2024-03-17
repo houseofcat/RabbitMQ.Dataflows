@@ -1,4 +1,4 @@
-﻿using HouseofCat.Extensions;
+﻿using HouseofCat.Utilities.Extensions;
 using SqlKata;
 using System.Data;
 using System.Linq;

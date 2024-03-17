@@ -1,4 +1,4 @@
-﻿using HouseofCat.Extensions;
+﻿using HouseofCat.Utilities.Extensions;
 using HouseofCat.Recyclable;
 using HouseofCat.Utilities.Errors;
 using CommunityToolkit.HighPerformance;

@@ -1,4 +1,4 @@
-﻿using HouseofCat.Extensions;
+﻿using HouseofCat.Utilities.Extensions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -536,7 +536,7 @@ public static class FileEnumerators
         }).ConfigureAwait(false);
     }
 
-    private static async Task GetDirectoriesInParallelAsync(
+    public static async Task GetDirectoriesInParallelAsync(
         string directory,
         ConcurrentQueue<string> directories)
     {
@@ -553,7 +553,7 @@ public static class FileEnumerators
         }).ConfigureAwait(false);
     }
 
-    private static async Task GetFileNamesInParallelAsync(
+    public static async Task GetFileNamesInParallelAsync(
         string directory,
         string searchPattern,
         ConcurrentBag<string> fileNames)
