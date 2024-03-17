@@ -143,7 +143,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
 
     public async Task StopConsumerAsync(bool immediate = false)
     {
-        if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
+        await _conLock.WaitAsync();
 
         _logger.LogDebug(Consumers.StopConsumer, ConsumerOptions.ConsumerName);
 
