@@ -20,8 +20,8 @@ public interface IChannelHost
 
     IModel GetChannel();
 
-    Task<string> StartConsumingAsync(IBasicConsumer internalConsumer, ConsumerOptions options);
-    Task StopConsumingAsync();
+    string StartConsuming(IBasicConsumer internalConsumer, ConsumerOptions options);
+    void StopConsuming();
 
     Task WaitUntilChannelIsReadyAsync(int sleepInterval, CancellationToken token = default);
     Task<bool> BuildRabbitMQChannelAsync();
@@ -173,53 +173,42 @@ public class ChannelHost : IChannelHost, IDisposable
 
     private string _consumerTag = null;
 
-    public async Task<string> StartConsumingAsync(IBasicConsumer internalConsumer, ConsumerOptions options)
+    public string StartConsuming(IBasicConsumer internalConsumer, ConsumerOptions options)
     {
         Guard.AgainstNull(options, nameof(options));
         Guard.AgainstNullOrEmpty(options.QueueName, nameof(options.QueueName));
         Guard.AgainstNullOrEmpty(options.ConsumerName, nameof(options.ConsumerName));
 
-        await _hostLock.WaitAsync().ConfigureAwait(false);
+        _consumerTag = GetChannel()
+            .BasicConsume(
+                options.QueueName,
+                options.AutoAck ?? false,
+                options.ConsumerName,
+                options.NoLocal ?? false,
+                options.Exclusive ?? false,
+                null,
+                internalConsumer);
 
-        try
-        {
-            _consumerTag = GetChannel()
-                .BasicConsume(
-                    options.QueueName,
-                    options.AutoAck ?? false,
-                    options.ConsumerName,
-                    options.NoLocal ?? false,
-                    options.Exclusive ?? false,
-                    null,
-                    internalConsumer);
+        _logger.LogInformation(LogMessages.ChannelHosts.ConsumerStartedConsumer, ChannelId, _consumerTag);
 
-            UsedByConsumer = true;
+        UsedByConsumer = true;
 
-            return _consumerTag;
-        }
-        finally
-        {
-            _hostLock.Release();
-        }
+        return _consumerTag;
     }
 
-    public async Task StopConsumingAsync()
+    public void StopConsuming()
     {
         if (string.IsNullOrEmpty(_consumerTag) || !UsedByConsumer) return;
 
-        if (!await _hostLock.WaitAsync(0).ConfigureAwait(false))
+        _logger.LogInformation(LogMessages.ChannelHosts.ConsumerStopConsumer, ChannelId, _consumerTag);
+
+        try
         {
-            try
-            {
-                GetChannel().BasicCancel(_consumerTag);
-                _hostLock.Release();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, LogMessages.ChannelHosts.ConsumerStopConsumerError, ChannelId, _consumerTag);
-            }
-            finally
-            { _hostLock.Release(); }
+            GetChannel().BasicCancel(_consumerTag);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, LogMessages.ChannelHosts.ConsumerStopConsumerError, ChannelId, _consumerTag);
         }
     }
 

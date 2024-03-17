@@ -70,8 +70,9 @@ public static class LogMessages
     {
         public const string FlowControlled = "[ChannelHost {0}] - Flow control event has triggered.";
         public const string FlowControlFinished = "[ChannelHost {0}] - Flow control event has resolved itself.";
-        public const string ConsumerStartedConsumer = "[ChannelHost {0}] - Starting Consumer. ConsumerTag: [{1}]";
-        public const string ConsumerStopConsumerError = "[ChannelHost {0}] - Error stopping Consumer using ConsumerTag: [{1}]";
+        public const string ConsumerStartedConsumer = "[ChannelHost {0}] - Starting consuming. ConsumerTag: [{1}]";
+        public const string ConsumerStopConsumer = "[ChannelHost {0}] - Stopping consuming using ConsumerTag: [{1}]";
+        public const string ConsumerStopConsumerError = "[ChannelHost {0}] - Error stopping consuming using ConsumerTag: [{1}]";
     }
 
     public static class ConnectionPools

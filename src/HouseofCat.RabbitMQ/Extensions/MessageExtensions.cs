@@ -104,7 +104,7 @@ public static class MessageExtensions
         var letters = new List<IMessage>();
 
         var queueCount = queueNames.Count;
-        for (int i = 0; i < letterCount; i++)
+        for (var i = 0; i < letterCount; i++)
         {
             letters.Add(CreateSimpleRandomLetter(queueNames[random.Next(0, queueCount)], bodySize));
         }
@@ -116,7 +116,7 @@ public static class MessageExtensions
     {
         var letters = new List<IMessage>();
 
-        for (int i = 0; i < letterCount; i++)
+        for (var i = 0; i < letterCount; i++)
         {
             letters.Add(CreateSimpleRandomLetter(queueName, bodySize));
         }
