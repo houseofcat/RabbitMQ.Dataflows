@@ -2,6 +2,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ;
@@ -96,19 +97,12 @@ public class ReceivedData : IReceivedData, IDisposable
             ContentType = Encoding.UTF8.GetString((byte[])objectType);
 
             // ADD SERIALIZER TO HEADER AND && JSON THIS ONE
-            if (ContentType == Constants.HeaderValueForLetter && Data?.Length > 0)
+            if (ContentType == Constants.HeaderValueForMessage && Data?.Length > 0)
             {
-                // All IMessage objects SHOULD deserialize with Utf8Json, the inner Body maybe not.
                 try
-                { Letter = Utf8Json.JsonSerializer.Deserialize<Letter>(Data); }
+                { Letter = JsonSerializer.Deserialize<Letter>(Data); }
                 catch
-                {
-                    // Allow fallback option to default System.Text.Json.
-                    try
-                    { Letter = System.Text.Json.JsonSerializer.Deserialize<Letter>(Data); }
-                    catch
-                    { FailedToDeserialize = true; }
-                }
+                { FailedToDeserialize = true; }
             }
 
             if (Properties.Headers.TryGetValue(Constants.HeaderForEncrypted, out object encryptedValue))

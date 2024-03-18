@@ -1,6 +1,7 @@
 using HouseofCat.Logger;
 using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -84,8 +85,9 @@ public class ChannelHost : IChannelHost, IDisposable
         }
     }
 
-    private static readonly string _makeChannelConnectionUnhealthyError = "Unable to create new inner channel for ChannelHost (Id: {0}). Connection (Id: {0}) is still unhealthy. Try again later...";
+    private static readonly string _makeChannelConnectionUnhealthyError = "Unable to create new inner channel for ChannelHost [Id: {0}]. Connection [Id: {0}] is still unhealthy. Try again later...";
     private static readonly string _makeChannelFailedError = "Making a channel failed. Error: {0}";
+    private static readonly string _makeChannelSuccessful = "ChannelHost [Id: {0}] successfully created a new RabbitMQ channel on Connection [Id: {0}].";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<bool> BuildRabbitMQChannelAsync()
@@ -121,6 +123,8 @@ public class ChannelHost : IChannelHost, IDisposable
 
             _channel.FlowControl += FlowControl;
             _channel.ModelShutdown += ChannelClose;
+
+            _logger.LogInformation(_makeChannelSuccessful, ChannelId, _connHost.ConnectionId);
 
             return true;
         }

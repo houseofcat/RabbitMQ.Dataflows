@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace HouseofCat.Utilities.File;
@@ -36,8 +37,7 @@ public static class Utf8JsonFileReader
     {
         using var stream = new FileStream(fileNamePath, FileMode.Open);
 
-        return await Utf8Json
-            .JsonSerializer
+        return await JsonSerializer
             .DeserializeAsync<TOut>(stream)
             .ConfigureAwait(false);
     }

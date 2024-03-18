@@ -66,12 +66,12 @@ public static class PubSubTests
         {
             await consumer.StartConsumerAsync();
 
-            await foreach (var receivedData in consumer.StreamOutUntilClosedAsync())
+            await foreach (var receivedData in consumer.StreamUntilConsumerStopAsync())
             {
                 try
                 {
                     var letter = JsonSerializer.Deserialize<Letter>(receivedData.Data);
-                    var dataAsString = Encoding.UTF8.GetString(letter.Body);
+                    var dataAsString = Encoding.UTF8.GetString(letter.Body.Span);
 
                     if (dataAsString.StartsWith("exit"))
                     {
@@ -111,7 +111,8 @@ public static class PubSubTests
         await VerifyNoDuplicatesInQueueAsync(logger, channelPool, testCount);
     }
 
-    // This method sends messages to the queue slowly to allow the connections to be closed (and then recovered).
+    // This method sends messages to the queue slowly to allow the connections to be closed (and then recovered). The goal
+    // here is to see no duplicate messages from the retry AutoPublisher mechanism.
     private static async Task SendCountersToQueueSlowlyAsync(ILogger logger, IChannelPool channelPool, int testCount, int delay = 100)
     {
         await Task.Yield();
@@ -153,10 +154,10 @@ public static class PubSubTests
         {
             await consumer.StartConsumerAsync();
 
-            await foreach (var receivedData in consumer.StreamOutUntilClosedAsync())
+            await foreach (var receivedData in consumer.StreamUntilConsumerStopAsync())
             {
                 var letter = JsonSerializer.Deserialize<Letter>(receivedData.Data);
-                var number = Encoding.UTF8.GetString(letter.Body);
+                var number = Encoding.UTF8.GetString(letter.Body.Span);
 
                 if (!hashSet.Add(number))
                 {

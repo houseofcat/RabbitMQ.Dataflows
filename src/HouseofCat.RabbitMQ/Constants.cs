@@ -9,15 +9,15 @@ public static class Constants
     public static string HeaderPrefix { get; set; } = "X-";
 
     // Consumer
-    public static string HeaderForObjectType { get; set; } = "X-CR-OBJECTTYPE";
-    public const string HeaderValueForMessage = "MESSAGE";
-    public const string HeaderValueForLetter = "LETTER";
+    public static string HeaderForObjectType { get; set; } = "X-RD-OBJECTTYPE";
+    public const string HeaderValueForMessage = "X-RD-IMESSAGE";
+
     public static string HeaderValueForUnknown { get; set; } = "UNKNOWN";
-    public static string HeaderForEncrypted { get; set; } = "X-CR-ENCRYPTED";
-    public static string HeaderForEncryption { get; set; } = "X-CR-ENCRYPTION";
-    public static string HeaderForEncryptDate { get; set; } = "X-CR-ENCRYPTDATE";
-    public static string HeaderForCompressed { get; set; } = "X-CR-COMPRESSED";
-    public static string HeaderForCompression { get; set; } = "X-CR-COMPRESSION";
+    public static string HeaderForEncrypted { get; set; } = "X-RD-ENCRYPTED";
+    public static string HeaderForEncryption { get; set; } = "X-RD-ENCRYPTION";
+    public static string HeaderForEncryptDate { get; set; } = "X-RD-ENCRYPTDATE";
+    public static string HeaderForCompressed { get; set; } = "X-RD-COMPRESSED";
+    public static string HeaderForCompression { get; set; } = "X-RD-COMPRESSION";
 
     public const string RangeErrorMessage = "Value for {0} must be between {1} and {2}.";
 

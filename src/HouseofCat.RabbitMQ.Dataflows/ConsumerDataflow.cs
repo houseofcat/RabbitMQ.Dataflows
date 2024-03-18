@@ -658,17 +658,17 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 {
                     if (state.SendData?.Length > 0)
                     { state.SendData = action(state.SendData.AsMemory()).ToArray(); }
-                    else if (state.SendMessage.Body?.Length > 0)
-                    { state.SendMessage.Body = action(state.SendMessage.Body.AsMemory()).ToArray(); }
+                    else if (state.SendMessage.Body.Length > 0)
+                    { state.SendMessage.Body = action(state.SendMessage.Body).ToArray(); }
                 }
                 else if (predicate.Invoke(state))
                 {
-                    if (state.ReceivedData.ContentType == Constants.HeaderValueForLetter)
+                    if (state.ReceivedData.ContentType == Constants.HeaderValueForMessage)
                     {
                         if (state.ReceivedData.Letter == null)
                         { state.ReceivedData.Letter = _serializationProvider.Deserialize<Letter>(state.ReceivedData.Data); }
 
-                        state.ReceivedData.Letter.Body = action(state.ReceivedData.Letter.Body.AsMemory()).ToArray();
+                        state.ReceivedData.Letter.Body = action(state.ReceivedData.Letter.Body).ToArray();
                     }
                     else
                     { state.ReceivedData.Data = action(state.ReceivedData.Data.AsMemory()).ToArray(); }
@@ -706,12 +706,12 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 {
                     if (state.SendData?.Length > 0)
                     { state.SendData = await action(state.SendData).ConfigureAwait(false); }
-                    else if (state.SendMessage.Body?.Length > 0)
+                    else if (state.SendMessage.Body.Length > 0)
                     { state.SendMessage.Body = await action(state.SendMessage.Body).ConfigureAwait(false); }
                 }
                 else if (predicate.Invoke(state))
                 {
-                    if (state.ReceivedData.ContentType == Constants.HeaderValueForLetter)
+                    if (state.ReceivedData.ContentType == Constants.HeaderValueForMessage)
                     {
                         if (state.ReceivedData.Letter == null)
                         { state.ReceivedData.Letter = _serializationProvider.Deserialize<Letter>(state.ReceivedData.Data); }

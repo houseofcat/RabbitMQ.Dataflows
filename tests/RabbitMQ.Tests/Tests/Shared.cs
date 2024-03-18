@@ -1,5 +1,11 @@
-﻿using HouseofCat.RabbitMQ;
+﻿using HouseofCat.Compression;
+using HouseofCat.Encryption.Providers;
+using HouseofCat.Hashing.Argon;
+using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.RabbitMQ.Services;
+using HouseofCat.RabbitMQ.Services.Extensions;
+using HouseofCat.Serialization;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
@@ -42,5 +48,31 @@ public static class Shared
         channelHost.Close();
 
         return channelPool;
+    }
+
+    public static readonly string EncryptionPassword = "PasswordyPasswordPassword";
+    public static readonly string EncryptionSalt = "SaltySaltSalt";
+    public static readonly int KeySize = 32;
+
+    public static async Task<IRabbitService> SetupRabbitServiceAsync(ILoggerFactory loggerFactory, string configFileNamePath)
+    {
+        var rabbitOptions = await RabbitExtensions.GetRabbitOptionsFromJsonFileAsync(configFileNamePath);
+        var jsonProvider = new JsonProvider();
+
+        var hashProvider = new Argon2ID_HashingProvider();
+        var aes256Key = hashProvider.GetHashKey(EncryptionPassword, EncryptionSalt, KeySize);
+        var aes256Provider = new AesGcmEncryptionProvider(aes256Key);
+
+        var gzipProvider = new RecyclableGzipProvider();
+
+        var rabbitService = await rabbitOptions.BuildRabbitServiceAsync(
+           jsonProvider,
+           aes256Provider,
+           gzipProvider,
+           loggerFactory);
+
+        await rabbitService.Publisher.StartAutoPublishAsync();
+
+        return rabbitService;
     }
 }

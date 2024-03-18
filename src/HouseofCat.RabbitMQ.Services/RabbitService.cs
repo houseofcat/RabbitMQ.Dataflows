@@ -367,15 +367,8 @@ public class RabbitService : IRabbitService, IDisposable
             metadata.Encrypted = false;
             metadata.CustomFields[Constants.HeaderForEncrypted] = false;
 
-            if (metadata.CustomFields.ContainsKey(Constants.HeaderForEncryption))
-            {
-                metadata.CustomFields.Remove(Constants.HeaderForEncryption);
-            }
-
-            if (metadata.CustomFields.ContainsKey(Constants.HeaderForEncryptDate))
-            {
-                metadata.CustomFields.Remove(Constants.HeaderForEncryptDate);
-            }
+            metadata.CustomFields.Remove(Constants.HeaderForEncryption);
+            metadata.CustomFields.Remove(Constants.HeaderForEncryptDate);
 
             return true;
         }

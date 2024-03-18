@@ -10,7 +10,7 @@ public interface IMessage
 {
     string MessageId { get; set; }
     Envelope Envelope { get; set; }
-    byte[] Body { get; set; }
+    ReadOnlyMemory<byte> Body { get; set; }
 
     IMetadata GetMetadata();
 
@@ -33,7 +33,7 @@ public class Letter : IMessage
     public string MessageId { get; set; }
 
     public LetterMetadata LetterMetadata { get; set; }
-    public byte[] Body { get; set; }
+    public ReadOnlyMemory<byte> Body { get; set; }
 
     public IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders)
     {
@@ -43,7 +43,7 @@ public class Letter : IMessage
         props.MessageId = MessageId;
 
         // Non-optional Header.
-        props.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForLetter;
+        props.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessage;
 
         return props;
     }

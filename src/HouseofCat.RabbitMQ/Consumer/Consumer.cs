@@ -60,8 +60,8 @@ public interface IConsumer<TFromQueue>
     Task<IEnumerable<TFromQueue>> ReadUntilEmptyAsync();
     Task StartConsumerAsync();
     Task StopConsumerAsync(bool immediate = false);
-    IAsyncEnumerable<TFromQueue> StreamOutUntilClosedAsync();
-    IAsyncEnumerable<TFromQueue> StreamOutUntilEmptyAsync();
+    IAsyncEnumerable<TFromQueue> StreamUntilConsumerStopAsync();
+    IAsyncEnumerable<TFromQueue> StreamUntilQueueEmptyAsync();
 }
 
 public class Consumer : IConsumer<ReceivedData>, IDisposable
@@ -473,7 +473,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         return list;
     }
 
-    public async IAsyncEnumerable<ReceivedData> StreamOutUntilEmptyAsync()
+    public async IAsyncEnumerable<ReceivedData> StreamUntilQueueEmptyAsync()
     {
         if (!await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
 
@@ -485,7 +485,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         }
     }
 
-    public async IAsyncEnumerable<ReceivedData> StreamOutUntilClosedAsync()
+    public async IAsyncEnumerable<ReceivedData> StreamUntilConsumerStopAsync()
     {
         if (!await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
 

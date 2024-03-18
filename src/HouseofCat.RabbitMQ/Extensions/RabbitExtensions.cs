@@ -1,5 +1,6 @@
 using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
