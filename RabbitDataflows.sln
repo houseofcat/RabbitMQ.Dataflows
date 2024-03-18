@@ -107,7 +107,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "stablediffusion", "stabledi
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D01D59E9-75CC-4C74-A887-22B0A55C994B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConnectivityTests", "tests\RabbitMQ.Tests\RabbitMQ.Tests.csproj", "{0930ACF5-372E-49AF-B53F-A06C3A5FA997}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Console.Tests", "tests\RabbitMQ.Console.Tests\RabbitMQ.Console.Tests.csproj", "{0930ACF5-372E-49AF-B53F-A06C3A5FA997}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "tests\UnitTests\UnitTests.csproj", "{528C015E-58FC-44B4-BAC5-05BCFCD506C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -227,6 +229,10 @@ Global
 		{0930ACF5-372E-49AF-B53F-A06C3A5FA997}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0930ACF5-372E-49AF-B53F-A06C3A5FA997}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0930ACF5-372E-49AF-B53F-A06C3A5FA997}.Release|Any CPU.Build.0 = Release|Any CPU
+		{528C015E-58FC-44B4-BAC5-05BCFCD506C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{528C015E-58FC-44B4-BAC5-05BCFCD506C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{528C015E-58FC-44B4-BAC5-05BCFCD506C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{528C015E-58FC-44B4-BAC5-05BCFCD506C9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -267,6 +273,7 @@ Global
 		{0BF90E18-A067-45AC-91D0-E27328A6FC39} = {1AB5E832-AD36-40AF-A7E9-A105A778116C}
 		{D61A9911-AC32-4D96-ABC0-E02763115885} = {0BF90E18-A067-45AC-91D0-E27328A6FC39}
 		{0930ACF5-372E-49AF-B53F-A06C3A5FA997} = {D01D59E9-75CC-4C74-A887-22B0A55C994B}
+		{528C015E-58FC-44B4-BAC5-05BCFCD506C9} = {D01D59E9-75CC-4C74-A887-22B0A55C994B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D7099845-267C-4232-8764-5DF25D6B2C79}

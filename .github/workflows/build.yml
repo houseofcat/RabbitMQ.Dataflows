@@ -25,5 +25,5 @@ jobs:
     - name: Build
       run: dotnet build RabbitDataflows.sln --configuration Release
 
-#    - name: Test
-#      run: dotnet test "./tests/Tests.sln"
+    - name: Test
+      run: dotnet test "./tests/UnitTests/UnitTests.csproj"
