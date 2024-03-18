@@ -14,7 +14,7 @@
     "MaxConnections": 1,
     "MaxChannels": 0,
     "MaxAckableChannels": 0,
-    "SleepOnErrorInterval": 1000,
+    "SleepOnErrorInterval": 5000,
     "TansientChannelStartRange": 10000,
     "UseTransientChannels": false
   },

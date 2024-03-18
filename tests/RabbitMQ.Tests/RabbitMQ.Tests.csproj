@@ -13,6 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="RabbitMQ.PublisherTests.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="RabbitMQ.PubSubTests.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

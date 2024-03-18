@@ -26,30 +26,5 @@
     "CreatePublishReceipts": true,
     "Compress": false,
     "Encrypt": false
-  },
-  "GlobalConsumerOptions": {
-    "SingleThreaded": {
-      "ErrorSuffix": "Error",
-      "BatchSize": 1,
-      "BehaviorWhenFull": 0,
-      "SleepOnIdleInterval": 0,
-      "UseTransientChannels": true,
-      "AutoAck": false,
-      "NoLocal": false,
-      "Exclusive": false,
-      "GlobalConsumerPipelineOptions": {
-        "WaitForCompletion": true,
-        "MaxDegreesOfParallelism": 1,
-        "EnsureOrdered": false
-      }
-    }
-  },
-  "ConsumerOptions": {
-    "TestConsumer": {
-      "Enabled": true,
-      "GlobalSettings": "SingleThreaded",
-      "ConsumerName": "TestConsumer",
-      "QueueName": "TestQueue"
-    }
   }
 }

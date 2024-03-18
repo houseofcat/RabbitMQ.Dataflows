@@ -88,7 +88,7 @@ public static class LogMessages
     {
         public const string Initialization = "ChannelPool initialize call was made.";
         public const string InitializationComplete = "ChannelPool initialized.";
-        public const string DeadChannel = "A dead channel ({0}) was detected... attempting to repair indefinitely.";
+        public const string ChannelHasIssues = "A channel ({0}) was detected to have issues. Attempting to repair...";
         public const string CreateChannel = "The channel host ({0}) create loop is executing an iteration...";
         public const string CreateChannelFailedConnection = "The channel host ({0}) failed because Connection is unhealthy.";
         public const string CreateChannelFailedConstruction = "The channel host ({0}) failed because ChannelHost construction threw exception.";

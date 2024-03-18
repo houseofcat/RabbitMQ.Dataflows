@@ -158,7 +158,7 @@ public class ChannelPool : IChannelPool, IDisposable
         var flagged = _flaggedChannels.ContainsKey(chanHost.ChannelId) && _flaggedChannels[chanHost.ChannelId];
         if (flagged || !healthy)
         {
-            _logger.LogWarning(LogMessages.ChannelPools.DeadChannel, chanHost.ChannelId);
+            _logger.LogWarning(LogMessages.ChannelPools.ChannelHasIssues, chanHost.ChannelId);
 
             await chanHost.WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval);
         }
@@ -207,7 +207,7 @@ public class ChannelPool : IChannelPool, IDisposable
         var flagged = _flaggedChannels.ContainsKey(chanHost.ChannelId) && _flaggedChannels[chanHost.ChannelId];
         if (flagged || !healthy)
         {
-            _logger.LogWarning(LogMessages.ChannelPools.DeadChannel, chanHost.ChannelId);
+            _logger.LogWarning(LogMessages.ChannelPools.ChannelHasIssues, chanHost.ChannelId);
 
             await chanHost.WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval);
         }
