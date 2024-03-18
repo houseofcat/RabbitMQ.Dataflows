@@ -22,8 +22,7 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
     private Task _bufferProcessor;
 
     public ConsumerBlock() : this(new BufferBlock<TOut>())
-    {
-    }
+    { }
 
     public ConsumerBlock(IConsumer<TOut> consumer) : this()
     {
@@ -32,8 +31,7 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
     }
 
     protected ConsumerBlock(ITargetBlock<TOut> bufferBlock) : this(bufferBlock, (ISourceBlock<TOut>)bufferBlock)
-    {
-    }
+    { }
 
     protected ConsumerBlock(ITargetBlock<TOut> bufferBlock, ISourceBlock<TOut> sourceBufferBlock)
     {
