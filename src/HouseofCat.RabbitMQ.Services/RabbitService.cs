@@ -13,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Concurrent;
-using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,6 +24,8 @@ public interface IRabbitService
     IChannelPool ChannelPool { get; }
     ITopologer Topologer { get; }
     RabbitOptions Options { get; }
+
+    string TimeFormat { get; set; }
 
     ISerializationProvider SerializationProvider { get; }
     IEncryptionProvider EncryptionProvider { get; }
@@ -67,6 +68,8 @@ public class RabbitService : IRabbitService, IDisposable
 
     public ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<ReceivedData>>();
     private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerOptions { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
+
+    public string TimeFormat { get; set; } = Time.Formats.CatsAltFormat;
 
     public RabbitService(
         string fileNamePath,
@@ -120,7 +123,11 @@ public class RabbitService : IRabbitService, IDisposable
         EncryptionProvider = encryptionProvider;
         CompressionProvider = compressionProvider;
 
-        Publisher = new Publisher(ChannelPool, SerializationProvider, EncryptionProvider, CompressionProvider);
+        Publisher = new Publisher(ChannelPool, SerializationProvider, EncryptionProvider, CompressionProvider)
+        {
+            TimeFormat = TimeFormat
+        };
+
         Topologer = new Topologer(ChannelPool);
 
         Options.ApplyGlobalConsumerOptions();
@@ -311,7 +318,8 @@ public class RabbitService : IRabbitService, IDisposable
 
     public IConsumer<ReceivedData> GetConsumer(string consumerName)
     {
-        if (!Consumers.TryGetValue(consumerName, out IConsumer<ReceivedData> value)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerOptionsMessage, consumerName));
+        if (!Consumers.TryGetValue(consumerName, out IConsumer<ReceivedData> value))
+        { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerOptionsMessage, consumerName)); }
         return value;
     }
 
@@ -351,7 +359,7 @@ public class RabbitService : IRabbitService, IDisposable
             metadata.Encrypted = true;
             metadata.CustomFields[Constants.HeaderForEncrypted] = true;
             metadata.CustomFields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
-            metadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
+            metadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(TimeFormat);
 
             return true;
         }

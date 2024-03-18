@@ -21,6 +21,8 @@ public interface IPublisher
     bool AutoPublisherStarted { get; }
     RabbitOptions Options { get; }
 
+    string TimeFormat { get; set; }
+
     ChannelReader<IPublishReceipt> GetReceiptBufferReader();
     Task PublishAsync(IMessage message, bool createReceipt, bool withHeaders = true);
     Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true);
@@ -68,7 +70,6 @@ public interface IPublisher
 public class Publisher : IPublisher, IDisposable
 {
     public RabbitOptions Options { get; }
-
     public bool AutoPublisherStarted { get; private set; }
 
     private readonly ILogger<Publisher> _logger;
@@ -90,6 +91,8 @@ public class Publisher : IPublisher, IDisposable
     private Task _publishingTask;
     private Task _processReceiptsAsync;
     private bool _disposedValue;
+
+    public string TimeFormat { get; set; } = Time.Formats.CatsAltFormat;
 
     public Publisher(
         RabbitOptions options,
@@ -271,7 +274,7 @@ public class Publisher : IPublisher, IDisposable
                     metadata.Encrypted = _encrypt;
                     metadata.CustomFields[Constants.HeaderForEncrypted] = _encrypt;
                     metadata.CustomFields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
-                    metadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.CatRFC3339);
+                    metadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.RFC3339Long);
                 }
 
                 _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.MessageId, metadata?.Id);
