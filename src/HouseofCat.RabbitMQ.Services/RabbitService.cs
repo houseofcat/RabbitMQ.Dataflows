@@ -311,15 +311,17 @@ public class RabbitService : IRabbitService, IDisposable
 
     public IConsumer<ReceivedData> GetConsumer(string consumerName)
     {
-        if (!Consumers.ContainsKey(consumerName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerOptionsMessage, consumerName));
-        return Consumers[consumerName];
+        if (!Consumers.TryGetValue(consumerName, out IConsumer<ReceivedData> value)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerOptionsMessage, consumerName));
+        return value;
     }
 
     public IConsumer<ReceivedData> GetConsumerByPipelineName(string consumerPipelineName)
     {
-        if (!ConsumerPipelineNameToConsumerOptions.ContainsKey(consumerPipelineName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerPipelineOptionsMessage, consumerPipelineName));
-        if (!Consumers.ContainsKey(ConsumerPipelineNameToConsumerOptions[consumerPipelineName].ConsumerName)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerOptionsMessage, ConsumerPipelineNameToConsumerOptions[consumerPipelineName].ConsumerName));
-        return Consumers[ConsumerPipelineNameToConsumerOptions[consumerPipelineName].ConsumerName];
+        if (!ConsumerPipelineNameToConsumerOptions.TryGetValue(consumerPipelineName, out ConsumerOptions value))
+        { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerPipelineOptionsMessage, consumerPipelineName)); }
+        if (!Consumers.TryGetValue(value.ConsumerName, out var consumer))
+        { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerOptionsMessage, value.ConsumerName)); }
+        return consumer;
     }
 
     public async Task DecomcryptAsync(IMessage message)
@@ -411,10 +413,7 @@ public class RabbitService : IRabbitService, IDisposable
                 metadata.Compressed = false;
                 metadata.CustomFields[Constants.HeaderForCompressed] = false;
 
-                if (metadata.CustomFields.ContainsKey(Constants.HeaderForCompression))
-                {
-                    metadata.CustomFields.Remove(Constants.HeaderForCompression);
-                }
+                metadata.CustomFields.Remove(Constants.HeaderForCompression);
             }
             catch { return false; }
         }
