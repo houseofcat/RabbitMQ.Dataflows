@@ -357,6 +357,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
                     _logger.LogInformation(
                         Consumers.ConsumerShutdownEvent,
                         ConsumerOptions.ConsumerName,
+                        _chanHost.ChannelId,
                         e.ReplyText);
 
                     await HandleRecoverableShutdownAsync(e)
@@ -411,7 +412,8 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
 
         _logger.LogInformation(
             Consumers.ConsumerShutdownEventFinished,
-            ConsumerOptions.ConsumerName);
+            ConsumerOptions.ConsumerName,
+            _chanHost.ChannelId);
     }
 
     protected virtual async Task ReviewConnectionHealthAsync()

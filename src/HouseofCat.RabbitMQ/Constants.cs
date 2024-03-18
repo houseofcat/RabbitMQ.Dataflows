@@ -39,7 +39,7 @@ public static class ExceptionMessages
 
     public const string ValidationMessage = "ConnectionPool is not initialized or is shutdown.";
     public const string ShutdownValidationMessage = "ConnectionPool is not initialized. Can't be Shutdown.";
-    public const string GetConnectionErrorMessage = "Threading.Channel used for reading RabbitMQ connections has been closed.";
+    public const string GetConnectionErrorMessage = "Threading.Channel buffer used for reading RabbitMQ connections has been closed.";
 
     public const string ChannelPoolNotInitializedMessage = "ChannelPool is not usable until it has been initialized.";
     public const string EncrypConfigErrorMessage = "Encryption can't be enabled without a HashKey (32-byte length).";
@@ -68,18 +68,18 @@ public static class LogMessages
 {
     public static class ChannelHosts
     {
-        public const string FlowControlled = "[ChannelHost {0}] - Flow control event has triggered.";
-        public const string FlowControlFinished = "[ChannelHost {0}] - Flow control event has resolved itself.";
-        public const string ConsumerStartedConsumer = "[ChannelHost {0}] - Starting consuming. ConsumerTag: [{1}]";
-        public const string ConsumerStopConsumer = "[ChannelHost {0}] - Stopping consuming using ConsumerTag: [{1}]";
-        public const string ConsumerStopConsumerError = "[ChannelHost {0}] - Error stopping consuming using ConsumerTag: [{1}]";
+        public const string FlowControlled = "ChannelHost [Id: {0}] - Flow control event has triggered.";
+        public const string FlowControlFinished = "ChannelHost [Id: {0}] - Flow control event has resolved itself.";
+        public const string ConsumerStartedConsumer = "ChannelHost [Id: {0}] - Starting consuming. ConsumerTag: [{1}]";
+        public const string ConsumerStopConsumer = "ChannelHost [Id: {0}] - Stopping consuming using ConsumerTag: [{1}]";
+        public const string ConsumerStopConsumerError = "ChannelHost [Id: {0}] - Error stopping consuming using ConsumerTag: [{1}]";
     }
 
     public static class ConnectionPools
     {
         public const string CreateConnections = "ConnectionPool creating Connections...";
         public const string CreateConnectionsComplete = "ConnectionPool initialized.";
-        public const string CreateConnectionException = "Connection ({0}) failed to be created.";
+        public const string CreateConnectionException = "Connection [{0}] failed to be created.";
         public const string Shutdown = "ConnectionPool shutdown was called.";
         public const string ShutdownComplete = "ConnectionPool shutdown complete.";
     }
@@ -88,21 +88,21 @@ public static class LogMessages
     {
         public const string Initialization = "ChannelPool initialize call was made.";
         public const string InitializationComplete = "ChannelPool initialized.";
-        public const string ChannelHasIssues = "A channel ({0}) was detected to have issues. Attempting to repair...";
-        public const string CreateChannel = "The channel host ({0}) create loop is executing an iteration...";
-        public const string CreateChannelFailedConnection = "The channel host ({0}) failed because Connection is unhealthy.";
-        public const string CreateChannelFailedConstruction = "The channel host ({0}) failed because ChannelHost construction threw exception.";
-        public const string CreateChannelSleep = "The channel host ({0}) create loop iteration failed. Sleeping...";
-        public const string CreateChannelSuccess = "The channel host ({0}) create loop finished. Channel restored and flags removed.";
-        public const string ReturningChannel = "The channel host ({0}) was returned to the pool. Flagged? {1}";
+        public const string ChannelHasIssues = "ChannelHost [Id: {0}] was detected to have issues. Attempting to repair...";
+        public const string CreateChannel = "ChannelHost [Id: {0}] create loop is executing an iteration...";
+        public const string CreateChannelFailedConnection = "The ChannelHost [Id: {0}] failed because Connection is unhealthy.";
+        public const string CreateChannelFailedConstruction = "The ChannelHost [Id: {0}] failed because ChannelHost construction threw exception.";
+        public const string CreateChannelSleep = "The ChannelHost [Id: {0}] create loop iteration failed. Sleeping...";
+        public const string CreateChannelSuccess = "The ChannelHost [Id: {0}] create loop finished. Channel restored and flags removed.";
+        public const string ReturningChannel = "The ChannelHost [Id: {0}] was returned to the pool. Flagged? {1}";
         public const string Shutdown = "ChannelPool shutdown was called.";
         public const string ShutdownComplete = "ChannelPool shutdown complete.";
     }
 
     public static class Publishers
     {
-        public const string PublishFailed = "Publish to route ({0}) failed, flagging channel host. Error: {1}";
-        public const string PublishMessageFailed = "Publish to route ({0}) failed [MessageId: {1}] flagging channel host. Error: {2}";
+        public const string PublishFailed = "Publish to route [{0}] failed, flagging channel host. Error: {1}";
+        public const string PublishMessageFailed = "Publish to route [{0}] failed [MessageId: {1}] flagging channel host. Error: {2}";
         public const string PublishBatchFailed = "Batch publish failed, flagging channel host. Error: {0}";
     }
 
@@ -114,27 +114,27 @@ public static class LogMessages
 
     public static class Consumers
     {
-        public const string StartingConsumer = "Consumer ({0}) starting...";
+        public const string StartingConsumer = "Consumer [{0}] starting...";
         public const string StartingConsumerError = "Exception creating internal RabbitMQ consumer. Retrying...";
-        public const string StartedConsumer = "Consumer ({0}) started.";
-        public const string StartingConsumerLoop = "Consumer ({0}) startup loop executing...";
-        public const string Started = "Consumer ({0}) started.";
-        public const string StopConsumer = "Consumer ({0}) stop consuming called...";
-        public const string StoppedConsumer = "Consumer ({0}) stopped consuming.";
-        public const string GettingTransientChannelHost = "Consumer ({0}) getting a transient channel.";
-        public const string GettingChannelHost = "Consumer ({0}) getting a channel.";
-        public const string GettingAckChannelHost = "Consumer ({0}) getting a ackable channel host.";
-        public const string ChannelEstablished = "Consumer ({0}) channel host ({1}) assigned.";
-        public const string ChannelNotEstablished = "Consumer ({0}) channel host could not be assigned.";
-        public const string ConsumerMessageReceived = "Consumer ({0}) message received (DT:{1}). Adding to buffer...";
-        public const string ConsumerAsyncMessageReceived = "Consumer ({0}) async message received (DT:{1}). Adding to buffer...";
-        public const string ConsumerShutdownEvent = "Consumer ({0}) recoverable shutdown event has occurred. Reason: {1}. Attempting to restart consuming...";
-        public const string ConsumerShutdownEventFinished = "Consumer ({0}) shutdown event has finished.";
-        public const string ConsumerChannelReplacedEvent = "Consumer ({0}) recoverable shutdown event is ongoing. Connection is healthy. Channel appears to be dead and replacing it...";
-        public const string ConsumerMessageWriteToBufferError = "Consumer ({0}) was unable to write to channel buffer. Error: {1}";
+        public const string StartedConsumer = "Consumer [{0}] started.";
+        public const string StartingConsumerLoop = "Consumer [{0}] startup loop executing...";
+        public const string Started = "Consumer [{0}] started.";
+        public const string StopConsumer = "Consumer [{0}] stop consuming called...";
+        public const string StoppedConsumer = "Consumer [{0}] stopped consuming.";
+        public const string GettingTransientChannelHost = "Consumer [{0}] getting a transient channel.";
+        public const string GettingChannelHost = "Consumer [{0}] getting a channel.";
+        public const string GettingAckChannelHost = "Consumer [{0}] getting a ackable channel host.";
+        public const string ChannelEstablished = "Consumer [{0}] channel host [{1}] assigned.";
+        public const string ChannelNotEstablished = "Consumer [{0}] channel host could not be assigned.";
+        public const string ConsumerMessageReceived = "Consumer [{0}] message received (DT:{1}]. Adding to buffer...";
+        public const string ConsumerAsyncMessageReceived = "Consumer [{0}] async message received (DT:{1}]. Adding to buffer...";
+        public const string ConsumerShutdownEvent = "Consumer [{0}] recoverable shutdown event has occurred on Channel [Id: {1}]. Reason: {2}. Attempting to restart consuming...";
+        public const string ConsumerShutdownEventFinished = "Consumer [{0}] shutdown event has finished on Channel [Id: {1}].";
+        public const string ConsumerChannelReplacedEvent = "Consumer [{0}] recoverable shutdown event is ongoing. Connection is healthy. Channel appears to be dead and replacing it...";
+        public const string ConsumerMessageWriteToBufferError = "Consumer [{0}] was unable to write to channel buffer. Error: {1}";
 
-        public const string ConsumerDataflowActionCancelled = "Consumer ({0}) dataflow engine actions were cancelled.";
-        public const string ConsumerDataflowError = "Consumer ({0}) dataflow engine encountered an error. Error: {1}";
-        public const string ConsumerDataflowQueueing = "Consumer ({0}) dataflow engine queueing unit of work (ReceivedData:DT:{1}).";
+        public const string ConsumerDataflowActionCancelled = "Consumer [{0}] dataflow engine actions were cancelled.";
+        public const string ConsumerDataflowError = "Consumer [{0}] dataflow engine encountered an error. Error: {1}";
+        public const string ConsumerDataflowQueueing = "Consumer [{0}] dataflow engine queueing unit of work [ReceivedData:DT:{1}].";
     }
 }
