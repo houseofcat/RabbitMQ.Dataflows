@@ -531,6 +531,7 @@ public class Publisher : IPublisher, IDisposable
 
         try
         {
+            var body = message.GetBodyToPublish(_serializationProvider);
             chanHost
                 .GetChannel()
                 .BasicPublish(
@@ -538,7 +539,7 @@ public class Publisher : IPublisher, IDisposable
                     message.Envelope.RoutingKey,
                     message.Envelope.RoutingOptions?.Mandatory ?? false,
                     message.BuildProperties(chanHost, withOptionalHeaders),
-                    message.GetBodyToPublish(_serializationProvider));
+                    body);
         }
         catch (Exception ex)
         {

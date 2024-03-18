@@ -21,7 +21,7 @@ public interface IChannelHost
     IModel GetChannel();
 
     string StartConsuming(IBasicConsumer internalConsumer, ConsumerOptions options);
-    void StopConsuming();
+    Task StopConsumingAsync();
 
     Task WaitUntilChannelIsReadyAsync(int sleepInterval, CancellationToken token = default);
     Task<bool> BuildRabbitMQChannelAsync();
@@ -196,15 +196,18 @@ public class ChannelHost : IChannelHost, IDisposable
         return _consumerTag;
     }
 
-    public void StopConsuming()
+    public async Task StopConsumingAsync()
     {
         if (string.IsNullOrEmpty(_consumerTag) || !UsedByConsumer) return;
 
-        _logger.LogInformation(LogMessages.ChannelHosts.ConsumerStopConsumer, ChannelId, _consumerTag);
-
         try
         {
-            GetChannel().BasicCancel(_consumerTag);
+            var healthy = await ChannelHealthyAsync().ConfigureAwait(false);
+            if (healthy)
+            {
+                _logger.LogInformation(LogMessages.ChannelHosts.ConsumerStopConsumer, ChannelId, _consumerTag);
+                GetChannel().BasicCancel(_consumerTag);
+            }
         }
         catch (Exception ex)
         {

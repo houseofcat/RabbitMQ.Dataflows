@@ -146,7 +146,7 @@ public class ChannelPool : IChannelPool, IDisposable
             .WaitToReadAsync()
             .ConfigureAwait(false))
         {
-            throw new InvalidOperationException(ExceptionMessages.ChannelPoolBadOptionMaxChannelError);
+            throw new InvalidOperationException(ExceptionMessages.ChannelPoolGetChannelError);
         }
 
         var chanHost = await _channels
@@ -185,7 +185,7 @@ public class ChannelPool : IChannelPool, IDisposable
                 .ConfigureAwait(false);
         }
 
-        if (_channels == null)
+        if (_ackChannels == null)
         {
             throw new InvalidOperationException(ExceptionMessages.ChannelPoolBadOptionMaxAckChannelError);
         }

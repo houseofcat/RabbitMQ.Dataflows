@@ -158,11 +158,13 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
                 {
                     _chanHost.Close();
                 }
-
-                await _consumerChannel
-                    .Reader
-                    .Completion
-                    .ConfigureAwait(false);
+                else
+                {
+                    await _consumerChannel
+                        .Reader
+                        .Completion
+                        .ConfigureAwait(false);
+                }
 
                 Started = false;
                 _logger.LogDebug(
@@ -195,7 +197,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             try
             {
                 _asyncConsumer = CreateAsyncConsumer();
-                ConsumerTag = _chanHost.StartConsuming(_consumer, ConsumerOptions);
+                ConsumerTag = _chanHost.StartConsuming(_asyncConsumer, ConsumerOptions);
             }
             catch (Exception ex)
             {
@@ -286,7 +288,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
                         .ConfigureAwait(false);
                 }
                 else
-                { _chanHost.StopConsuming(); }
+                { await _chanHost.StopConsumingAsync(); }
             }
             finally
             { _conLock.Release(); }
@@ -352,7 +354,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
                         .ConfigureAwait(false);
                 }
                 else
-                { _chanHost.StopConsuming(); }
+                { await _chanHost.StopConsumingAsync(); }
             }
             finally
             { _conLock.Release(); }

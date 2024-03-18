@@ -5,7 +5,7 @@
     "HeartbeatInterval": 6,
     "AutoRecovery": true,
     "TopologyRecovery": true,
-    "NetRecoveryTimeout": 10,
+    "NetRecoveryTimeout": 5,
     "ContinuationTimeout": 10,
     "EnableDispatchConsumersAsync": true,
     "OAuth2Options": {

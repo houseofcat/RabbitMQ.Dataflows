@@ -10,6 +10,7 @@ public static class Shared
     public static readonly string ExchangeName = "TestExchange";
     public static readonly string QueueName = "TestQueue";
     public static readonly string RoutingKey = "TestRoutingKey";
+    public static readonly string ConsumerName = "TestConsumer";
 
     public static async Task<IChannelPool> SetupTestsAsync(ILogger logger, string configFileNamePath)
     {

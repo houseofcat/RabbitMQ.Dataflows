@@ -13,7 +13,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="RabbitMQ.BasicGet.json">
+    <None Update="RabbitMQ.PubSubTests.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="RabbitMQ.ConsumerTests.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="RabbitMQ.BasicGetTests.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

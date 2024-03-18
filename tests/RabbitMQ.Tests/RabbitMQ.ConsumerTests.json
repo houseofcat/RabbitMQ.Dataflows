@@ -1,0 +1,46 @@
+{
+  "FactoryOptions": {
+    "Uri": "amqp://guest:guest@localhost:5672/",
+    "MaxChannelsPerConnection": 2000,
+    "HeartbeatInterval": 6,
+    "AutoRecovery": true,
+    "TopologyRecovery": true,
+    "NetRecoveryTimeout": 5,
+    "ContinuationTimeout": 10,
+    "EnableDispatchConsumersAsync": true
+  },
+  "PoolOptions": {
+    "ServiceName": "HoC.RabbitMQ",
+    "MaxConnections": 2,
+    "MaxChannels": 0,
+    "MaxAckableChannels": 0,
+    "SleepOnErrorInterval": 1000,
+    "TansientChannelStartRange": 10000,
+    "UseTransientChannels": false
+  },
+  "GlobalConsumerOptions": {
+    "SingleThreaded": {
+      "ErrorSuffix": "Error",
+      "BatchSize": 1,
+      "BehaviorWhenFull": 0,
+      "SleepOnIdleInterval": 0,
+      "UseTransientChannels": true,
+      "AutoAck": false,
+      "NoLocal": false,
+      "Exclusive": false,
+      "GlobalConsumerPipelineOptions": {
+        "WaitForCompletion": true,
+        "MaxDegreesOfParallelism": 1,
+        "EnsureOrdered": false
+      }
+    }
+  },
+  "ConsumerOptions": {
+    "TestConsumer": {
+      "Enabled": true,
+      "GlobalSettings": "SingleThreaded",
+      "ConsumerName": "TestConsumer",
+      "QueueName": "TestQueue"
+    }
+  }
+}
