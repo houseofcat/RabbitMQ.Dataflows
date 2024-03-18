@@ -11,14 +11,14 @@
 
 		<!-- NuGet Attributes -->
 		<Authors>HouseofCat.io</Authors>
-		<Description>HouseofCat.io Tesseract library is used across many projects.</Description>
+		<Description>RabbitDataflows library helps use RabbitMQ as well as create powerful RabbitMQ powered workflows.</Description>
 		<Copyright>Copyright © 2024</Copyright>
-		<Product>HouseofCat.io - Tesseract</Product>
+		<Product>HouseofCat.io - RabbitWorkflows</Product>
 		<PackageIcon>houseofcat.png</PackageIcon>
-		<PackageTags>C# NetCore HouseofCat HouseofCat.io</PackageTags>
-		<PackageReleaseNotes>Features, fixes, and dependency updates!</PackageReleaseNotes>
-		<PackageProjectUrl>https://github.com/houseofcat/Tesseract</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/houseofcat/Tesseract</RepositoryUrl>
+		<PackageTags>C# NET8 NetCore RabbitMQ HouseofCat HouseofCat.io TPL Workflows Dataflow Pipelines</PackageTags>
+		<PackageReleaseNotes>Major overhaul!</PackageReleaseNotes>
+		<PackageProjectUrl>https://github.com/houseofcat/RabbitWorkflows</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/houseofcat/RabbitWorkflows</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 
 		<!-- Sourcelink-->
