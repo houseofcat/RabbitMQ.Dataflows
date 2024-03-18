@@ -210,7 +210,7 @@ public class ChannelHost : IChannelHost, IDisposable
                 null,
                 internalConsumer);
 
-        _logger.LogInformation(LogMessages.ChannelHosts.ConsumerStartedConsumer, ChannelId, _consumerTag);
+        _logger.LogDebug(LogMessages.ChannelHosts.ConsumerStartedConsumer, ChannelId, _consumerTag);
 
         UsedByConsumer = true;
 
