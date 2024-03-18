@@ -64,6 +64,8 @@ public class ChannelPool : IChannelPool, IDisposable
     public ulong CurrentChannelId { get; private set; } = 1;
     public bool Shutdown { get; private set; }
 
+    private readonly CancellationTokenSource _cts;
+
     public ChannelPool(RabbitOptions options) : this(new ConnectionPool(options)) { }
 
     public ChannelPool(IConnectionPool connPool)
@@ -94,6 +96,8 @@ public class ChannelPool : IChannelPool, IDisposable
         {
             CreateChannelsAsync().GetAwaiter().GetResult();
         }
+
+        _cts = new CancellationTokenSource();
     }
 
     private async Task CreateChannelsAsync()
@@ -160,7 +164,7 @@ public class ChannelPool : IChannelPool, IDisposable
         {
             _logger.LogWarning(LogMessages.ChannelPools.ChannelHasIssues, chanHost.ChannelId);
 
-            await chanHost.WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval);
+            await chanHost.WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval, _cts.Token);
         }
 
         return chanHost;
@@ -209,7 +213,7 @@ public class ChannelPool : IChannelPool, IDisposable
         {
             _logger.LogWarning(LogMessages.ChannelPools.ChannelHasIssues, chanHost.ChannelId);
 
-            await chanHost.WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval);
+            await chanHost.WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval, _cts.Token);
         }
 
         return chanHost;
@@ -324,6 +328,8 @@ public class ChannelPool : IChannelPool, IDisposable
 
         if (!Shutdown)
         {
+            _cts.Cancel();
+
             await CloseChannelsAsync()
                 .ConfigureAwait(false);
 
@@ -341,23 +347,29 @@ public class ChannelPool : IChannelPool, IDisposable
     private async Task CloseChannelsAsync()
     {
         // Signal to Channel no more data is coming.
-        _channels.Writer.Complete();
-        _ackChannels.Writer.Complete();
+        _channels?.Writer.Complete();
+        _ackChannels?.Writer.Complete();
 
-        await _channels.Reader.WaitToReadAsync().ConfigureAwait(false);
-        while (_channels.Reader.TryRead(out IChannelHost chanHost))
+        if (_channels is not null)
         {
-            try
-            { chanHost.Close(); }
-            catch { /* SWALLOW */ }
+            await _channels.Reader.WaitToReadAsync().ConfigureAwait(false);
+            while (_channels.Reader.TryRead(out IChannelHost chanHost))
+            {
+                try
+                { chanHost.Close(); }
+                catch { /* SWALLOW */ }
+            }
         }
 
-        await _ackChannels.Reader.WaitToReadAsync().ConfigureAwait(false);
-        while (_ackChannels.Reader.TryRead(out IChannelHost chanHost))
+        if (_ackChannels is not null)
         {
-            try
-            { chanHost.Close(); }
-            catch { /* SWALLOW */ }
+            await _ackChannels.Reader.WaitToReadAsync().ConfigureAwait(false);
+            while (_ackChannels.Reader.TryRead(out IChannelHost chanHost))
+            {
+                try
+                { chanHost.Close(); }
+                catch { /* SWALLOW */ }
+            }
         }
     }
 

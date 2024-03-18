@@ -73,6 +73,15 @@ public class ChannelHost : IChannelHost, IDisposable
 
     public virtual async Task WaitUntilChannelIsReadyAsync(int sleepInterval, CancellationToken token = default)
     {
+        var connectionHealthy = await _connHost.HealthyAsync();
+        while (!token.IsCancellationRequested && !connectionHealthy)
+        {
+            try { await Task.Delay(sleepInterval, token).ConfigureAwait(false); }
+            catch { /* SWALLOW */ }
+
+            connectionHealthy = await _connHost.HealthyAsync();
+        }
+
         var success = false;
         while (!token.IsCancellationRequested && !success)
         {
@@ -108,6 +117,10 @@ public class ChannelHost : IChannelHost, IDisposable
 
             if (_channel != null)
             {
+                // One last check to see if the channel auto-recovered.
+                var healthy = await ChannelHealthyAsync().ConfigureAwait(false);
+                if (healthy) return true;
+
                 _channel.FlowControl -= FlowControl;
                 _channel.ModelShutdown -= ChannelClose;
                 Close();

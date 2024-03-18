@@ -166,6 +166,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
                         .ConfigureAwait(false);
                 }
 
+                _cts.Cancel();
                 Started = false;
                 _logger.LogDebug(
                     Consumers.StoppedConsumer,
@@ -177,6 +178,8 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
 
     private AsyncEventingBasicConsumer _asyncConsumer;
     private EventingBasicConsumer _consumer;
+
+    private CancellationTokenSource _cts;
 
     private async Task<bool> StartConsumingAsync()
     {
@@ -229,6 +232,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             }
         }
 
+        _cts = new CancellationTokenSource();
         _logger.LogInformation(
             Consumers.StartedConsumer,
             ConsumerOptions.ConsumerName);
@@ -350,6 +354,11 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             {
                 if (!_shutdown)
                 {
+                    _logger.LogInformation(
+                        Consumers.ConsumerShutdownEvent,
+                        ConsumerOptions.ConsumerName,
+                        e.ReplyText);
+
                     await HandleRecoverableShutdownAsync(e)
                         .ConfigureAwait(false);
                 }
@@ -401,9 +410,8 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         }
 
         _logger.LogInformation(
-            Consumers.ConsumerShutdownEvent,
-            ConsumerOptions.ConsumerName,
-            e.ReplyText);
+            Consumers.ConsumerShutdownEventFinished,
+            ConsumerOptions.ConsumerName);
     }
 
     protected virtual async Task ReviewConnectionHealthAsync()
@@ -424,7 +432,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         // use cases will be immediately.
         var counter = 0;
         var channelHealthy = false;
-        while (!channelHealthy || counter < Options.PoolOptions.MaxLastChannelHealthCheck)
+        while (!channelHealthy && counter < Options.PoolOptions.MaxLastChannelHealthCheck)
         {
             await Task.Delay(Options.PoolOptions.SleepOnErrorInterval)
                 .ConfigureAwait(false);
@@ -441,7 +449,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
 
             // This is an inner infinite loop, until Channel is healthy/rebuilt.
             await _chanHost
-                .WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval)
+                .WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval, _cts.Token)
                 .ConfigureAwait(false);
         }
     }
