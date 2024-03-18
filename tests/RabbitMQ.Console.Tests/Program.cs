@@ -11,7 +11,7 @@ var logger = loggerFactory.CreateLogger<Program>();
 //await ConsumerTests.RunConsumerTestAsync(logger, "./RabbitMQ.ConsumerTests.json");
 //await PubSubTests.RunPubSubTestAsync(logger, "./RabbitMQ.PubSubTests.json");
 //await PubSubTests.RunPubSubCheckForDuplicateTestAsync(logger, "./RabbitMQ.PubSubTests.json");
-await RabbitServiceTests.RunRabbitServiceTestAsync(loggerFactory, "./RabbitMQ.RabbitServiceTests.json");
+await RabbitServiceTests.RunRabbitServicePingPongTestAsync(loggerFactory, "./RabbitMQ.RabbitServiceTests.json");
 
 logger.LogInformation("Tests complete! Press return to exit....");
 

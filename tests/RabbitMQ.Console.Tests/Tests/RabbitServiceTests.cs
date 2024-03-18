@@ -5,7 +5,9 @@ namespace ConnectivityTests.Tests;
 
 public static class RabbitServiceTests
 {
-    public static async Task RunRabbitServiceTestAsync(ILoggerFactory loggerFactory, string configFileNamePath)
+    // This test is about testing outages in both the Consumer and Publisher
+    // with the shared ConnectionPool all stitched together by the helper RabbitService.
+    public static async Task RunRabbitServicePingPongTestAsync(ILoggerFactory loggerFactory, string configFileNamePath)
     {
         var rabbitService = await Shared.SetupRabbitServiceAsync(loggerFactory, configFileNamePath);
 
