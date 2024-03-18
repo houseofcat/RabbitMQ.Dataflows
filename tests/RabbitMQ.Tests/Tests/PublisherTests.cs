@@ -3,7 +3,6 @@ using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
 using Microsoft.Extensions.Logging;
 using System.Text;
-using System.Text.Json;
 
 namespace ConnectivityTests.Tests;
 

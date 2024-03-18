@@ -75,7 +75,7 @@ public class RabbitService : IRabbitService, IDisposable
         ICompressionProvider compressionProvider = null,
         ILoggerFactory loggerFactory = null, Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
         : this(
-              Utf8JsonFileReader
+              JsonFileReader
                 .ReadFileAsync<RabbitOptions>(fileNamePath)
                 .GetAwaiter()
                 .GetResult(),
