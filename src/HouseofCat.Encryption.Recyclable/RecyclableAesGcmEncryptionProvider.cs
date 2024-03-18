@@ -36,7 +36,7 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
         }
     }
 
-    public ArraySegment<byte> Encrypt(ReadOnlyMemory<byte> unencryptedData)
+    public ReadOnlyMemory<byte> Encrypt(ReadOnlyMemory<byte> unencryptedData)
     {
         Guard.AgainstEmpty(unencryptedData, nameof(unencryptedData));
 
@@ -177,10 +177,10 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
     {
         Guard.AgainstEmpty(unencryptedData, nameof(unencryptedData));
 
-        return RecyclableManager.GetStream(nameof(RecyclableAesGcmEncryptionProvider), Encrypt(unencryptedData));
+        return RecyclableManager.GetStream(nameof(RecyclableAesGcmEncryptionProvider), Encrypt(unencryptedData).Span);
     }
 
-    public ArraySegment<byte> Decrypt(ReadOnlyMemory<byte> encryptedData)
+    public ReadOnlyMemory<byte> Decrypt(ReadOnlyMemory<byte> encryptedData)
     {
         Guard.AgainstEmpty(encryptedData, nameof(encryptedData));
 
@@ -257,6 +257,6 @@ public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
     {
         Guard.AgainstEmpty(encryptedData, nameof(encryptedData));
 
-        return RecyclableManager.GetStream(nameof(RecyclableAesGcmEncryptionProvider), Decrypt(encryptedData));
+        return RecyclableManager.GetStream(nameof(RecyclableAesGcmEncryptionProvider), Decrypt(encryptedData).Span);
     }
 }

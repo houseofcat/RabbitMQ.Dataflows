@@ -12,12 +12,12 @@ public static class RabbitServiceTests
         var consumer = rabbitService.GetConsumer(Shared.ConsumerName);
         await consumer.StartConsumerAsync();
 
-        var myCustomObject = new { Name = "TestName", Age = 42 };
-        var myCustomObjectBytes = rabbitService.SerializationProvider.Serialize(myCustomObject);
+        var dataAsBytes = rabbitService.SerializationProvider.Serialize(new { Name = "TestName", Age = 42 });
         var letter = new Letter(
-            Shared.ExchangeName,
-            Shared.RoutingKey,
-            myCustomObjectBytes);
+            exchange: Shared.ExchangeName,
+            routingKey: Shared.RoutingKey,
+            data: dataAsBytes,
+            id: Guid.NewGuid().ToString());
 
         await rabbitService.Publisher.QueueMessageAsync(letter);
 

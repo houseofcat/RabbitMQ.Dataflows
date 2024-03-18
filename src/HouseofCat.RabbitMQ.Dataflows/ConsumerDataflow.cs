@@ -640,7 +640,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     }
 
     public TransformBlock<TState, TState> GetByteManipulationTransformBlock(
-        Func<ReadOnlyMemory<byte>, ArraySegment<byte>> action,
+        Func<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>> action,
         ExecutionDataflowBlockOptions options,
         bool outbound,
         Predicate<TState> predicate,

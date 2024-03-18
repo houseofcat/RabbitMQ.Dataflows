@@ -34,7 +34,7 @@ public class AesGcmEncryptionProvider : IEncryptionProvider
         }
     }
 
-    public ArraySegment<byte> Encrypt(ReadOnlyMemory<byte> unencryptedData)
+    public ReadOnlyMemory<byte> Encrypt(ReadOnlyMemory<byte> unencryptedData)
     {
         Guard.AgainstEmpty(unencryptedData, nameof(unencryptedData));
 
@@ -200,7 +200,7 @@ public class AesGcmEncryptionProvider : IEncryptionProvider
         return new MemoryStream(encryptedData);
     }
 
-    public ArraySegment<byte> Decrypt(ReadOnlyMemory<byte> encryptedData)
+    public ReadOnlyMemory<byte> Decrypt(ReadOnlyMemory<byte> encryptedData)
     {
         Guard.AgainstEmpty(encryptedData, nameof(encryptedData));
 

@@ -345,7 +345,7 @@ public class RabbitService : IRabbitService, IDisposable
         var metadata = message.GetMetadata();
         if (!metadata.Encrypted)
         {
-            message.Body = EncryptionProvider.Encrypt(message.Body).Array;
+            message.Body = EncryptionProvider.Encrypt(message.Body);
             metadata.Encrypted = true;
             metadata.CustomFields[Constants.HeaderForEncrypted] = true;
             metadata.CustomFields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
@@ -363,7 +363,7 @@ public class RabbitService : IRabbitService, IDisposable
         var metadata = message.GetMetadata();
         if (metadata.Encrypted)
         {
-            message.Body = EncryptionProvider.Decrypt(message.Body).Array;
+            message.Body = EncryptionProvider.Decrypt(message.Body);
             metadata.Encrypted = false;
             metadata.CustomFields[Constants.HeaderForEncrypted] = false;
 

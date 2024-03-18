@@ -43,7 +43,7 @@ public class BouncyAesGcmEncryptionProvider : IEncryptionProvider
         }
     }
 
-    public ArraySegment<byte> Encrypt(ReadOnlyMemory<byte> unencryptedData)
+    public ReadOnlyMemory<byte> Encrypt(ReadOnlyMemory<byte> unencryptedData)
     {
         Guard.AgainstEmpty(unencryptedData, nameof(unencryptedData));
         return EncryptToStream(unencryptedData).ToArray();
@@ -152,7 +152,7 @@ public class BouncyAesGcmEncryptionProvider : IEncryptionProvider
         return encryptedStream;
     }
 
-    public ArraySegment<byte> Decrypt(ReadOnlyMemory<byte> encryptedData)
+    public ReadOnlyMemory<byte> Decrypt(ReadOnlyMemory<byte> encryptedData)
     {
         Guard.AgainstEmpty(encryptedData, nameof(encryptedData));
 

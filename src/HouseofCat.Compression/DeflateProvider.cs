@@ -12,7 +12,7 @@ public class DeflateProvider : ICompressionProvider
     public string Type { get; } = "DEFLATE";
     public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
 
-    public ArraySegment<byte> Compress(ReadOnlyMemory<byte> inputData)
+    public ReadOnlyMemory<byte> Compress(ReadOnlyMemory<byte> inputData)
     {
         Guard.AgainstEmpty(inputData, nameof(inputData));
 
@@ -28,7 +28,7 @@ public class DeflateProvider : ICompressionProvider
         { return compressedStream.ToArray(); }
     }
 
-    public async ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> inputData)
+    public async ValueTask<ReadOnlyMemory<byte>> CompressAsync(ReadOnlyMemory<byte> inputData)
     {
         Guard.AgainstEmpty(inputData, nameof(inputData));
 
@@ -140,7 +140,7 @@ public class DeflateProvider : ICompressionProvider
         return compressedStream;
     }
 
-    public ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
+    public ReadOnlyMemory<byte> Decompress(ReadOnlyMemory<byte> compressedData)
     {
         Guard.AgainstEmpty(compressedData, nameof(compressedData));
 
@@ -156,7 +156,7 @@ public class DeflateProvider : ICompressionProvider
         { return uncompressedStream.ToArray(); }
     }
 
-    public async ValueTask<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
+    public async ValueTask<ReadOnlyMemory<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
     {
         Guard.AgainstEmpty(compressedData, nameof(compressedData));
 

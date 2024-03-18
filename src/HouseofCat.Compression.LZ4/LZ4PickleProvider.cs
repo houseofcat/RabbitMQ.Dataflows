@@ -17,14 +17,14 @@ public class LZ4PickleProvider : ICompressionProvider
         _level = level ?? LZ4Level.L00_FAST;
     }
 
-    public ArraySegment<byte> Compress(ReadOnlyMemory<byte> inputData)
+    public ReadOnlyMemory<byte> Compress(ReadOnlyMemory<byte> inputData)
     {
         Guard.AgainstEmpty(inputData, nameof(inputData));
 
         return LZ4Pickler.Pickle(inputData.Span, _level);
     }
 
-    public ValueTask<ArraySegment<byte>> CompressAsync(ReadOnlyMemory<byte> inputData)
+    public ValueTask<ReadOnlyMemory<byte>> CompressAsync(ReadOnlyMemory<byte> inputData)
     {
         throw new NotSupportedException();
     }
@@ -49,14 +49,14 @@ public class LZ4PickleProvider : ICompressionProvider
         throw new NotSupportedException();
     }
 
-    public ArraySegment<byte> Decompress(ReadOnlyMemory<byte> compressedData)
+    public ReadOnlyMemory<byte> Decompress(ReadOnlyMemory<byte> compressedData)
     {
         Guard.AgainstEmpty(compressedData, nameof(compressedData));
 
         return LZ4Pickler.Unpickle(compressedData.Span);
     }
 
-    public ValueTask<ArraySegment<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
+    public ValueTask<ReadOnlyMemory<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
     {
         throw new NotSupportedException();
     }

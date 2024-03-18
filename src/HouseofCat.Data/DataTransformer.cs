@@ -135,7 +135,7 @@ public class DataTransformer
             .ConfigureAwait(false);
     }
 
-    public ArraySegment<byte> Serialize<TIn>(TIn input)
+    public ReadOnlyMemory<byte> Serialize<TIn>(TIn input)
     {
         if (_encryptionProvider != null && _compressionProvider != null)
         {
@@ -153,7 +153,7 @@ public class DataTransformer
         return _serializationProvider.Serialize(input);
     }
 
-    public async Task<ArraySegment<byte>> SerializeAsync<TIn>(TIn input)
+    public async Task<ReadOnlyMemory<byte>> SerializeAsync<TIn>(TIn input)
     {
         if (_encryptionProvider != null && _compressionProvider != null)
         {
@@ -171,7 +171,7 @@ public class DataTransformer
         return _serializationProvider.Serialize(input);
     }
 
-    public async Task<ArraySegment<byte>> SerializeCompressEncryptAsync<TIn>(TIn input)
+    public async Task<ReadOnlyMemory<byte>> SerializeCompressEncryptAsync<TIn>(TIn input)
     {
         var memoryStream = new MemoryStream();
         await _serializationProvider
@@ -200,7 +200,7 @@ public class DataTransformer
         { return memoryStream.ToArray(); }
     }
 
-    public ArraySegment<byte> SerializeCompressEncrypt<TIn>(TIn input)
+    public ReadOnlyMemory<byte> SerializeCompressEncrypt<TIn>(TIn input)
     {
         return _encryptionProvider
             .Encrypt(_compressionProvider
@@ -208,7 +208,7 @@ public class DataTransformer
             .Serialize(input)));
     }
 
-    public async Task<ArraySegment<byte>> SerializeEncryptAsync<TIn>(TIn input)
+    public async Task<ReadOnlyMemory<byte>> SerializeEncryptAsync<TIn>(TIn input)
     {
         var memoryStream = new MemoryStream();
         await _serializationProvider
@@ -231,14 +231,14 @@ public class DataTransformer
         { return memoryStream.ToArray(); }
     }
 
-    public ArraySegment<byte> SerializeEncrypt<TIn>(TIn input)
+    public ReadOnlyMemory<byte> SerializeEncrypt<TIn>(TIn input)
     {
         return _encryptionProvider
             .Encrypt(_serializationProvider
             .Serialize(input));
     }
 
-    public async Task<ArraySegment<byte>> SerializeCompressAsync<TIn>(TIn input)
+    public async Task<ReadOnlyMemory<byte>> SerializeCompressAsync<TIn>(TIn input)
     {
         var memoryStream = new MemoryStream();
         await _serializationProvider.SerializeAsync(memoryStream, input);
@@ -259,7 +259,7 @@ public class DataTransformer
         { return memoryStream.ToArray(); }
     }
 
-    public ArraySegment<byte> SerializeCompress<TIn>(TIn input)
+    public ReadOnlyMemory<byte> SerializeCompress<TIn>(TIn input)
     {
         return _compressionProvider
             .Compress(_serializationProvider
