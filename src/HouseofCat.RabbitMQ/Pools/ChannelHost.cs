@@ -1,7 +1,6 @@
 using HouseofCat.Logger;
 using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -125,7 +124,7 @@ public class ChannelHost : IChannelHost, IDisposable
                     _logger.LogInformation(_makeChannelNotNeeded, ChannelId, _connHost.ConnectionId);
                     return true;
                 }
-                    
+
                 _channel.FlowControl -= FlowControl;
                 _channel.ModelShutdown -= ChannelClose;
                 Close();
