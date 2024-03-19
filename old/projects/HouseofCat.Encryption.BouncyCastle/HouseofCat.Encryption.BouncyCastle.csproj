@@ -1,9 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="..\..\common.props" />
-	<ItemGroup>
-		<PackageReference Include="BouncyCastle.NetCore" Version="2.2.1" />
-	</ItemGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\HouseofCat.Encryption.Providers\HouseofCat.Encryption.csproj" />
-	</ItemGroup>
-</Project>

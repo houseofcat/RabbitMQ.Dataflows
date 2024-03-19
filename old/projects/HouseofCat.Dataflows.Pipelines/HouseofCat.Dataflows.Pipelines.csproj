@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="..\..\common.props" />
-	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
-	</ItemGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
-	</ItemGroup>
-</Project>
