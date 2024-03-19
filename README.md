@@ -8,28 +8,27 @@ Prototypes you could send to production!
 
 `Dataflows` have configurable concurrency, serialization, monitoring, compression, and encryption all as first class citizens. This paradigm allows developers to just focus on the important stuff - getting work done. Dataflows pay attention to the extra dimensions so you don't have to!
 
-Here are some features ready with RabbitMQ today, tomorrow - the world!
+Here are some features ready with RabbitMQ today!
 
 ### Queueing
 * Async Processing    
 * Retriability  
 * Chaos Engineering  
-* Connection/Channel Durability provided by `HouseofCat.RabbitMQ` formerly `CookedRabbit.Core`.  
+* RabbitMQ ConnectionPool and ChannelPool (connection durability) provided by `namespace HouseofCat.RabbitMQ.Pools;`.  
 
 ### Built-Ins
 * Supports `ILogger<T>`  
-* Concurrency/Parallelism - baked in from the ground up.  
+* Fully configurable concurrency/parallelism - baked in from the ground up.  
 * Contracted `WorkState`/WorkObject simplifies development and integration.  
-* Has `Json` (2 flavors) and `MessagePack` serialization providers.
-* Allow transparent encryption/decryption steps.  
-* Allow compression/decompression steps to reduce trip time over the wire.  
+* Has `Json` (System.Text.Json and Newtonsoft) and `MessagePack` serialization providers.
+* Allow seamless encryption/decryption steps.  
+* Allow seamless compression/decompression steps.  
 * Async Error Handling with Predicate triggers and an actionable callback.  
 
-### Interchangeability
-* Allows you to replace serialization provider with `HouseofCat` Provider wrappers.  
-* Allows you to replace encryption provider with `HouseofCat` Provider wrappers.  
-* Allows you to replace compression provider with `HouseofCat` Provider wrappers.   
-* Constructed to fully support Inversion of Control.  
+### Core Interchangeability
+* Allows you to replace serialization provider with `ISerializationProvider` and have basic implementations.  
+* Allows you to replace encryption provider with `IEncryptionProvider` and have basic implementations.  
+* Allows you to replace compression provider with `ICompressionProvider` and have basic implementations.   
 
 ### Business Logic
 * All steps process in the order provided allowing you to still control order of execution.  
@@ -57,9 +56,9 @@ Test Server: `Windows 11`
 RabbitMQ Server: `v3.13`  
 Erlang: `v26.2.3`  
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9dbb20a30ada48caae4b92a83628f45e)](https://app.codacy.com/gh/houseofcat/RabbitDataflows/dashboard)  
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9dbb20a30ada48caae4b92a83628f45e)](https://app.codacy.com/gh/houseofcat/RabbitMQ.Dataflows/dashboard)  
 
-[![build](https://github.com/houseofcat/HouseofCat.Library/workflows/build/badge.svg)](https://github.com/houseofcat/RabbitDataflows/actions/workflows/build.yml)
+[![build](https://github.com/houseofcat/RabbitMQ.Dataflows/workflows/build/badge.svg)](https://github.com/houseofcat/RabbitMQ.Dataflows/actions/workflows/build.yml)
 
 [![Gitter](https://badges.gitter.im/HoC-Tesseract/community.svg)](https://gitter.im/HoC-Tesseract/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
