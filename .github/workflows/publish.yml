@@ -42,30 +42,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Compression/HouseofCat.Compression.csproj
 
-    - name: Publish HouseofCat.Compression.LZ4
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Compression.LZ4/HouseofCat.Compression.LZ4.csproj
-
-    - name: Publish HouseofCat.Compression.Recyclable
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Compression.Recyclable/HouseofCat.Compression.Recyclable.csproj
-
-    - name: Publish HouseofCat.Dapper
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Dapper/HouseofCat.Dapper.csproj
-
     - name: Publish HouseofCat.Data
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -73,22 +49,6 @@ jobs:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Data/HouseofCat.Data.csproj
-
-    - name: Publish HouseofCat.Data.Database
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Data.Database/HouseofCat.Data.Database.csproj
-
-    - name: Publish HouseofCat.Data.Recyclable
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Data.Recyclable/HouseofCat.Data.Recyclable.csproj
 
     - name: Publish HouseofCat.Dataflows
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -98,37 +58,13 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Dataflows/HouseofCat.Dataflows.csproj
 
-    - name: Publish HouseofCat.Dataflows.Pipelines
+    - name: Publish HouseofCat.Encryption
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Dataflows.Pipelines/HouseofCat.Dataflows.Pipelines.csproj
-
-    - name: Publish HouseofCat.Encryption.BouncyCastle
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Encryption.BouncyCastle/HouseofCat.Encryption.BouncyCastle.csproj
-
-    - name: Publish HouseofCat.Encryption.Recyclable
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Encryption.Recyclable/HouseofCat.Encryption.Recyclable.csproj
-
-    - name: Publish HouseofCat.Encryption.Providers
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Encryption.Providers/HouseofCat.Encryption.Providers.csproj
+          PROJECT_FILE_PATH: src/HouseofCat.Encryption/HouseofCat.Encryption.Providers.csproj
 
     - name: Publish HouseofCat.Extensions
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -146,22 +82,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Hashing/HouseofCat.Hashing.csproj
 
-    - name: Publish HouseofCat.Hashing.Argon
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Hashing.Argon/HouseofCat.Hashing.Argon.csproj
-
-    - name: Publish HouseofCat.Logger
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Logger/HouseofCat.Logger.csproj
-
     - name: Publish HouseofCat.Metrics
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -169,14 +89,6 @@ jobs:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Metrics/HouseofCat.Metrics.csproj
-
-    - name: Publish HouseofCat.Metrics.Prometheus
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Metrics.Prometheus/HouseofCat.Metrics.Prometheus.csproj
 
     - name: Publish HouseofCat.RabbitMQ
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -186,46 +98,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ/HouseofCat.RabbitMQ.csproj
 
-    - name: Publish HouseofCat.RabbitMQ.Dataflows
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Dataflows/HouseofCat.RabbitMQ.Dataflows.csproj
-
-    - name: Publish HouseofCat.RabbitMQ.Pipelines
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Pipelines/HouseofCat.RabbitMQ.Pipelines.csproj
-
-    - name: Publish HouseofCat.RabbitMQ.Services
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.Services/HouseofCat.RabbitMQ.Services.csproj
-
-    - name: Publish HouseofCat.RabbitMQ.WorkState
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ.WorkState/HouseofCat.RabbitMQ.WorkState.csproj
-
-    - name: Publish HouseofCat.Recyclable
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Recyclable/HouseofCat.Recyclable.csproj
-
     - name: Publish HouseofCat.Serialization
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -234,22 +106,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Serialization/HouseofCat.Serialization.csproj
 
-    - name: Publish HouseofCat.Serialization.Json.Newtonsoft
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Serialization.Json.Newtonsoft/HouseofCat.Serialization.Json.Newtonsoft.csproj
-
-    - name: Publish HouseofCat.Serialization.MessagePack
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Serialization.MessagePack/HouseofCat.Serialization.MessagePack.csproj
-
     - name: Publish HouseofCat.Utilities
       uses: brandedoutcast/publish-nuget@v2.5.2
       continue-on-error: true
@@ -257,4 +113,3 @@ jobs:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Utilities/HouseofCat.Utilities.csproj
-
