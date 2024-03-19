@@ -1,8 +1,6 @@
 # RabbitDataflows
 
-![TesseractLogo](https://raw.githubusercontent.com/houseofcat/RabbitDataflows/main/TesseractLogo.svg)
-
-A library of `NetCore` tools to help rapidly develop well performant micro/macroservices. 
+A library of `.NET` tools to help rapidly develop well performant micro/macroservices. 
 
 Prototypes you could send to production!  
 
