@@ -186,6 +186,19 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             Consumers.StartingConsumer,
             ConsumerOptions.ConsumerName);
 
+        var healthy = await _chanHost.ChannelHealthyAsync();
+        if (!healthy)
+        {
+            try
+            {
+                await _chanHost.WaitUntilChannelIsReadyAsync(
+                    Options.PoolOptions.SleepOnErrorInterval,
+                    _cts.Token);
+            }
+            catch (OperationCanceledException)
+            { return false; }
+        }
+
         if (Options.FactoryOptions.EnableDispatchConsumersAsync)
         {
             if (_asyncConsumer != null) // Cleanup operation, this prevents an EventHandler leak.
@@ -202,8 +215,6 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             catch (Exception ex)
             {
                 _logger.LogError(ex, Consumers.StartingConsumerError);
-                await Task.Delay(1000).ConfigureAwait(false);
-                await _chanHost.BuildRabbitMQChannelAsync().ConfigureAwait(false);
                 return false;
             }
         }
@@ -223,8 +234,6 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             catch (Exception ex)
             {
                 _logger.LogError(ex, Consumers.StartingConsumerError);
-                await Task.Delay(1000).ConfigureAwait(false);
-                await _chanHost.BuildRabbitMQChannelAsync().ConfigureAwait(false);
                 return false;
             }
         }
@@ -272,15 +281,13 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             ConsumerOptions.ConsumerName,
             bdea.DeliveryTag);
 
-        await HandleMessage(bdea).ConfigureAwait(false);
+        await HandleMessageAsync(bdea).ConfigureAwait(false);
     }
 
     private async void ConsumerShutdown(object sender, ShutdownEventArgs e)
     {
         if (await _conLock.WaitAsync(0))
         {
-            _shutdownAutoRecoveryLoopCount = 0;
-
             try
             {
                 if (!_shutdown)
@@ -316,10 +323,10 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             ConsumerOptions.ConsumerName,
             bdea.DeliveryTag);
 
-        await HandleMessage(bdea).ConfigureAwait(false);
+        await HandleMessageAsync(bdea).ConfigureAwait(false);
     }
 
-    protected async ValueTask<bool> HandleMessage(BasicDeliverEventArgs bdea)
+    protected virtual async ValueTask<bool> HandleMessageAsync(BasicDeliverEventArgs bdea)
     {
         if (!await _consumerChannel.Writer.WaitToWriteAsync().ConfigureAwait(false)) return false;
 
@@ -345,8 +352,6 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     {
         if (await _conLock.WaitAsync(0))
         {
-            _shutdownAutoRecoveryLoopCount = 0;
-
             try
             {
                 if (!_shutdown)
@@ -368,8 +373,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         }
     }
 
-    protected static readonly int _maxAutoRecoveryChannelHealthChecks = 10;
-    protected int _shutdownAutoRecoveryLoopCount = 0;
+    private static readonly string _consumerShutdownExceptionMessage = "Consumer's ChannelHost {0} had an unhandled exception during recovery.";
 
     /// <summary>
     /// This method used to rebuild channels/connections for Consumers. Due to recent
@@ -383,9 +387,18 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     /// <returns></returns>
     protected virtual async Task HandleRecoverableShutdownAsync(ShutdownEventArgs e)
     {
-        await _chanHost
-            .WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval, _cts.Token)
-            .ConfigureAwait(false);
+        try
+        {
+            await _chanHost
+                .WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval, _cts.Token)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        { return; }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, _consumerShutdownExceptionMessage);
+        }
 
         _logger.LogInformation(
             Consumers.ConsumerShutdownEventFinished,

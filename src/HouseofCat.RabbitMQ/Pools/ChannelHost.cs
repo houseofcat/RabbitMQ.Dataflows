@@ -80,8 +80,7 @@ public class ChannelHost : IChannelHost, IDisposable
             _logger.LogInformation(_sleepingUntilConnectionHealthy, ChannelId, _connHost.ConnectionId);
             while (!token.IsCancellationRequested && !connectionHealthy)
             {
-                try { await Task.Delay(sleepInterval, token).ConfigureAwait(false); }
-                catch { /* SWALLOW */ }
+                await Task.Delay(sleepInterval, token).ConfigureAwait(false);
 
                 connectionHealthy = await _connHost.HealthyAsync();
             }
@@ -93,8 +92,7 @@ public class ChannelHost : IChannelHost, IDisposable
             success = await BuildRabbitMQChannelAsync(sleepInterval, token).ConfigureAwait(false);
             if (!success)
             {
-                try { await Task.Delay(sleepInterval, token).ConfigureAwait(false); }
-                catch { /* SWALLOW */ }
+                await Task.Delay(sleepInterval, token).ConfigureAwait(false);
             }
         }
     }
@@ -128,6 +126,7 @@ public class ChannelHost : IChannelHost, IDisposable
                 if (!healthy)
                 {
                     await Task.Delay(autoRecoveryDelay, token);
+
                     healthy = await ChannelHealthyAsync().ConfigureAwait(false);
                 }
 

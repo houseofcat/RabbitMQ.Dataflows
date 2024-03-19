@@ -24,7 +24,7 @@ public interface IChannelPool
     /// <para><em>Note: During an outage event, you will pause here until a viable channel can be acquired.</em></para>
     /// </summary>
     /// <returns><see cref="IChannelHost"/></returns>
-    ValueTask<IChannelHost> GetAckChannelAsync();
+    Task<IChannelHost> GetAckChannelAsync();
 
     /// <summary>
     /// This pulls a <see cref="IChannelHost"/> out of the <see cref="IChannelPool"/> for usage.
@@ -34,7 +34,7 @@ public interface IChannelPool
     /// <para><em>Note: During an outage event, you will pause here until a viable channel can be acquired.</em></para>
     /// </summary>
     /// <returns><see cref="IChannelHost"/></returns>
-    ValueTask<IChannelHost> GetChannelAsync();
+    Task<IChannelHost> GetChannelAsync();
 
     /// <summary>
     /// <para>Gives user a transient <see cref="IChannelHost"/> is simply a channel not managed by this library.</para>
@@ -42,7 +42,7 @@ public interface IChannelPool
     /// </summary>
     /// <param name="ackable"></param>
     /// <returns><see cref="IChannelHost"/></returns>
-    ValueTask<IChannelHost> GetTransientChannelAsync(bool ackable);
+    Task<IChannelHost> GetTransientChannelAsync(bool ackable);
 
     ValueTask ReturnChannelAsync(IChannelHost chanHost, bool flagChannel = false);
     Task ShutdownAsync();
@@ -60,7 +60,6 @@ public class ChannelPool : IChannelPool, IDisposable
 
     public RabbitOptions Options { get; }
 
-    // A 0 indicates TransientChannels.
     public ulong CurrentChannelId { get; private set; } = 1;
     public bool Shutdown { get; private set; }
 
@@ -130,7 +129,7 @@ public class ChannelPool : IChannelPool, IDisposable
     /// </summary>
     /// <returns><see cref="IChannelHost"/></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public async ValueTask<IChannelHost> GetChannelAsync()
+    public async Task<IChannelHost> GetChannelAsync()
     {
         if (Shutdown) throw new InvalidOperationException(ExceptionMessages.ChannelPoolValidationMessage);
 
@@ -164,7 +163,10 @@ public class ChannelPool : IChannelPool, IDisposable
         {
             _logger.LogWarning(LogMessages.ChannelPools.ChannelHasIssues, chanHost.ChannelId);
 
-            await chanHost.WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval, _cts.Token);
+            try
+            { await chanHost.WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval, _cts.Token); }
+            catch (OperationCanceledException)
+            { return null; }
         }
         else if (healthy && chanHost.FlowControlled)
         {
@@ -192,7 +194,7 @@ public class ChannelPool : IChannelPool, IDisposable
     /// </summary>
     /// <returns><see cref="IChannelHost"/></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public async ValueTask<IChannelHost> GetAckChannelAsync()
+    public async Task<IChannelHost> GetAckChannelAsync()
     {
         if (Shutdown) throw new InvalidOperationException(ExceptionMessages.ChannelPoolValidationMessage);
 
@@ -257,7 +259,7 @@ public class ChannelPool : IChannelPool, IDisposable
     /// <param name="ackable"></param>
     /// <returns><see cref="IChannelHost"/></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public async ValueTask<IChannelHost> GetTransientChannelAsync(bool ackable) => await CreateChannelAsync(GetNextTransientChannelId(), ackable).ConfigureAwait(false);
+    public async Task<IChannelHost> GetTransientChannelAsync(bool ackable) => await CreateChannelAsync(GetNextTransientChannelId(), ackable).ConfigureAwait(false);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private async Task<IChannelHost> CreateChannelAsync(ulong channelId, bool ackable)
