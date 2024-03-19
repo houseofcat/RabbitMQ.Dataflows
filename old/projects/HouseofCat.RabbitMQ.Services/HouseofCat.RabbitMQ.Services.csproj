@@ -5,8 +5,6 @@
 		<ProjectReference Include="..\HouseofCat.Dataflows\HouseofCat.Dataflows.csproj" />
 		<ProjectReference Include="..\HouseofCat.Encryption.Providers\HouseofCat.Encryption.csproj" />
 		<ProjectReference Include="..\HouseofCat.Hashing\HouseofCat.Hashing.csproj" />
-		<ProjectReference Include="..\HouseofCat.RabbitMQ.Pipelines\HouseofCat.RabbitMQ.Pipelines.csproj" />
-		<ProjectReference Include="..\HouseofCat.RabbitMQ.WorkState\HouseofCat.RabbitMQ.WorkState.csproj" />
 		<ProjectReference Include="..\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
 		<ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />
 		<ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />

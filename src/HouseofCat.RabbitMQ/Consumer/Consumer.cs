@@ -1,5 +1,5 @@
 using HouseofCat.Dataflows;
-using HouseofCat.Logger;
+using HouseofCat.Utilities;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Logging;

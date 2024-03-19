@@ -1,6 +1,6 @@
 using HouseofCat.Compression;
 using HouseofCat.Encryption;
-using HouseofCat.Logger;
+using HouseofCat.Utilities;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;

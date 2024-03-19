@@ -26,6 +26,12 @@ public static class RabbitServiceTests
         // Ping pong the same message.
         await foreach (var receivedData in consumer.StreamUntilConsumerStopAsync())
         {
+            if (receivedData?.Letter is null)
+            {
+                receivedData?.AckMessage();
+                continue;
+            }
+
             await rabbitService.DecomcryptAsync(receivedData.Letter);
             await rabbitService.Publisher.QueueMessageAsync(receivedData.Letter);
             receivedData.AckMessage();

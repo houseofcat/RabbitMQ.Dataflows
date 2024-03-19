@@ -1,8 +1,7 @@
-using HouseofCat.Compression;
 using HouseofCat.Compression.Recyclable;
 using HouseofCat.Data;
 using HouseofCat.Encryption;
-using HouseofCat.Hashing.Argon;
+using HouseofCat.Hashing;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Time;
 
@@ -30,7 +29,7 @@ public class RecyclableTransformTests
 
         MyClass.ByteData = _data;
 
-        var hashingProvider = new Argon2ID_HashingProvider();
+        var hashingProvider = new ArgonHashingProvider();
         var hashKey = hashingProvider.GetHashKey(Passphrase, Salt, 32);
 
         _middleware = new RecyclableTransformer(

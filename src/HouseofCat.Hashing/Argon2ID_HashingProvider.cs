@@ -3,9 +3,9 @@ using Konscious.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Hashing.Argon;
+namespace HouseofCat.Hashing;
 
-public sealed class Argon2ID_HashingProvider : IHashingProvider
+public sealed class ArgonHashingProvider : IHashingProvider
 {
     private readonly int _degreesofParallelism;
     private readonly int _memorySize;
@@ -13,7 +13,7 @@ public sealed class Argon2ID_HashingProvider : IHashingProvider
 
     public string Type { get; } = "ARGON2ID";
 
-    public Argon2ID_HashingProvider(ArgonHashOptions options = null)
+    public ArgonHashingProvider(ArgonHashOptions options = null)
     {
         _degreesofParallelism = options?.DoP ?? Constants.Argon.DoP;
         _memorySize = options?.MemorySize ?? Constants.Argon.MemorySize;

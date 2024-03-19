@@ -1,4 +1,4 @@
-﻿using HouseofCat.Logger;
+﻿using HouseofCat.Utilities;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -353,6 +353,8 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
 
         _cts?.Cancel();
 
+        await _healthCheckTask;
+
         return false;
     }
 
@@ -393,7 +395,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
         {
             try
             { await Task.Delay(_healthCheckInterval, _cts.Token).ConfigureAwait(false); }
-            catch { /* SWALLOW */ }
+            catch { return; }
 
             var ex = GetAnyPipelineStepsFault();
             if (ex != null)

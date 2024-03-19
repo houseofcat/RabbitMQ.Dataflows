@@ -1,6 +1,5 @@
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
-using HouseofCat.Hashing.Argon;
 using System.Text;
 using Xunit.Abstractions;
 
@@ -17,7 +16,7 @@ public class RecyclableEncryptionTests
     public RecyclableEncryptionTests(ITestOutputHelper output)
     {
         _output = output;
-        _hashingProvider = new Argon2ID_HashingProvider();
+        _hashingProvider = new ArgonHashingProvider();
     }
 
     [Fact]

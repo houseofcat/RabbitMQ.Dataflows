@@ -3,11 +3,8 @@
 	<ItemGroup>
     <PackageReference Include="BouncyCastle.NetCore" Version="2.2.1" />
 		<PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.2" />
-		<PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
-		<PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\HouseofCat.Recyclable\HouseofCat.Recyclable.csproj" />
 		<ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
 	</ItemGroup>
 </Project>

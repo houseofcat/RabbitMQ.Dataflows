@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using HouseofCat.Logger;
+using HouseofCat.Utilities;
 using Microsoft.Extensions.Logging;
 
 namespace HouseofCat.Dataflows;

@@ -1,7 +1,7 @@
-﻿using HouseofCat.Utilities.Extensions;
-using HouseofCat.Recyclable;
+﻿using CommunityToolkit.HighPerformance;
+using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
-using CommunityToolkit.HighPerformance;
+using HouseofCat.Utilities.Extensions;
 using System;
 using System.Buffers;
 using System.IO;
@@ -222,10 +222,10 @@ public sealed class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
         if (bytesRead == 0) throw new InvalidDataException();
 
         bytesRead = encryptedStream.Read(tagBytes, 0, AesGcm.TagByteSizes.MaxSize);
-        if(bytesRead == 0) throw new InvalidDataException();
+        if (bytesRead == 0) throw new InvalidDataException();
 
         bytesRead = encryptedStream.Read(encryptedBufferBytes, 0, encryptedByteLength);
-        if(bytesRead == 0) throw new InvalidDataException();
+        if (bytesRead == 0) throw new InvalidDataException();
 
         // Slicing Version
         var nonce = nonceBytes

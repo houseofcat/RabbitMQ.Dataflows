@@ -1,4 +1,4 @@
-﻿using HouseofCat.Logger;
+﻿using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Logging;
 using System;

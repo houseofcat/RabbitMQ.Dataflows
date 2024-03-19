@@ -19,7 +19,7 @@ public interface IReceivedData
     bool Compressed { get; }
     string CompressionType { get; }
 
-    byte[] Data { get; set; }
+    ReadOnlyMemory<byte> Data { get; set; }
     string ConsumerTag { get; }
     ulong DeliveryTag { get; }
     Letter Letter { get; set; }
@@ -45,7 +45,7 @@ public class ReceivedData : IReceivedData, IDisposable
     public IModel Channel { get; set; }
     public string ConsumerTag { get; }
     public ulong DeliveryTag { get; }
-    public byte[] Data { get; set; }
+    public ReadOnlyMemory<byte> Data { get; set; }
     public Letter Letter { get; set; }
 
     // Headers
@@ -97,10 +97,10 @@ public class ReceivedData : IReceivedData, IDisposable
             ContentType = Encoding.UTF8.GetString((byte[])objectType);
 
             // ADD SERIALIZER TO HEADER AND && JSON THIS ONE
-            if (ContentType == Constants.HeaderValueForMessage && Data?.Length > 0)
+            if (ContentType == Constants.HeaderValueForMessage && Data.Length > 0)
             {
                 try
-                { Letter = JsonSerializer.Deserialize<Letter>(Data); }
+                { Letter = JsonSerializer.Deserialize<Letter>(Data.Span); }
                 catch
                 { FailedToDeserialize = true; }
             }

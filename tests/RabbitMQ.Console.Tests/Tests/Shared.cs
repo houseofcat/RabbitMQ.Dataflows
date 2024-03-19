@@ -1,8 +1,6 @@
-﻿using HouseofCat.Compression;
-using HouseofCat.Compression.Recyclable;
+﻿using HouseofCat.Compression.Recyclable;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
-using HouseofCat.Hashing.Argon;
 using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.RabbitMQ.Services;
@@ -61,7 +59,7 @@ public static class Shared
         var rabbitOptions = await RabbitExtensions.GetRabbitOptionsFromJsonFileAsync(configFileNamePath);
         var jsonProvider = new JsonProvider();
 
-        var hashProvider = new Argon2ID_HashingProvider();
+        var hashProvider = new ArgonHashingProvider();
         var aes256Key = hashProvider.GetHashKey(EncryptionPassword, EncryptionSalt, KeySize);
         var aes256Provider = new AesGcmEncryptionProvider(aes256Key);
 

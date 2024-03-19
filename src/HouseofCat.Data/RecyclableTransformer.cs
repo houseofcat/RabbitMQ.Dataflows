@@ -1,7 +1,7 @@
 ﻿using HouseofCat.Compression.Recyclable;
 using HouseofCat.Encryption;
-using HouseofCat.Recyclable;
 using HouseofCat.Serialization;
+using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
 using System;
 using System.IO;

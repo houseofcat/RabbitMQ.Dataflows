@@ -1,11 +1,11 @@
 using HouseofCat.Compression;
 using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.Encryption;
-using HouseofCat.Logger;
+using HouseofCat.RabbitMQ.Dataflows;
 using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.RabbitMQ.Pools;
-using HouseofCat.RabbitMQ.WorkState;
 using HouseofCat.Serialization;
+using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.File;
 using HouseofCat.Utilities.Time;
@@ -334,6 +334,8 @@ public class RabbitService : IRabbitService, IDisposable
 
     public async Task DecomcryptAsync(IMessage message)
     {
+        if (message is null) return;
+
         var decrypted = Decrypt(message);
 
         if (decrypted)
@@ -344,6 +346,8 @@ public class RabbitService : IRabbitService, IDisposable
 
     public async Task ComcryptAsync(IMessage message)
     {
+        if (message is null) return;
+
         await CompressAsync(message).ConfigureAwait(false);
 
         Encrypt(message);

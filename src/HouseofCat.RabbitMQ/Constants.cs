@@ -10,7 +10,7 @@ public static class Constants
 
     // Consumer
     public static string HeaderForObjectType { get; set; } = "X-RD-OBJECTTYPE";
-    public const string HeaderValueForMessage = "X-RD-IMESSAGE";
+    public static string HeaderValueForMessage { get; set; } = "IMESSAGE";
 
     public static string HeaderValueForUnknown { get; set; } = "UNKNOWN";
     public static string HeaderForEncrypted { get; set; } = "X-RD-ENCRYPTED";

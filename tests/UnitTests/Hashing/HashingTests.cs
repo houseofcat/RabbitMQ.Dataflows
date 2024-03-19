@@ -1,5 +1,4 @@
 using HouseofCat.Hashing;
-using HouseofCat.Hashing.Argon;
 
 namespace Hashing;
 
@@ -11,7 +10,7 @@ public class HashingTests
 
     public HashingTests()
     {
-        _provider = new Argon2ID_HashingProvider();
+        _provider = new ArgonHashingProvider();
     }
 
     [Fact]

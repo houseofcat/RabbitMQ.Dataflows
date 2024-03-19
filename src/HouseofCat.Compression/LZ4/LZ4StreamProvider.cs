@@ -35,10 +35,7 @@ public class LZ4StreamProvider : ICompressionProvider
             lz4Stream.Write(inputData.Span);
         }
 
-        if (compressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        { return compressedStream.ToArray(); }
+        return compressedStream.ToArray();
     }
 
     public async ValueTask<ReadOnlyMemory<byte>> CompressAsync(ReadOnlyMemory<byte> inputData)
@@ -53,10 +50,7 @@ public class LZ4StreamProvider : ICompressionProvider
                 .ConfigureAwait(false);
         }
 
-        if (compressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        { return compressedStream.ToArray(); }
+        return compressedStream.ToArray();
     }
 
     /// <summary>
@@ -163,10 +157,7 @@ public class LZ4StreamProvider : ICompressionProvider
             lz4Stream.CopyTo(uncompressedStream);
         }
 
-        if (uncompressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        { return uncompressedStream.ToArray(); }
+        return uncompressedStream.ToArray();
     }
 
     public async ValueTask<ReadOnlyMemory<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
@@ -181,10 +172,7 @@ public class LZ4StreamProvider : ICompressionProvider
                 .ConfigureAwait(false);
         }
 
-        if (uncompressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        { return uncompressedStream.ToArray(); }
+        return uncompressedStream.ToArray();
     }
 
     /// <summary>

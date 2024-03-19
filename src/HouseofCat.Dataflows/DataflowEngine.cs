@@ -1,4 +1,4 @@
-﻿using HouseofCat.Logger;
+﻿using HouseofCat.Utilities;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;

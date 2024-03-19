@@ -8,8 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\HouseofCat.Hashing\HouseofCat.Hashing.csproj" />
-    <ProjectReference Include="..\..\src\HouseofCat.Logger\HouseofCat.Logger.csproj" />
-    <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ.Services\HouseofCat.RabbitMQ.Services.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.RabbitMQ\HouseofCat.RabbitMQ.csproj" />
     <ProjectReference Include="..\..\src\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
   </ItemGroup>
