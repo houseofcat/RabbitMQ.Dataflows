@@ -70,15 +70,21 @@ public class ChannelHost : IChannelHost, IDisposable
         { _hostLock.Release(); }
     }
 
+    private static readonly string _sleepingUntilConnectionHealthy = "ChannelHost [Id: {0}] is sleeping until Connection [Id: {1}] is healthy...";
+
     public virtual async Task WaitUntilChannelIsReadyAsync(int sleepInterval, CancellationToken token = default)
     {
         var connectionHealthy = await _connHost.HealthyAsync();
-        while (!token.IsCancellationRequested && !connectionHealthy)
+        if (!connectionHealthy)
         {
-            try { await Task.Delay(sleepInterval, token).ConfigureAwait(false); }
-            catch { /* SWALLOW */ }
+            _logger.LogInformation(_sleepingUntilConnectionHealthy, ChannelId, _connHost.ConnectionId);
+            while (!token.IsCancellationRequested && !connectionHealthy)
+            {
+                try { await Task.Delay(sleepInterval, token).ConfigureAwait(false); }
+                catch { /* SWALLOW */ }
 
-            connectionHealthy = await _connHost.HealthyAsync();
+                connectionHealthy = await _connHost.HealthyAsync();
+            }
         }
 
         var success = false;
@@ -119,6 +125,12 @@ public class ChannelHost : IChannelHost, IDisposable
             {
                 // One last check to see if the channel auto-recovered.
                 var healthy = await ChannelHealthyAsync().ConfigureAwait(false);
+                if (!healthy)
+                {
+                    await Task.Delay(1000);
+                    healthy = await ChannelHealthyAsync().ConfigureAwait(false);
+                }
+
                 if (healthy)
                 {
                     _logger.LogInformation(_makeChannelNotNeeded, ChannelId, _connHost.ConnectionId);
@@ -181,16 +193,13 @@ public class ChannelHost : IChannelHost, IDisposable
     {
         var connectionHealthy = await _connHost.HealthyAsync().ConfigureAwait(false);
 
-        return connectionHealthy && !FlowControlled && (_channel?.IsOpen ?? false);
+        return connectionHealthy && (_channel?.IsOpen ?? false);
     }
 
     public async Task<bool> ConnectionHealthyAsync()
     {
         return await _connHost.HealthyAsync().ConfigureAwait(false);
     }
-
-    private const int CloseCode = 200;
-    private const string CloseMessage = "HouseofCat.RabbitMQ manual close channel initiated.";
 
     private string _consumerTag = null;
 
@@ -236,10 +245,19 @@ public class ChannelHost : IChannelHost, IDisposable
         }
     }
 
+    private static readonly string _closeChannel = "Closing ChannelHost [Id: {0}]...";
+    private const int CloseCode = 200;
+    private const string CloseMessage = "HouseofCat.RabbitMQ manual close Channelhost [Id: {0} - CN: {1}] initiated.";
+
     public void Close()
     {
         try
-        { _channel.Close(CloseCode, CloseMessage); }
+        {
+            _logger.LogInformation(_closeChannel, ChannelId);
+            _channel.Close(
+                CloseCode,
+                string.Format(CloseMessage, ChannelId, _channel.ChannelNumber));
+        }
         catch { /* SWALLOW */ }
     }
 

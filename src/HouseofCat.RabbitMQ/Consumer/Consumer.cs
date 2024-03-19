@@ -104,9 +104,6 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         Options = channelPool.Options;
         ChannelPool = channelPool;
         ConsumerOptions = consumerOptions;
-
-        if (Options.PoolOptions.MaxLastChannelHealthCheck < 1)
-        { Options.PoolOptions.MaxLastChannelHealthCheck = 1; }
     }
 
     public async Task StartConsumerAsync()
@@ -386,74 +383,14 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     /// <returns></returns>
     protected virtual async Task HandleRecoverableShutdownAsync(ShutdownEventArgs e)
     {
-        var healthy = false;
-        while (!_shutdown && !healthy)
-        {
-            _shutdownAutoRecoveryLoopCount++;
-
-            // With normal AutoRecovery enabled, the Channel will come back to life.
-            healthy = await _chanHost.ChannelHealthyAsync().ConfigureAwait(false);
-            if (healthy)
-            {
-                break;
-            }
-            // Periodically, we will check if the connection is healthy but the channel
-            // is still closed.
-            else if (_shutdownAutoRecoveryLoopCount > _maxAutoRecoveryChannelHealthChecks)
-            {
-                _shutdownAutoRecoveryLoopCount = 0;
-
-                await ReviewConnectionHealthAsync();
-                break;
-            }
-
-            await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
-        }
+        await _chanHost
+            .WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval, _cts.Token)
+            .ConfigureAwait(false);
 
         _logger.LogInformation(
             Consumers.ConsumerShutdownEventFinished,
             ConsumerOptions.ConsumerName,
             _chanHost.ChannelId);
-    }
-
-    protected virtual async Task ReviewConnectionHealthAsync()
-    {
-        var connectionHealthy = await _chanHost
-            .ConnectionHealthyAsync()
-            .ConfigureAwait(false);
-
-        // WE ONLY EVER REPLACE THE CHANNEL NOW IF THE CONNECTION IS HEALTHY BUT
-        // THE CHANNEL STILL IS NOT.
-        //
-        // If connection is not healthy, we do nothing.
-        if (!connectionHealthy) return;
-
-        // We give a brief sleep to allow the channel to recover one last time while
-        // the connection state has been confirmed healthy. If it has not recovered by now,
-        // we no longer wait. We will stop here until we rebuild RabbitMQ channel which for most
-        // use cases will be immediately.
-        var counter = 0;
-        var channelHealthy = false;
-        while (!channelHealthy && counter < Options.PoolOptions.MaxLastChannelHealthCheck)
-        {
-            await Task.Delay(Options.PoolOptions.SleepOnErrorInterval)
-                .ConfigureAwait(false);
-
-            channelHealthy = await _chanHost.ChannelHealthyAsync().ConfigureAwait(false);
-            counter++;
-        }
-
-        if (!channelHealthy)
-        {
-            _logger.LogWarning(
-                Consumers.ConsumerChannelReplacedEvent,
-                ConsumerOptions.ConsumerName);
-
-            // This is an inner infinite loop, until Channel is healthy/rebuilt.
-            await _chanHost
-                .WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval, _cts.Token)
-                .ConfigureAwait(false);
-        }
     }
 
     public ChannelReader<ReceivedData> GetConsumerBuffer() => _consumerChannel.Reader;
