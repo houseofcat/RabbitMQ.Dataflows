@@ -20,10 +20,10 @@ jobs:
         dotnet-version: '8.x.x'
 
     - name: Install dependencies
-      run: dotnet restore RabbitDataflows.sln
+      run: dotnet restore RabbitMQ.Dataflows.sln
 
     - name: Build
-      run: dotnet build RabbitDataflows.sln --configuration Release
+      run: dotnet build RabbitMQ.Dataflows.sln --configuration Release
 
     - name: Test
       run: dotnet test "./tests/UnitTests/UnitTests.csproj"
