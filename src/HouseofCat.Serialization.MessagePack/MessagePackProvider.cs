@@ -15,7 +15,7 @@ public class MessagePackProvider : ISerializationProvider
         _options = options;
     }
 
-    public byte[] Serialize<TIn>(TIn input)
+    public ReadOnlyMemory<byte> Serialize<TIn>(TIn input)
     {
         return MessagePackSerializer.Serialize(input, _options);
     }

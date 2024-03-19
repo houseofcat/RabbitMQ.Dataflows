@@ -50,7 +50,7 @@ public class Letter : IMessage
 
     public Letter() { }
 
-    public Letter(string exchange, string routingKey, byte[] data, LetterMetadata metadata = null, RoutingOptions routingOptions = null)
+    public Letter(string exchange, string routingKey, ReadOnlyMemory<byte> data, LetterMetadata metadata = null, RoutingOptions routingOptions = null)
     {
         Envelope = new Envelope
         {
@@ -62,7 +62,7 @@ public class Letter : IMessage
         LetterMetadata = metadata ?? new LetterMetadata();
     }
 
-    public Letter(string exchange, string routingKey, byte[] data, string id, RoutingOptions routingOptions = null)
+    public Letter(string exchange, string routingKey, ReadOnlyMemory<byte> data, string id, RoutingOptions routingOptions = null)
     {
         Envelope = new Envelope
         {
@@ -112,7 +112,7 @@ public class Letter : IMessage
     public IDictionary<string, object> GetHeadersOutOfMetadata() => LetterMetadata.GetHeadersOutOfMetadata();
 
     public byte[] GetBodyToPublish(ISerializationProvider serializationProvider) =>
-        serializationProvider.Serialize(this);
+        serializationProvider.Serialize(this).ToArray();
 
     public IPublishReceipt GetPublishReceipt(bool error) =>
         new PublishReceipt { MessageId = MessageId, IsError = error, OriginalLetter = error ? this : null };

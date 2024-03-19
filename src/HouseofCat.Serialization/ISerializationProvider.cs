@@ -10,7 +10,7 @@ public interface ISerializationProvider
     TOut Deserialize<TOut>(ReadOnlyMemory<byte> input);
     TOut Deserialize<TOut>(Stream inputStream);
     Task<TOut> DeserializeAsync<TOut>(Stream inputStream);
-    byte[] Serialize<TIn>(TIn input);
+    ReadOnlyMemory<byte> Serialize<TIn>(TIn input);
     void Serialize<TIn>(Stream outputStream, TIn input);
     Task SerializeAsync<TIn>(Stream outputStream, TIn input);
     string SerializeToPrettyString<TIn>(TIn input);

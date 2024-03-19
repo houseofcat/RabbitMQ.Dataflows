@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 
 namespace HouseofCat.Encryption.Providers;
 
-public class AesStreamEncryptionProvider : IStreamEncryptionProvider
+public sealed class AesStreamEncryptionProvider : IStreamEncryptionProvider
 {
     public string Type { get; }
 

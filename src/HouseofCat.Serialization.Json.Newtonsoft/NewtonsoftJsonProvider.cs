@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace HouseofCat.Serialization;
 
-public class NewtonsoftJsonProvider : ISerializationProvider
+public sealed class NewtonsoftJsonProvider : ISerializationProvider
 {
-    private JsonSerializer _jsonSerializer = new JsonSerializer();
+    private readonly JsonSerializer _jsonSerializer = new JsonSerializer();
 
     public TOut Deserialize<TOut>(ReadOnlyMemory<byte> input)
     {
@@ -55,7 +55,7 @@ public class NewtonsoftJsonProvider : ISerializationProvider
         return _jsonSerializer.Deserialize<TOut>(jsonReader);
     }
 
-    public byte[] Serialize<TIn>(TIn input)
+    public ReadOnlyMemory<byte> Serialize<TIn>(TIn input)
     {
         return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(input));
     }
@@ -77,7 +77,7 @@ public class NewtonsoftJsonProvider : ISerializationProvider
 
     public string SerializeToPrettyString<TIn>(TIn input)
     {
-        throw new NotImplementedException();
+        return JsonConvert.SerializeObject(input, Formatting.Indented);
     }
 
     public string SerializeToString<TIn>(TIn input)

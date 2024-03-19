@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace HouseofCat.Encryption.Providers;
 
-public class AesGcmEncryptionProvider : IEncryptionProvider
+public sealed class AesGcmEncryptionProvider : IEncryptionProvider
 {
     public string Type { get; private set; }
 

@@ -108,4 +108,9 @@ public static class MemoryStreamExtensions
 
         return (unencryptedBuffer, true);
     }
+
+    public static void ReturnBuffer(this MemoryStream _, ArraySegment<byte> buffer)
+    {
+        _pool.Return(buffer.Array);
+    }
 }

@@ -54,7 +54,7 @@ public class JsonProvider : ISerializationProvider
         return await JsonSerializer.DeserializeAsync<TOut>(inputStream, _options).ConfigureAwait(false);
     }
 
-    public byte[] Serialize<TIn>(TIn input)
+    public ReadOnlyMemory<byte> Serialize<TIn>(TIn input)
     {
         return JsonSerializer.SerializeToUtf8Bytes(input, _options);
     }
@@ -70,9 +70,14 @@ public class JsonProvider : ISerializationProvider
         await JsonSerializer.SerializeAsync(outputStream, input, _options).ConfigureAwait(false);
     }
 
+    private static readonly JsonSerializerOptions _prettyOptions = new JsonSerializerOptions
+    {
+        WriteIndented = true
+    };
+
     public string SerializeToPrettyString<TIn>(TIn input)
     {
-        return JsonSerializer.Serialize(input, new JsonSerializerOptions { WriteIndented = true });
+        return JsonSerializer.Serialize(input, _prettyOptions);
     }
 
     public string SerializeToString<TIn>(TIn input)

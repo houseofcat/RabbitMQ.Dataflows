@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace HouseofCat.Hashing.Argon;
 
-public class Argon2ID_HashingProvider : IHashingProvider
+public sealed class Argon2ID_HashingProvider : IHashingProvider
 {
     private readonly int _degreesofParallelism;
     private readonly int _memorySize;
@@ -30,7 +30,9 @@ public class Argon2ID_HashingProvider : IHashingProvider
     {
         Guard.AgainstNull(passphrase, nameof(passphrase));
 
-        using var argon2 = GetArgon2id(Encoding.UTF8.GetBytes(passphrase), Encoding.UTF8.GetBytes(salt ?? string.Empty));
+        using var argon2 = GetArgon2id(
+            Encoding.UTF8.GetBytes(passphrase),
+            Encoding.UTF8.GetBytes(salt ?? string.Empty));
 
         return argon2.GetBytes(size);
     }
@@ -45,7 +47,9 @@ public class Argon2ID_HashingProvider : IHashingProvider
     {
         Guard.AgainstNull(passphrase, nameof(passphrase));
 
-        using var argon2 = GetArgon2id(Encoding.UTF8.GetBytes(passphrase), Encoding.UTF8.GetBytes(salt ?? string.Empty));
+        using var argon2 = GetArgon2id(
+            Encoding.UTF8.GetBytes(passphrase),
+            Encoding.UTF8.GetBytes(salt ?? string.Empty));
 
         return await argon2.GetBytesAsync(size).ConfigureAwait(false);
     }

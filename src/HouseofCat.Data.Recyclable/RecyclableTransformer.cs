@@ -35,19 +35,15 @@ public class RecyclableTransformer
     /// <typeparam name="TIn"></typeparam>
     /// <param name="input"></param>
     /// <returns></returns>
-    public (ArraySegment<byte>, long) Transform<TIn>(TIn input)
+    public ReadOnlyMemory<byte> Transform<TIn>(TIn input)
     {
         using var serializedStream = RecyclableManager.GetStream(nameof(RecyclableTransformer));
         SerializationProvider.Serialize(serializedStream, input);
 
         using var compressedStream = CompressionProvider.Compress(serializedStream, false);
-        var encryptedStream = EncryptionProvider.Encrypt(compressedStream, false);
+        using var encryptedStream = EncryptionProvider.Encrypt(compressedStream, false);
 
-        var length = encryptedStream.Length;
-        if (encryptedStream.TryGetBuffer(out var buffer))
-        { return (buffer, length); }
-        else
-        { return (encryptedStream.ToArray(), length); }
+        return encryptedStream.ToArray();
     }
 
     /// <summary>
@@ -56,7 +52,7 @@ public class RecyclableTransformer
     /// <typeparam name="TIn"></typeparam>
     /// <param name="input"></param>
     /// <returns></returns>
-    public async Task<(ArraySegment<byte>, long)> TransformAsync<TIn>(TIn input)
+    public async Task<ReadOnlyMemory<byte>> TransformAsync<TIn>(TIn input)
     {
         using var serializedStream = RecyclableManager.GetStream(nameof(RecyclableTransformer));
         await SerializationProvider
@@ -67,15 +63,11 @@ public class RecyclableTransformer
             .CompressAsync(serializedStream, false)
             .ConfigureAwait(false);
 
-        var encryptedStream = await EncryptionProvider
+        using var encryptedStream = await EncryptionProvider
             .EncryptAsync(compressedStream, false)
             .ConfigureAwait(false);
 
-        var length = encryptedStream.Length;
-        if (encryptedStream.TryGetBuffer(out var buffer))
-        { return (buffer, length); }
-        else
-        { return (encryptedStream.ToArray(), length); }
+        return encryptedStream.ToArray();
     }
 
     public MemoryStream TransformToStream<TIn>(TIn input)

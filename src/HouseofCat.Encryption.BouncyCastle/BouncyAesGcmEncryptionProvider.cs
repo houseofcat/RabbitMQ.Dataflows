@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace HouseofCat.Encryption.Providers;
 
-public class BouncyAesGcmEncryptionProvider : IEncryptionProvider
+public sealed class BouncyAesGcmEncryptionProvider : IEncryptionProvider
 {
     public string Type { get; }
 

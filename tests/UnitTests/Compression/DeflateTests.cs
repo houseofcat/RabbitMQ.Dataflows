@@ -8,7 +8,7 @@ public class DeflateTests
     private readonly ITestOutputHelper _output;
     private readonly ICompressionProvider _provider;
 
-    private static byte[] _data = new byte[5000];
+    private static readonly byte[] _data = new byte[5000];
     private static byte[] _compressedData;
 
     public DeflateTests(ITestOutputHelper output)

@@ -5,15 +5,13 @@ namespace Compression.LZ4;
 
 public class LZ4PickleTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly ICompressionProvider _provider;
 
-    private static byte[] _data = new byte[5000];
+    private static readonly byte[] _data = new byte[5000];
     private static byte[] _compressedData;
 
-    public LZ4PickleTests(ITestOutputHelper output)
+    public LZ4PickleTests()
     {
-        _output = output;
         Enumerable.Repeat<byte>(0xFF, 1000).ToArray().CopyTo(_data, 0);
         Enumerable.Repeat<byte>(0xAA, 1000).ToArray().CopyTo(_data, 1000);
         Enumerable.Repeat<byte>(0x1A, 1000).ToArray().CopyTo(_data, 2000);

@@ -12,7 +12,7 @@ using HouseofCat.Encryption.Providers;
 
 namespace HouseofCat.Encryption.Recyclable;
 
-public class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
+public sealed class RecyclableAesGcmEncryptionProvider : IEncryptionProvider
 {
     public string Type { get; }
 

@@ -180,24 +180,19 @@ public class DataTransformer
 
         memoryStream.Seek(0, SeekOrigin.Begin);
 
-        memoryStream = await _compressionProvider
+        using var compressionStream = await _compressionProvider
             .CompressAsync(memoryStream)
             .ConfigureAwait(false);
 
-        memoryStream.Seek(0, SeekOrigin.Begin);
+        compressionStream.Seek(0, SeekOrigin.Begin);
 
-        memoryStream = await _encryptionProvider
-            .EncryptAsync(memoryStream)
+        var encryptionStream = await _encryptionProvider
+            .EncryptAsync(compressionStream)
             .ConfigureAwait(false);
 
-        memoryStream.Seek(0, SeekOrigin.Begin);
+        encryptionStream.Seek(0, SeekOrigin.Begin);
 
-        if (memoryStream.TryGetBuffer(out var buffer))
-        {
-            return buffer;
-        }
-        else
-        { return memoryStream.ToArray(); }
+        return encryptionStream.ToArray();
     }
 
     public ReadOnlyMemory<byte> SerializeCompressEncrypt<TIn>(TIn input)
@@ -210,25 +205,20 @@ public class DataTransformer
 
     public async Task<ReadOnlyMemory<byte>> SerializeEncryptAsync<TIn>(TIn input)
     {
-        var memoryStream = new MemoryStream();
+        using var memoryStream = new MemoryStream();
         await _serializationProvider
             .SerializeAsync(memoryStream, input)
             .ConfigureAwait(false);
 
         memoryStream.Seek(0, SeekOrigin.Begin);
 
-        memoryStream = await _encryptionProvider
-            .EncryptAsync(memoryStream)
+        using var compressionStream = await _encryptionProvider
+            .EncryptAsync(memoryStream, false)
             .ConfigureAwait(false);
 
-        memoryStream.Seek(0, SeekOrigin.Begin);
+        compressionStream.Seek(0, SeekOrigin.Begin);
 
-        if (memoryStream.TryGetBuffer(out var buffer))
-        {
-            return buffer;
-        }
-        else
-        { return memoryStream.ToArray(); }
+        return compressionStream.ToArray();
     }
 
     public ReadOnlyMemory<byte> SerializeEncrypt<TIn>(TIn input)
@@ -240,23 +230,18 @@ public class DataTransformer
 
     public async Task<ReadOnlyMemory<byte>> SerializeCompressAsync<TIn>(TIn input)
     {
-        var memoryStream = new MemoryStream();
+        using var memoryStream = new MemoryStream();
         await _serializationProvider.SerializeAsync(memoryStream, input);
 
         memoryStream.Seek(0, SeekOrigin.Begin);
 
-        memoryStream = await _compressionProvider
-            .CompressAsync(memoryStream)
+        using var compressionStream = await _compressionProvider
+            .CompressAsync(memoryStream, false)
             .ConfigureAwait(false);
 
-        memoryStream.Seek(0, SeekOrigin.Begin);
+        compressionStream.Seek(0, SeekOrigin.Begin);
 
-        if (memoryStream.TryGetBuffer(out var buffer))
-        {
-            return buffer;
-        }
-        else
-        { return memoryStream.ToArray(); }
+        return compressionStream.ToArray();
     }
 
     public ReadOnlyMemory<byte> SerializeCompress<TIn>(TIn input)
