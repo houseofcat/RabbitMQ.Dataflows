@@ -6,7 +6,7 @@
 		<PackageReference Include="Microsoft.Spatial" Version="7.20.0" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\HouseofCat.Data.Database\HouseofCat.Data.Database.csproj" />
+		<ProjectReference Include="..\HouseofCat.Data\HouseofCat.Data.csproj" />
 		<ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
 	</ItemGroup>
 </Project>

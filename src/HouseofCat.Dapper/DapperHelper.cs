@@ -21,7 +21,7 @@ public static class DapperHelper
     {
         var connection = DbConnectionFactory.GetConnection(connectionDetails);
 
-        if (queryPlan.Parameters?.Any() ?? false)
+        if (queryPlan.Parameters?.Count > 0)
         {
             var parameters = new DynamicParameters();
             foreach (var parameter in queryPlan.Parameters)
@@ -46,7 +46,7 @@ public static class DapperHelper
     {
         var connection = DbConnectionFactory.GetConnection(connectionDetails);
 
-        if (queryPlan.Parameters?.Any() ?? false)
+        if (queryPlan.Parameters?.Count > 0)
         {
             var parameters = new DynamicParameters();
             foreach (var parameter in queryPlan.Parameters)
@@ -71,7 +71,7 @@ public static class DapperHelper
 
     public static IDataReader GetDataReader(IDbConnection connection, QueryPlan queryPlan)
     {
-        if (queryPlan.Parameters?.Any() ?? false)
+        if (queryPlan.Parameters?.Count > 0)
         {
             var parameters = new DynamicParameters();
             foreach (var parameter in queryPlan.Parameters)
@@ -94,7 +94,7 @@ public static class DapperHelper
 
     public static async Task<IDataReader> GetDataReaderAsync(IDbConnection connection, QueryPlan queryPlan)
     {
-        if (queryPlan.Parameters?.Any() ?? false)
+        if (queryPlan.Parameters?.Count > 0)
         {
             var parameters = new DynamicParameters();
             foreach (var parameter in queryPlan.Parameters)
@@ -121,7 +121,7 @@ public static class DapperHelper
     {
         var connection = DbConnectionFactory.GetConnection(connectionDetails);
 
-        if (parameters?.Any() ?? false)
+        if (parameters?.Count > 0)
         {
             var dynamicParameters = new DynamicParameters();
             foreach (var parameter in parameters)
@@ -146,7 +146,7 @@ public static class DapperHelper
     {
         var connection = DbConnectionFactory.GetConnection(connectionDetails);
 
-        if (parameters?.Any() ?? false)
+        if (parameters?.Count > 0)
         {
             var dynamicParameters = new DynamicParameters();
             foreach (var parameter in parameters)
@@ -171,7 +171,7 @@ public static class DapperHelper
 
     public static IDataReader GetDataReader(IDbConnection connection, string sqlText, List<Parameter> parameters = null)
     {
-        if (parameters?.Any() ?? false)
+        if (parameters?.Count > 0)
         {
             var dynamicParameters = new DynamicParameters();
             foreach (var parameter in parameters)
@@ -194,7 +194,7 @@ public static class DapperHelper
 
     public static async Task<IDataReader> GetDataReaderAsync(IDbConnection connection, string sqlText, List<Parameter> parameters = null)
     {
-        if (parameters?.Any() ?? false)
+        if (parameters?.Count > 0)
         {
             var dynamicParameters = new DynamicParameters();
             foreach (var parameter in parameters)

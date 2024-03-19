@@ -1,5 +1,5 @@
 using HouseofCat.Compression;
-using Xunit.Abstractions;
+using HouseofCat.Compression.LZ4;
 
 namespace Compression.LZ4;
 

@@ -4,7 +4,7 @@ using System.Buffers;
 using System.IO;
 using System.Security.Cryptography;
 
-namespace HouseofCat.Encryption.Providers;
+namespace HouseofCat.Encryption;
 
 public sealed class AesStreamEncryptionProvider : IStreamEncryptionProvider
 {

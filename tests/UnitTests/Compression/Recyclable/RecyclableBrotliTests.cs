@@ -1,4 +1,5 @@
 using HouseofCat.Compression;
+using HouseofCat.Compression.Recyclable;
 
 namespace Compression.Recyclable;
 

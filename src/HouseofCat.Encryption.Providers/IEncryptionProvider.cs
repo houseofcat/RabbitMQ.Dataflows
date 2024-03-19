@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Encryption.Providers;
+namespace HouseofCat.Encryption;
 
 public interface IEncryptionProvider
 {

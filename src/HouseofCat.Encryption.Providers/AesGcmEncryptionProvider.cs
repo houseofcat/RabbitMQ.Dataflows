@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Encryption.Providers;
+namespace HouseofCat.Encryption;
 
 public sealed class AesGcmEncryptionProvider : IEncryptionProvider
 {

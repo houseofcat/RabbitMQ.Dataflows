@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.HighPerformance;
 using HouseofCat.Compression;
-using HouseofCat.Encryption.Providers;
+using HouseofCat.Encryption;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using System;

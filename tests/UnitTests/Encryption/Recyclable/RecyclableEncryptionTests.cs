@@ -1,4 +1,4 @@
-using HouseofCat.Encryption.Recyclable;
+using HouseofCat.Encryption;
 using HouseofCat.Hashing;
 using HouseofCat.Hashing.Argon;
 using System.Text;

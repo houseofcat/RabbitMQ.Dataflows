@@ -1,4 +1,5 @@
 using HouseofCat.Compression;
+using HouseofCat.Compression.LZ4;
 
 namespace Compression.LZ4;
 

@@ -4,6 +4,6 @@
 		<PackageReference Include="BouncyCastle.NetCore" Version="2.2.1" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\HouseofCat.Encryption.Providers\HouseofCat.Encryption.Providers.csproj" />
+		<ProjectReference Include="..\HouseofCat.Encryption.Providers\HouseofCat.Encryption.csproj" />
 	</ItemGroup>
 </Project>

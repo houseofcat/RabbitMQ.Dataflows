@@ -6,7 +6,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\HouseofCat.Compression\HouseofCat.Compression.csproj" />
-		<ProjectReference Include="..\HouseofCat.Encryption.Providers\HouseofCat.Encryption.Providers.csproj" />
+		<ProjectReference Include="..\HouseofCat.Encryption.Providers\HouseofCat.Encryption.csproj" />
 		<ProjectReference Include="..\HouseofCat.Logger\HouseofCat.Logger.csproj" />
 		<ProjectReference Include="..\HouseofCat.Metrics\HouseofCat.Metrics.csproj" />
 		<ProjectReference Include="..\HouseofCat.Serialization\HouseofCat.Serialization.csproj" />

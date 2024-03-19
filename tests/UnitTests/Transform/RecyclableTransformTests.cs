@@ -1,6 +1,7 @@
 using HouseofCat.Compression;
-using HouseofCat.Data.Recyclable;
-using HouseofCat.Encryption.Recyclable;
+using HouseofCat.Compression.Recyclable;
+using HouseofCat.Data;
+using HouseofCat.Encryption;
 using HouseofCat.Hashing.Argon;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Time;

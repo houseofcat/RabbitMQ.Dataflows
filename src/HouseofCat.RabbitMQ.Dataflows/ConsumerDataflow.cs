@@ -1,6 +1,6 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Dataflows;
-using HouseofCat.Encryption.Providers;
+using HouseofCat.Encryption;
 using HouseofCat.Metrics;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.RabbitMQ.WorkState;

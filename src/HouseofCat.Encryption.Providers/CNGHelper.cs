@@ -5,7 +5,7 @@ using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace HouseofCat.Encryption.Providers;
+namespace HouseofCat.Encryption;
 
 public static class CNGHelper
 {
