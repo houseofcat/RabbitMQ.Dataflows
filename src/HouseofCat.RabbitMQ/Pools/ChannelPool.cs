@@ -228,6 +228,19 @@ public class ChannelPool : IChannelPool, IDisposable
 
             await chanHost.WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval, _cts.Token);
         }
+        else if (healthy && chanHost.FlowControlled)
+        {
+            while (chanHost.FlowControlled)
+            {
+                try
+                {
+                    await Task
+                        .Delay(100, _cts.Token)
+                        .ConfigureAwait(false);
+                }
+                catch { /* SWALLOW */ }
+            }
+        }
 
         return chanHost;
     }

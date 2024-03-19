@@ -24,7 +24,7 @@ public interface IChannelHost
     Task StopConsumingAsync();
 
     Task WaitUntilChannelIsReadyAsync(int sleepInterval, CancellationToken token = default);
-    Task<bool> BuildRabbitMQChannelAsync();
+    Task<bool> BuildRabbitMQChannelAsync(int autoRecoveryDelay = 1000, CancellationToken token = default);
 
     void Close();
     Task<bool> ChannelHealthyAsync();
@@ -90,7 +90,7 @@ public class ChannelHost : IChannelHost, IDisposable
         var success = false;
         while (!token.IsCancellationRequested && !success)
         {
-            success = await BuildRabbitMQChannelAsync().ConfigureAwait(false);
+            success = await BuildRabbitMQChannelAsync(sleepInterval, token).ConfigureAwait(false);
             if (!success)
             {
                 try { await Task.Delay(sleepInterval, token).ConfigureAwait(false); }
@@ -105,9 +105,9 @@ public class ChannelHost : IChannelHost, IDisposable
     private static readonly string _makeChannelFailedError = "Making a channel failed. Error: {0}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public async Task<bool> BuildRabbitMQChannelAsync()
+    public async Task<bool> BuildRabbitMQChannelAsync(int autoRecoveryDelay = 1000, CancellationToken token = default)
     {
-        await _hostLock.WaitAsync().ConfigureAwait(false);
+        await _hostLock.WaitAsync(token).ConfigureAwait(false);
 
         try
         {
@@ -127,7 +127,7 @@ public class ChannelHost : IChannelHost, IDisposable
                 var healthy = await ChannelHealthyAsync().ConfigureAwait(false);
                 if (!healthy)
                 {
-                    await Task.Delay(1000);
+                    await Task.Delay(autoRecoveryDelay, token);
                     healthy = await ChannelHealthyAsync().ConfigureAwait(false);
                 }
 
