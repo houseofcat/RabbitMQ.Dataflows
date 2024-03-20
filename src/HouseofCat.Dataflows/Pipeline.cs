@@ -79,13 +79,24 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
         _healthCheckTask = Task.Run(SimplePipelineHealthTaskAsync);
     }
 
+    private readonly static string _notFinalized = "Pipeline is not ready for receiving work as it has not been finalized yet.";
+    private readonly static string _alreadyFinalized = "Pipeline is already finalized and ready for use.";
+    private readonly static string _cantFinalize = "Pipeline can't finalize as no steps have been added.";
+    private readonly static string _invalidAddError = "Pipeline is already finalized and you can no longer add steps.";
+    private readonly static string _invalidStepFound = "Pipeline can't chain the last step to this new step. Unexpected type found on the previous step.";
+
+    private readonly static string _healthy = "Pipeline ({0}) appears healthy.";
+    private readonly static string _faulted = "Pipeline ({0}) has faulted. Replace/rebuild Pipeline or restart Application...";
+    private readonly static string _awaitsCompletion = "Pipeline ({0}) awaits completion.";
+    private readonly static string Queued = "Pipeline ({0}) queued item for execution.";
+
     public void AddAsyncStep<TLocalIn, TLocalOut>(
         Func<TLocalIn, Task<TLocalOut>> stepFunc,
         int? localMaxDoP = null,
         bool? ensureOrdered = null,
         int? bufferSizeOverride = null)
     {
-        if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
+        if (Ready) throw new InvalidOperationException(_invalidAddError);
 
         var options = GetExecuteStepOptions(localMaxDoP, ensureOrdered, bufferSizeOverride);
         var pipelineStep = new PipelineStep
@@ -115,7 +126,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
                     pipelineStep.Block = step;
                     Steps.Add(pipelineStep);
                 }
-                else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
+                else { throw new InvalidOperationException(_invalidStepFound); }
             }
             else
             {
@@ -129,7 +140,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
                     pipelineStep.Block = step;
                     Steps.Add(pipelineStep);
                 }
-                else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
+                else { throw new InvalidOperationException(_invalidStepFound); }
             }
         }
     }
@@ -140,7 +151,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
         bool? ensureOrdered = null,
         int? bufferSizeOverride = null)
     {
-        if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
+        if (Ready) throw new InvalidOperationException(_invalidAddError);
 
         for (var i = 0; i < stepFunctions.Count; i++)
         {
@@ -154,7 +165,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
         bool? ensureOrdered = null,
         int? bufferSizeOverride = null)
     {
-        if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
+        if (Ready) throw new InvalidOperationException(_invalidAddError);
 
         var options = GetExecuteStepOptions(localMaxDoP, ensureOrdered, bufferSizeOverride);
         var pipelineStep = new PipelineStep
@@ -183,7 +194,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
                     pipelineStep.Block = step;
                     Steps.Add(pipelineStep);
                 }
-                else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
+                else { throw new InvalidOperationException(_invalidStepFound); }
             }
             else
             {
@@ -194,7 +205,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
                     pipelineStep.Block = step;
                     Steps.Add(pipelineStep);
                 }
-                else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
+                else { throw new InvalidOperationException(_invalidStepFound); }
             }
         }
     }
@@ -205,7 +216,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
         bool? ensureOrdered = null,
         int? bufferSizeOverride = null)
     {
-        if (Ready) throw new InvalidOperationException(Constants.Pipelines.InvalidAddError);
+        if (Ready) throw new InvalidOperationException(_invalidAddError);
 
         for (int i = 0; i < stepFunctions.Count; i++)
         {
@@ -215,8 +226,8 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
 
     public void Finalize(Action<TOut> finalizeStep)
     {
-        if (Ready) throw new InvalidOperationException(Constants.Pipelines.AlreadyFinalized);
-        if (Steps.Count == 0) throw new InvalidOperationException(Constants.Pipelines.CantFinalize);
+        if (Ready) throw new InvalidOperationException(_alreadyFinalized);
+        if (Steps.Count == 0) throw new InvalidOperationException(_cantFinalize);
 
         if (finalizeStep != null)
         {
@@ -240,7 +251,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
                     sourceBlock.LinkTo(step, _linkStepOptions);
                     Steps.Add(pipelineStep);
                 }
-                else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
+                else { throw new InvalidOperationException(_invalidStepFound); }
             }
             else
             {
@@ -254,7 +265,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
                     sourceBlock.LinkTo(step, _linkStepOptions);
                     Steps.Add(pipelineStep);
                 }
-                else { throw new InvalidOperationException(Constants.Pipelines.InvalidStepFound); }
+                else { throw new InvalidOperationException(_invalidStepFound); }
             }
         }
         else
@@ -265,8 +276,8 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
 
     public void Finalize(Func<TOut, Task> finalizeStep)
     {
-        if (Ready) throw new InvalidOperationException(Constants.Pipelines.AlreadyFinalized);
-        if (Steps.Count == 0) throw new InvalidOperationException(Constants.Pipelines.CantFinalize);
+        if (Ready) throw new InvalidOperationException(_alreadyFinalized);
+        if (Steps.Count == 0) throw new InvalidOperationException(_cantFinalize);
 
         if (finalizeStep != null)
         {
@@ -313,11 +324,11 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
 
     public async Task<bool> QueueForExecutionAsync(TIn input)
     {
-        if (!Ready) throw new InvalidOperationException(Constants.Pipelines.NotFinalized);
+        if (!Ready) throw new InvalidOperationException(_notFinalized);
 
         if (Steps[0].Block is ITargetBlock<TIn> firstStep)
         {
-            _logger.LogTrace(Constants.Pipelines.Queued, _pipelineName);
+            _logger.LogTrace(Queued, _pipelineName);
 
             return await firstStep
                 .SendAsync(input);
@@ -328,7 +339,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
 
     public async Task<bool> AwaitCompletionAsync()
     {
-        if (!Ready) throw new InvalidOperationException(Constants.Pipelines.NotFinalized);
+        if (!Ready) throw new InvalidOperationException(_notFinalized);
 
         if (Steps[0].Block is ITargetBlock<TIn> firstStep)
         {
@@ -338,14 +349,14 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
             // Await the last step.
             if (Steps[^1].Block is ITargetBlock<TIn> lastStep)
             {
-                _logger.LogTrace(Constants.Pipelines.AwaitsCompletion, _pipelineName);
+                _logger.LogTrace(_awaitsCompletion, _pipelineName);
                 await lastStep.Completion;
                 return true;
             }
             // ActionBlock is returning false for is ITargetBlock<TIn> but it used to work, this catches the Finalize steps when not caught above.
             else if (Steps[^1].Block is IDataflowBlock lastActionStep)
             {
-                _logger.LogTrace(Constants.Pipelines.AwaitsCompletion, _pipelineName);
+                _logger.LogTrace(_awaitsCompletion, _pipelineName);
                 await lastActionStep.Completion;
                 return true;
             }
@@ -399,9 +410,9 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
 
             var ex = GetAnyPipelineStepsFault();
             if (ex != null)
-            { _logger.LogCritical(ex, Constants.Pipelines.Faulted, _pipelineName); }
+            { _logger.LogCritical(ex, _faulted, _pipelineName); }
             else  // No Steps are Faulted... Hooray!
-            { _logger.LogInformation(Constants.Pipelines.Healthy, _pipelineName); }
+            { _logger.LogInformation(_healthy, _pipelineName); }
         }
     }
 }

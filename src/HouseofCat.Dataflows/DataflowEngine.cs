@@ -61,6 +61,8 @@ public class DataflowEngine<TIn, TOut> : IDataBlockEngine<TIn>
         _bufferBlock.LinkTo(_workBlock);
     }
 
+    private static readonly string _error = "Execption occurred in the Dataflow Engine when running work body steps.";
+
     protected virtual async Task ExecuteWorkBodyAsync(TIn data)
     {
         try
@@ -85,7 +87,7 @@ public class DataflowEngine<TIn, TOut> : IDataBlockEngine<TIn>
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, Constants.Dataflows.Error);
+            _logger.LogError(ex, _error);
         }
     }
 

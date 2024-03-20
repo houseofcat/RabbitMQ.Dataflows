@@ -59,7 +59,9 @@ public class ChannelReaderBlockEngine<TIn, TOut>
 
     public async ValueTask ReadChannelAsync(CancellationToken token = default) =>
         await _channelReaderBlock.ReadChannelAsync(token).ConfigureAwait(false);
-    
+
+    private static readonly string _error = "Execption occurred in the Dataflow Engine when running work body steps.";
+
     private async Task ExecuteWorkBodyAsync(TIn data)
     {
         try
@@ -79,7 +81,7 @@ public class ChannelReaderBlockEngine<TIn, TOut>
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, Constants.Dataflows.Error);
+            _logger.LogError(ex, _error);
         }
     }
 }    
