@@ -76,6 +76,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "tests\UnitTests\UnitTests.csproj", "{528C015E-58FC-44B4-BAC5-05BCFCD506C9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "rabbitmq", "rabbitmq", "{5C94F432-8229-4FFA-8DBF-AC1DEDE66265}"
+	ProjectSection(SolutionItems) = preProject
+		guides\rabbitmq\ChannelPools.md = guides\rabbitmq\ChannelPools.md
+		guides\rabbitmq\ConnectionPools.md = guides\rabbitmq\ConnectionPools.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

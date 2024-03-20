@@ -1,6 +1,6 @@
 using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
-using HouseofCat.Utilities.File;
 using System;
 using System.Collections.Generic;
 using System.IO;

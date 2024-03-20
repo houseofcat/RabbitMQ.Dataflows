@@ -11,7 +11,7 @@
   },
   "PoolOptions": {
     "ServiceName": "HoC.RabbitMQ",
-    "MaxConnections": 1,
+    "MaxConnections": 2,
     "MaxChannels": 0,
     "MaxAckableChannels": 0,
     "SleepOnErrorInterval": 5000,

@@ -7,7 +7,6 @@ using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
-using HouseofCat.Utilities.File;
 using HouseofCat.Utilities.Time;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;

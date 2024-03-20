@@ -45,10 +45,8 @@ The benefits of a dataflow pattern extend beyond fancy machine learning and Tens
 
 Lastly, after everything is said and done, all your business code is re-usable. Should you decide to abandon this workflow (:worried:) for a different mechanism, engine, or what not, all of your code will happily port to whatever other project / flow you are working with and so will all your testing making it a win win.
 
-## Help
-You will find library usage examples in the `old\examples` folder. You also can find generic NetCore how-tos and tutorials located in there. The code quality of the entire library will improve over time. Codacy allows me to review code and openly share any pain points so submit a PR to help keep this an A rated library!
-
-Check out each project for additional `README.md`. They will provide additional instructions/examples.
+## Help & Guides
+You will tutorials and examples under `guides\rabbitmq` folder. You also can find generic `.NET/C#` how-tos and tutorials located in there.  
 
 ## Status
 
@@ -71,7 +69,7 @@ Erlang: `v26.2.3`
 A library that focuses on RabbitMQ connection and channel management to create fault tolerant Publishers and Consumers.  
 Formerly called CookedRabbit.Core/Tesseract.
 
-# DataFlow Libraries
+# DataFlow Library
 
 ## HouseofCat.Dataflows
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.Dataflows/)  
@@ -122,6 +120,14 @@ A library that provides encryption contracts and base AesGCM/AesCBC NetCore encr
  * Supports BouncyCastle AesGcm 128/192/256.  
  * Supports RecyclableMemoryStream variants.  
 
+## HouseofCat.Metrics
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Metrics.svg)](https://www.nuget.org/packages/HouseofCat.Metrics/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Metrics.svg)](https://www.nuget.org/packages/HouseofCat.Metrics/)  
+
+A library that has a collection of .NET IMetricsProvider or the interface to make your own.
+
+ * Supports Prometheus.Net.  
+
 # Non-Critical Library Integrations
 
 ## HouseofCat.Data
@@ -146,14 +152,5 @@ Also provides Database abstractions, a simple Dapper integration, and SqlKata in
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Utilities.svg)](https://www.nuget.org/packages/HouseofCat.Utilities/)  
 
 A library that focuses on general purpose utilities and functions that simplify the coding experience.  
-
-## Example Integration Project Ideas
-
-### HouseofCat.RabbitMQ.Twilio
-An example project/library to simplify using Twilio (SMS/TextMessages) with the HouseofCat.RabbitMQ library. 
-
-### HouseofCat.RabbitMQ.Mailkit
-An example project/library to simplify using Mailkit (Email) with the HouseofCat.RabbitMQ library. 
-
 
 # [HouseofCat.io](https://houseofcat.io)

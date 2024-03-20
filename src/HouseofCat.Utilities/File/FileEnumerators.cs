@@ -9,7 +9,7 @@ using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HouseofCat.Utilities.File;
+namespace HouseofCat.Utilities;
 
 public static class FileEnumerators
 {

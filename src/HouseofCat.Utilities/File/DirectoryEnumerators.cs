@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace HouseofCat.Utilities.File;
+namespace HouseofCat.Utilities;
 
 public static class DirectoryEnumerators
 {

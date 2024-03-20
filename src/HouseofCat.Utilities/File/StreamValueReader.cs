@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace HouseofCat.Utilities.File;
+namespace HouseofCat.Utilities;
 
 public static class Streaming
 {

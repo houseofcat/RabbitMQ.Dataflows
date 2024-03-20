@@ -1,8 +1,7 @@
+using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ;
@@ -18,14 +17,9 @@ public static class RabbitExtensions
 
     public static async Task<RabbitOptions> GetRabbitOptionsFromJsonFileAsync(string fileNamePath)
     {
-        if (!File.Exists(fileNamePath))
-        {
-            throw new FileNotFoundException(fileNamePath);
-        }
+        var rabbitOptions = await JsonFileReader.ReadFileAsync<RabbitOptions>(fileNamePath);
+        Guard.AgainstNull(rabbitOptions, nameof(rabbitOptions));
 
-        var rabbitOptionsJson = await File.ReadAllTextAsync(fileNamePath);
-        Guard.AgainstNullOrEmpty(rabbitOptionsJson, nameof(rabbitOptionsJson));
-
-        return JsonSerializer.Deserialize<RabbitOptions>(rabbitOptionsJson);
+        return rabbitOptions;
     }
 }
