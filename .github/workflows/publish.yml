@@ -29,10 +29,10 @@ jobs:
         dotnet-version: '8.x.x'
 
     - name: Install dependencies
-      run: dotnet restore RabbitDataflows.sln
+      run: dotnet restore RabbitMQ.Dataflows.sln
 
     - name: Build
-      run: dotnet build RabbitDataflows.sln --configuration Release --no-restore
+      run: dotnet build RabbitMQ.Dataflows.sln --configuration Release --no-restore
           
     - name: Publish HouseofCat.Compression
       uses: brandedoutcast/publish-nuget@v2.5.2
@@ -65,14 +65,6 @@ jobs:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Encryption/HouseofCat.Encryption.Providers.csproj
-
-    - name: Publish HouseofCat.Extensions
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Extensions/HouseofCat.Extensions.csproj
 
     - name: Publish HouseofCat.Hashing
       uses: brandedoutcast/publish-nuget@v2.5.2
