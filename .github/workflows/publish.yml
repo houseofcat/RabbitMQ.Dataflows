@@ -64,7 +64,7 @@ jobs:
       with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Encryption/HouseofCat.Encryption.Providers.csproj
+          PROJECT_FILE_PATH: src/HouseofCat.Encryption/HouseofCat.Encryption.csproj
 
     - name: Publish HouseofCat.Hashing
       uses: brandedoutcast/publish-nuget@v2.5.2
