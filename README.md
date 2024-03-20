@@ -91,7 +91,7 @@ Formerly called CookedRabbit.Core/Tesseract.
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.Dataflows/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Dataflows.svg)](https://www.nuget.org/packages/HouseofCat.Dataflows/)  
 
-A library that provides the base magic Dataflows for RabbitDataflows. 
+A library that provides the base magic Dataflows for RabbitMQ.Dataflows. 
 
  * Custom TPL Block - ChannelBock used as a Channel-based `BufferBlock<TIn>`
  * Has DataFlowEngine and ChannelBlockEngine.
@@ -105,14 +105,14 @@ These libraries are here to help you build powerful Dataflows for your messages.
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Serialization.svg)](https://www.nuget.org/packages/HouseofCat.Serialization/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Serialization.svg)](https://www.nuget.org/packages/HouseofCat.Serialization/)  
 
-A library that has a collection of .NET ISerializationProvider or the interface to make your own.  
+A library that has a collection of .NET `ISerializationProvider` or the interface to make your own.  
  * Supports MessagePack and System.Text.Json and Newtonsoft.Json.  
 
 ## HouseofCat.Compression
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Compression.svg)](https://www.nuget.org/packages/HouseofCat.Compression/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Compression.svg)](https://www.nuget.org/packages/HouseofCat.Compression/)  
 
-A library that has a collection of .NET ICompressionProvider or the interface to make your own.
+A library that has a collection of .NET `ICompressionProvider` or the interface to make your own.
 
  * Supports LZ4, Gzip, Brotli, and Deflate.  
  * Supports RecyclableMemoryStream variants. 
@@ -129,7 +129,8 @@ A library that focuses on implementing hashing.
 [![NuGet](https://img.shields.io/nuget/v/HouseofCat.Encryption.svg)](https://www.nuget.org/packages/HouseofCat.Encryption/)  
 [![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Encryption.svg)](https://www.nuget.org/packages/HouseofCat.Encryption/)  
 
-A library that provides encryption contracts and base AesGCM/AesCBC NetCore encryption providers.  
+A library that provides encryption contracts and the base `AesGCM`/`AesCBC` .NET `IEncryptionProvider` as
+well as the interface to make your own.  
 
  * Supports AesCbc via CryptoStream (good for encrypted file/memorystreams).  
  * Supports .NET AesGcm 128, 192, 256 (non-streams).  
