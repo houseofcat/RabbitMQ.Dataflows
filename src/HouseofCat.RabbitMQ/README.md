@@ -2,22 +2,7 @@
 
 # HouseofCat.RabbitMQ
 
-### This is the migrated CookedRabbit.Core development.
-
-Original Repos are located at:  
-https://github.com/houseofcat/CookedRabbit/tree/develop/NetCore/CookedRabbit.Core
-
-And  
-https://github.com/houseofcat/RabbitMQ.Core/tree/master/CookedRabbit.Core  
-
-### Development Details
-
- * RabbitMQ Server v3.8.5
- * Erlang 23.0
- * NetCore 3.1 (Primarily) / NET 5.0 (preview 7)
- * C# 8.0-9.0 w/ Visual Studio 2019 Enterprise
- 
-New Global behaviors are now addable via config. See ConsumerPipelineMicroservice in examples folder for full details. This will help reduce config clutter with consumers all sharing the same behavior/settings.  
+Review tutorials and documentation under `./guides/rabbitmq`.
 
 Sample Config File
 ```javascript
@@ -28,31 +13,27 @@ Sample Config File
     "HeartbeatInterval": 6,
     "AutoRecovery": true,
     "TopologyRecovery": true,
-    "NetRecoveryTimeout": 10,
+    "NetRecoveryTimeout": 5,
     "ContinuationTimeout": 10,
-    "EnableDispatchConsumersAsync": true,
-    "SslOptions": {
-      "EnableSsl": false,
-      "CertServerName": "",
-      "LocalCertPath": "",
-      "LocalCertPassword": "",
-      "ProtocolVersions": 3072
-    }
+    "EnableDispatchConsumersAsync": true
   },
   "PoolOptions": {
     "ServiceName": "HoC.RabbitMQ",
-    "MaxConnections": 5,
-    "MaxChannels": 25,
-    "SleepOnErrorInterval": 1000
+    "MaxConnections": 2,
+    "MaxChannels": 10,
+    "MaxAckableChannels": 0,
+    "SleepOnErrorInterval": 5000,
+    "TansientChannelStartRange": 10000,
+    "UseTransientChannels": false
   },
   "PublisherOptions": {
     "LetterQueueBufferSize": 100,
     "PriorityLetterQueueBufferSize": 100,
     "BehaviorWhenFull": 0,
-    "AutoPublisherSleepInterval": 0,
+    "AutoPublisherSleepInterval": 1,
     "CreatePublishReceipts": true,
-    "Compress": false,
-    "Encrypt": false
+    "Compress": true,
+    "Encrypt": true
   },
   "GlobalConsumerOptions": {
     "AggressiveSettings": {

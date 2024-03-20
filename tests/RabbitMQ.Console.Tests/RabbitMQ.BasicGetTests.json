@@ -1,0 +1,21 @@
+{
+  "FactoryOptions": {
+    "Uri": "amqp://guest:guest@localhost:5672/",
+    "MaxChannelsPerConnection": 2000,
+    "HeartbeatInterval": 6,
+    "AutoRecovery": true,
+    "TopologyRecovery": true,
+    "NetRecoveryTimeout": 10,
+    "ContinuationTimeout": 10,
+    "EnableDispatchConsumersAsync": true
+  },
+  "PoolOptions": {
+    "ServiceName": "HoC.RabbitMQ",
+    "MaxConnections": 1,
+    "MaxChannels": 0,
+    "MaxAckableChannels": 0,
+    "SleepOnErrorInterval": 5000,
+    "TansientChannelStartRange": 10000,
+    "UseTransientChannels": false
+  }
+}

@@ -12,18 +12,18 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 7.0.101
+        dotnet-version: '8.x.x'
 
     - name: Install dependencies
-      run: dotnet restore Tesseract.sln
+      run: dotnet restore RabbitMQ.Dataflows.sln
 
     - name: Build
-      run: dotnet build Tesseract.sln --configuration Release
+      run: dotnet build RabbitMQ.Dataflows.sln --configuration Release
 
     - name: Test
-      run: dotnet test "./tests/Tests.sln"
+      run: dotnet test "./tests/UnitTests/UnitTests.csproj"

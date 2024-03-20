@@ -1,68 +1,68 @@
 <Project>
-  <Import Project="version.props" />
-  <PropertyGroup>  
-    <!-- Shared Project Properties -->
-    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
-    <LangVersion>latest</LangVersion>
-    <NoWarn>1591</NoWarn>
-    <IsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</IsWindows>
-    <IsOSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsOSX>
-    <IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux>
+	<Import Project="version.props" />
+	<PropertyGroup>
+		<!-- Shared Project Properties -->
+		<TargetFrameworks>net8.0</TargetFrameworks>
+		<LangVersion>latest</LangVersion>
+		<NoWarn>1591</NoWarn>
+		<IsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</IsWindows>
+		<IsOSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsOSX>
+		<IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux>
 
-    <!-- NuGet Attributes -->
-    <Authors>HouseofCat.io</Authors>
-    <Description>HouseofCat.io Tesseract library is used across many projects.</Description>
-    <Copyright>Copyright © 2022</Copyright>
-    <Product>HouseofCat.io - Tesseract</Product>
-    <PackageIcon>houseofcat.png</PackageIcon>
-    <PackageTags>C# NetCore HouseofCat HouseofCat.io</PackageTags>
-    <PackageReleaseNotes>Features, fixes, and dependency updates!</PackageReleaseNotes>
-    <PackageProjectUrl>https://github.com/houseofcat/Tesseract</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/houseofcat/Tesseract</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
+		<!-- NuGet Attributes -->
+		<Authors>HouseofCat.io</Authors>
+		<Description>RabbitDataflows library helps use RabbitMQ as well as create powerful RabbitMQ powered workflows.</Description>
+		<Copyright>Copyright © 2024</Copyright>
+		<Product>HouseofCat.io - RabbitWorkflows</Product>
+		<PackageIcon>houseofcat.png</PackageIcon>
+		<PackageTags>C# NET8 NetCore RabbitMQ HouseofCat HouseofCat.io TPL Workflows Dataflow Pipelines</PackageTags>
+		<PackageReleaseNotes>Major overhaul!</PackageReleaseNotes>
+		<PackageProjectUrl>https://github.com/houseofcat/RabbitWorkflows</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/houseofcat/RabbitWorkflows</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
 
-    <!-- Sourcelink-->
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedAllSources>true</EmbedAllSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+		<!-- Sourcelink-->
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedAllSources>true</EmbedAllSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
-    <!-- Analyze -->
-    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
-    <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(IsWindows)'=='true'">
-    <DefineConstants>Windows</DefineConstants>
-  </PropertyGroup>
+		<!-- Analyze -->
+		<RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+		<RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(IsOSX)'=='true'">
-    <DefineConstants>OSX</DefineConstants>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(IsWindows)'=='true'">
+		<DefineConstants>Windows</DefineConstants>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(IsLinux)'=='true'">
-    <DefineConstants>Linux</DefineConstants>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(IsOSX)'=='true'">
+		<DefineConstants>OSX</DefineConstants>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <IncludeSymbols>true</IncludeSymbols>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(IsLinux)'=='true'">
+		<DefineConstants>Linux</DefineConstants>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="..\..\houseofcat.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-  </ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<DebugType>portable</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<IncludeSymbols>true</IncludeSymbols>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\..\houseofcat.png">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
 </Project>

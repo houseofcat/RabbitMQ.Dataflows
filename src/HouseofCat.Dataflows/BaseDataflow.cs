@@ -1,5 +1,5 @@
 ﻿using HouseofCat.Compression;
-using HouseofCat.Encryption.Providers;
+using HouseofCat.Encryption;
 using HouseofCat.Metrics;
 using HouseofCat.Serialization;
 using System;

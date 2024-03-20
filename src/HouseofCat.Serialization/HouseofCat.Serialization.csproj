@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\common.props" />
+	<Import Project="..\..\common.props" />
   <ItemGroup>
-    <ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="MessagePack" Version="2.5.140" />
   </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\HouseofCat.Utilities\HouseofCat.Utilities.csproj" />
+	</ItemGroup>
 </Project>

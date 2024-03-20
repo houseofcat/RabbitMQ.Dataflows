@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.HighPerformance;
 using HouseofCat.Compression;
-using HouseofCat.Encryption.Providers;
+using HouseofCat.Encryption;
+using HouseofCat.Hashing;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using System;
@@ -25,6 +26,28 @@ public class DataTransformer
         _serializationProvider = serializationProvider;
         _encryptionProvider = encryptionProvider;
         _compressionProvider = compressionProvider;
+    }
+
+    public DataTransformer(
+        string encryptionPassword = null,
+        string encryptionSalt = null,
+        int keySize = 32)
+    {
+        _serializationProvider = new JsonProvider();
+
+        if (string.IsNullOrEmpty(encryptionPassword)
+            && string.IsNullOrEmpty(encryptionSalt))
+        {
+            var hasingProvider = new ArgonHashingProvider();
+            var aes256Key = hasingProvider.GetHashKey(
+                encryptionPassword,
+                encryptionSalt,
+                keySize);
+
+            _encryptionProvider = new AesGcmEncryptionProvider(aes256Key);
+        }
+
+        _compressionProvider = new GzipProvider();
     }
 
     /// <summary>
@@ -135,7 +158,7 @@ public class DataTransformer
             .ConfigureAwait(false);
     }
 
-    public ArraySegment<byte> Serialize<TIn>(TIn input)
+    public ReadOnlyMemory<byte> Serialize<TIn>(TIn input)
     {
         if (_encryptionProvider != null && _compressionProvider != null)
         {
@@ -153,7 +176,7 @@ public class DataTransformer
         return _serializationProvider.Serialize(input);
     }
 
-    public async Task<ArraySegment<byte>> SerializeAsync<TIn>(TIn input)
+    public async Task<ReadOnlyMemory<byte>> SerializeAsync<TIn>(TIn input)
     {
         if (_encryptionProvider != null && _compressionProvider != null)
         {
@@ -171,7 +194,7 @@ public class DataTransformer
         return _serializationProvider.Serialize(input);
     }
 
-    public async Task<ArraySegment<byte>> SerializeCompressEncryptAsync<TIn>(TIn input)
+    public async Task<ReadOnlyMemory<byte>> SerializeCompressEncryptAsync<TIn>(TIn input)
     {
         var memoryStream = new MemoryStream();
         await _serializationProvider
@@ -180,27 +203,22 @@ public class DataTransformer
 
         memoryStream.Seek(0, SeekOrigin.Begin);
 
-        memoryStream = await _compressionProvider
+        using var compressionStream = await _compressionProvider
             .CompressAsync(memoryStream)
             .ConfigureAwait(false);
 
-        memoryStream.Seek(0, SeekOrigin.Begin);
+        compressionStream.Seek(0, SeekOrigin.Begin);
 
-        memoryStream = await _encryptionProvider
-            .EncryptAsync(memoryStream)
+        var encryptionStream = await _encryptionProvider
+            .EncryptAsync(compressionStream)
             .ConfigureAwait(false);
 
-        memoryStream.Seek(0, SeekOrigin.Begin);
+        encryptionStream.Seek(0, SeekOrigin.Begin);
 
-        if (memoryStream.TryGetBuffer(out var buffer))
-        {
-            return buffer;
-        }
-        else
-        { return memoryStream.ToArray(); }
+        return encryptionStream.ToArray();
     }
 
-    public ArraySegment<byte> SerializeCompressEncrypt<TIn>(TIn input)
+    public ReadOnlyMemory<byte> SerializeCompressEncrypt<TIn>(TIn input)
     {
         return _encryptionProvider
             .Encrypt(_compressionProvider
@@ -208,58 +226,48 @@ public class DataTransformer
             .Serialize(input)));
     }
 
-    public async Task<ArraySegment<byte>> SerializeEncryptAsync<TIn>(TIn input)
+    public async Task<ReadOnlyMemory<byte>> SerializeEncryptAsync<TIn>(TIn input)
     {
-        var memoryStream = new MemoryStream();
+        using var memoryStream = new MemoryStream();
         await _serializationProvider
             .SerializeAsync(memoryStream, input)
             .ConfigureAwait(false);
 
         memoryStream.Seek(0, SeekOrigin.Begin);
 
-        memoryStream = await _encryptionProvider
-            .EncryptAsync(memoryStream)
+        using var compressionStream = await _encryptionProvider
+            .EncryptAsync(memoryStream, false)
             .ConfigureAwait(false);
 
-        memoryStream.Seek(0, SeekOrigin.Begin);
+        compressionStream.Seek(0, SeekOrigin.Begin);
 
-        if (memoryStream.TryGetBuffer(out var buffer))
-        {
-            return buffer;
-        }
-        else
-        { return memoryStream.ToArray(); }
+        return compressionStream.ToArray();
     }
 
-    public ArraySegment<byte> SerializeEncrypt<TIn>(TIn input)
+    public ReadOnlyMemory<byte> SerializeEncrypt<TIn>(TIn input)
     {
         return _encryptionProvider
             .Encrypt(_serializationProvider
             .Serialize(input));
     }
 
-    public async Task<ArraySegment<byte>> SerializeCompressAsync<TIn>(TIn input)
+    public async Task<ReadOnlyMemory<byte>> SerializeCompressAsync<TIn>(TIn input)
     {
-        var memoryStream = new MemoryStream();
+        using var memoryStream = new MemoryStream();
         await _serializationProvider.SerializeAsync(memoryStream, input);
 
         memoryStream.Seek(0, SeekOrigin.Begin);
 
-        memoryStream = await _compressionProvider
-            .CompressAsync(memoryStream)
+        using var compressionStream = await _compressionProvider
+            .CompressAsync(memoryStream, false)
             .ConfigureAwait(false);
 
-        memoryStream.Seek(0, SeekOrigin.Begin);
+        compressionStream.Seek(0, SeekOrigin.Begin);
 
-        if (memoryStream.TryGetBuffer(out var buffer))
-        {
-            return buffer;
-        }
-        else
-        { return memoryStream.ToArray(); }
+        return compressionStream.ToArray();
     }
 
-    public ArraySegment<byte> SerializeCompress<TIn>(TIn input)
+    public ReadOnlyMemory<byte> SerializeCompress<TIn>(TIn input)
     {
         return _compressionProvider
             .Compress(_serializationProvider
