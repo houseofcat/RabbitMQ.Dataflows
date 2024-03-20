@@ -77,8 +77,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "tests\UnitTest
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "rabbitmq", "rabbitmq", "{5C94F432-8229-4FFA-8DBF-AC1DEDE66265}"
 	ProjectSection(SolutionItems) = preProject
+		guides\rabbitmq\BasicPublish.md = guides\rabbitmq\BasicPublish.md
 		guides\rabbitmq\ChannelPools.md = guides\rabbitmq\ChannelPools.md
 		guides\rabbitmq\ConnectionPools.md = guides\rabbitmq\ConnectionPools.md
+		guides\rabbitmq\Serialization.md = guides\rabbitmq\Serialization.md
 	EndProjectSection
 EndProject
 Global

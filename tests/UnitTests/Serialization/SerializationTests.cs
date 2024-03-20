@@ -6,13 +6,13 @@ namespace Serialization;
 
 public class SerializationTests
 {
-    private readonly ISerializationProvider _defaultJsonProvider;
+    private readonly ISerializationProvider _jsonProvider;
     private readonly ISerializationProvider _newtonsoftProvider;
     private readonly ISerializationProvider _messagePackProvider;
 
     public SerializationTests()
     {
-        _defaultJsonProvider = new JsonProvider();
+        _jsonProvider = new JsonProvider();
         _newtonsoftProvider = new NewtonsoftJsonProvider();
         _messagePackProvider = new MessagePackProvider();
     }
@@ -111,10 +111,10 @@ public class SerializationTests
     {
         var customObject = new MyCustomClass();
 
-        var data = _defaultJsonProvider.Serialize(customObject);
+        var data = _jsonProvider.Serialize(customObject);
         Assert.False(data.Length == 0);
 
-        var deserializedObject = _defaultJsonProvider.Deserialize<MyCustomClass>(data);
+        var deserializedObject = _jsonProvider.Deserialize<MyCustomClass>(data);
         Assert.NotNull(deserializedObject);
 
         // Spot Check
@@ -131,10 +131,10 @@ public class SerializationTests
         var customObject = new MyCustomClass();
 
         var memoryStream = new MemoryStream();
-        _defaultJsonProvider.Serialize(memoryStream, customObject);
+        _jsonProvider.Serialize(memoryStream, customObject);
         Assert.False(memoryStream.Length == 0);
 
-        var deserializedObject = _defaultJsonProvider.Deserialize<MyCustomClass>(memoryStream);
+        var deserializedObject = _jsonProvider.Deserialize<MyCustomClass>(memoryStream);
         Assert.NotNull(deserializedObject);
 
         // Spot Check

@@ -19,9 +19,9 @@ public sealed class AesGcmEncryptionProvider : IEncryptionProvider
 
     private readonly ReadOnlyMemory<byte> _key;
 
-    public AesGcmEncryptionProvider(byte[] key)
+    public AesGcmEncryptionProvider(ReadOnlyMemory<byte> key)
     {
-        Guard.AgainstNullOrEmpty(key, nameof(key));
+        Guard.AgainstEmpty(key, nameof(key));
 
         if (!Constants.Aes.ValidKeySizes.Contains(key.Length)) throw new ArgumentException("Keysize is an invalid length.");
         _key = key;

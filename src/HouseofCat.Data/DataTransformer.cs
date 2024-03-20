@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.HighPerformance;
 using HouseofCat.Compression;
 using HouseofCat.Encryption;
+using HouseofCat.Hashing;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using System;
@@ -25,6 +26,28 @@ public class DataTransformer
         _serializationProvider = serializationProvider;
         _encryptionProvider = encryptionProvider;
         _compressionProvider = compressionProvider;
+    }
+
+    public DataTransformer(
+        string encryptionPassword = null,
+        string encryptionSalt = null,
+        int keySize = 32)
+    {
+        _serializationProvider = new JsonProvider();
+
+        if (string.IsNullOrEmpty(encryptionPassword)
+            && string.IsNullOrEmpty(encryptionSalt))
+        {
+            var hasingProvider = new ArgonHashingProvider();
+            var aes256Key = hasingProvider.GetHashKey(
+                encryptionPassword,
+                encryptionSalt,
+                keySize);
+
+            _encryptionProvider = new AesGcmEncryptionProvider(aes256Key);
+        }
+
+        _compressionProvider = new GzipProvider();
     }
 
     /// <summary>

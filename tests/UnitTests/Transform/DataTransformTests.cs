@@ -17,7 +17,7 @@ public class DataTransformTests
     private static readonly byte[] _data = new byte[5000];
     private readonly MyCustomClass MyClass = new MyCustomClass();
 
-    private static byte[] _serializedData;
+    private static ReadOnlyMemory<byte> _serializedData;
 
     public DataTransformTests()
     {
@@ -40,8 +40,7 @@ public class DataTransformTests
         _serializedData = _middleware
             .SerializeAsync(MyClass)
             .GetAwaiter()
-            .GetResult()
-            .ToArray();
+            .GetResult();
     }
 
     #region MyCustomObject
