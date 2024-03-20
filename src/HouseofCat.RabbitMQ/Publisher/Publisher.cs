@@ -690,7 +690,7 @@ public class Publisher : IPublisher, IDisposable
                         messages[i].Envelope.RoutingKey,
                         messages[i].Envelope.RoutingOptions.Mandatory,
                         messages[i].BuildProperties(chanHost, withOptionalHeaders),
-                        messages[i].GetBodyToPublish(_serializationProvider).AsMemory());
+                        messages[i].GetBodyToPublish(_serializationProvider));
 
                     if (createReceipt)
                     {

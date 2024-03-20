@@ -20,7 +20,7 @@ public interface IMessage
     bool RemoveHeader(string key);
     IDictionary<string, object> GetHeadersOutOfMetadata();
 
-    byte[] GetBodyToPublish(ISerializationProvider serializationProvider);
+    ReadOnlyMemory<byte> GetBodyToPublish(ISerializationProvider serializationProvider);
 
     IPublishReceipt GetPublishReceipt(bool error);
 
@@ -111,7 +111,7 @@ public class Letter : IMessage
     public bool RemoveHeader(string key) => LetterMetadata.RemoveHeader(key);
     public IDictionary<string, object> GetHeadersOutOfMetadata() => LetterMetadata.GetHeadersOutOfMetadata();
 
-    public byte[] GetBodyToPublish(ISerializationProvider serializationProvider) =>
+    public ReadOnlyMemory<byte> GetBodyToPublish(ISerializationProvider serializationProvider) =>
         serializationProvider.Serialize(this).ToArray();
 
     public IPublishReceipt GetPublishReceipt(bool error) =>
