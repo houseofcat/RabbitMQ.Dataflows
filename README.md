@@ -64,12 +64,12 @@ what not, all of your code will happily port to whatever other project / flow yo
 working with and so will all your testing making it a win win.  
 
 ## Help & Guides
- * Getting started with [Connection Pools](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ConnectionPools.md)
- * Getting started with [Channel Pools](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ChannelPools.md)
- * Getting started with [Basic Publish](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicPublish.md)
- * Getting started with [Basic Get](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicGet.md)
- * Getting started with [Basic Consume](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicConsume.md)
- * Getting started with [Serialization](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/Serialization.md)
+ * Getting started with a [RabbitMQ.Dataflow.ConnectionPool](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ConnectionPools.md).
+ * Getting started with a [RabbitMQ.Dataflow.ChannelPool](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ChannelPools.md).
+ * Getting started with a [ChannelPool and IModel.BasicPublish](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicPublish.md).
+ * Getting started with a [ChannelPool and IModel.BasicGet](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicGet.md).
+ * Getting started with a [ChannelPool and IModel.BasicConsume](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicConsume.md).
+ * Getting started with RabbitMQ.Dataflow [Serialization](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/Serialization.md).
 
 You can also find various library examples inside the `tests/UnitTests` or the `tests/RabbitMQ.Console.Test` project.
 
