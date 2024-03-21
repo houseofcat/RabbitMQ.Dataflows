@@ -35,7 +35,7 @@ Here is some a simple ConnectionPool setup and basic usage.
 
 It really helps to have `RabbitOptions` already setup and ready to go.
 I will use this as a file named `SampleRabbitOptions.json`:
-```
+```json
 {
   "FactoryOptions": {
     "Uri": "amqp://guest:guest@localhost:5672/",
@@ -58,6 +58,11 @@ I will use this as a file named `SampleRabbitOptions.json`:
   }
 }
 ```
+
+I generally always have `AutoRecovery` and `TopologyRecovery` set to `true`.
+
+The factory options are to assist with setting up the `RabbitMQ.Client` and the `IConnectionFactory`.
+You can find additional details on `IConnectionFactory` [here](https://www.rabbitmq.com/client-libraries/dotnet-api-guide).
 
 I will use a helper method to load the `RabbitOptions` from the file.
 

@@ -5,10 +5,10 @@ The RabbitMQ.Dataflows has Serialization, Compression, and Encryption providers 
 transform your data into `byte[]` for publishing or converting your `byte[]` back into your
 objects during consumption.
 
-
 It really helps to have `RabbitOptions` already setup and ready to go.
-I will use this as a file named `SampleRabbitOptions.json`:
-```
+
+I will use this as a file named `SampleRabbitOptions.json`
+```json
 {
   "FactoryOptions": {
     "Uri": "amqp://guest:guest@localhost:5672/",
@@ -141,12 +141,12 @@ You can also use the `DataTransformer` to simplify the process of serialization,
 var hashingProvider = new ArgonHashingProvider();
 var hashKey = hashingProvider.GetHashKey(Passphrase, Salt, 32);
 
-_middleware = new DataTransformer(
+var dataTransformer = new DataTransformer(
     new JsonProvider(),
     new AesGcmEncryptionProvider(hashKey),
     new GzipProvider());
 
-_serializedData = _middleware.Serialize(input)
+var data = dataTransformer.Serialize(input)
 ```
 
 ### DataTransfomer Alternative #2
@@ -165,7 +165,7 @@ _middleware = new DataTransformer();
 _serializedData = _middleware.Serialize(input)
 ```
 
-### Reversing The Process
+### Deserializing
 This is kind of simple. You want to deserialize, decompress, and decrypt your `byte[]` back into your object
 in the opposite manner you performed the serialization, compression, and encryption.
 ```csharp
@@ -180,12 +180,12 @@ var decompressedJson = gzipProvider.Decompress(decryptedCompressedJson);
 var myObject = _jsonProvider.Deserialize<TOut>(decompressedJson);
 ```
 
-### Reversing The Process With DataTransformer
+### Deserializing With DataTransformer
 ```csharp
 // Json, Gzip, and AesGcm 256 bit encryption.
-_middleware = new DataTransformer(Passphrase, Salt, 32);
+var dataTransformer = new DataTransformer(Passphrase, Salt, 32);
 
-_serializedData = _middleware.Serialize(input)
+var data = dataTransformer.Serialize(input)
 
-var myObject = _middleware.Deserialize<TOut>(_serializedData);
+var myObject = dataTransformer.Deserialize<TOut>(data);
 ```

@@ -64,8 +64,15 @@ what not, all of your code will happily port to whatever other project / flow yo
 working with and so will all your testing making it a win win.  
 
 ## Help & Guides
-You will find guides and tutorials under `guides\rabbitmq` folder. You can also find
-generic `.NET/C#` how-tos and tutorials located in there.  
+ * Getting started with [Connection Pools](https://github.com/houseofcat/RabbitMQ.Dataflows/guides/ConnectionPools.md)
+ * Getting started with [Channel Pools](https://github.com/houseofcat/RabbitMQ.Dataflows/guides/ChannelPools.md)
+ * Getting started with [Basic Publish](https://github.com/houseofcat/RabbitMQ.Dataflows/guides/BasicPublish.md)
+ * Getting started with [Basic Get](https://github.com/houseofcat/RabbitMQ.Dataflows/guides/BasicGet.md)
+ * Getting started with [Basic Consume](https://github.com/houseofcat/RabbitMQ.Dataflows/guides/BasicConsume.md)
+ * Getting started with [Serialization](https://github.com/houseofcat/RabbitMQ.Dataflows/guides/Serialization.md)
+
+You can also find various library examples inside the `tests/UnitTests` or the `tests/RabbitMQ.Console.Test` project.
+
 
 ## Status
 

@@ -39,7 +39,7 @@ Here is a some simple ChannelPool setup and basic usage.
 
 It really helps to have `RabbitOptions` already setup and ready to go.
 I will use this as a file named `SampleRabbitOptions.json`:
-```
+```json
 {
   "FactoryOptions": {
     "Uri": "amqp://guest:guest@localhost:5672/",
