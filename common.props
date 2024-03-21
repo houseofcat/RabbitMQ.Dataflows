@@ -11,14 +11,14 @@
 
 		<!-- NuGet Attributes -->
 		<Authors>HouseofCat.io</Authors>
-		<Description>RabbitDataflows library helps use RabbitMQ as well as create powerful RabbitMQ powered workflows.</Description>
+		<Description>RabbitMQ.Dataflows library helps use RabbitMQ as well as create powerful RabbitMQ powered workflows.</Description>
 		<Copyright>Copyright © 2024</Copyright>
-		<Product>HouseofCat.io - RabbitWorkflows</Product>
+		<Product>HouseofCat.io - RabbitMQ.Workflows</Product>
 		<PackageIcon>houseofcat.png</PackageIcon>
 		<PackageTags>C# NET8 NetCore RabbitMQ HouseofCat HouseofCat.io TPL Workflows Dataflow Pipelines</PackageTags>
 		<PackageReleaseNotes>Major overhaul!</PackageReleaseNotes>
-		<PackageProjectUrl>https://github.com/houseofcat/RabbitWorkflows</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/houseofcat/RabbitWorkflows</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/houseofcat/RabbitMQ.Dataflows</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/houseofcat/RabbitMQ.Dataflows</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 
 		<!-- Sourcelink-->
