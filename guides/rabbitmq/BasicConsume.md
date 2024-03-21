@@ -109,4 +109,5 @@ private async Task ConsumerShutdownAsync(object sender, ShutdownEventArgs e)
 }
 
 // Sleep until you want to stop consuming. Recommend stopping consumer and disposing channel when done.
+channel.BasicCancel(consumerTag);
 ```
