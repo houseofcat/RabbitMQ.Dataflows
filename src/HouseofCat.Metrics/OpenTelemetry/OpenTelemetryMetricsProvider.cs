@@ -20,12 +20,6 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
 
     private bool _disposedValue;
 
-    /// <summary>
-    /// Use this constructor in AspNetCore setup (since AspNetCore Prometheus handles Server creation via middleware).
-    /// </summary>
-    public OpenTelemetryMetricsProvider()
-    { }
-
     public OpenTelemetryMetricsProvider(IMeterFactory meterFactory, string meterName)
     {
         Guard.AgainstNull(meterFactory, nameof(meterFactory));
