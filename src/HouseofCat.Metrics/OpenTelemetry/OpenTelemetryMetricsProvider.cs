@@ -80,7 +80,8 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
     {
         Guard.AgainstNull(name, nameof(name));
         name = $"{name}_Histogram";
-        GetOrAddHistogram<double>(name, unit: unit, description: description).Record(value);
+        GetOrAddHistogram<double>(name, unit: unit, description: description)
+            .Record(value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -88,7 +89,8 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
     {
         Guard.AgainstNull(name, nameof(name));
         name = $"{name}_Summary";
-        GetOrAddHistogram<double>(name, unit: unit, description: description).Record(value);
+        GetOrAddHistogram<double>(name, unit: unit, description: description)
+            .Record(value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -96,7 +98,8 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
     {
         Guard.AgainstNull(name, nameof(name));
         name = $"{name}_Gauge";
-        GetOrAddCounter<int>(name, unit: unit, description: description).Add(1);
+        GetOrAddCounter<int>(name, unit: unit, description: description)
+            .Add(1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -104,7 +107,8 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
     {
         Guard.AgainstNull(name, nameof(name));
         name = $"{name}_Gauge";
-        GetOrAddCounter<int>(name, unit: unit, description: description).Add(-1);
+        GetOrAddCounter<int>(name, unit: unit, description: description)
+            .Add(-1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -112,7 +116,8 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
     {
         Guard.AgainstNull(name, nameof(name));
         name = $"{name}_Counter";
-        GetOrAddCounter<int>(name, unit: unit, description: description).Add(1);
+        GetOrAddCounter<int>(name, unit: unit, description: description)
+            .Add(1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -120,7 +125,8 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
     {
         Guard.AgainstNull(name, nameof(name));
         name = $"{name}_Counter";
-        GetOrAddCounter<int>(name, unit: unit, description: description).Add(-1);
+        GetOrAddCounter<int>(name, unit: unit, description: description)
+            .Add(-1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
