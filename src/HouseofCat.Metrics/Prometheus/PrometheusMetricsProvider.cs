@@ -65,22 +65,22 @@ public class PrometheusMetricsProvider : IMetricsProvider, IDisposable
         return this;
     }
 
-    public Counter GetOrAddCounter(string name, string description, CounterConfiguration config = null)
+    public Counter GetOrAddCounter(string name, string description = null, CounterConfiguration config = null)
     {
         return Counters.GetOrAdd(name, Prometheus.Metrics.CreateCounter(name, description, config));
     }
 
-    public Gauge GetOrAddGauge(string name, string description, GaugeConfiguration config = null)
+    public Gauge GetOrAddGauge(string name, string description = null, GaugeConfiguration config = null)
     {
         return Gauges.GetOrAdd(name, Prometheus.Metrics.CreateGauge(name, description, config));
     }
 
-    public Histogram GetOrAddHistogram(string name, string description, HistogramConfiguration config = null)
+    public Histogram GetOrAddHistogram(string name, string description = null, HistogramConfiguration config = null)
     {
         return Histograms.GetOrAdd(name, Prometheus.Metrics.CreateHistogram(name, description, config));
     }
 
-    public Summary GetOrdAddSummary(string name, string description, SummaryConfiguration config = null)
+    public Summary GetOrdAddSummary(string name, string description = null, SummaryConfiguration config = null)
     {
         return Summaries.GetOrAdd(name, Prometheus.Metrics.CreateSummary(name, description, config));
     }
@@ -109,47 +109,47 @@ public class PrometheusMetricsProvider : IMetricsProvider, IDisposable
     #region IMetricsProvider Implementation
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void ObserveValueFluctuation(string name, double value, string description = null)
+    public void ObserveValueFluctuation(string name, double value, string unit = null, string description = null)
     {
         Guard.AgainstNull(name, nameof(name));
         name = $"{name}_Histogram";
-        GetOrAddHistogram(name, description).Observe(value);
+        GetOrAddHistogram(name, description: description).Observe(value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void ObserveValue(string name, double value, string description = null)
+    public void ObserveValue(string name, double value, string unit = null, string description = null)
     {
         Guard.AgainstNull(name, nameof(name));
         name = $"{name}_Summary";
-        GetOrdAddSummary(name, description).Observe(value);
+        GetOrdAddSummary(name, description: description).Observe(value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void IncrementGauge(string name, string description = null)
+    public void IncrementGauge(string name, string unit = null, string description = null)
     {
         Guard.AgainstNull(name, nameof(name));
         name = $"{name}_Gauge";
-        GetOrAddGauge(name, description).Inc();
+        GetOrAddGauge(name, description: description).Inc();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void DecrementGauge(string name, string description = null)
+    public void DecrementGauge(string name, string unit = null, string description = null)
     {
         Guard.AgainstNull(name, nameof(name));
         name = $"{name}_Gauge";
-        GetOrAddGauge(name, description).Dec();
+        GetOrAddGauge(name, description: description).Dec();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void IncrementCounter(string name, string description = null)
+    public void IncrementCounter(string name, string unit = null, string description = null)
     {
         Guard.AgainstNull(name, nameof(name));
         name = $"{name}_Counter";
-        GetOrAddCounter(name, description).Inc();
+        GetOrAddCounter(name, description: description).Inc();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void DecrementCounter(string name, string description = null)
+    public void DecrementCounter(string name, string unit = null, string description = null)
     {
         throw new NotImplementedException();
     }
@@ -163,13 +163,13 @@ public class PrometheusMetricsProvider : IMetricsProvider, IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IDisposable Duration(string name, bool microScale = false, string description = null)
+    public IDisposable Duration(string name, bool microScale = false, string unit = null, string description = null)
     {
         Guard.AgainstNull(name, nameof(name));
         name = $"{name}_Timer";
         return GetOrAddHistogram(
             name,
-            description,
+            description: description,
             new HistogramConfiguration
             {
                 Buckets = microScale ? _durationMicroBuckets : _durationMilliBuckets
@@ -177,7 +177,7 @@ public class PrometheusMetricsProvider : IMetricsProvider, IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IDisposable Track(string name, string description = null)
+    public IDisposable Track(string name, string unit = null, string description = null)
     {
         Guard.AgainstNull(name, nameof(name));
         name = $"{name}_Track";
@@ -185,11 +185,16 @@ public class PrometheusMetricsProvider : IMetricsProvider, IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MultiDispose TrackAndDuration(string name, bool microScale = false, string description = null)
+    public MultiDispose TrackAndDuration(string name, bool microScale = false, string unit = null, string description = null)
     {
-        var duration = Duration(name, microScale, description);
-        var track = Track(name, description);
+        var duration = Duration(name, microScale, description: description);
+        var track = Track(name, description: description);
         return new MultiDispose(duration, track);
+    }
+
+    public MultiDispose Trace(string name, string unit = null, string description = null)
+    {
+        throw new NotImplementedException();
     }
 
     #endregion
