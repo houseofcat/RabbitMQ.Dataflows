@@ -1,22 +1,14 @@
 ﻿# RabbitMQ.Dataflows
 ## ChannelPools
 
-Primary purpose of the `ChannelPool` is to manage RabbitMQ `Channels` called (Models) that are
-each wrapped inside a class called `ChannelHost`. This is the primary class to use when wanting
-to create a `Channel` for communicating with RabbitMQ to publish or to consume messages. It
-holds EventHandlers for the `Model` and assists in managing the life cycle of the internal
-channel.
+Primary purpose of the `IChannelPool` is to manage RabbitMQ Channels called `IModel`. Each one is
+wrapped inside a class called `ChannelHost`. This is the primary class to use when wanting
+to manage a `IModel` for communicating with RabbitMQ. IModel correlates to a Channel. They are
+used to to publish or to consume messages. It holds EventHandlers for the `IModel` that assist
+in managing the life cycle of the internal channel.
 
-Typical usage would look like this:  
-Json -> RabbitOptions -> ChannelPool
-
-```plaintext
-ChannelPool .ctor -> RabbitOptions -> Create ConnectionPool -> Create Connections -> ChannelPool Creates RabbitMQ Channels
-ChannelPool .ctor -> ConnectionPool -> Create RabbitMQ Channels From Connections in ConnectionPool
-```
-
-The ChannelPool is designed to be primary class of your RabbitMQ channel/connection management
-give that it holds the ConnectionPool internally.
+The ChannelPool is designed to be the primary class of your RabbitMQ channel/connection management
+give that it contains the `IConnectionPool` internally.
 
 For now here is the `IChannelPool` interface:
 ```csharp

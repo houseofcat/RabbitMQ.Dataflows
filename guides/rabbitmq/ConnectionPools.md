@@ -1,11 +1,11 @@
 ﻿# RabbitMQ.Dataflows
 ## ConnectionPools
 
-Primary purpose of the `ConnectionPool` is to manage RabbitMQ `Connections` that
-are each wrapped inside a class called `ConnectionHost`. This is just to track the
-`Connection` and various states the Connection may be in by subscribing to the
-EventHandlers of the internal `IConnection`. You would want to use these yourself
-in your own integration very similarly to the `ConnectionHost`.
+Primary purpose of the `IConnectionPool` is to manage RabbitMQ `Connections` that
+are each wrapped inside a class called `IConnectionHost`. This is just to track the
+`Connection` and it's various states. This is primarily achieved by by subscribing
+to the EventHandlers. You would want to use these yourself in your own integration
+very similarly to the `IConnectionHost`.
 
 ```plaintext  
 Json -> RabbitOptions -> ConnectionPool  
