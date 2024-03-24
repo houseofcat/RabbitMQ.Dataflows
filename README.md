@@ -1,6 +1,7 @@
-# RabbitDataflows
+# RabbitMQ & Dataflows
 
-A RabbitMQ library of `.NET` tools to help rapidly develop well performant services!  
+A RabbitMQ library of `.NET` tools to help rapidly develop well performant services or
+to just help manage durable connectivity with the `RabbitMQ.Client`!  
 
 ## Why Make A RabbitMQ Powered Dataflow?  
 
@@ -12,17 +13,19 @@ so you don't have to!
 Here are some features ready with RabbitMQ today!
 
 ### Queueing
-* Async Processing    
-* Retriability  
-* RabbitMQ ConnectionPool and ChannelPool (connection durability) provided by `namespace HouseofCat.RabbitMQ.Pools;`.  
+* Async Processing, batch processing, consumer cloning and more!    
+* Queue-based Retriability via Ack/Nack.
+* Async Error Handling (simplify functional error handling by allowing it to throw.)
+* A RabbitMQ ConnectionPool and ChannelPool (connection durability) provided by
+`namespace HouseofCat.RabbitMQ.Pools;`.  
 
 ### Built-Ins
-* Supports `ILogger<T>`  
-* Fully configurable concurrency/parallelism - baked in from the ground up.  
-* Contracted `WorkState`/WorkObject simplifies development and integration.  
+* Supports `ILogger<T>` via LogHelpers. 
+* Configurable concurrency/parallelism, no code changes required.  
+* Contracted `IWorkState` simplifies functional generic returns and integration.  
 * Has `Json` (System.Text.Json and Newtonsoft) and `MessagePack` serialization providers.
-* Allow seamless encryption/decryption steps.  
-* Allow seamless compression/decompression steps.  
+* Allows seamless encryption/decryption steps.  
+* Allows seamless compression/decompression steps.  
 * Async Error Handling with Predicate triggers and an actionable callback.  
 
 ### Core Interchangeability
