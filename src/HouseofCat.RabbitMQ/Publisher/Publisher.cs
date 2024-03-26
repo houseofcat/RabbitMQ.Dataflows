@@ -61,6 +61,8 @@ public interface IPublisher
 
     Task PublishManyAsBatchAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true);
     Task PublishManyAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true);
+
+    void QueueMessage(IMessage message);
     ValueTask QueueMessageAsync(IMessage message);
     void StartAutoPublish(Func<IPublishReceipt, ValueTask> processReceiptAsync = null);
     Task StartAutoPublishAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null);
@@ -225,6 +227,17 @@ public class Publisher : IPublisher, IDisposable
     }
 
     #region AutoPublisher
+
+    public void QueueMessage(IMessage message)
+    {
+        if (!AutoPublisherStarted) throw new InvalidOperationException(ExceptionMessages.AutoPublisherNotStartedError);
+        Guard.AgainstNull(message, nameof(message));
+
+        var metadata = message.GetMetadata();
+        _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, metadata?.Id);
+
+        _messageQueue.Writer.TryWrite(message);
+    }
 
     public async ValueTask QueueMessageAsync(IMessage message)
     {
