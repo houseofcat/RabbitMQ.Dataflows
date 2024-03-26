@@ -7,10 +7,9 @@ to just help manage durable connectivity with the `RabbitMQ.Client`!
 
 `Dataflows` have configurable concurrency, serialization, monitoring, compression, and
 encryption all as first class citizens. This paradigm allows developers to just focus on
-the important stuff - getting work done. Dataflows pay attention to the extra dimensions
-so you don't have to!
+the important stuff - getting work done
 
-Here are some features ready with RabbitMQ today!
+Here are some features ready with RabbitMQ and Dataflows today!
 
 ### Queueing
 * Async Processing, batch processing, consumer cloning and more!    
@@ -51,7 +50,7 @@ developer.
 The benefits of a dataflow pattern extend beyond fancy machine learning and Tensorflows or
 high throughput GCP Dataflow for mass computation. When brought to the service level, it
 helps organize your code into more manageable blocks. You can still write monolithic
-functions, but you would be hamstringing yourself and scarificing concurrencyand
+functions, but you would be hamstringing yourself and scarificing concurrency and
 parallelism. By designing code into small functional steps, you always write better,
 cleaner, code reduced with cyclomatic complexity. That very same code is easier to
 UnitTest. The orchestration of the function calls are the order they are added allowing
