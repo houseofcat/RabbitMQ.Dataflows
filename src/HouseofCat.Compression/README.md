@@ -1,21 +1,23 @@
 # HouseofCat.Compression
 Simple .NET compression library implementing the `ICompressionProvider` interface.
 
-## Typical Usage
+## Simple Usage
 ```csharp
 var compressionProvider = new GzipProvider();
 var compressedData = compressionProvider.Compress(myDataAsBytes);
 
 ... 
+
 var decompressedData = compressionProvider.Decompress(compressedData);
 ```
 
-You can use the constructor to also specify CompressionLevel.
+You can also specify CompressionLevel. By default the value is set to `CompressionLevel.Optimal`.
 ```csharp
 var compressionProvider = new GzipProvider();
 compressionProvider.CompessionLevel = CompressionLevel.SmallestSize;
 
 ...
+
 var compressionProvider = new GzipProvider(CompressionLevel.SmallestSize);
 ```
 
