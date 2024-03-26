@@ -12,6 +12,13 @@ public class BrotliProvider : ICompressionProvider
     public string Type { get; } = "BROTLI";
     public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
 
+    public BrotliProvider() { }
+
+    public BrotliProvider(CompressionLevel compressionLevel)
+    {
+        CompressionLevel = compressionLevel;
+    }
+
     public ReadOnlyMemory<byte> Compress(ReadOnlyMemory<byte> inputData)
     {
         Guard.AgainstEmpty(inputData, nameof(inputData));

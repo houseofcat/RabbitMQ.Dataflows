@@ -1,11 +1,11 @@
 ﻿# RabbitMQ.Dataflows
 ## ConnectionPools
 
-Primary purpose of the `ConnectionPool` is to manage RabbitMQ `Connections` that
-are each wrapped inside a class called `ConnectionHost`. This is just to track the
-`Connection` and various states the Connection may be in by subscribing to the
-EventHandlers of the internal `IConnection`. You would want to use these yourself
-in your own integration very similarly to the `ConnectionHost`.
+Primary purpose of the `IConnectionPool` is to manage RabbitMQ `Connections` that
+are each wrapped inside a class called `IConnectionHost`. This is just to track the
+`Connection` and it's various states. This is primarily achieved by by subscribing
+to the EventHandlers. You would want to use these yourself in your own integration
+very similarly to the `IConnectionHost`.
 
 ```plaintext  
 Json -> RabbitOptions -> ConnectionPool  
@@ -35,7 +35,7 @@ Here is some a simple ConnectionPool setup and basic usage.
 
 It really helps to have `RabbitOptions` already setup and ready to go.
 I will use this as a file named `SampleRabbitOptions.json`:
-```
+```json
 {
   "FactoryOptions": {
     "Uri": "amqp://guest:guest@localhost:5672/",
@@ -58,6 +58,11 @@ I will use this as a file named `SampleRabbitOptions.json`:
   }
 }
 ```
+
+I generally always have `AutoRecovery` and `TopologyRecovery` set to `true`.
+
+The factory options are to assist with setting up the `RabbitMQ.Client` and the `IConnectionFactory`.
+You can find additional details on `IConnectionFactory` [here](https://www.rabbitmq.com/client-libraries/dotnet-api-guide).
 
 I will use a helper method to load the `RabbitOptions` from the file.
 

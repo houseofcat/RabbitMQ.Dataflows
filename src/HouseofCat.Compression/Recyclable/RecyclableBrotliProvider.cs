@@ -13,32 +13,31 @@ public class RecyclableBrotliProvider : ICompressionProvider
     public string Type { get; } = "BROTLI";
     public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
 
+    public RecyclableBrotliProvider() { }
+
+    public RecyclableBrotliProvider(CompressionLevel compressionLevel)
+    {
+        CompressionLevel = compressionLevel;
+    }
+
     public ReadOnlyMemory<byte> Compress(ReadOnlyMemory<byte> inputData)
     {
         Guard.AgainstEmpty(inputData, nameof(inputData));
 
-        var compressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
+        using var compressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
         using (var brotliStream = new BrotliStream(compressedStream, CompressionLevel, true))
         {
             brotliStream.Write(inputData.Span);
         }
 
-        if (compressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        {
-            using (compressedStream) // dispose stream after allocation.
-            {
-                return compressedStream.ToArray();
-            }
-        }
+        return compressedStream.ToArray();
     }
 
     public async ValueTask<ReadOnlyMemory<byte>> CompressAsync(ReadOnlyMemory<byte> inputData)
     {
         Guard.AgainstEmpty(inputData, nameof(inputData));
 
-        var compressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
+        using var compressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
         using (var brotliStream = new BrotliStream(compressedStream, CompressionLevel, true))
         {
             await brotliStream
@@ -46,15 +45,7 @@ public class RecyclableBrotliProvider : ICompressionProvider
                 .ConfigureAwait(false);
         }
 
-        if (compressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        {
-            using (compressedStream) // dispose stream after allocation.
-            {
-                return compressedStream.ToArray();
-            }
-        }
+        return compressedStream.ToArray();
     }
 
     /// <summary>
@@ -78,7 +69,6 @@ public class RecyclableBrotliProvider : ICompressionProvider
         }
         if (!leaveStreamOpen) { inputStream.Close(); }
 
-        compressedStream.Seek(0, SeekOrigin.Begin);
         return compressedStream;
     }
 
@@ -157,22 +147,13 @@ public class RecyclableBrotliProvider : ICompressionProvider
     {
         Guard.AgainstEmpty(compressedData, nameof(compressedData));
 
-        var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
+        using var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableBrotliProvider));
         using (var brotliStream = new BrotliStream(compressedData.AsStream(), CompressionMode.Decompress, false))
         {
             brotliStream.CopyTo(uncompressedStream);
         }
 
-        if (uncompressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        {
-            // dispose stream after allocation.
-            using (uncompressedStream)
-            {
-                return uncompressedStream.ToArray();
-            }
-        }
+        return uncompressedStream.ToArray();
     }
 
     public async ValueTask<ReadOnlyMemory<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
@@ -187,16 +168,7 @@ public class RecyclableBrotliProvider : ICompressionProvider
                 .ConfigureAwait(false);
         }
 
-        if (uncompressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        {
-            // dispose stream after allocation.
-            using (uncompressedStream)
-            {
-                return uncompressedStream.ToArray();
-            }
-        }
+        return uncompressedStream.ToArray();
     }
 
     /// <summary>

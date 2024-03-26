@@ -13,32 +13,31 @@ public class RecyclableGzipProvider : ICompressionProvider
     public string Type { get; } = "GZIP";
     public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
 
+    public RecyclableGzipProvider() { }
+
+    public RecyclableGzipProvider(CompressionLevel compressionLevel)
+    {
+        CompressionLevel = compressionLevel;
+    }
+
     public ReadOnlyMemory<byte> Compress(ReadOnlyMemory<byte> inputData)
     {
         Guard.AgainstEmpty(inputData, nameof(inputData));
 
-        var compressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
+        using var compressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
         using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
         {
             gzipStream.Write(inputData.Span);
         }
 
-        if (compressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        {
-            using (compressedStream) // dispose stream after allocation.
-            {
-                return compressedStream.ToArray();
-            }
-        }
+        return compressedStream.ToArray();
     }
 
     public async ValueTask<ReadOnlyMemory<byte>> CompressAsync(ReadOnlyMemory<byte> inputData)
     {
         Guard.AgainstEmpty(inputData, nameof(inputData));
 
-        var compressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
+        using var compressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider));
         using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
         {
             await gzipStream
@@ -46,15 +45,7 @@ public class RecyclableGzipProvider : ICompressionProvider
                 .ConfigureAwait(false);
         }
 
-        if (compressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        {
-            using (compressedStream) // dispose stream after allocation.
-            {
-                return compressedStream.ToArray();
-            }
-        }
+        return compressedStream.ToArray();
     }
 
     /// <summary>
@@ -157,22 +148,13 @@ public class RecyclableGzipProvider : ICompressionProvider
     {
         Guard.AgainstEmpty(compressedData, nameof(compressedData));
 
-        var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), CompressionHelpers.GetGzipUncompressedLength(compressedData));
+        using var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableGzipProvider), CompressionHelpers.GetGzipUncompressedLength(compressedData));
         using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
         {
             gzipStream.CopyTo(uncompressedStream);
         }
 
-        if (uncompressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        {
-            // dispose stream after allocation.
-            using (uncompressedStream)
-            {
-                return uncompressedStream.ToArray();
-            }
-        }
+        return uncompressedStream.ToArray();
     }
 
     public async ValueTask<ReadOnlyMemory<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
@@ -187,16 +169,7 @@ public class RecyclableGzipProvider : ICompressionProvider
                 .ConfigureAwait(false);
         }
 
-        if (uncompressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        {
-            // dispose stream after allocation.
-            using (uncompressedStream)
-            {
-                return uncompressedStream.ToArray();
-            }
-        }
+        return uncompressedStream.ToArray();
     }
 
     /// <summary>

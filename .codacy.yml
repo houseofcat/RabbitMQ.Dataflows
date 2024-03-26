@@ -1,9 +1,5 @@
 ---
 exclude_paths:
   - 'guides/**'
-  - 'prototypes/**'
-  - 'examples/**'
-  - 'benchmarks/**'
-  - 'src/HouseofCat.RabbitMQ.Client/**'
   - 'tests/**'
   - "**.md"

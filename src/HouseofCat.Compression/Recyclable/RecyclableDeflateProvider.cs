@@ -13,32 +13,31 @@ public class RecyclableDeflateProvider : ICompressionProvider
     public string Type { get; } = "DEFLATE";
     public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
 
+    public RecyclableDeflateProvider() { }
+
+    public RecyclableDeflateProvider(CompressionLevel compressionLevel)
+    {
+        CompressionLevel = compressionLevel;
+    }
+
     public ReadOnlyMemory<byte> Compress(ReadOnlyMemory<byte> inputData)
     {
         Guard.AgainstEmpty(inputData, nameof(inputData));
 
-        var compressedStream = RecyclableManager.GetStream(nameof(RecyclableDeflateProvider));
+        using var compressedStream = RecyclableManager.GetStream(nameof(RecyclableDeflateProvider));
         using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
         {
             deflateStream.Write(inputData.Span);
         }
 
-        if (compressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        {
-            using (compressedStream) // dispose stream after allocation.
-            {
-                return compressedStream.ToArray();
-            }
-        }
+        return compressedStream.ToArray();
     }
 
     public async ValueTask<ReadOnlyMemory<byte>> CompressAsync(ReadOnlyMemory<byte> inputData)
     {
         Guard.AgainstEmpty(inputData, nameof(inputData));
 
-        var compressedStream = RecyclableManager.GetStream(nameof(RecyclableDeflateProvider));
+        using var compressedStream = RecyclableManager.GetStream(nameof(RecyclableDeflateProvider));
         using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
         {
             await deflateStream
@@ -46,15 +45,7 @@ public class RecyclableDeflateProvider : ICompressionProvider
                 .ConfigureAwait(false);
         }
 
-        if (compressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        {
-            using (compressedStream) // dispose stream after allocation.
-            {
-                return compressedStream.ToArray();
-            }
-        }
+        return compressedStream.ToArray();
     }
 
     /// <summary>
@@ -157,22 +148,13 @@ public class RecyclableDeflateProvider : ICompressionProvider
     {
         Guard.AgainstEmpty(compressedData, nameof(compressedData));
 
-        var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableDeflateProvider));
+        using var uncompressedStream = RecyclableManager.GetStream(nameof(RecyclableDeflateProvider));
         using (var deflateStream = new DeflateStream(compressedData.AsStream(), CompressionMode.Decompress, false))
         {
             deflateStream.CopyTo(uncompressedStream);
         }
 
-        if (uncompressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        {
-            // dispose stream after allocation.
-            using (uncompressedStream)
-            {
-                return uncompressedStream.ToArray();
-            }
-        }
+        return uncompressedStream.ToArray();
     }
 
     public async ValueTask<ReadOnlyMemory<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
@@ -187,16 +169,7 @@ public class RecyclableDeflateProvider : ICompressionProvider
                 .ConfigureAwait(false);
         }
 
-        if (uncompressedStream.TryGetBuffer(out var buffer))
-        { return buffer; }
-        else
-        {
-            // dispose stream after allocation.
-            using (uncompressedStream)
-            {
-                return uncompressedStream.ToArray();
-            }
-        }
+        return uncompressedStream.ToArray();
     }
 
     /// <summary>

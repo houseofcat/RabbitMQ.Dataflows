@@ -12,6 +12,13 @@ public class DeflateProvider : ICompressionProvider
     public string Type { get; } = "DEFLATE";
     public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
 
+    public DeflateProvider() { }
+
+    public DeflateProvider(CompressionLevel compressionLevel)
+    {
+        CompressionLevel = compressionLevel;
+    }
+
     public ReadOnlyMemory<byte> Compress(ReadOnlyMemory<byte> inputData)
     {
         Guard.AgainstEmpty(inputData, nameof(inputData));

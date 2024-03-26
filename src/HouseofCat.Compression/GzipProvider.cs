@@ -12,6 +12,13 @@ public class GzipProvider : ICompressionProvider
     public string Type { get; } = "GZIP";
     public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
 
+    public GzipProvider() { }
+
+    public GzipProvider(CompressionLevel compressionLevel)
+    {
+        CompressionLevel = compressionLevel;
+    }
+
     public ReadOnlyMemory<byte> Compress(ReadOnlyMemory<byte> inputData)
     {
         Guard.AgainstEmpty(inputData, nameof(inputData));
