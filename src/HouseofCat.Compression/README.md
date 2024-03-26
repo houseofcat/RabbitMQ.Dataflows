@@ -1,5 +1,5 @@
 # HouseofCat.Compression
-Simple and RecyclableMemoryStream .NET compression as `ICompressionProvider`.
+Simple .NET compression library implementing the `ICompressionProvider` interface.
 
 ## Typical Usage
 ```csharp
