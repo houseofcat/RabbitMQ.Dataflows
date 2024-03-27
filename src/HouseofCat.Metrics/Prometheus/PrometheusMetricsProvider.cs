@@ -5,6 +5,7 @@ using Prometheus.DotNetRuntime;
 using Prometheus.DotNetRuntime.Metrics.Producers;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace HouseofCat.Metrics;
@@ -185,14 +186,14 @@ public class PrometheusMetricsProvider : IMetricsProvider, IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MultiDispose TrackAndDuration(string name, bool microScale = false, string unit = null, string description = null)
+    public IDisposable TrackAndDuration(string name, bool microScale = false, string unit = null, string description = null, Dictionary<string, string> tags = null)
     {
         var duration = Duration(name, microScale, description: description);
         var track = Track(name, description: description);
         return new MultiDispose(duration, track);
     }
 
-    public MultiDispose Trace(string name, string unit = null, string description = null)
+    public IDisposable Trace(string name, Dictionary<string, string> tags = null)
     {
         return null;
     }
