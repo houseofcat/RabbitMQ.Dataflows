@@ -126,25 +126,25 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IDisposable Duration(string name, bool microScale = false, string unit = null, string description = null)
     {
-        throw new NotImplementedException();
+        return null;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IDisposable Track(string name, string unit = null, string description = null)
     {
-        throw new NotImplementedException();
+        return null;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public MultiDispose TrackAndDuration(string name, bool microScale = false, string unit = null, string description = null)
     {
-        throw new NotImplementedException();
+        return null;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public MultiDispose Trace(string name, string unit = null, string description = null)
     {
-        throw new NotImplementedException();
+        return null;
     }
 
     #endregion

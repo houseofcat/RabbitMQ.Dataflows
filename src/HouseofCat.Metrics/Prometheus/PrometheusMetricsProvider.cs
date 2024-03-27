@@ -194,7 +194,7 @@ public class PrometheusMetricsProvider : IMetricsProvider, IDisposable
 
     public MultiDispose Trace(string name, string unit = null, string description = null)
     {
-        throw new NotImplementedException();
+        return null;
     }
 
     #endregion
