@@ -566,19 +566,14 @@ public class Publisher : IPublisher, IDisposable
         // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-name
 
-        using Activity activity = _activitySource.StartActivity(activityName, ActivityKind.Producer);
+        using Activity activity = Activity.Current ?? _activitySource.StartActivity(activityName, ActivityKind.Producer);
 
         try
         {
             ReadOnlyMemory<byte> body = message.GetBodyToPublish(_serializationProvider);
 
             ActivityContext contextToInject = default;
-            if (Activity.Current != null)
-            {
-                contextToInject = Activity.Current.Context;
-            }
-
-            else if (activity != null)
+            if (activity != null)
             {
                 contextToInject = activity.Context;
             }

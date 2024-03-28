@@ -20,12 +20,11 @@ using OpenTelemetry;
 namespace HouseofCat.RabbitMQ.Subscriber;
 
 public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
-    where TMessageConsumer : IQueueSubscriber<IMessage>
-    where TQueueMessage : IMessage
+    where TMessageConsumer : IQueueSubscriber<TQueueMessage>
+    where TQueueMessage : Letter
 {
     private readonly ILogger<Subscriber<TMessageConsumer, TQueueMessage>> _logger;
-    private readonly IChannelPool _channelPool;
-    private readonly IQueueSubscriber<IMessage> _messageConsumer;
+    private readonly IQueueSubscriber<Letter> _messageConsumer;
     private readonly IRabbitService _rabbitService;
     private readonly SemaphoreSlim _conLock = new SemaphoreSlim(1, 1);
     private bool _shutdown;
@@ -42,15 +41,11 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
 
     public Subscriber(
         ILogger<Subscriber<TMessageConsumer, TQueueMessage>> logger,
-        IChannelPool channelPool,
         IRabbitService rabbitService,
-        IQueueSubscriber<IMessage> messageConsumer)
+        IQueueSubscriber<Letter> messageConsumer)
     {
         _logger = logger ??
             throw new ArgumentNullException(nameof(logger));
-
-        _channelPool = channelPool ??
-            throw new ArgumentNullException(nameof(channelPool));
 
         _messageConsumer = messageConsumer ??
             throw new ArgumentNullException(nameof(messageConsumer));
@@ -77,7 +72,7 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
     {
         try
         {
-            _channelHost = _channelPool.GetChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            _channelHost = _rabbitService.ChannelPool.GetChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             StartInternal();
         }
         catch (Exception ex)
@@ -180,7 +175,7 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
 
         try
         {
-            await _channelPool.ShutdownAsync().ConfigureAwait(false);
+            await _rabbitService.ChannelPool.ShutdownAsync().ConfigureAwait(false);
         }
         finally { _conLock.Release(); }
     }
@@ -254,6 +249,6 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
         activity?.SetTag("messaging.destination", message.Envelope.Exchange);
         activity?.SetTag("messaging.rabbitmq.routing_key", message.Envelope.RoutingKey);
         activity?.SetTag("messaging.message.id", message.MessageId);
-        activity?.SetTag("messaging.operation", "publish");
+        activity?.SetTag("messaging.operation", "subscribe");
     }
 }
