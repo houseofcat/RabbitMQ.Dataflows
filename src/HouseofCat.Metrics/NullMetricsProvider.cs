@@ -1,5 +1,5 @@
-﻿using HouseofCat.Utilities;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace HouseofCat.Metrics;
@@ -43,13 +43,20 @@ public class NullMetricsProvider : IMetricsProvider
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MultiDispose TrackAndDuration(string name, bool microScale = false, string unit = null, string description = null)
+    public IDisposable TrackAndDuration(
+        string name,
+        bool microScale = false,
+        string unit = null,
+        string description = null,
+        IDictionary<string, string> metricTags = null)
     {
         return null;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MultiDispose Trace(string name, string unit = null, string description = null)
+    public IDisposable Trace(
+        string name,
+        IDictionary<string, string> metricTags = null)
     {
         return null;
     }

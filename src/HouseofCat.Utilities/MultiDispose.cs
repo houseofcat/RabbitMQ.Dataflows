@@ -19,7 +19,7 @@ public class MultiDispose : IDisposable
         {
             if (disposing)
             {
-                for (int i = 0; i < _disposables.Length; i++)
+                for (var i = 0; i < _disposables.Length; i++)
                 {
                     try
                     {
