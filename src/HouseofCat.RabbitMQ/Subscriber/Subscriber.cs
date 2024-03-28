@@ -16,6 +16,7 @@ using OpenTelemetry.Context.Propagation;
 using System.Diagnostics;
 using System.Reflection;
 using OpenTelemetry;
+using HouseofCat.RabbitMQ.Extensions;
 
 namespace HouseofCat.RabbitMQ.Subscriber;
 
@@ -31,6 +32,7 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
     private bool autoAck = false;
     private int sleepInterval = 5000;
 
+    private IChannelHost _channelHost;
 
     private static readonly ActivitySource _activitySource =
         new ActivitySource(Assembly.GetEntryAssembly().GetName().Name ?? "HouseofCat.RabbitMQ");
@@ -70,6 +72,10 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
     {
         try
         {
+            _channelHost = _rabbitService.ChannelPool
+         .GetTransientChannelAsync(!autoAck)
+         .ConfigureAwait(false).GetAwaiter().GetResult();
+
             StartInternal();
         }
         catch (Exception ex)
@@ -85,8 +91,8 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
     {
         _logger.LogInformation("Starting RabbitMQ connection on a background thread");
 
-        var channelHost = _rabbitService.ChannelPool.GetChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-        var consumerChannel = channelHost.GetChannel() ?? throw new InvalidOperationException("RabbitMQ connection is not open");
+
+        var consumerChannel = _channelHost.GetChannel() ?? throw new InvalidOperationException("RabbitMQ connection is not open");
 
         var consumer = new AsyncEventingBasicConsumer(consumerChannel);
 
@@ -122,16 +128,16 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
         var eventName = eventArgs.RoutingKey;
         var message = Encoding.UTF8.GetString(eventArgs.Body.Span);
 
-
         try
         {
-            var channelHost = _rabbitService.ChannelPool.GetChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-            var receivedData = new ReceivedData(channelHost.GetChannel(), eventArgs, autoAck);
+            var receivedData = new ReceivedData(_channelHost.GetChannel(), eventArgs, autoAck);
             await ProcessEvent(activity, eventName, receivedData);
-            receivedData.AckMessage();
+            _channelHost.GetChannel().BasicAck(eventArgs.DeliveryTag, multiple: false);
+
         }
         catch (Exception ex)
         {
+            activity.SetExceptionTags(ex);
             _logger.LogWarning(ex, "Error accepting the message \"{Message}\"", message);
         }
     }

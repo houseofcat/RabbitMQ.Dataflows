@@ -562,12 +562,14 @@ public class Publisher : IPublisher, IDisposable
             .GetChannelAsync()
             .ConfigureAwait(false);
 
-        string activityName = $"{message.Envelope.RoutingKey} send";
         // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-name
 
+        string activityName = $"{message.Envelope.RoutingKey} publish";
+        
+
         using Activity activity = Activity.Current ??
-            _activitySource.StartActivity(activityName, ActivityKind.Producer, parentContext: message.ActivityContext.HasValue ? message.ActivityContext.Value : default);
+            _activitySource.StartActivity(activityName, ActivityKind.Producer, parentContext: message.ActivityContext ?? default);
 
         try
         {
