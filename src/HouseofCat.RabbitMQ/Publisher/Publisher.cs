@@ -13,6 +13,8 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using System.Diagnostics;
+using OpenTelemetry.Context.Propagation;
 
 namespace HouseofCat.RabbitMQ;
 
@@ -95,6 +97,9 @@ public class Publisher : IPublisher, IDisposable
     private bool _disposedValue;
 
     public string TimeFormat { get; set; } = Time.Formats.CatsAltFormat;
+
+    private static readonly ActivitySource ActivitySource = new(nameof(Publisher));
+    private static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
 
     public Publisher(
         RabbitOptions options,
@@ -256,9 +261,9 @@ public class Publisher : IPublisher, IDisposable
         _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, metadata?.Id);
 
         await _messageQueue
-            .Writer
-            .WriteAsync(message)
-            .ConfigureAwait(false);
+          .Writer
+          .WriteAsync(message)
+          .ConfigureAwait(false);
     }
 
     private async Task ProcessMessagesAsync(ChannelReader<IMessage> channelReader)
@@ -545,16 +550,33 @@ public class Publisher : IPublisher, IDisposable
             .GetChannelAsync()
             .ConfigureAwait(false);
 
+        var activityName = $"{message.Envelope.RoutingKey} send";
+        // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
+        // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-name
+
+        using var activity = ActivitySource.StartActivity(activityName, ActivityKind.Producer);
+
         try
         {
             var body = message.GetBodyToPublish(_serializationProvider);
+
+            ActivityContext contextToInject = default;
+            if (activity != null)
+            {
+                contextToInject = activity.Context;
+            }
+            else if (Activity.Current != null)
+            {
+                contextToInject = Activity.Current.Context;
+            }
+            var basicProperties = message.BuildProperties(chanHost, withOptionalHeaders)
             chanHost
                 .GetChannel()
                 .BasicPublish(
                     message.Envelope.Exchange,
                     message.Envelope.RoutingKey,
                     message.Envelope.RoutingOptions?.Mandatory ?? false,
-                    message.BuildProperties(chanHost, withOptionalHeaders),
+                    basicProperties,
                     body);
         }
         catch (Exception ex)
