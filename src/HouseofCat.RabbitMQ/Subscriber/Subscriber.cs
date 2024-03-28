@@ -21,10 +21,10 @@ namespace HouseofCat.RabbitMQ.Subscriber;
 
 public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
     where TMessageConsumer : IQueueSubscriber<TQueueMessage>
-    where TQueueMessage : Letter
+    where TQueueMessage : BaseSubscriberMessage
 {
     private readonly ILogger<Subscriber<TMessageConsumer, TQueueMessage>> _logger;
-    private readonly IQueueSubscriber<Letter> _messageConsumer;
+    private readonly IQueueSubscriber<BaseSubscriberMessage> _messageConsumer;
     private readonly IRabbitService _rabbitService;
     private readonly SemaphoreSlim _conLock = new SemaphoreSlim(1, 1);
     private bool _shutdown;
@@ -42,7 +42,7 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
     public Subscriber(
         ILogger<Subscriber<TMessageConsumer, TQueueMessage>> logger,
         IRabbitService rabbitService,
-        IQueueSubscriber<Letter> messageConsumer)
+        IQueueSubscriber<BaseSubscriberMessage> messageConsumer)
     {
         _logger = logger ??
             throw new ArgumentNullException(nameof(logger));
@@ -156,7 +156,8 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
 
         try
         {
-            await _messageConsumer.ConsumeAsync(receivedData.Letter);
+            var eventAsJson = _rabbitService.SerializationProvider.Deserialize<TQueueMessage>(receivedData.Letter.Body);
+            await _messageConsumer.ConsumeAsync(eventAsJson);
         }
         catch (Exception ex)
         {
