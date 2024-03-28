@@ -17,4 +17,7 @@ public interface IWorkState
 
     // Outbound
     byte[] SendData { get; set; }
+
+    // Metrics
+    IDictionary<string, string> MetricTags { get; set; }
 }

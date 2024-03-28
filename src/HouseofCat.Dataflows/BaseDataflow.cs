@@ -62,13 +62,14 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
         ExecutionDataflowBlockOptions options,
         string metricIdentifier,
         bool metricMicroScale = false,
+        string metricUnit = null,
         string metricDescription = null)
     {
         TState WrapAction(TState state)
         {
             try
             {
-                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
+                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricUnit, metricDescription, state.MetricTags);
                 return action(state);
             }
             catch (Exception ex)
@@ -87,13 +88,14 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
         ExecutionDataflowBlockOptions options,
         string metricIdentifier,
         bool metricMicroScale = false,
+        string metricUnit = null,
         string metricDescription = null)
     {
         async Task<TState> WrapActionAsync(TState state)
         {
             try
             {
-                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
+                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricUnit, metricDescription, state.MetricTags);
                 return await action(state).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -112,13 +114,14 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
         ExecutionDataflowBlockOptions options,
         string metricIdentifier,
         bool metricMicroScale = false,
+        string metricUnit = null,
         string metricDescription = null)
     {
         void WrapAction(TState state)
         {
             try
             {
-                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
+                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricUnit, metricDescription, state.MetricTags);
                 action(state);
             }
             catch
@@ -133,13 +136,14 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
         ExecutionDataflowBlockOptions options,
         string metricIdentifier,
         bool metricMicroScale = false,
+        string metricUnit = null,
         string metricDescription = null)
     {
         void WrapAction(TState state)
         {
             try
             {
-                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
+                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricUnit, metricDescription, state.MetricTags);
                 action(state);
             }
             catch
@@ -154,13 +158,14 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
         ExecutionDataflowBlockOptions options,
         string metricIdentifier,
         bool metricMicroScale = false,
+        string metricUnit = null,
         string metricDescription = null)
     {
         async Task WrapActionAsync(TState state)
         {
             try
             {
-                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
+                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricUnit, metricDescription, state.MetricTags);
                 await action(state).ConfigureAwait(false);
             }
             catch

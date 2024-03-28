@@ -143,25 +143,27 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
         bool microScale = false,
         string unit = null,
         string description = null,
-        Dictionary<string, string> tags = null)
+        IDictionary<string, string> tags = null)
     {
         return GetActivity(name, tags);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IDisposable Trace(string name, Dictionary<string, string> tags = null)
+    public IDisposable Trace(
+        string name,
+        IDictionary<string, string> metricTags = null)
     {
-        return GetActivity(name, tags);
+        return GetActivity(name, metricTags);
     }
 
-    private Activity GetActivity(string name, Dictionary<string, string> tags)
+    private Activity GetActivity(string name, IDictionary<string, string> metricTags)
     {
         var activity = _activitySource.StartActivity(name);
         if (activity is not null
-            && tags is not null
+            && metricTags is not null
             && activity.IsAllDataRequested)
         {
-            foreach (var tag in tags)
+            foreach (var tag in metricTags)
             {
                 activity.SetTag(tag.Key, tag.Value);
             }

@@ -46,7 +46,7 @@ public class Topologer : ITopologer
 
         if (config.Exchanges != null)
         {
-            for (int i = 0; i < config.Exchanges.Length; i++)
+            for (var i = 0; i < config.Exchanges.Length; i++)
             {
                 try
                 {
@@ -63,7 +63,7 @@ public class Topologer : ITopologer
 
         if (config.Queues != null)
         {
-            for (int i = 0; i < config.Queues.Length; i++)
+            for (var i = 0; i < config.Queues.Length; i++)
             {
                 try
                 {
@@ -80,7 +80,7 @@ public class Topologer : ITopologer
 
         if (config.ExchangeBindings != null)
         {
-            for (int i = 0; i < config.ExchangeBindings.Length; i++)
+            for (var i = 0; i < config.ExchangeBindings.Length; i++)
             {
                 try
                 {
@@ -96,7 +96,7 @@ public class Topologer : ITopologer
 
         if (config.QueueBindings != null)
         {
-            for (int i = 0; i < config.QueueBindings.Length; i++)
+            for (var i = 0; i < config.QueueBindings.Length; i++)
             {
                 try
                 {
@@ -114,77 +114,12 @@ public class Topologer : ITopologer
     public async Task CreateTopologyFromFileAsync(string fileNamePath)
     {
         if (string.IsNullOrWhiteSpace(fileNamePath)) throw new ArgumentNullException(nameof(fileNamePath));
-        if (!File.Exists(fileNamePath)) throw new FileNotFoundException(fileNamePath);
 
         var config = await JsonFileReader
             .ReadFileAsync<TopologyConfig>(fileNamePath)
             .ConfigureAwait(false);
 
-        if (config.Exchanges != null)
-        {
-            for (int i = 0; i < config.Exchanges.Length; i++)
-            {
-                try
-                {
-                    await CreateExchangeAsync(
-                        config.Exchanges[i].Name,
-                        config.Exchanges[i].Type,
-                        config.Exchanges[i].Durable,
-                        config.Exchanges[i].AutoDelete,
-                        config.Exchanges[i].Args).ConfigureAwait(false);
-                }
-                catch { /* SWALLOW */ }
-            }
-        }
-
-        if (config.Queues != null)
-        {
-            for (int i = 0; i < config.Queues.Length; i++)
-            {
-                try
-                {
-                    await CreateQueueAsync(
-                        config.Queues[i].Name,
-                        config.Queues[i].Durable,
-                        config.Queues[i].Exclusive,
-                        config.Queues[i].AutoDelete,
-                        config.Queues[i].Args).ConfigureAwait(false);
-                }
-                catch { /* SWALLOW */ }
-            }
-        }
-
-        if (config.ExchangeBindings != null)
-        {
-            for (int i = 0; i < config.ExchangeBindings.Length; i++)
-            {
-                try
-                {
-                    await BindExchangeToExchangeAsync(
-                        config.ExchangeBindings[i].ChildExchange,
-                        config.ExchangeBindings[i].ParentExchange,
-                        config.ExchangeBindings[i].RoutingKey,
-                        config.ExchangeBindings[i].Args).ConfigureAwait(false);
-                }
-                catch { /* SWALLOW */ }
-            }
-        }
-
-        if (config.QueueBindings != null)
-        {
-            for (int i = 0; i < config.QueueBindings.Length; i++)
-            {
-                try
-                {
-                    await BindQueueToExchangeAsync(
-                        config.QueueBindings[i].QueueName,
-                        config.QueueBindings[i].ExchangeName,
-                        config.QueueBindings[i].RoutingKey,
-                        config.QueueBindings[i].Args).ConfigureAwait(false);
-                }
-                catch { /* SWALLOW */ }
-            }
-        }
+        await CreateTopologyAsync(config).ConfigureAwait(false);
     }
 
     /// <summary>

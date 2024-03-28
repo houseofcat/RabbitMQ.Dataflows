@@ -28,4 +28,6 @@ public abstract class RabbitWorkState : IRabbitWorkState
     public virtual string StepIdentifier { get; set; }
     public bool IsFaulted { get; set; }
     public ExceptionDispatchInfo EDI { get; set; }
+
+    public IDictionary<string, string> MetricTags { get; set; }
 }

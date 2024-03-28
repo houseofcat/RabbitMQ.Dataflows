@@ -645,13 +645,14 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         Predicate<TState> predicate,
         string metricIdentifier,
         bool metricMicroScale = false,
+        string metricUnit = null,
         string metricDescription = null)
     {
         TState WrapAction(TState state)
         {
             try
             {
-                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
+                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricUnit, metricDescription, state.MetricTags);
 
                 if (outbound)
                 {
@@ -693,13 +694,14 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         Predicate<TState> predicate,
         string metricIdentifier,
         bool metricMicroScale = false,
+        string metricUnit = null,
         string metricDescription = null)
     {
         async Task<TState> WrapActionAsync(TState state)
         {
             try
             {
-                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricDescription);
+                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricUnit, metricDescription, state.MetricTags);
 
                 if (outbound)
                 {
@@ -742,7 +744,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         {
             try
             {
-                using var multiDispose = _metricsProvider.TrackAndDuration(PublishStepIdentifier, true);
+                using var multiDispose = _metricsProvider.TrackAndDuration(PublishStepIdentifier, true, metricTags: state.MetricTags);
 
                 await service.Publisher.PublishAsync(state.SendMessage, true, true).ConfigureAwait(false);
                 state.SendMessageSent = true;

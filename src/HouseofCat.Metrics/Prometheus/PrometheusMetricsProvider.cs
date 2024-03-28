@@ -186,14 +186,22 @@ public class PrometheusMetricsProvider : IMetricsProvider, IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IDisposable TrackAndDuration(string name, bool microScale = false, string unit = null, string description = null, Dictionary<string, string> tags = null)
+    public IDisposable TrackAndDuration(
+        string name,
+        bool microScale = false,
+        string unit = null,
+        string description = null,
+        IDictionary<string, string> metricTags = null)
     {
         var duration = Duration(name, microScale, description: description);
         var track = Track(name, description: description);
         return new MultiDispose(duration, track);
     }
 
-    public IDisposable Trace(string name, Dictionary<string, string> tags = null)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IDisposable Trace(
+        string name,
+        IDictionary<string, string> metricTags = null)
     {
         return null;
     }
