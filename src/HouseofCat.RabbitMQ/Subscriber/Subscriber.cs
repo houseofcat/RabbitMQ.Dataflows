@@ -24,7 +24,7 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
     where TQueueMessage : BaseSubscriberMessage
 {
     private readonly ILogger<Subscriber<TMessageConsumer, TQueueMessage>> _logger;
-    private readonly IQueueSubscriber<BaseSubscriberMessage> _messageConsumer;
+    private readonly IQueueSubscriber<TQueueMessage> _messageConsumer;
     private readonly IRabbitService _rabbitService;
     private readonly SemaphoreSlim _conLock = new SemaphoreSlim(1, 1);
     private bool _shutdown;
@@ -42,7 +42,7 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
     public Subscriber(
         ILogger<Subscriber<TMessageConsumer, TQueueMessage>> logger,
         IRabbitService rabbitService,
-        IQueueSubscriber<BaseSubscriberMessage> messageConsumer)
+        IQueueSubscriber<TQueueMessage> messageConsumer)
     {
         _logger = logger ??
             throw new ArgumentNullException(nameof(logger));
@@ -53,8 +53,6 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
         _rabbitService = rabbitService ??
             throw new ArgumentNullException(nameof(rabbitService));
     }
-
-    private IChannelHost _channelHost { get; set; }
 
     public Task StartAsync(CancellationToken stoppingToken)
     {
@@ -72,7 +70,6 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
     {
         try
         {
-            _channelHost = _rabbitService.ChannelPool.GetChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             StartInternal();
         }
         catch (Exception ex)
@@ -88,7 +85,8 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
     {
         _logger.LogInformation("Starting RabbitMQ connection on a background thread");
 
-        var consumerChannel = _channelHost.GetChannel() ?? throw new InvalidOperationException("RabbitMQ connection is not open");
+        var channelHost = _rabbitService.ChannelPool.GetChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        var consumerChannel = channelHost.GetChannel() ?? throw new InvalidOperationException("RabbitMQ connection is not open");
 
         var consumer = new AsyncEventingBasicConsumer(consumerChannel);
 
@@ -127,8 +125,10 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
 
         try
         {
-            await ProcessEvent(activity, eventName, new ReceivedData(_channelHost.GetChannel(), eventArgs, !autoAck));
-            _channelHost.GetChannel().BasicAck(eventArgs.DeliveryTag, multiple: false);
+            var channelHost = _rabbitService.ChannelPool.GetChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            var receivedData = new ReceivedData(channelHost.GetChannel(), eventArgs, autoAck);
+            await ProcessEvent(activity, eventName, receivedData);
+            receivedData.AckMessage();
         }
         catch (Exception ex)
         {
@@ -162,8 +162,9 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error has been raise the consumer ");
+            var channelHost = _rabbitService.ChannelPool.GetChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             // Reject the message
-            _channelHost.GetChannel().BasicReject(receivedData.DeliveryTag, requeue: false);
+            channelHost.GetChannel().BasicReject(receivedData.DeliveryTag, requeue: false);
         }
 
     }
@@ -200,7 +201,8 @@ public class Subscriber<TMessageConsumer, TQueueMessage> : IHostedService
             bool success;
             do
             {
-                success = await _channelHost.BuildRabbitMQChannelAsync().ConfigureAwait(false);
+                var channelHost = _rabbitService.ChannelPool.GetChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                success = await channelHost.BuildRabbitMQChannelAsync().ConfigureAwait(false);
 
                 if (success)
                 {

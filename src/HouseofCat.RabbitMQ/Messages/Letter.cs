@@ -3,6 +3,7 @@ using HouseofCat.Serialization;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace HouseofCat.RabbitMQ;
 
@@ -11,6 +12,7 @@ public interface IMessage
     string MessageId { get; set; }
     Envelope Envelope { get; set; }
     ReadOnlyMemory<byte> Body { get; set; }
+    ActivityContext? ActivityContext { get; set; }
 
     IMetadata GetMetadata();
 
@@ -31,9 +33,11 @@ public class Letter : IMessage
 {
     public Envelope Envelope { get; set; }
     public string MessageId { get; set; }
+    public ActivityContext? ActivityContext { get; set; }
 
     public LetterMetadata LetterMetadata { get; set; }
     public ReadOnlyMemory<byte> Body { get; set; }
+
 
     public IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders)
     {
