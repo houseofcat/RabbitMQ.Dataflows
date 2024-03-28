@@ -1,20 +1,22 @@
 using HouseofCat.Compression;
 using HouseofCat.Encryption;
-using HouseofCat.Utilities;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
+using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.Time;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using System.Diagnostics;
-using OpenTelemetry.Context.Propagation;
 
 namespace HouseofCat.RabbitMQ;
 
@@ -98,7 +100,9 @@ public class Publisher : IPublisher, IDisposable
 
     public string TimeFormat { get; set; } = Time.Formats.CatsAltFormat;
 
-    private static readonly ActivitySource ActivitySource = new(nameof(Publisher));
+    private static readonly ActivitySource _activitySource =
+        new ActivitySource(Assembly.GetEntryAssembly().GetName().Name ?? "HouseofCat.RabbitMQ");
+
     private static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
 
     public Publisher(
@@ -167,7 +171,7 @@ public class Publisher : IPublisher, IDisposable
         _pubLock.Wait();
 
         try { SetupPublisher(processReceiptAsync); }
-        finally { _pubLock.Release(); }
+        finally { _ = _pubLock.Release(); }
     }
 
     public async Task StartAutoPublishAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
@@ -175,7 +179,7 @@ public class Publisher : IPublisher, IDisposable
         await _pubLock.WaitAsync().ConfigureAwait(false);
 
         try { SetupPublisher(processReceiptAsync); }
-        finally { _pubLock.Release(); }
+        finally { _ = _pubLock.Release(); }
     }
 
     private void SetupPublisher(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
@@ -223,7 +227,7 @@ public class Publisher : IPublisher, IDisposable
             }
         }
         finally
-        { _pubLock.Release(); }
+        { _ = _pubLock.Release(); }
     }
 
     public ChannelReader<IPublishReceipt> GetReceiptBufferReader()
@@ -235,18 +239,26 @@ public class Publisher : IPublisher, IDisposable
 
     public void QueueMessage(IMessage message)
     {
-        if (!AutoPublisherStarted) throw new InvalidOperationException(ExceptionMessages.AutoPublisherNotStartedError);
+        if (!AutoPublisherStarted)
+        {
+            throw new InvalidOperationException(ExceptionMessages.AutoPublisherNotStartedError);
+        }
+
         Guard.AgainstNull(message, nameof(message));
 
-        var metadata = message.GetMetadata();
+        IMetadata metadata = message.GetMetadata();
         _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, metadata?.Id);
 
-        _messageQueue.Writer.TryWrite(message);
+        _ = _messageQueue.Writer.TryWrite(message);
     }
 
     public async ValueTask QueueMessageAsync(IMessage message)
     {
-        if (!AutoPublisherStarted) throw new InvalidOperationException(ExceptionMessages.AutoPublisherNotStartedError);
+        if (!AutoPublisherStarted)
+        {
+            throw new InvalidOperationException(ExceptionMessages.AutoPublisherNotStartedError);
+        }
+
         Guard.AgainstNull(message, nameof(message));
 
         if (!await _messageQueue
@@ -257,7 +269,7 @@ public class Publisher : IPublisher, IDisposable
             throw new InvalidOperationException(ExceptionMessages.QueueChannelError);
         }
 
-        var metadata = message.GetMetadata();
+        IMetadata metadata = message.GetMetadata();
         _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, metadata?.Id);
 
         await _messageQueue
@@ -271,12 +283,12 @@ public class Publisher : IPublisher, IDisposable
         await Task.Yield();
         while (await channelReader.WaitToReadAsync().ConfigureAwait(false))
         {
-            while (channelReader.TryRead(out var message))
+            while (channelReader.TryRead(out IMessage message))
             {
                 if (message == null)
                 { continue; }
 
-                var metadata = message.GetMetadata();
+                IMetadata metadata = message.GetMetadata();
 
                 if (_compress)
                 {
@@ -306,7 +318,7 @@ public class Publisher : IPublisher, IDisposable
     private async Task ProcessReceiptsAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync)
     {
         await Task.Yield();
-        await foreach (var receipt in _receiptBuffer.Reader.ReadAllAsync())
+        await foreach (IPublishReceipt receipt in _receiptBuffer.Reader.ReadAllAsync())
         {
             await processReceiptAsync(receipt).ConfigureAwait(false);
         }
@@ -315,7 +327,7 @@ public class Publisher : IPublisher, IDisposable
     // Super simple version to bake in requeueing of all failed to publish messages.
     private async ValueTask ProcessReceiptAsync(IPublishReceipt receipt)
     {
-        var originalMessage = receipt.GetOriginalMessage();
+        IMessage originalMessage = receipt.GetOriginalMessage();
         if (receipt.IsError && originalMessage != null)
         {
             if (AutoPublisherStarted)
@@ -349,8 +361,8 @@ public class Publisher : IPublisher, IDisposable
     {
         Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
 
-        var error = false;
-        var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+        bool error = false;
+        IChannelHost channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
         if (messageProperties == null)
         {
             messageProperties = channelHost.GetChannel().CreateBasicProperties();
@@ -403,8 +415,8 @@ public class Publisher : IPublisher, IDisposable
     {
         Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
 
-        var error = false;
-        var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+        bool error = false;
+        IChannelHost channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
 
         try
         {
@@ -446,8 +458,8 @@ public class Publisher : IPublisher, IDisposable
         Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
         Guard.AgainstNullOrEmpty(payloads, nameof(payloads));
 
-        var error = false;
-        var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+        bool error = false;
+        IChannelHost channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
         if (messageProperties == null)
         {
             messageProperties = channelHost.GetChannel().CreateBasicProperties();
@@ -465,7 +477,7 @@ public class Publisher : IPublisher, IDisposable
 
         try
         {
-            var batch = channelHost.GetChannel().CreateBasicPublishBatch();
+            IBasicPublishBatch batch = channelHost.GetChannel().CreateBasicPublishBatch();
 
             for (int i = 0; i < payloads.Count; i++)
             {
@@ -504,12 +516,12 @@ public class Publisher : IPublisher, IDisposable
         Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
         Guard.AgainstNullOrEmpty(payloads, nameof(payloads));
 
-        var error = false;
-        var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
+        bool error = false;
+        IChannelHost channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
 
         try
         {
-            var batch = channelHost.GetChannel().CreateBasicPublishBatch();
+            IBasicPublishBatch batch = channelHost.GetChannel().CreateBasicPublishBatch();
 
             for (int i = 0; i < payloads.Count; i++)
             {
@@ -545,32 +557,39 @@ public class Publisher : IPublisher, IDisposable
     /// <param name="withOptionalHeaders"></param>
     public async Task PublishAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true)
     {
-        var error = false;
-        var chanHost = await _channelPool
+        bool error = false;
+        IChannelHost channelHost = await _channelPool
             .GetChannelAsync()
             .ConfigureAwait(false);
 
-        var activityName = $"{message.Envelope.RoutingKey} send";
+        string activityName = $"{message.Envelope.RoutingKey} send";
         // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-name
 
-        using var activity = ActivitySource.StartActivity(activityName, ActivityKind.Producer);
+        using Activity activity = _activitySource.StartActivity(activityName, ActivityKind.Producer);
 
         try
         {
-            var body = message.GetBodyToPublish(_serializationProvider);
+            ReadOnlyMemory<byte> body = message.GetBodyToPublish(_serializationProvider);
 
             ActivityContext contextToInject = default;
-            if (activity != null)
-            {
-                contextToInject = activity.Context;
-            }
-            else if (Activity.Current != null)
+            if (Activity.Current != null)
             {
                 contextToInject = Activity.Current.Context;
             }
-            var basicProperties = message.BuildProperties(chanHost, withOptionalHeaders)
-            chanHost
+
+            else if (activity != null)
+            {
+                contextToInject = activity.Context;
+            }
+
+            IBasicProperties basicProperties = message.BuildProperties(channelHost, withOptionalHeaders);
+            AddMessagingTags(activity, message);
+            // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
+            Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), basicProperties, InjectTraceContextIntoBasicProperties);
+
+
+            channelHost
                 .GetChannel()
                 .BasicPublish(
                     message.Envelope.Exchange,
@@ -598,7 +617,7 @@ public class Publisher : IPublisher, IDisposable
             }
 
             await _channelPool
-                .ReturnChannelAsync(chanHost, error);
+                .ReturnChannelAsync(channelHost, error);
         }
     }
 
@@ -612,8 +631,8 @@ public class Publisher : IPublisher, IDisposable
     /// <param name="withOptionalHeaders"></param>
     public async Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true)
     {
-        var error = false;
-        var chanHost = await _channelPool
+        bool error = false;
+        IChannelHost chanHost = await _channelPool
             .GetAckChannelAsync()
             .ConfigureAwait(false);
 
@@ -663,8 +682,8 @@ public class Publisher : IPublisher, IDisposable
     /// <param name="withOptionalHeaders"></param>
     public async Task PublishManyAsync(IList<IMessage> messages, bool createReceipt, bool withOptionalHeaders = true)
     {
-        var error = false;
-        var chanHost = await _channelPool
+        bool error = false;
+        IChannelHost chanHost = await _channelPool
             .GetChannelAsync()
             .ConfigureAwait(false);
 
@@ -708,8 +727,8 @@ public class Publisher : IPublisher, IDisposable
     /// <param name="withOptionalHeaders"></param>
     public async Task PublishManyAsBatchAsync(IList<IMessage> messages, bool createReceipt, bool withOptionalHeaders = true)
     {
-        var error = false;
-        var chanHost = await _channelPool
+        bool error = false;
+        IChannelHost chanHost = await _channelPool
             .GetChannelAsync()
             .ConfigureAwait(false);
 
@@ -717,7 +736,7 @@ public class Publisher : IPublisher, IDisposable
         {
             if (messages.Count > 0)
             {
-                var publishBatch = chanHost.GetChannel().CreateBasicPublishBatch();
+                IBasicPublishBatch publishBatch = chanHost.GetChannel().CreateBasicPublishBatch();
                 for (int i = 0; i < messages.Count; i++)
                 {
                     publishBatch.Add(
@@ -781,7 +800,7 @@ public class Publisher : IPublisher, IDisposable
         byte? priority = 0,
         byte? deliveryMode = 2)
     {
-        var props = channelHost.GetChannel().CreateBasicProperties();
+        IBasicProperties props = channelHost.GetChannel().CreateBasicProperties();
         props.DeliveryMode = deliveryMode ?? 2; // Default Persisted
         props.Priority = priority ?? 0; // Default Priority
         props.MessageId = messageId ?? Guid.NewGuid().ToString();
@@ -793,7 +812,7 @@ public class Publisher : IPublisher, IDisposable
 
         if (headers?.Count > 0)
         {
-            foreach (var kvp in headers)
+            foreach (KeyValuePair<string, object> kvp in headers)
             {
                 if (kvp.Key.StartsWith(Constants.HeaderPrefix, StringComparison.OrdinalIgnoreCase))
                 {
@@ -823,6 +842,31 @@ public class Publisher : IPublisher, IDisposable
         }
     }
 
+    private void InjectTraceContextIntoBasicProperties(IBasicProperties props, string key, string value)
+    {
+        try
+        {
+            props.Headers ??= new Dictionary<string, object>();
+
+            props.Headers[key] = value;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to inject trace context.");
+        }
+    }
+    public static void AddMessagingTags(Activity activity, IMessage message)
+    {
+        // See:
+        //   * https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#messaging-attributes
+        //   * https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/rabbitmq.md
+        activity?.SetTag("messaging.system", "rabbitmq");
+        activity?.SetTag("messaging.destination_kind", "queue");
+        activity?.SetTag("messaging.destination", message.Envelope.Exchange);
+        activity?.SetTag("messaging.rabbitmq.routing_key", message.Envelope.RoutingKey);
+        activity?.SetTag("messaging.message.id", message.MessageId);
+        activity?.SetTag("messaging.operation", "publish");
+    }
     public void Dispose()
     {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

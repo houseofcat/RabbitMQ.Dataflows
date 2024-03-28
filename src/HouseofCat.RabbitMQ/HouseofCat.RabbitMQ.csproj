@@ -4,6 +4,7 @@
 		<PackageTags>C# RabbitMQ Cooked Rabbit CookedRabbit NetCore HouseofCat</PackageTags>
 	</PropertyGroup>
 	<ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
     <PackageReference Include="OpenTelemetry" Version="1.7.0" />
     <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
 		<PackageReference Include="RabbitMQ.Client.OAuth2" Version="1.0.0" />
