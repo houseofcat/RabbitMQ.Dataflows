@@ -23,7 +23,11 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
 
     private bool _disposedValue;
 
-    public OpenTelemetryMetricsProvider(IMeterFactory meterFactory, string meterName, string activitySourceName = null, string activityVersion = null)
+    public OpenTelemetryMetricsProvider(
+        IMeterFactory meterFactory,
+        string meterName,
+        string activitySourceName = null,
+        string activityVersion = null)
     {
         Guard.AgainstNull(meterFactory, nameof(meterFactory));
         Guard.AgainstNullOrEmpty(meterName, nameof(meterName));

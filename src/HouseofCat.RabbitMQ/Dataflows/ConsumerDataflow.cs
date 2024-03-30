@@ -534,7 +534,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         // Link all user steps.
         if (_suppliedTransforms?.Count > 0)
         {
-            for (int i = 0; i < _suppliedTransforms.Count; i++)
+            for (var i = 0; i < _suppliedTransforms.Count; i++)
             {
                 if (i == 0)
                 { LinkWithFaultRoute(_currentBlock, _suppliedTransforms[i], x => x.IsFaulted, overrideOptions ?? _linkStepOptions); }
@@ -582,8 +582,6 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
     #region Step Wrappers
 
-    private static string RootSpanIdentifier => "{0}_RootSpan_{1}";
-
     public virtual TState BuildState<TOut>(string key, ReceivedData data)
     {
         var state = new TState
@@ -592,33 +590,27 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             Data = new Dictionary<string, object>()
         };
 
-        // If the SerializationProvider was assigned, use it, else it's raw bytes.
         if (_serializationProvider != null)
         { state.Data[key] = _serializationProvider.Deserialize<TOut>(data.Data); }
         else
         { state.Data[key] = data.Data; }
 
-        state.SetWorkflowNameAsOpenTelemetrySourceName(WorkflowName);
 
-        var spanAttributes = new SpanAttributes();
-        spanAttributes.Add(nameof(WorkflowName), WorkflowName);
-        spanAttributes.Add(nameof(_consumerOptions.ConsumerName), _consumerOptions.ConsumerName);
+        var attributes = new List<KeyValuePair<string, string>>()
+        {
+            KeyValuePair.Create(nameof(_consumerOptions.ConsumerName), _consumerOptions.ConsumerName)
+        };
+
         if (state.ReceivedData?.Letter?.MessageId is not null)
         {
-            spanAttributes.Add(nameof(state.ReceivedData.Letter.MessageId), state.ReceivedData.Letter.MessageId);
+            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedData.Letter.MessageId), state.ReceivedData.Letter.MessageId));
         }
         if (state.ReceivedData?.Letter?.Metadata?.Id is not null)
         {
-            spanAttributes.Add(nameof(state.ReceivedData.Letter.Metadata.Id), state.ReceivedData.Letter.Metadata.Id);
+            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedData.Letter.Metadata.Id), state.ReceivedData.Letter.Metadata.Id));
         }
 
-        state.StartRootSpan(
-            string.Format(
-                RootSpanIdentifier,
-                WorkflowName,
-                state.ReceivedData?.Letter?.MessageId ?? Guid.NewGuid().ToString()),
-            SpanKind.Consumer,
-            spanAttributes);
+        state.StartRootSpan(WorkflowName, spanKind: SpanKind.Consumer, suppliedAttributes: attributes);
 
         return state;
     }

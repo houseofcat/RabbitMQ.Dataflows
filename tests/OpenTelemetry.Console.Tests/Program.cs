@@ -19,7 +19,7 @@ using var traceProvider = Sdk
     .AddConsoleExporter()
     .Build();
 
-SpanTests.RunRootSpanWithChildSpanErrorTest(logger, workflowName);
+WorkStateTests.RunRootSpanWithChildSpanErrorTest(logger, workflowName);
 
 logger.LogInformation("Tests complete! Press return to exit....");
 
