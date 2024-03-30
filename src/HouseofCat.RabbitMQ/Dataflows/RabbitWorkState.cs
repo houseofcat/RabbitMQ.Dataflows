@@ -31,7 +31,5 @@ public abstract class RabbitWorkState : IRabbitWorkState
     public bool IsFaulted { get; set; }
     public ExceptionDispatchInfo EDI { get; set; }
 
-    public IDictionary<string, string> MetricTags { get; set; }
-
     public TelemetrySpan RootSpan { get; set; }
 }

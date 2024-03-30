@@ -14,7 +14,9 @@ public class RoutingOptions
     [Range(0, 10, ErrorMessage = Constants.RangeErrorMessage)]
     public byte PriorityLevel { get; set; }
 
-    public string MessageType { get; set; } = $"{Enums.ContentType.Json.Description()} {Enums.Charset.Utf8.Description()}";
+    private static readonly string _jsonContentType = "application/json;";
+
+    public string ContentType { get; set; } = _jsonContentType;
 
     public static RoutingOptions CreateDefaultRoutingOptions(byte priority = 0)
     {

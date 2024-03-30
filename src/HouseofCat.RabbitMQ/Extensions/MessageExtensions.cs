@@ -50,7 +50,7 @@ public static class MessageExtensions
         var props = channelHost.GetChannel().CreateBasicProperties();
 
         props.DeliveryMode = message.Envelope.RoutingOptions.DeliveryMode;
-        props.ContentType = new string(message.Envelope.RoutingOptions.MessageType);
+        props.ContentType = new string(message.Envelope.RoutingOptions.ContentType);
         props.Priority = message.Envelope.RoutingOptions.PriorityLevel;
         props.MessageId = message.MessageId == null
             ? new string(message.MessageId)

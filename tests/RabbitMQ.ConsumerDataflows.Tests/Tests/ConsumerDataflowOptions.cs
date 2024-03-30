@@ -22,6 +22,6 @@ public sealed class ConsumerDataflowOptions
             WorkflowName,
             ConsumerName,
             ConsumerCount)
-            .WithBuildState<string>(WorkStateKey);
+            .WithBuildState();
     }
 }

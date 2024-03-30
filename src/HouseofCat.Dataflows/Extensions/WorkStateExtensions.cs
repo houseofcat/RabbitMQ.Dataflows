@@ -205,7 +205,6 @@ public static class WorkStateExtensions
         {
             state.SetOpenTelemetryError();
         }
-        state.RootSpan?.End();
         state.RootSpan?.Dispose();
     }
 }

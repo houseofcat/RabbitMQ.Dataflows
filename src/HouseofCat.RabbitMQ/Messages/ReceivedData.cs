@@ -13,6 +13,7 @@ public interface IReceivedData
     IModel Channel { get; set; }
 
     string ContentType { get; }
+    string ObjectType { get; }
     bool Encrypted { get; }
     string EncryptionType { get; }
     DateTime EncryptedDateTime { get; }
@@ -50,6 +51,7 @@ public class ReceivedData : IReceivedData, IDisposable
 
     // Headers
     public string ContentType { get; private set; }
+    public string ObjectType { get; private set; }
     public bool Encrypted { get; private set; }
     public string EncryptionType { get; private set; }
     public DateTime EncryptedDateTime { get; private set; }
@@ -92,12 +94,19 @@ public class ReceivedData : IReceivedData, IDisposable
 
     private void ReadHeaders()
     {
-        if (Properties?.Headers != null && Properties.Headers.TryGetValue(Constants.HeaderForObjectType, out object objectType))
-        {
-            ContentType = Encoding.UTF8.GetString((byte[])objectType);
+        if (Properties?.Headers is null) return;
 
-            // ADD SERIALIZER TO HEADER AND && JSON THIS ONE
-            if (ContentType == Constants.HeaderValueForMessage && Data.Length > 0)
+        if (Properties.Headers.TryGetValue(Constants.HeaderForObjectType, out object objectType))
+        {
+            ObjectType = Encoding.UTF8.GetString((byte[])objectType);
+
+            if (Properties.Headers.TryGetValue(Constants.HeaderForObjectType, out object contentType))
+            {
+                ContentType = Encoding.UTF8.GetString((byte[])contentType);
+            }
+
+            if (ObjectType == Constants.HeaderValueForMessageObjectType
+                && Data.Length > 0)
             {
                 try
                 { Letter = JsonSerializer.Deserialize<Letter>(Data.Span); }
@@ -122,7 +131,11 @@ public class ReceivedData : IReceivedData, IDisposable
         }
         else
         {
-            ContentType = Constants.HeaderValueForUnknown;
+            ObjectType = Constants.HeaderValueForUnknownObjectType;
+            if (Properties.Headers.TryGetValue(Constants.HeaderForContentType, out object contentType))
+            {
+                ContentType = Encoding.UTF8.GetString((byte[])contentType);
+            }
         }
     }
 

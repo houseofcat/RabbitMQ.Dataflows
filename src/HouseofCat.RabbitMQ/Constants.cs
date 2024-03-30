@@ -9,10 +9,12 @@ public static class Constants
     public static string HeaderPrefix { get; set; } = "X-";
 
     // Consumer
+    public static string HeaderForContentType { get; set; } = "ContentType";
+    public static string HeaderValueForContentTypeApplicationJson { get; set; } = "application/json;";
     public static string HeaderForObjectType { get; set; } = "X-RD-OBJECTTYPE";
-    public static string HeaderValueForMessage { get; set; } = "IMESSAGE";
+    public static string HeaderValueForMessageObjectType { get; set; } = "IMESSAGE";
 
-    public static string HeaderValueForUnknown { get; set; } = "UNKNOWN";
+    public static string HeaderValueForUnknownObjectType { get; set; } = "UNK";
     public static string HeaderForEncrypted { get; set; } = "X-RD-ENCRYPTED";
     public static string HeaderForEncryption { get; set; } = "X-RD-ENCRYPTION";
     public static string HeaderForEncryptDate { get; set; } = "X-RD-ENCRYPTDATE";

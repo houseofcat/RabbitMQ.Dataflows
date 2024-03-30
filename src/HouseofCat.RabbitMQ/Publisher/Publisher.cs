@@ -1,8 +1,8 @@
 using HouseofCat.Compression;
 using HouseofCat.Encryption;
-using HouseofCat.Utilities;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
+using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.Time;
 using Microsoft.Extensions.Logging;
@@ -359,7 +359,7 @@ public class Publisher : IPublisher, IDisposable
         }
 
         // Non-optional Header.
-        messageProperties.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessage;
+        messageProperties.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
 
         try
         {
@@ -456,7 +456,7 @@ public class Publisher : IPublisher, IDisposable
         }
 
         // Non-optional Header.
-        messageProperties.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessage;
+        messageProperties.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
 
         try
         {
@@ -781,7 +781,7 @@ public class Publisher : IPublisher, IDisposable
         }
 
         // Non-optional Header.
-        props.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessage;
+        props.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
 
         return props;
     }

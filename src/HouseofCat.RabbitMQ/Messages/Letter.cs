@@ -43,7 +43,7 @@ public class Letter : IMessage
         props.MessageId = MessageId;
 
         // Non-optional Header.
-        props.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessage;
+        props.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
 
         return props;
     }

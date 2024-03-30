@@ -233,7 +233,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         {
             _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _errorAction = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler");
+            _errorAction = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}.ErrorHandler");
         }
         return this;
     }
@@ -250,7 +250,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         {
             _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _errorAction = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler");
+            _errorAction = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}.ErrorHandler");
         }
         return this;
     }
@@ -309,7 +309,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         if (_finalization == null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _finalization = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}_Finalization");
+            _finalization = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}.Finalization");
         }
         return this;
     }
@@ -325,12 +325,26 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         if (_finalization == null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _finalization = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}_Finalization");
+            _finalization = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}.Finalization");
         }
         return this;
     }
 
-    public ConsumerDataflow<TState> WithBuildState<TOut>(
+    public ConsumerDataflow<TState> WithBuildState(
+        int? maxDoP = null,
+        bool? ensureOrdered = null,
+        int? boundedCapacity = null,
+        TaskScheduler taskScheduler = null)
+    {
+        if (_buildStateBlock == null)
+        {
+            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+            _buildStateBlock = GetBuildStateBlock(executionOptions);
+        }
+        return this;
+    }
+
+    public ConsumerDataflow<TState> WithBuildStateAndPayload<TOut>(
         string stateKey,
         int? maxDoP = null,
         bool? ensureOrdered = null,
@@ -342,7 +356,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         if (_buildStateBlock == null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _buildStateBlock = GetBuildStateBlock<TOut>(stateKey, executionOptions);
+            _buildStateBlock = GetBuildStateWithPayloadBlock<TOut>(stateKey, executionOptions);
         }
         return this;
     }
@@ -582,7 +596,34 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
     #region Step Wrappers
 
-    public virtual TState BuildState<TOut>(string key, ReceivedData data)
+    public virtual TState BuildState(ReceivedData data)
+    {
+        var state = new TState
+        {
+            ReceivedData = data,
+            Data = new Dictionary<string, object>()
+        };
+
+        var attributes = new List<KeyValuePair<string, string>>()
+        {
+            KeyValuePair.Create(nameof(_consumerOptions.ConsumerName), _consumerOptions.ConsumerName)
+        };
+
+        if (state.ReceivedData?.Letter?.MessageId is not null)
+        {
+            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedData.Letter.MessageId), state.ReceivedData.Letter.MessageId));
+        }
+        if (state.ReceivedData?.Letter?.Metadata?.Id is not null)
+        {
+            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedData.Letter.Metadata.Id), state.ReceivedData.Letter.Metadata.Id));
+        }
+
+        state.StartRootSpan(WorkflowName, spanKind: SpanKind.Consumer, suppliedAttributes: attributes);
+
+        return state;
+    }
+
+    public virtual TState BuildStateAndPayload<TOut>(string key, ReceivedData data)
     {
         var state = new TState
         {
@@ -607,31 +648,38 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         state.StartRootSpan(WorkflowName, spanKind: SpanKind.Consumer, suppliedAttributes: attributes);
 
         if (_serializationProvider != null
-            && data.ContentType != Constants.HeaderValueForUnknown)
+            && data.ObjectType != Constants.HeaderValueForUnknownObjectType)
         {
             try
             { state.Data[key] = _serializationProvider.Deserialize<TOut>(data.Data); }
-            catch (Exception ex)
-            {
-                state.IsFaulted = true;
-                state.EDI = ExceptionDispatchInfo.Capture(ex);
-                return state;
-            }
+            catch { }
         }
-        else
-        { state.Data[key] = data.Data; }
 
         return state;
     }
 
-    public TransformBlock<ReceivedData, TState> GetBuildStateBlock<TOut>(
+    public TransformBlock<ReceivedData, TState> GetBuildStateWithPayloadBlock<TOut>(
         string key,
         ExecutionDataflowBlockOptions options)
     {
         TState BuildStateWrap(ReceivedData data)
         {
             try
-            { return BuildState<TOut>(key, data); }
+            { return BuildStateAndPayload<TOut>(key, data); }
+            catch
+            { return null; }
+        }
+
+        return new TransformBlock<ReceivedData, TState>(BuildStateWrap, options);
+    }
+
+    public TransformBlock<ReceivedData, TState> GetBuildStateBlock(
+        ExecutionDataflowBlockOptions options)
+    {
+        TState BuildStateWrap(ReceivedData data)
+        {
+            try
+            { return BuildState(data); }
             catch
             { return null; }
         }
@@ -660,7 +708,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 }
                 else if (predicate.Invoke(state))
                 {
-                    if (state.ReceivedData.ContentType == Constants.HeaderValueForMessage)
+                    if (state.ReceivedData.ObjectType == Constants.HeaderValueForMessageObjectType)
                     {
                         if (state.ReceivedData.Letter == null)
                         { state.ReceivedData.Letter = _serializationProvider.Deserialize<Letter>(state.ReceivedData.Data); }
@@ -708,7 +756,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 }
                 else if (predicate.Invoke(state))
                 {
-                    if (state.ReceivedData.ContentType == Constants.HeaderValueForMessage)
+                    if (state.ReceivedData.ObjectType == Constants.HeaderValueForMessageObjectType)
                     {
                         if (state.ReceivedData.Letter == null)
                         { state.ReceivedData.Letter = _serializationProvider.Deserialize<Letter>(state.ReceivedData.Data); }
