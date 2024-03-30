@@ -2,7 +2,7 @@
 using RabbitMQ.Client;
 using System.Text;
 
-namespace RabbitMQ.Console.Tests;
+namespace RabbitMQ.ConsoleTests;
 
 public static class BasicGetTests
 {

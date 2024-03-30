@@ -124,9 +124,9 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
             {
                 childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
                 childSpan?.RecordException(ex);
-                childSpan?.Dispose();
             }
 
+            childSpan?.Dispose();
             state.EndRootSpan();
         }
 
@@ -144,15 +144,14 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
             try
             {
                 action(state);
-                childSpan.Dispose();
             }
             catch (Exception ex)
             {
                 childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
                 childSpan?.RecordException(ex);
-                childSpan?.Dispose();
             }
 
+            childSpan?.Dispose();
             state.EndRootSpan();
         }
 
@@ -170,15 +169,14 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
             try
             {
                 await action(state).ConfigureAwait(false);
-                childSpan.Dispose();
             }
             catch (Exception ex)
             {
                 childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
                 childSpan?.RecordException(ex);
-                childSpan?.Dispose();
             }
 
+            childSpan?.Dispose();
             state.EndRootSpan();
         }
 

@@ -2,10 +2,11 @@
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Text;
 using System.Threading.Channels;
 
-namespace RabbitMQ.Console.Tests;
+namespace RabbitMQ.ConsoleTests;
 
 public static class PublisherTests
 {
