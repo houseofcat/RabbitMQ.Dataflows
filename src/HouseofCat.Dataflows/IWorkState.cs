@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using OpenTelemetry.Trace;
+using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 
 namespace HouseofCat.Dataflows;
@@ -18,6 +19,6 @@ public interface IWorkState
     // Outbound
     byte[] SendData { get; set; }
 
-    // Metrics
-    IDictionary<string, string> MetricTags { get; set; }
+    // RootSpan
+    TelemetrySpan RootSpan { get; set; }
 }

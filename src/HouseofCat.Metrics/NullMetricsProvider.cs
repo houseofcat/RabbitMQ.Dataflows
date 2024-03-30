@@ -1,5 +1,7 @@
-﻿using System;
+﻿using OpenTelemetry.Trace;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace HouseofCat.Metrics;
@@ -48,6 +50,7 @@ public class NullMetricsProvider : IMetricsProvider
         bool microScale = false,
         string unit = null,
         string description = null,
+        ActivityKind activityKind = ActivityKind.Internal,
         IDictionary<string, string> metricTags = null)
     {
         return null;
@@ -56,7 +59,33 @@ public class NullMetricsProvider : IMetricsProvider
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IDisposable Trace(
         string name,
+        ActivityKind activityKind = ActivityKind.Internal,
         IDictionary<string, string> metricTags = null)
+    {
+        return null;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IDisposable GetSpan(
+        string name,
+        SpanKind spanKind = SpanKind.Internal,
+        IDictionary<string, string> metricTags = null)
+    {
+        return null;
+    }
+
+    public IDisposable GetChildSpan(
+        string name,
+        SpanKind spanKind = SpanKind.Internal,
+        IDictionary<string, string> metricTags = null)
+    {
+        return null;
+    }
+
+    public IDisposable GetChildSpan(
+        string name,
+        SpanKind spanKind = SpanKind.Internal,
+        SpanContext parentSpanContext = default)
     {
         return null;
     }

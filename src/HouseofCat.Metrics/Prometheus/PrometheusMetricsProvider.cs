@@ -1,11 +1,13 @@
 ﻿using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
+using OpenTelemetry.Trace;
 using Prometheus;
 using Prometheus.DotNetRuntime;
 using Prometheus.DotNetRuntime.Metrics.Producers;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace HouseofCat.Metrics;
@@ -191,6 +193,7 @@ public class PrometheusMetricsProvider : IMetricsProvider, IDisposable
         bool microScale = false,
         string unit = null,
         string description = null,
+        ActivityKind activityKind = ActivityKind.Internal,
         IDictionary<string, string> metricTags = null)
     {
         var duration = Duration(name, microScale, description: description);
@@ -201,7 +204,33 @@ public class PrometheusMetricsProvider : IMetricsProvider, IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IDisposable Trace(
         string name,
+        ActivityKind activityKind = ActivityKind.Internal,
         IDictionary<string, string> metricTags = null)
+    {
+        return null;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IDisposable GetSpan(
+        string name,
+        SpanKind spanKind = SpanKind.Internal,
+        IDictionary<string, string> metricTags = null)
+    {
+        return null;
+    }
+
+    public IDisposable GetChildSpan(
+        string name,
+        SpanKind spanKind = SpanKind.Internal,
+        IDictionary<string, string> metricTags = null)
+    {
+        return null;
+    }
+
+    public IDisposable GetChildSpan(
+        string name,
+        SpanKind spanKind = SpanKind.Internal,
+        SpanContext parentSpanContext = default)
     {
         return null;
     }

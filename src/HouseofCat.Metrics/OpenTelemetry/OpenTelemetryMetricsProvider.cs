@@ -1,4 +1,5 @@
 ﻿using HouseofCat.Utilities.Errors;
+using OpenTelemetry.Trace;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
     private readonly Meter _meter;
     private readonly string _meterName;
     private readonly ActivitySource _activitySource;
+    private readonly Tracer _tracer;
 
     public ConcurrentDictionary<string, object> Counters { get; } = new ConcurrentDictionary<string, object>();
     public ConcurrentDictionary<string, object> Gauges { get; } = new ConcurrentDictionary<string, object>();
@@ -30,6 +32,7 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
         _meterName = meterName;
 
         _meter = _factory.Create(_meterName);
+        _tracer = TracerProvider.Default.GetTracer(activitySourceName);
         _activitySource = new ActivitySource(activitySourceName ?? "HouseofCat.Metrics", activityVersion);
     }
 
@@ -143,25 +146,37 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
         bool microScale = false,
         string unit = null,
         string description = null,
+        ActivityKind activityKind = ActivityKind.Internal,
         IDictionary<string, string> tags = null)
     {
-        return GetActivity(name, tags);
+        return GetActivity(name, activityKind, tags);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IDisposable Trace(
         string name,
+        ActivityKind activityKind = ActivityKind.Internal,
         IDictionary<string, string> metricTags = null)
     {
-        return GetActivity(name, metricTags);
+        return GetActivity(name, activityKind, metricTags);
     }
 
-    private Activity GetActivity(string name, IDictionary<string, string> metricTags)
+    private Activity GetActivity(
+        string name,
+        ActivityKind activityKind = ActivityKind.Internal,
+        IDictionary<string, string> metricTags = null)
     {
-        var activity = _activitySource.StartActivity(name);
-        if (activity is not null
-            && metricTags is not null
-            && activity.IsAllDataRequested)
+        var parentActivity = Activity.Current;
+
+        Activity activity;
+        if (parentActivity is not null)
+        { activity = _activitySource?.StartActivity(name, activityKind, parentActivity.Context); }
+        else
+        { activity = _activitySource?.StartActivity(name, activityKind); }
+
+        if (activity is null) return null;
+
+        if (metricTags is not null && activity.IsAllDataRequested)
         {
             foreach (var tag in metricTags)
             {
@@ -170,6 +185,67 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
         }
 
         return activity;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IDisposable GetSpan(
+        string name,
+        SpanKind spanKind = SpanKind.Internal,
+        IDictionary<string, string> metricTags = null)
+    {
+        return GetDefaultTelemetrySpan(name, false, spanKind, metricTags);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IDisposable GetChildSpan(
+        string name,
+        SpanKind spanKind = SpanKind.Internal,
+        IDictionary<string, string> metricTags = null)
+    {
+        return GetDefaultTelemetrySpan(name, true, spanKind, metricTags);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IDisposable GetChildSpan(
+        string name,
+        SpanKind spanKind = SpanKind.Internal,
+        SpanContext parentSpanContext = default)
+    {
+        return GetChildTelemetrySpan(name, spanKind, parentSpanContext);
+    }
+
+    private TelemetrySpan GetDefaultTelemetrySpan(
+        string name,
+        bool childSpanOfCurrent = false,
+        SpanKind spanKind = SpanKind.Internal,
+        IDictionary<string, string> metricTags = null)
+    {
+        if (childSpanOfCurrent)
+        {
+            var parentSpan = Tracer.CurrentSpan;
+            if (parentSpan is not null) return _tracer?.StartActiveSpan(name, spanKind, parentSpan.Context);
+        }
+
+        var span = _tracer?.StartActiveSpan(name);
+        if (span is null) return null;
+
+        if (metricTags is not null)
+        {
+            foreach (var tag in metricTags)
+            {
+                span.SetAttribute(tag.Key, tag.Value);
+            }
+        }
+
+        return span;
+    }
+
+    private TelemetrySpan GetChildTelemetrySpan(
+        string name,
+        SpanKind spanKind = SpanKind.Internal,
+        SpanContext parentSpanContext = default)
+    {
+        return _tracer?.StartActiveSpan(name, spanKind, parentSpanContext);
     }
 
     #endregion

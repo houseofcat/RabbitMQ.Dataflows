@@ -83,7 +83,7 @@ public static class MessageExtensions
         return new Letter
         {
             MessageId = Guid.NewGuid().ToString(),
-            LetterMetadata = new LetterMetadata(),
+            Metadata = new LetterMetadata(),
             Envelope = new Envelope
             {
                 Exchange = string.Empty,

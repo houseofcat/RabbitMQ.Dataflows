@@ -1,7 +1,8 @@
 ﻿using HouseofCat.Compression;
+using HouseofCat.Dataflows.Extensions;
 using HouseofCat.Encryption;
-using HouseofCat.Metrics;
 using HouseofCat.Serialization;
+using OpenTelemetry.Trace;
 using System;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
@@ -17,7 +18,6 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     protected ISerializationProvider _serializationProvider;
     protected IEncryptionProvider _encryptionProvider;
     protected ICompressionProvider _compressProvider;
-    protected IMetricsProvider _metricsProvider;
 
     protected ISourceBlock<TState> _currentBlock;
     public Task Completion { get; protected set; }
@@ -60,20 +60,20 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     public TransformBlock<TState, TState> GetWrappedTransformBlock(
         Func<TState, TState> action,
         ExecutionDataflowBlockOptions options,
-        string metricIdentifier,
-        bool metricMicroScale = false,
-        string metricUnit = null,
-        string metricDescription = null)
+        string metricIdentifier)
     {
         TState WrapAction(TState state)
         {
+            using var childSpan = state.CreateActiveSpan(metricIdentifier, SpanKind.Consumer);
             try
             {
-                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricUnit, metricDescription, state.MetricTags);
+
                 return action(state);
             }
             catch (Exception ex)
             {
+                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
+                childSpan?.RecordException(ex);
                 state.IsFaulted = true;
                 state.EDI = ExceptionDispatchInfo.Capture(ex);
                 return state;
@@ -86,20 +86,19 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     public TransformBlock<TState, TState> GetWrappedTransformBlock(
         Func<TState, Task<TState>> action,
         ExecutionDataflowBlockOptions options,
-        string metricIdentifier,
-        bool metricMicroScale = false,
-        string metricUnit = null,
-        string metricDescription = null)
+        string metricIdentifier)
     {
         async Task<TState> WrapActionAsync(TState state)
         {
+            using var childSpan = state.CreateActiveSpan(metricIdentifier, SpanKind.Consumer);
             try
             {
-                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricUnit, metricDescription, state.MetricTags);
                 return await action(state).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
+                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
+                childSpan?.RecordException(ex);
                 state.IsFaulted = true;
                 state.EDI = ExceptionDispatchInfo.Capture(ex);
                 return state;
@@ -112,20 +111,20 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     public ActionBlock<TState> GetWrappedActionBlock(
         Action<TState> action,
         ExecutionDataflowBlockOptions options,
-        string metricIdentifier,
-        bool metricMicroScale = false,
-        string metricUnit = null,
-        string metricDescription = null)
+        string spanName)
     {
         void WrapAction(TState state)
         {
+            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
             try
             {
-                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricUnit, metricDescription, state.MetricTags);
                 action(state);
             }
-            catch
-            { /* Actions are terminating block, so swallow (maybe log) */ }
+            catch (Exception ex)
+            {
+                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
+                childSpan?.RecordException(ex);
+            }
         }
 
         return new ActionBlock<TState>(WrapAction, options);
@@ -134,20 +133,20 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     public ActionBlock<TState> GetWrappedActionBlock(
         Func<TState, TState> action,
         ExecutionDataflowBlockOptions options,
-        string metricIdentifier,
-        bool metricMicroScale = false,
-        string metricUnit = null,
-        string metricDescription = null)
+        string spanName)
     {
         void WrapAction(TState state)
         {
+            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
             try
             {
-                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricUnit, metricDescription, state.MetricTags);
                 action(state);
             }
-            catch
-            { /* Actions are terminating block, so swallow (maybe log) */ }
+            catch (Exception ex)
+            {
+                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
+                childSpan?.RecordException(ex);
+            }
         }
 
         return new ActionBlock<TState>(WrapAction, options);
@@ -156,20 +155,20 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     public ActionBlock<TState> GetWrappedActionBlock(
         Func<TState, Task> action,
         ExecutionDataflowBlockOptions options,
-        string metricIdentifier,
-        bool metricMicroScale = false,
-        string metricUnit = null,
-        string metricDescription = null)
+        string spanName)
     {
         async Task WrapActionAsync(TState state)
         {
+            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
             try
             {
-                using var multiDispose = _metricsProvider.TrackAndDuration(metricIdentifier, metricMicroScale, metricUnit, metricDescription, state.MetricTags);
                 await action(state).ConfigureAwait(false);
             }
-            catch
-            { /* Actions are terminating block, so swallow (maybe log) */ }
+            catch (Exception ex)
+            {
+                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
+                childSpan?.RecordException(ex);
+            }
         }
 
         return new ActionBlock<TState>(WrapActionAsync, options);

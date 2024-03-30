@@ -1,4 +1,5 @@
 ﻿using HouseofCat.Dataflows;
+using OpenTelemetry.Trace;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 using System.Runtime.Serialization;
@@ -30,4 +31,6 @@ public abstract class RabbitWorkState : IRabbitWorkState
     public ExceptionDispatchInfo EDI { get; set; }
 
     public IDictionary<string, string> MetricTags { get; set; }
+
+    public TelemetrySpan RootSpan { get; set; }
 }
