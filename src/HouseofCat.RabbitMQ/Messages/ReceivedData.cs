@@ -191,7 +191,6 @@ public class ReceivedData : IReceivedData, IDisposable
     /// </summary>
     public void Complete() => _completionSource.SetResult(true);
 
-
     protected virtual void Dispose(bool disposing)
     {
         if (!_disposedValue)

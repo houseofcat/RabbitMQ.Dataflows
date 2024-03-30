@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System.Text;
 
-namespace ConnectivityTests.Tests;
+namespace RabbitMQ.Console.Tests;
 
 public static class ConsumerTests
 {

@@ -1,7 +1,7 @@
 ﻿using HouseofCat.RabbitMQ;
 using Microsoft.Extensions.Logging;
 
-namespace ConnectivityTests.Tests;
+namespace RabbitMQ.Console.Tests;
 
 public static class RabbitServiceTests
 {

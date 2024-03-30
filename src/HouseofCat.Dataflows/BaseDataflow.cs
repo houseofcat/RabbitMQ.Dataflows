@@ -60,11 +60,11 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     public TransformBlock<TState, TState> GetWrappedTransformBlock(
         Func<TState, TState> action,
         ExecutionDataflowBlockOptions options,
-        string metricIdentifier)
+        string spanName)
     {
         TState WrapAction(TState state)
         {
-            using var childSpan = state.CreateActiveSpan(metricIdentifier, SpanKind.Consumer);
+            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
             try
             {
 
@@ -86,11 +86,11 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     public TransformBlock<TState, TState> GetWrappedTransformBlock(
         Func<TState, Task<TState>> action,
         ExecutionDataflowBlockOptions options,
-        string metricIdentifier)
+        string spanName)
     {
         async Task<TState> WrapActionAsync(TState state)
         {
-            using var childSpan = state.CreateActiveSpan(metricIdentifier, SpanKind.Consumer);
+            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
             try
             {
                 return await action(state).ConfigureAwait(false);
@@ -108,14 +108,14 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
         return new TransformBlock<TState, TState>(WrapActionAsync, options);
     }
 
-    public ActionBlock<TState> GetWrappedActionBlock(
+    public ActionBlock<TState> GetLastWrappedActionBlock(
         Action<TState> action,
         ExecutionDataflowBlockOptions options,
         string spanName)
     {
         void WrapAction(TState state)
         {
-            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
+            var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
             try
             {
                 action(state);
@@ -124,51 +124,62 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
             {
                 childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
                 childSpan?.RecordException(ex);
+                childSpan?.Dispose();
             }
+
+            state.EndRootSpan();
         }
 
         return new ActionBlock<TState>(WrapAction, options);
     }
 
-    public ActionBlock<TState> GetWrappedActionBlock(
+    public ActionBlock<TState> GetLastWrappedActionBlock(
         Func<TState, TState> action,
         ExecutionDataflowBlockOptions options,
         string spanName)
     {
         void WrapAction(TState state)
         {
-            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
+            var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
             try
             {
                 action(state);
+                childSpan.Dispose();
             }
             catch (Exception ex)
             {
                 childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
                 childSpan?.RecordException(ex);
+                childSpan?.Dispose();
             }
+
+            state.EndRootSpan();
         }
 
         return new ActionBlock<TState>(WrapAction, options);
     }
 
-    public ActionBlock<TState> GetWrappedActionBlock(
+    public ActionBlock<TState> GetLastWrappedActionBlock(
         Func<TState, Task> action,
         ExecutionDataflowBlockOptions options,
         string spanName)
     {
         async Task WrapActionAsync(TState state)
         {
-            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
+            var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
             try
             {
                 await action(state).ConfigureAwait(false);
+                childSpan.Dispose();
             }
             catch (Exception ex)
             {
                 childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
                 childSpan?.RecordException(ex);
+                childSpan?.Dispose();
             }
+
+            state.EndRootSpan();
         }
 
         return new ActionBlock<TState>(WrapActionAsync, options);

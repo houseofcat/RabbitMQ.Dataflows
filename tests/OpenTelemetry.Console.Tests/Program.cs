@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using OpenTelmetry.Tests;
+using OpenTelemetry.Tests;
 
 var loggerFactory = LogHelper.CreateConsoleLoggerFactory(LogLevel.Information);
 LogHelper.LoggerFactory = loggerFactory;

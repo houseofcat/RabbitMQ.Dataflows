@@ -9,14 +9,17 @@ using HouseofCat.Serialization;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace RabbitMQ.Console.Tests;
+namespace RabbitMQ.ConsumerDataflows.Tests;
 
 public static class Shared
 {
     public static readonly string ExchangeName = "TestExchange";
     public static readonly string QueueName = "TestQueue";
     public static readonly string RoutingKey = "TestRoutingKey";
+
+    public static readonly string ConsumerWorkflowName = "TestConsumerWorkflow";
     public static readonly string ConsumerName = "TestConsumer";
+    public static readonly string ErrorQueue = "TestQueue.Error";
 
     public static async Task<IChannelPool> SetupTestsAsync(ILogger logger, string configFileNamePath)
     {
@@ -39,6 +42,11 @@ public static class Shared
             RoutingKey);
 
         channel.QueueBind(QueueName, ExchangeName, RoutingKey);
+
+        logger.LogInformation(
+            "Publishing message to Exchange [{exchangeName}] with RoutingKey [{routingKey}]",
+            ExchangeName,
+            RoutingKey);
 
         channelHost.Close();
 

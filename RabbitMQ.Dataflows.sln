@@ -88,6 +88,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "rabbitmq", "rabbitmq", "{5C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Console.Tests", "tests\OpenTelemetry.Console.Tests\OpenTelemetry.Console.Tests.csproj", "{077E07C3-9A35-42A0-8228-E9778F02DFCE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.ConsumerDataflows.Tests", "tests\RabbitMQ.ConsumerDataflows.Tests\RabbitMQ.ConsumerDataflows.Tests.csproj", "{F6C0B657-E70B-4DE9-96AE-E7612C89AF5F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -142,6 +144,10 @@ Global
 		{077E07C3-9A35-42A0-8228-E9778F02DFCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{077E07C3-9A35-42A0-8228-E9778F02DFCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{077E07C3-9A35-42A0-8228-E9778F02DFCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6C0B657-E70B-4DE9-96AE-E7612C89AF5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6C0B657-E70B-4DE9-96AE-E7612C89AF5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6C0B657-E70B-4DE9-96AE-E7612C89AF5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6C0B657-E70B-4DE9-96AE-E7612C89AF5F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -167,6 +173,7 @@ Global
 		{528C015E-58FC-44B4-BAC5-05BCFCD506C9} = {D01D59E9-75CC-4C74-A887-22B0A55C994B}
 		{5C94F432-8229-4FFA-8DBF-AC1DEDE66265} = {1AB5E832-AD36-40AF-A7E9-A105A778116C}
 		{077E07C3-9A35-42A0-8228-E9778F02DFCE} = {D01D59E9-75CC-4C74-A887-22B0A55C994B}
+		{F6C0B657-E70B-4DE9-96AE-E7612C89AF5F} = {D01D59E9-75CC-4C74-A887-22B0A55C994B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D7099845-267C-4232-8764-5DF25D6B2C79}

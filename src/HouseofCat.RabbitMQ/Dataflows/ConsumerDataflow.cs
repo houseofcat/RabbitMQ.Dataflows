@@ -233,7 +233,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         {
             _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _errorAction = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler");
+            _errorAction = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler");
         }
         return this;
     }
@@ -250,7 +250,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         {
             _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _errorAction = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler");
+            _errorAction = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}_ErrorHandler");
         }
         return this;
     }
@@ -309,7 +309,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         if (_finalization == null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _finalization = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_Finalization");
+            _finalization = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}_Finalization");
         }
         return this;
     }
@@ -325,7 +325,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         if (_finalization == null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _finalization = GetWrappedActionBlock(action, executionOptions, $"{WorkflowName}_Finalization");
+            _finalization = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}_Finalization");
         }
         return this;
     }
@@ -590,12 +590,6 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             Data = new Dictionary<string, object>()
         };
 
-        if (_serializationProvider != null)
-        { state.Data[key] = _serializationProvider.Deserialize<TOut>(data.Data); }
-        else
-        { state.Data[key] = data.Data; }
-
-
         var attributes = new List<KeyValuePair<string, string>>()
         {
             KeyValuePair.Create(nameof(_consumerOptions.ConsumerName), _consumerOptions.ConsumerName)
@@ -611,6 +605,21 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         }
 
         state.StartRootSpan(WorkflowName, spanKind: SpanKind.Consumer, suppliedAttributes: attributes);
+
+        if (_serializationProvider != null
+            && data.ContentType != Constants.HeaderValueForUnknown)
+        {
+            try
+            { state.Data[key] = _serializationProvider.Deserialize<TOut>(data.Data); }
+            catch (Exception ex)
+            {
+                state.IsFaulted = true;
+                state.EDI = ExceptionDispatchInfo.Capture(ex);
+                return state;
+            }
+        }
+        else
+        { state.Data[key] = data.Data; }
 
         return state;
     }

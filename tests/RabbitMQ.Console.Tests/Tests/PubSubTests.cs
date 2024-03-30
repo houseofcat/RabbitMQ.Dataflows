@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Text.Json;
 
-namespace ConnectivityTests.Tests;
+namespace RabbitMQ.Console.Tests;
 
 public static class PubSubTests
 {

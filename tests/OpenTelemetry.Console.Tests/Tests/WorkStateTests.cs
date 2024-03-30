@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using static HouseofCat.Dataflows.Extensions.WorkStateExtensions;
 
-namespace OpenTelmetry.Tests;
+namespace OpenTelemetry.Tests;
 
 public static class WorkStateTests
 {

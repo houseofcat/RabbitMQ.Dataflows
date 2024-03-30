@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Threading.Channels;
 
-namespace ConnectivityTests.Tests;
+namespace RabbitMQ.Console.Tests;
 
 public static class PublisherTests
 {
