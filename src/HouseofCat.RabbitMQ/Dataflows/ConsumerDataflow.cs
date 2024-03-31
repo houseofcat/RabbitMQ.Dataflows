@@ -5,7 +5,6 @@ using HouseofCat.Encryption;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
-using HouseofCat.Utilities.Helpers;
 using OpenTelemetry.Trace;
 using System;
 using System.Collections.Generic;
@@ -345,23 +344,6 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return this;
     }
 
-    public ConsumerDataflow<TState> WithBuildStateAndPayload<TOut>(
-        string stateKey,
-        int? maxDoP = null,
-        bool? ensureOrdered = null,
-        int? boundedCapacity = null,
-        TaskScheduler taskScheduler = null)
-    {
-        Guard.AgainstNullOrEmpty(stateKey, nameof(stateKey));
-
-        if (_buildStateBlock == null)
-        {
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _buildStateBlock = GetBuildStateWithPayloadBlock<TOut>(stateKey, executionOptions);
-        }
-        return this;
-    }
-
     public ConsumerDataflow<TState> WithDecryptionStep(
         int? maxDoP = null,
         bool? ensureOrdered = null,
@@ -626,60 +608,6 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             traceHeader: data.TraceParentHeader);
 
         return state;
-    }
-
-    public virtual TState BuildStateAndObjectFromPayload<TOut>(string key, IReceivedMessage data)
-    {
-        var state = new TState
-        {
-            ReceivedMessage = data,
-            Data = new Dictionary<string, object>()
-        };
-
-        var attributes = new List<KeyValuePair<string, string>>()
-        {
-            KeyValuePair.Create(nameof(_consumerOptions.ConsumerName), _consumerOptions.ConsumerName)
-        };
-
-        if (state.ReceivedMessage?.Message?.MessageId is not null)
-        {
-            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedMessage.Message.MessageId), state.ReceivedMessage.Message.MessageId));
-        }
-        if (state.ReceivedMessage?.Message?.Metadata?.PayloadId is not null)
-        {
-            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedMessage.Message.Metadata.PayloadId), state.ReceivedMessage.Message.Metadata.PayloadId));
-        }
-
-        state.StartWorkflowSpan(
-            WorkflowName,
-            spanKind: SpanKind.Consumer,
-            suppliedAttributes: attributes,
-            traceHeader: data.TraceParentHeader);
-
-        if (_serializationProvider != null
-            && data.ObjectType != Constants.HeaderValueForUnknownObjectType)
-        {
-            try
-            { state.Data[key] = _serializationProvider.Deserialize<TOut>(data.Body); }
-            catch { }
-        }
-
-        return state;
-    }
-
-    public TransformBlock<IReceivedMessage, TState> GetBuildStateWithPayloadBlock<TOut>(
-        string key,
-        ExecutionDataflowBlockOptions options)
-    {
-        TState BuildStateWrap(IReceivedMessage data)
-        {
-            try
-            { return BuildStateAndObjectFromPayload<TOut>(key, data); }
-            catch
-            { return null; }
-        }
-
-        return new TransformBlock<IReceivedMessage, TState>(BuildStateWrap, options);
     }
 
     public TransformBlock<IReceivedMessage, TState> GetBuildStateBlock(
