@@ -26,7 +26,7 @@ dataflowService.AddStep(
     "WriteToRabbitMessageToConsole",
     (state) =>
     {
-        Console.WriteLine(Encoding.UTF8.GetString(state.ReceivedMessage.Data.Span));
+        Console.WriteLine(Encoding.UTF8.GetString(state.ReceivedMessage.Body.Span));
         return state;
     });
 

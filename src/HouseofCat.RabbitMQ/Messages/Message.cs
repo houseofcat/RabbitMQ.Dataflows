@@ -39,7 +39,7 @@ public interface IMessage
     IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders);
 }
 
-public class Message : IMessage
+public sealed class Message : IMessage
 {
     public string MessageId { get; set; }
 
@@ -51,7 +51,7 @@ public class Message : IMessage
 
     public bool Mandatory { get; set; }
 
-    // Max Priority Message level is 255, however, the max-queue priority though is 10, so > 10 is treated as 10.
+    // The max-queue priority though is 10, so > 10 is treated as 10.
     [Range(0, 10, ErrorMessage = Constants.RangeErrorMessage)]
     public byte PriorityLevel { get; set; }
 
@@ -80,20 +80,20 @@ public class Message : IMessage
     public Message(
         string exchange,
         string routingKey,
-        ReadOnlyMemory<byte> data,
+        ReadOnlyMemory<byte> body,
         Metadata metadata = null)
     {
         Exchange = exchange;
         RoutingKey = routingKey;
-        Body = data;
+        Body = body;
         Metadata = metadata ?? new Metadata();
     }
 
-    public Message(string exchange, string routingKey, ReadOnlyMemory<byte> data, string payloadId)
+    public Message(string exchange, string routingKey, ReadOnlyMemory<byte> body, string payloadId)
     {
         Exchange = exchange;
         RoutingKey = routingKey;
-        Body = data;
+        Body = body;
 
         if (!string.IsNullOrWhiteSpace(payloadId))
         { Metadata = new Metadata { PayloadId = payloadId }; }
@@ -101,11 +101,11 @@ public class Message : IMessage
         { Metadata = new Metadata(); }
     }
 
-    public Message(string exchange, string routingKey, byte[] data, string payloadId, byte priority)
+    public Message(string exchange, string routingKey, byte[] body, string payloadId, byte priority)
     {
         Exchange = exchange;
         RoutingKey = routingKey;
-        Body = data;
+        Body = body;
         PriorityLevel = priority;
         if (!string.IsNullOrWhiteSpace(payloadId))
         { Metadata = new Metadata { PayloadId = payloadId }; }

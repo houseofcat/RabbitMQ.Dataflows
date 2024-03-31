@@ -17,7 +17,7 @@ public static class ConsumerTests
 
             await foreach (var receivedMessage in consumer.StreamUntilConsumerStopAsync())
             {
-                logger.LogInformation("Received message: [{message}]", Encoding.UTF8.GetString(receivedMessage.Data.Span));
+                logger.LogInformation("Received message: [{message}]", Encoding.UTF8.GetString(receivedMessage.Body.Span));
                 receivedMessage.AckMessage();
             }
         }

@@ -20,7 +20,7 @@ public interface IReceivedMessage
     bool Compressed { get; }
     string CompressionType { get; }
 
-    ReadOnlyMemory<byte> Data { get; set; }
+    ReadOnlyMemory<byte> Body { get; set; }
     string ConsumerTag { get; }
     ulong DeliveryTag { get; }
     Message Message { get; set; }
@@ -35,7 +35,7 @@ public interface IReceivedMessage
     bool RejectMessage(bool requeue);
 }
 
-public class ReceivedMessage : IReceivedMessage, IDisposable
+public sealed class ReceivedMessage : IReceivedMessage, IDisposable
 {
     /// <summary>
     /// Indicates that the content was not deserializeable based on the provided headers.
@@ -46,10 +46,10 @@ public class ReceivedMessage : IReceivedMessage, IDisposable
     public IModel Channel { get; set; }
     public string ConsumerTag { get; }
     public ulong DeliveryTag { get; }
-    public ReadOnlyMemory<byte> Data { get; set; }
+    public ReadOnlyMemory<byte> Body { get; set; }
     public Message Message { get; set; }
 
-    // Headers
+    // Retrieved From Headers
     public string ContentType { get; private set; }
     public string ObjectType { get; private set; }
     public bool Encrypted { get; private set; }
@@ -73,7 +73,7 @@ public class ReceivedMessage : IReceivedMessage, IDisposable
         Channel = channel;
         DeliveryTag = result.DeliveryTag;
         Properties = result.BasicProperties;
-        Data = result.Body;
+        Body = result.Body;
 
         ReadHeaders();
     }
@@ -88,7 +88,7 @@ public class ReceivedMessage : IReceivedMessage, IDisposable
         ConsumerTag = args.ConsumerTag;
         DeliveryTag = args.DeliveryTag;
         Properties = args.BasicProperties;
-        Data = args.Body;
+        Body = args.Body;
 
         ReadHeaders();
     }
@@ -107,10 +107,10 @@ public class ReceivedMessage : IReceivedMessage, IDisposable
             }
 
             if (ObjectType == Constants.HeaderValueForMessageObjectType
-                && Data.Length > 0)
+                && Body.Length > 0)
             {
                 try
-                { Message = JsonSerializer.Deserialize<Message>(Data.Span); }
+                { Message = JsonSerializer.Deserialize<Message>(Body.Span); }
                 catch
                 { FailedToDeserialize = true; }
             }
@@ -210,7 +210,7 @@ public class ReceivedMessage : IReceivedMessage, IDisposable
     /// </summary>
     public void Complete() => _completionSource.SetResult(true);
 
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (!_disposedValue)
         {

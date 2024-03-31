@@ -18,7 +18,7 @@ public static class RabbitServiceTests
         var message = new Message(
             exchange: Shared.ExchangeName,
             routingKey: Shared.RoutingKey,
-            data: dataAsBytes,
+            body: dataAsBytes,
             payloadId: Guid.NewGuid().ToString());
 
         await rabbitService.Publisher.QueueMessageAsync(message);
@@ -49,7 +49,7 @@ public static class RabbitServiceTests
         var message = new Message(
             exchange: Shared.ExchangeName,
             routingKey: Shared.RoutingKey,
-            data: dataAsBytes,
+            body: dataAsBytes,
             payloadId: Guid.NewGuid().ToString());
 
         await rabbitService.Publisher.QueueMessageAsync(message);

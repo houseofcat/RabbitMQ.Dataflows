@@ -660,7 +660,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             && data.ObjectType != Constants.HeaderValueForUnknownObjectType)
         {
             try
-            { state.Data[key] = _serializationProvider.Deserialize<TOut>(data.Data); }
+            { state.Data[key] = _serializationProvider.Deserialize<TOut>(data.Body); }
             catch { }
         }
 
@@ -720,12 +720,12 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                     if (state.ReceivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType)
                     {
                         if (state.ReceivedMessage.Message == null)
-                        { state.ReceivedMessage.Message = _serializationProvider.Deserialize<Message>(state.ReceivedMessage.Data); }
+                        { state.ReceivedMessage.Message = _serializationProvider.Deserialize<Message>(state.ReceivedMessage.Body); }
 
                         state.ReceivedMessage.Message.Body = action(state.ReceivedMessage.Message.Body).ToArray();
                     }
                     else
-                    { state.ReceivedMessage.Data = action(state.ReceivedMessage.Data).ToArray(); }
+                    { state.ReceivedMessage.Body = action(state.ReceivedMessage.Body).ToArray(); }
                 }
 
                 return state;
@@ -768,12 +768,12 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                     if (state.ReceivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType)
                     {
                         if (state.ReceivedMessage.Message == null)
-                        { state.ReceivedMessage.Message = _serializationProvider.Deserialize<Message>(state.ReceivedMessage.Data); }
+                        { state.ReceivedMessage.Message = _serializationProvider.Deserialize<Message>(state.ReceivedMessage.Body); }
 
                         state.ReceivedMessage.Message.Body = await action(state.ReceivedMessage.Message.Body).ConfigureAwait(false);
                     }
                     else
-                    { state.ReceivedMessage.Data = await action(state.ReceivedMessage.Data).ConfigureAwait(false); }
+                    { state.ReceivedMessage.Body = await action(state.ReceivedMessage.Body).ConfigureAwait(false); }
                 }
                 return state;
             }

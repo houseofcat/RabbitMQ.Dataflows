@@ -11,10 +11,10 @@ public interface IMetadata
     Dictionary<string, object> CustomFields { get; set; }
 }
 
-public class Metadata : IMetadata
+public sealed class Metadata : IMetadata
 {
     /// <summary>
-    /// User supplied Id for tracking purposes. Allows identifying the inner payload without deserializing it first.
+    /// PayloadId is a user supplied Id for tracking purposes. Allows identifying the inner payload without needing to deserialize first.
     /// </summary>
     public string PayloadId { get; set; }
     public bool Encrypted { get; set; }

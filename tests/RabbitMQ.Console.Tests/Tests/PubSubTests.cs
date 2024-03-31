@@ -70,7 +70,7 @@ public static class PubSubTests
             {
                 try
                 {
-                    var message = JsonSerializer.Deserialize<Message>(receivedMessage.Data.Span);
+                    var message = JsonSerializer.Deserialize<Message>(receivedMessage.Body.Span);
                     var dataAsString = Encoding.UTF8.GetString(message.Body.Span);
 
                     if (dataAsString.StartsWith("exit"))
@@ -156,7 +156,7 @@ public static class PubSubTests
 
             await foreach (var receivedMessage in consumer.StreamUntilConsumerStopAsync())
             {
-                var message = JsonSerializer.Deserialize<Message>(receivedMessage.Data.Span);
+                var message = JsonSerializer.Deserialize<Message>(receivedMessage.Body.Span);
                 var number = Encoding.UTF8.GetString(message.Body.Span);
 
                 if (!hashSet.Add(number))
