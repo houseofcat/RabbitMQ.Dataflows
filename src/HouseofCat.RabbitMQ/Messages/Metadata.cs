@@ -4,7 +4,7 @@ namespace HouseofCat.RabbitMQ;
 
 public interface IMetadata
 {
-    string Id { get; }
+    string PayloadId { get; }
     bool Encrypted { get; set; }
     bool Compressed { get; set; }
 
@@ -14,9 +14,9 @@ public interface IMetadata
 public class Metadata : IMetadata
 {
     /// <summary>
-    /// An alternative Id field, intended to be user-supplied.
+    /// User supplied Id for tracking purposes. Allows identifying the inner payload without deserializing it first.
     /// </summary>
-    public string Id { get; set; }
+    public string PayloadId { get; set; }
     public bool Encrypted { get; set; }
     public bool Compressed { get; set; }
 

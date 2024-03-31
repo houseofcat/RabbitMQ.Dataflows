@@ -34,7 +34,7 @@ var rabbitOptions = new RabbitOptions
     PublisherOptions = new PublisherOptions
     {
         CreatePublishReceipts = true,
-        LetterQueueBufferSize = 10_000,
+        MessageQueueBufferSize = 10_000,
         BehaviorWhenFull = BoundedChannelFullMode.Wait,
         Compress = false,
         Encrypt = false,
@@ -61,7 +61,7 @@ try
 
     // Step 4: Create IMessage
     var data = Encoding.UTF8.GetBytes("Hello, RabbitMQ!");
-    var message = new Letter(Shared.ExchangeName, Shared.RoutingKey, data, Guid.NewGuid().ToString())
+    var message = new Message(Shared.ExchangeName, Shared.RoutingKey, data, Guid.NewGuid().ToString())
     {
         // DeliveryId for tracking/routing through Publisher/Consumer.
         MessageId = Guid.NewGuid().ToString(),

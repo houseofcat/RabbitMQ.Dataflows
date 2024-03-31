@@ -233,7 +233,7 @@ public class Publisher : IPublisher, IDisposable
         Guard.AgainstNull(message, nameof(message));
 
         var metadata = message.GetMetadata();
-        _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, metadata?.Id);
+        _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, metadata?.PayloadId);
 
         _messageQueue.Writer.TryWrite(message);
     }
@@ -252,7 +252,7 @@ public class Publisher : IPublisher, IDisposable
         }
 
         var metadata = message.GetMetadata();
-        _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, metadata?.Id);
+        _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, metadata?.PayloadId);
 
         await _messageQueue
             .Writer
@@ -289,7 +289,7 @@ public class Publisher : IPublisher, IDisposable
                     metadata.CustomFields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeHelpers.Formats.RFC3339Long);
                 }
 
-                _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.MessageId, metadata?.Id);
+                _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.MessageId, metadata?.PayloadId);
 
                 await PublishAsync(message, _createPublishReceipts, _withHeaders)
                     .ConfigureAwait(false);

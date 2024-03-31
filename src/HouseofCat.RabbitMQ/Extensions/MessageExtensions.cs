@@ -69,7 +69,7 @@ public static class MessageExtensions
         return props;
     }
 
-    public static IMessage CreateSimpleRandomLetter(string queueName, int bodySize = 1000)
+    public static IMessage CreateSimpleRandomMessage(string queueName, int bodySize = 1000)
     {
         var payload = new byte[bodySize];
         XorShift.FillBuffer(payload, 0, bodySize);
@@ -86,29 +86,29 @@ public static class MessageExtensions
         };
     }
 
-    public static IList<IMessage> CreateManySimpleRandomLetters(List<string> queueNames, int letterCount, int bodySize = 1000)
+    public static IList<IMessage> CreateManySimpleRandomMessages(List<string> queueNames, int messageCount, int bodySize = 1000)
     {
         var random = new Random();
-        var letters = new List<IMessage>();
+        var messages = new List<IMessage>();
 
         var queueCount = queueNames.Count;
-        for (var i = 0; i < letterCount; i++)
+        for (var i = 0; i < messageCount; i++)
         {
-            letters.Add(CreateSimpleRandomLetter(queueNames[random.Next(0, queueCount)], bodySize));
+            messages.Add(CreateSimpleRandomMessage(queueNames[random.Next(0, queueCount)], bodySize));
         }
 
-        return letters;
+        return messages;
     }
 
-    public static IList<IMessage> CreateManySimpleRandomLetters(string queueName, int letterCount, int bodySize = 1000)
+    public static IList<IMessage> CreateManySimpleRandomMessages(string queueName, int messageCount, int bodySize = 1000)
     {
-        var letters = new List<IMessage>();
+        var messages = new List<IMessage>();
 
-        for (var i = 0; i < letterCount; i++)
+        for (var i = 0; i < messageCount; i++)
         {
-            letters.Add(CreateSimpleRandomLetter(queueName, bodySize));
+            messages.Add(CreateSimpleRandomMessage(queueName, bodySize));
         }
 
-        return letters;
+        return messages;
     }
 }

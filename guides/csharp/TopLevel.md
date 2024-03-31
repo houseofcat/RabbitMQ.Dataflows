@@ -141,8 +141,8 @@ Let me copy in a basic HoC config with our consumer settings in it. This file ne
         "SleepOnErrorInterval": 1000
     },
     "PublisherOptions": {
-        "LetterQueueBufferSize": 100,
-        "PriorityLetterQueueBufferSize": 100,
+        "MessageQueueBufferSize": 100,
+        "PriorityMessageQueueBufferSize": 100,
         "BehaviorWhenFull": 0,
         "AutoPublisherSleepInterval": 0,
         "CreatePublishReceipts": true,

@@ -23,7 +23,7 @@ public interface IReceivedMessage
     ReadOnlyMemory<byte> Data { get; set; }
     string ConsumerTag { get; }
     ulong DeliveryTag { get; }
-    Message Letter { get; set; }
+    Message Message { get; set; }
 
     IBasicProperties Properties { get; }
 
@@ -47,7 +47,7 @@ public class ReceivedMessage : IReceivedMessage, IDisposable
     public string ConsumerTag { get; }
     public ulong DeliveryTag { get; }
     public ReadOnlyMemory<byte> Data { get; set; }
-    public Message Letter { get; set; }
+    public Message Message { get; set; }
 
     // Headers
     public string ContentType { get; private set; }
@@ -110,7 +110,7 @@ public class ReceivedMessage : IReceivedMessage, IDisposable
                 && Data.Length > 0)
             {
                 try
-                { Letter = JsonSerializer.Deserialize<Message>(Data.Span); }
+                { Message = JsonSerializer.Deserialize<Message>(Data.Span); }
                 catch
                 { FailedToDeserialize = true; }
             }
@@ -220,7 +220,7 @@ public class ReceivedMessage : IReceivedMessage, IDisposable
             }
 
             if (Channel != null) { Channel = null; }
-            if (Letter != null) { Letter = null; }
+            if (Message != null) { Message = null; }
 
             _disposedValue = true;
         }

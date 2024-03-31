@@ -51,7 +51,7 @@ public class Message : IMessage
 
     public bool Mandatory { get; set; }
 
-    // Max Priority letter level is 255, however, the max-queue priority though is 10, so > 10 is treated as 10.
+    // Max Priority Message level is 255, however, the max-queue priority though is 10, so > 10 is treated as 10.
     [Range(0, 10, ErrorMessage = Constants.RangeErrorMessage)]
     public byte PriorityLevel { get; set; }
 
@@ -89,25 +89,26 @@ public class Message : IMessage
         Metadata = metadata ?? new Metadata();
     }
 
-    public Message(string exchange, string routingKey, ReadOnlyMemory<byte> data, string id)
+    public Message(string exchange, string routingKey, ReadOnlyMemory<byte> data, string payloadId)
     {
         Exchange = exchange;
         RoutingKey = routingKey;
         Body = data;
 
-        if (!string.IsNullOrWhiteSpace(id))
-        { Metadata = new Metadata { Id = id }; }
+        if (!string.IsNullOrWhiteSpace(payloadId))
+        { Metadata = new Metadata { PayloadId = payloadId }; }
         else
         { Metadata = new Metadata(); }
     }
 
-    public Message(string exchange, string routingKey, byte[] data, string id, byte priority)
+    public Message(string exchange, string routingKey, byte[] data, string payloadId, byte priority)
     {
         Exchange = exchange;
         RoutingKey = routingKey;
         Body = data;
-        if (!string.IsNullOrWhiteSpace(id))
-        { Metadata = new Metadata { Id = id }; }
+        PriorityLevel = priority;
+        if (!string.IsNullOrWhiteSpace(payloadId))
+        { Metadata = new Metadata { PayloadId = payloadId }; }
         else
         { Metadata = new Metadata(); }
     }
@@ -135,5 +136,5 @@ public class Message : IMessage
         serializationProvider.Serialize(this).ToArray();
 
     public IPublishReceipt GetPublishReceipt(bool error) =>
-        new PublishReceipt { MessageId = MessageId, IsError = error, OriginalLetter = error ? this : null };
+        new PublishReceipt { MessageId = MessageId, IsError = error, OriginalMessage = error ? this : null };
 }

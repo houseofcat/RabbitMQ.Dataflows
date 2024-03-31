@@ -83,7 +83,7 @@ public static class PubSubTests
                     {
                         logger.LogInformation(
                             "Received message [Id: {MessageId}]: [{data}]",
-                            receivedData.Letter.MessageId,
+                            receivedData.Message.MessageId,
                             dataAsString);
 
                         receivedData.AckMessage();

@@ -32,7 +32,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     private readonly List<ConsumerBlock<ReceivedMessage>> _consumerBlocks;
     protected ITargetBlock<ReceivedMessage> _inputBuffer;
     private TransformBlock<ReceivedMessage, TState> _buildStateBlock;
-    private TransformBlock<TState, TState> _createSendLetter;
+    private TransformBlock<TState, TState> _createSendMessage;
     protected TransformBlock<TState, TState> _decryptBlock;
     protected TransformBlock<TState, TState> _decompressBlock;
 
@@ -44,7 +44,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     protected ITargetBlock<TState> _postProcessingBuffer;
     protected TransformBlock<TState, TState> _compressBlock;
     protected TransformBlock<TState, TState> _encryptBlock;
-    protected TransformBlock<TState, TState> _sendLetterBlock;
+    protected TransformBlock<TState, TState> _sendMessageBlock;
     protected ActionBlock<TState> _finalization;
 
     // Error/Fault Flow
@@ -377,7 +377,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 _encryptionProvider.Decrypt,
                 executionOptions,
                 false,
-                x => x.ReceivedData.Encrypted,
+                x => x.ReceivedMessage.Encrypted,
                 $"{WorkflowName}_Decrypt");
         }
         return this;
@@ -398,24 +398,24 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 _compressProvider.Decompress,
                 executionOptions,
                 false,
-                x => x.ReceivedData.Compressed,
+                x => x.ReceivedMessage.Compressed,
                 $"{WorkflowName}_Decompress");
         }
 
         return this;
     }
 
-    public ConsumerDataflow<TState> WithCreateSendLetter(
-        Func<TState, Task<TState>> createLetter,
+    public ConsumerDataflow<TState> WithCreateSendMessage(
+        Func<TState, Task<TState>> createMessage,
         int? maxDoP = null,
         bool? ensureOrdered = null,
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        if (_createSendLetter == null)
+        if (_createSendMessage == null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _createSendLetter = GetWrappedTransformBlock(createLetter, executionOptions, $"{WorkflowName}_CreateSendLetter");
+            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, $"{WorkflowName}_CreateSendMessage");
         }
         return this;
     }
@@ -435,7 +435,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 _compressProvider.Compress,
                 executionOptions,
                 true,
-                x => !x.ReceivedData.Compressed,
+                x => !x.ReceivedMessage.Compressed,
                 $"{WorkflowName}_Compress");
         }
         return this;
@@ -456,7 +456,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 _encryptionProvider.Encrypt,
                 executionOptions,
                 true,
-                x => !x.ReceivedData.Encrypted,
+                x => !x.ReceivedMessage.Encrypted,
                 $"{WorkflowName}_Encrypt");
         }
         return this;
@@ -468,10 +468,10 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        if (_sendLetterBlock == null)
+        if (_sendMessageBlock == null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _sendLetterBlock = GetWrappedPublishTransformBlock(_rabbitService, executionOptions);
+            _sendMessageBlock = GetWrappedPublishTransformBlock(_rabbitService, executionOptions);
         }
         return this;
     }
@@ -557,11 +557,11 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 { LinkWithFaultRoute(_suppliedTransforms[i - 1], _suppliedTransforms[i], x => x.IsFaulted, overrideOptions ?? _linkStepOptions); }
             }
 
-            // Link the last user step to PostProcessingBuffer/CreateSendLetter.
-            if (_createSendLetter != null)
+            // Link the last user step to PostProcessingBuffer/CreateSendMessage.
+            if (_createSendMessage != null)
             {
-                LinkWithFaultRoute(_suppliedTransforms[^1], _createSendLetter, x => x.IsFaulted, overrideOptions ?? _linkStepOptions);
-                _createSendLetter.LinkTo(_postProcessingBuffer, overrideOptions ?? _linkStepOptions);
+                LinkWithFaultRoute(_suppliedTransforms[^1], _createSendMessage, x => x.IsFaulted, overrideOptions ?? _linkStepOptions);
+                _createSendMessage.LinkTo(_postProcessingBuffer, overrideOptions ?? _linkStepOptions);
                 SetCurrentSourceBlock(_postProcessingBuffer);
             }
             else
@@ -580,8 +580,8 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         if (_encryptBlock != null)
         { LinkWithFaultRoute(_currentBlock, _encryptBlock, x => x.IsFaulted, overrideOptions); }
 
-        if (_sendLetterBlock != null)
-        { LinkWithFaultRoute(_currentBlock, _sendLetterBlock, x => x.IsFaulted, overrideOptions); }
+        if (_sendMessageBlock != null)
+        { LinkWithFaultRoute(_currentBlock, _sendMessageBlock, x => x.IsFaulted, overrideOptions); }
 
         _currentBlock.LinkTo(_finalization, overrideOptions ?? _linkStepOptions); // Last Action
     }
@@ -601,7 +601,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     {
         var state = new TState
         {
-            ReceivedData = data,
+            ReceivedMessage = data,
             Data = new Dictionary<string, object>()
         };
 
@@ -610,13 +610,13 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             KeyValuePair.Create(nameof(_consumerOptions.ConsumerName), _consumerOptions.ConsumerName)
         };
 
-        if (state.ReceivedData?.Letter?.MessageId is not null)
+        if (state.ReceivedMessage?.Message?.MessageId is not null)
         {
-            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedData.Letter.MessageId), state.ReceivedData.Letter.MessageId));
+            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedMessage.Message.MessageId), state.ReceivedMessage.Message.MessageId));
         }
-        if (state.ReceivedData?.Letter?.Metadata?.Id is not null)
+        if (state.ReceivedMessage?.Message?.Metadata?.PayloadId is not null)
         {
-            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedData.Letter.Metadata.Id), state.ReceivedData.Letter.Metadata.Id));
+            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedMessage.Message.Metadata.PayloadId), state.ReceivedMessage.Message.Metadata.PayloadId));
         }
 
         state.StartWorkflowSpan(
@@ -632,7 +632,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     {
         var state = new TState
         {
-            ReceivedData = data,
+            ReceivedMessage = data,
             Data = new Dictionary<string, object>()
         };
 
@@ -641,13 +641,13 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             KeyValuePair.Create(nameof(_consumerOptions.ConsumerName), _consumerOptions.ConsumerName)
         };
 
-        if (state.ReceivedData?.Letter?.MessageId is not null)
+        if (state.ReceivedMessage?.Message?.MessageId is not null)
         {
-            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedData.Letter.MessageId), state.ReceivedData.Letter.MessageId));
+            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedMessage.Message.MessageId), state.ReceivedMessage.Message.MessageId));
         }
-        if (state.ReceivedData?.Letter?.Metadata?.Id is not null)
+        if (state.ReceivedMessage?.Message?.Metadata?.PayloadId is not null)
         {
-            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedData.Letter.Metadata.Id), state.ReceivedData.Letter.Metadata.Id));
+            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedMessage.Message.Metadata.PayloadId), state.ReceivedMessage.Message.Metadata.PayloadId));
         }
 
         state.StartWorkflowSpan(
@@ -717,15 +717,15 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 }
                 else if (predicate.Invoke(state))
                 {
-                    if (state.ReceivedData.ObjectType == Constants.HeaderValueForMessageObjectType)
+                    if (state.ReceivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType)
                     {
-                        if (state.ReceivedData.Letter == null)
-                        { state.ReceivedData.Letter = _serializationProvider.Deserialize<Message>(state.ReceivedData.Data); }
+                        if (state.ReceivedMessage.Message == null)
+                        { state.ReceivedMessage.Message = _serializationProvider.Deserialize<Message>(state.ReceivedMessage.Data); }
 
-                        state.ReceivedData.Letter.Body = action(state.ReceivedData.Letter.Body).ToArray();
+                        state.ReceivedMessage.Message.Body = action(state.ReceivedMessage.Message.Body).ToArray();
                     }
                     else
-                    { state.ReceivedData.Data = action(state.ReceivedData.Data).ToArray(); }
+                    { state.ReceivedMessage.Data = action(state.ReceivedMessage.Data).ToArray(); }
                 }
 
                 return state;
@@ -765,15 +765,15 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 }
                 else if (predicate.Invoke(state))
                 {
-                    if (state.ReceivedData.ObjectType == Constants.HeaderValueForMessageObjectType)
+                    if (state.ReceivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType)
                     {
-                        if (state.ReceivedData.Letter == null)
-                        { state.ReceivedData.Letter = _serializationProvider.Deserialize<Message>(state.ReceivedData.Data); }
+                        if (state.ReceivedMessage.Message == null)
+                        { state.ReceivedMessage.Message = _serializationProvider.Deserialize<Message>(state.ReceivedMessage.Data); }
 
-                        state.ReceivedData.Letter.Body = await action(state.ReceivedData.Letter.Body).ConfigureAwait(false);
+                        state.ReceivedMessage.Message.Body = await action(state.ReceivedMessage.Message.Body).ConfigureAwait(false);
                     }
                     else
-                    { state.ReceivedData.Data = await action(state.ReceivedData.Data).ConfigureAwait(false); }
+                    { state.ReceivedMessage.Data = await action(state.ReceivedMessage.Data).ConfigureAwait(false); }
                 }
                 return state;
             }

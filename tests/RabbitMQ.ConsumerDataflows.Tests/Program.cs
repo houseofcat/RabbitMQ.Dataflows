@@ -26,7 +26,7 @@ dataflowService.AddStep(
     "WriteToRabbitMessageToConsole",
     (state) =>
     {
-        Console.WriteLine(Encoding.UTF8.GetString(state.ReceivedData.Data.Span));
+        Console.WriteLine(Encoding.UTF8.GetString(state.ReceivedMessage.Data.Span));
         return state;
     });
 
@@ -34,16 +34,16 @@ dataflowService.AddFinalization(
     (state) =>
     {
         logger.LogInformation("Finalization Step!");
-        state.ReceivedData.AckMessage();
-        state.ReceivedData.Complete();
+        state.ReceivedMessage.AckMessage();
+        state.ReceivedMessage.Complete();
     });
 
 dataflowService.AddErrorHandling(
     (state) =>
     {
         logger.LogError(state?.EDI?.SourceException, "Error Step!");
-        state?.ReceivedData?.NackMessage(requeue: true);
-        state?.ReceivedData?.Complete();
+        state?.ReceivedMessage?.NackMessage(requeue: true);
+        state?.ReceivedMessage?.Complete();
     });
 
 await dataflowService.StartAsync();

@@ -12,7 +12,7 @@ public struct PublishReceipt : IPublishReceipt
 {
     public bool IsError { get; set; }
     public string MessageId { get; set; }
-    public IMessage OriginalLetter { get; set; }
+    public IMessage OriginalMessage { get; set; }
 
-    public readonly IMessage GetOriginalMessage() => OriginalLetter;
+    public readonly IMessage GetOriginalMessage() => OriginalMessage;
 }

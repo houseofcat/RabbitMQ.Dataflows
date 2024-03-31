@@ -19,21 +19,21 @@ public static class RabbitServiceTests
             exchange: Shared.ExchangeName,
             routingKey: Shared.RoutingKey,
             data: dataAsBytes,
-            id: Guid.NewGuid().ToString());
+            payloadId: Guid.NewGuid().ToString());
 
         await rabbitService.Publisher.QueueMessageAsync(letter);
 
         // Ping pong the same message.
         await foreach (var receivedData in consumer.StreamUntilConsumerStopAsync())
         {
-            if (receivedData?.Letter is null)
+            if (receivedData?.Message is null)
             {
                 receivedData?.AckMessage();
                 continue;
             }
 
-            await rabbitService.DecomcryptAsync(receivedData.Letter);
-            await rabbitService.Publisher.QueueMessageAsync(receivedData.Letter);
+            await rabbitService.DecomcryptAsync(receivedData.Message);
+            await rabbitService.Publisher.QueueMessageAsync(receivedData.Message);
             receivedData.AckMessage();
         }
     }
@@ -50,21 +50,21 @@ public static class RabbitServiceTests
             exchange: Shared.ExchangeName,
             routingKey: Shared.RoutingKey,
             data: dataAsBytes,
-            id: Guid.NewGuid().ToString());
+            payloadId: Guid.NewGuid().ToString());
 
         await rabbitService.Publisher.QueueMessageAsync(letter);
 
         // Ping pong the same message.
         await foreach (var receivedData in consumer.StreamUntilConsumerStopAsync())
         {
-            if (receivedData?.Letter is null)
+            if (receivedData?.Message is null)
             {
                 receivedData?.AckMessage();
                 continue;
             }
 
-            await rabbitService.DecomcryptAsync(receivedData.Letter);
-            rabbitService.Publisher.QueueMessage(receivedData.Letter);
+            await rabbitService.DecomcryptAsync(receivedData.Message);
+            rabbitService.Publisher.QueueMessage(receivedData.Message);
             receivedData.AckMessage();
         }
     }
