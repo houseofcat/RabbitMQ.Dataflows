@@ -19,7 +19,7 @@ public interface IConnectionHost
 
     void AssignConnection(IConnection connection);
     void Close();
-    Task<bool> HealthyAsync();
+    bool Healthy();
 }
 
 public class ConnectionHost : IConnectionHost, IDisposable
@@ -32,8 +32,6 @@ public class ConnectionHost : IConnectionHost, IDisposable
     public bool Closed { get; private set; }
 
     private readonly ILogger<ConnectionHost> _logger;
-    private readonly SemaphoreSlim _hostLock = new SemaphoreSlim(1, 1);
-    private bool _disposedValue;
 
     public ConnectionHost(ulong connectionId, IConnection connection)
     {
@@ -45,8 +43,6 @@ public class ConnectionHost : IConnectionHost, IDisposable
 
     public void AssignConnection(IConnection connection)
     {
-        _hostLock.Wait();
-
         if (Connection != null)
         {
             Connection.ConnectionBlocked -= ConnectionBlocked;
@@ -65,32 +61,24 @@ public class ConnectionHost : IConnectionHost, IDisposable
         Connection.ConnectionBlocked += ConnectionBlocked;
         Connection.ConnectionUnblocked += ConnectionUnblocked;
         Connection.ConnectionShutdown += ConnectionClosed;
-
-        _hostLock.Release();
     }
 
     protected virtual void ConnectionClosed(object sender, ShutdownEventArgs e)
     {
-        _hostLock.Wait();
         _logger.LogWarning(e.ReplyText);
         Closed = true;
-        _hostLock.Release();
     }
 
     protected virtual void ConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
     {
-        _hostLock.Wait();
         _logger.LogWarning(e.Reason);
         Blocked = true;
-        _hostLock.Release();
     }
 
     protected virtual void ConnectionUnblocked(object sender, EventArgs e)
     {
-        _hostLock.Wait();
         _logger.LogInformation("Connection unblocked!");
         Blocked = false;
-        _hostLock.Release();
     }
 
     private const int CloseCode = 200;
@@ -104,31 +92,23 @@ public class ConnectionHost : IConnectionHost, IDisposable
     /// <para>AutoRecovery = False yields results like Closed, Dead, and IsOpen will be true, true, false or false, false, true.</para>
     /// <para>AutoRecovery = True, yields difficult results like Closed, Dead, And IsOpen will be false, false, false or true, true, true (and other variations).</para>
     /// </summary>
-    public async Task<bool> HealthyAsync()
+    public bool Healthy()
     {
-        await _hostLock
-            .WaitAsync()
-            .ConfigureAwait(false);
-
-        if (Closed && Connection.IsOpen)
+        var connectionOpen = (Connection?.IsOpen ?? false);
+        if (Closed && connectionOpen)
         { Closed = false; } // Means a Recovery took place.
-        else if (Dead && Connection.IsOpen)
+        else if (Dead && connectionOpen)
         { Dead = false; } // Means a Miracle took place.
 
-        _hostLock.Release();
-
-        return Connection.IsOpen && !Blocked; // TODO: See if we can incorporate Dead/Closed observations.
+        return connectionOpen && !Blocked; // TODO: See if we can incorporate Dead/Closed observations.
     }
+
+    private bool _disposedValue;
 
     protected virtual void Dispose(bool disposing)
     {
         if (!_disposedValue)
         {
-            if (disposing)
-            {
-                _hostLock.Dispose();
-            }
-
             Connection = null;
             _disposedValue = true;
         }

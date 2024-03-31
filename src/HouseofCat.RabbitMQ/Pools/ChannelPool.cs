@@ -157,7 +157,7 @@ public class ChannelPool : IChannelPool, IDisposable
             .ReadAsync()
             .ConfigureAwait(false);
 
-        var healthy = await chanHost.ChannelHealthyAsync().ConfigureAwait(false);
+        var healthy = chanHost.ChannelHealthy();
         var flagged = _flaggedChannels.ContainsKey(chanHost.ChannelId) && _flaggedChannels[chanHost.ChannelId];
         if (flagged || !healthy)
         {
@@ -222,7 +222,7 @@ public class ChannelPool : IChannelPool, IDisposable
             .ReadAsync()
             .ConfigureAwait(false);
 
-        var healthy = await chanHost.ChannelHealthyAsync().ConfigureAwait(false);
+        var healthy = chanHost.ChannelHealthy();
         var flagged = _flaggedChannels.ContainsKey(chanHost.ChannelId) && _flaggedChannels[chanHost.ChannelId];
         if (flagged || !healthy)
         {

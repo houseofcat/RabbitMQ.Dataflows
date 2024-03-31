@@ -150,8 +150,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
             Consumers.StartingConsumer,
             ConsumerOptions.ConsumerName);
 
-        var healthy = await _chanHost.ChannelHealthyAsync();
-        if (!healthy)
+        if (!_chanHost.ChannelHealthy())
         {
             try
             {
@@ -260,7 +259,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                         .ConfigureAwait(false);
                 }
                 else
-                { await _chanHost.StopConsumingAsync(); }
+                { _chanHost.StopConsuming(); }
             }
             finally
             { _conLock.Release(); }
@@ -330,7 +329,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                         .ConfigureAwait(false);
                 }
                 else
-                { await _chanHost.StopConsumingAsync(); }
+                { _chanHost.StopConsuming(); }
             }
             finally
             { _conLock.Release(); }

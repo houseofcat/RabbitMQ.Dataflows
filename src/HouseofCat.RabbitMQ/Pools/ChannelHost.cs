@@ -20,14 +20,14 @@ public interface IChannelHost
     bool UsedByConsumer { get; }
 
     string StartConsuming(IBasicConsumer internalConsumer, ConsumerOptions options);
-    Task StopConsumingAsync();
+    void StopConsuming();
 
     Task WaitUntilChannelIsReadyAsync(int sleepInterval, CancellationToken token = default);
     Task<bool> BuildRabbitMQChannelAsync(int autoRecoveryDelay = 1000, CancellationToken token = default);
 
     void Close();
-    Task<bool> ChannelHealthyAsync();
-    Task<bool> ConnectionHealthyAsync();
+    bool ChannelHealthy();
+    bool ConnectionHealthy();
 }
 
 public class ChannelHost : IChannelHost, IDisposable
@@ -59,7 +59,7 @@ public class ChannelHost : IChannelHost, IDisposable
 
     public virtual async Task WaitUntilChannelIsReadyAsync(int sleepInterval, CancellationToken token = default)
     {
-        var connectionHealthy = await _connHost.HealthyAsync();
+        var connectionHealthy = _connHost.Healthy();
         if (!connectionHealthy)
         {
             _logger.LogInformation(_sleepingUntilConnectionHealthy, ChannelId, _connHost.ConnectionId);
@@ -67,7 +67,7 @@ public class ChannelHost : IChannelHost, IDisposable
             {
                 await Task.Delay(sleepInterval, token).ConfigureAwait(false);
 
-                connectionHealthy = await _connHost.HealthyAsync();
+                connectionHealthy = _connHost.Healthy();
             }
         }
 
@@ -92,11 +92,7 @@ public class ChannelHost : IChannelHost, IDisposable
     {
         try
         {
-            var connectionHealthy = await _connHost
-                .HealthyAsync()
-                .ConfigureAwait(false);
-
-            if (!connectionHealthy)
+            if (!_connHost.Healthy())
             {
                 _logger.LogError(_makeChannelConnectionUnhealthyError, ChannelId, _connHost.ConnectionId);
                 return false;
@@ -105,12 +101,12 @@ public class ChannelHost : IChannelHost, IDisposable
             if (Channel != null)
             {
                 // One last check to see if the channel auto-recovered.
-                var healthy = await ChannelHealthyAsync().ConfigureAwait(false);
+                var healthy = ChannelHealthy();
                 if (!healthy)
                 {
                     await Task.Delay(autoRecoveryDelay, token);
 
-                    healthy = await ChannelHealthyAsync().ConfigureAwait(false);
+                    healthy = ChannelHealthy();
                 }
 
                 if (healthy)
@@ -163,16 +159,16 @@ public class ChannelHost : IChannelHost, IDisposable
         FlowControlled = e.Active;
     }
 
-    public async Task<bool> ChannelHealthyAsync()
+    public bool ChannelHealthy()
     {
-        var connectionHealthy = await _connHost.HealthyAsync().ConfigureAwait(false);
+        var connectionHealthy = _connHost.Healthy();
 
         return connectionHealthy && (Channel?.IsOpen ?? false);
     }
 
-    public async Task<bool> ConnectionHealthyAsync()
+    public bool ConnectionHealthy()
     {
-        return await _connHost.HealthyAsync().ConfigureAwait(false);
+        return _connHost.Healthy();
     }
 
     private string _consumerTag = null;
@@ -200,14 +196,13 @@ public class ChannelHost : IChannelHost, IDisposable
         return _consumerTag;
     }
 
-    public async Task StopConsumingAsync()
+    public void StopConsuming()
     {
         if (string.IsNullOrEmpty(_consumerTag) || !UsedByConsumer) return;
 
         try
         {
-            var healthy = await ChannelHealthyAsync().ConfigureAwait(false);
-            if (healthy)
+            if (ChannelHealthy())
             {
                 _logger.LogInformation(LogMessages.ChannelHosts.ConsumerStopConsumer, ChannelId, _consumerTag);
                 Channel.BasicCancel(_consumerTag);

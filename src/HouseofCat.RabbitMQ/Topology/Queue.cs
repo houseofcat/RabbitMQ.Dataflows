@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace HouseofCat.RabbitMQ;
 
-public class QueueConfig
+public sealed record Queue
 {
     public string Name { get; set; }
     public bool Durable { get; set; }

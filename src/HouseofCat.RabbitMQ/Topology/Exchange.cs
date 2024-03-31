@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace HouseofCat.RabbitMQ;
 
-public class ExchangeConfig
+public sealed record Exchange
 {
     public string Name { get; set; }
     public string Type { get; set; }

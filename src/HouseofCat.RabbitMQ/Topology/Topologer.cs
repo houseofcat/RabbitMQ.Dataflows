@@ -3,7 +3,6 @@ using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ;
@@ -24,7 +23,7 @@ public interface ITopologer
     Task<bool> UnbindQueueFromExchangeAsync(string queueName, string exchangeName, string routingKey = "", IDictionary<string, object> args = null);
 }
 
-public class Topologer : ITopologer
+public sealed class Topologer : ITopologer
 {
     private readonly IChannelPool _channelPool;
     public RabbitOptions Options { get; }

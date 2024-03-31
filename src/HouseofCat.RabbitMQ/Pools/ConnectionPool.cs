@@ -193,8 +193,7 @@ public class ConnectionPool : IConnectionPool, IDisposable
                 .ReadAsync().ConfigureAwait(false);
 
             // Connection Health Check
-            var healthy = await connHost.HealthyAsync().ConfigureAwait(false);
-            if (!healthy)
+            if (!connHost.Healthy())
             {
                 await ReturnConnectionAsync(connHost).ConfigureAwait(false);
                 await Task.Delay(Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
