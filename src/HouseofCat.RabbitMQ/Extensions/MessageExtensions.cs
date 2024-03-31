@@ -10,29 +10,55 @@ public static class MessageExtensions
 {
     private static readonly XorShift XorShift = new XorShift(true);
 
-    public static TMessage Clone<TMessage>(this IMessage message)
+    public static Message Clone(this IMessage message)
+    {
+        return message.ShallowClone<Message>();
+    }
+
+    public static TMessage ShallowClone<TMessage>(this IMessage message)
         where TMessage : IMessage, new()
     {
-        return new TMessage
+        var clonedMessage = new TMessage
         {
             Exchange = new string(message.Exchange),
             RoutingKey = new string(message.RoutingKey),
             DeliveryMode = message.DeliveryMode,
             Mandatory = message.Mandatory,
-            PriorityLevel = message.PriorityLevel
+            PriorityLevel = message.PriorityLevel,
+
         };
+
+        if (message.Metadata is not null)
+        {
+            clonedMessage.Metadata = new Metadata
+            {
+                PayloadId = new string(message.Metadata.PayloadId),
+                Encrypted = message.Metadata.Encrypted,
+                Compressed = message.Metadata.Compressed,
+            };
+
+            if (message.Metadata.Fields is not null)
+            {
+                clonedMessage.Metadata.Fields = new Dictionary<string, object>(message.Metadata.Fields);
+            }
+        }
+
+        return clonedMessage;
     }
 
     public static void UpsertHeader(this IMessage message, string key, object value)
     {
-        var metadata = message.CreateMetadataIfMissing();
-        metadata.UpsertHeader(key, value);
+        message.Metadata ??= new Metadata();
+        message.Metadata.UpsertHeader(key, value);
     }
 
     public static void WriteHeadersToMetadata(this IMessage message, IDictionary<string, object> headers)
     {
-        var metadata = message.CreateMetadataIfMissing();
-        metadata.WriteHeadersToMetadata(headers);
+        message.Metadata ??= new Metadata();
+        foreach (var kvp in headers)
+        {
+            message.Metadata.UpsertHeader(kvp.Key, kvp.Value);
+        }
     }
 
     public static IBasicProperties CreateBasicProperties(
@@ -41,32 +67,32 @@ public static class MessageExtensions
         bool withOptionalHeaders,
         IMetadata metadata)
     {
-        var props = channelHost.GetChannel().CreateBasicProperties();
+        var basicProperties = channelHost.GetChannel().CreateBasicProperties();
 
-        props.DeliveryMode = message.DeliveryMode;
-        props.ContentType = new string(message.ContentType);
-        props.Priority = message.PriorityLevel;
-        props.MessageId = message.MessageId == null
+        basicProperties.DeliveryMode = message.DeliveryMode;
+        basicProperties.ContentType = new string(message.ContentType);
+        basicProperties.Priority = message.PriorityLevel;
+        basicProperties.MessageId = message.MessageId == null
             ? new string(message.MessageId)
             : Guid.NewGuid().ToString();
 
-        if (!props.IsHeadersPresent())
+        if (!basicProperties.IsHeadersPresent())
         {
-            props.Headers = new Dictionary<string, object>();
+            basicProperties.Headers = new Dictionary<string, object>();
         }
 
         if (withOptionalHeaders && metadata != null)
         {
-            foreach (var kvp in metadata?.CustomFields)
+            foreach (var kvp in metadata?.Fields)
             {
                 if (kvp.Key.StartsWith(Constants.HeaderPrefix, StringComparison.OrdinalIgnoreCase))
                 {
-                    props.Headers[kvp.Key] = kvp.Value;
+                    basicProperties.Headers[kvp.Key] = kvp.Value;
                 }
             }
         }
 
-        return props;
+        return basicProperties;
     }
 
     public static IMessage CreateSimpleRandomMessage(string queueName, int bodySize = 1000)

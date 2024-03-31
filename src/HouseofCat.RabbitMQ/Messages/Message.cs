@@ -1,9 +1,7 @@
 using HouseofCat.RabbitMQ.Pools;
-using HouseofCat.Serialization;
 using HouseofCat.Utilities.Helpers;
 using RabbitMQ.Client;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace HouseofCat.RabbitMQ;
@@ -24,15 +22,7 @@ public interface IMessage
 
     ReadOnlyMemory<byte> Body { get; set; }
 
-    IMetadata GetMetadata();
-
-    IMetadata CreateMetadataIfMissing();
-
-    T GetHeader<T>(string key);
-    bool RemoveHeader(string key);
-    IDictionary<string, object> GetHeadersOutOfMetadata();
-
-    ReadOnlyMemory<byte> GetBodyToPublish(ISerializationProvider serializationProvider);
+    IMetadata Metadata { get; set; }
 
     IPublishReceipt GetPublishReceipt(bool error);
 
@@ -55,25 +45,10 @@ public sealed class Message : IMessage
     [Range(0, 10, ErrorMessage = Constants.RangeErrorMessage)]
     public byte PriorityLevel { get; set; }
 
-    public string ContentType { get; set; } = Constants.HeaderValueForContentTypeApplicationJson;
+    public string ContentType { get; set; } = Constants.HeaderValueForContentTypeJson;
 
     public IMetadata Metadata { get; set; }
     public ReadOnlyMemory<byte> Body { get; set; }
-
-    public IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders)
-    {
-        MessageId ??= Guid.NewGuid().ToString();
-
-        var basicProperties = this.CreateBasicProperties(channelHost, withOptionalHeaders, Metadata);
-        basicProperties.MessageId = MessageId;
-
-        // Non-optional Header.
-        basicProperties.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
-        var openTelHeader = OpenTelemetryHelpers.CreateOpenTelemetryHeaderFromCurrentActivityOrDefault();
-        basicProperties.Headers[Constants.HeaderForTraceParent] = openTelHeader;
-
-        return basicProperties;
-    }
 
     public Message() { }
 
@@ -101,39 +76,26 @@ public sealed class Message : IMessage
         { Metadata = new Metadata(); }
     }
 
-    public Message(string exchange, string routingKey, byte[] body, string payloadId, byte priority)
+    public IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders)
     {
-        Exchange = exchange;
-        RoutingKey = routingKey;
-        Body = body;
-        PriorityLevel = priority;
-        if (!string.IsNullOrWhiteSpace(payloadId))
-        { Metadata = new Metadata { PayloadId = payloadId }; }
-        else
-        { Metadata = new Metadata(); }
-    }
+        MessageId ??= Guid.NewGuid().ToString();
 
-    public Message Clone()
-    {
-        var clone = this.Clone<Message>();
-        clone.Metadata = Metadata.Clone<Metadata>();
-        return clone;
-    }
+        var basicProperties = this.CreateBasicProperties(channelHost, withOptionalHeaders, Metadata);
+        basicProperties.MessageId = MessageId;
 
-    public IMetadata GetMetadata() => Metadata;
+        // Non-optional Header.
+        basicProperties.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
+        var openTelHeader = OpenTelemetryHelpers.CreateOpenTelemetryHeaderFromCurrentActivityOrDefault();
+        basicProperties.Headers[Constants.HeaderForTraceParent] = openTelHeader;
+
+        return basicProperties;
+    }
 
     public IMetadata CreateMetadataIfMissing()
     {
         Metadata ??= new Metadata();
         return Metadata;
     }
-
-    public T GetHeader<T>(string key) => Metadata.GetHeader<T>(key);
-    public bool RemoveHeader(string key) => Metadata.RemoveHeader(key);
-    public IDictionary<string, object> GetHeadersOutOfMetadata() => Metadata.GetHeadersOutOfMetadata();
-
-    public ReadOnlyMemory<byte> GetBodyToPublish(ISerializationProvider serializationProvider) =>
-        serializationProvider.Serialize(this).ToArray();
 
     public IPublishReceipt GetPublishReceipt(bool error) =>
         new PublishReceipt { MessageId = MessageId, IsError = error, OriginalMessage = error ? this : null };

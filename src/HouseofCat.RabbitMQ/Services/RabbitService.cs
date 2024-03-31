@@ -30,14 +30,14 @@ public interface IRabbitService
     IEncryptionProvider EncryptionProvider { get; }
     ICompressionProvider CompressionProvider { get; }
 
-    ConcurrentDictionary<string, IConsumer<ReceivedMessage>> Consumers { get; }
+    ConcurrentDictionary<string, IConsumer<IReceivedMessage>> Consumers { get; }
 
     Task ComcryptAsync(IMessage message);
     Task<bool> CompressAsync(IMessage message);
-    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, int batchSize, bool? ensureOrdered, Func<int, bool?, IPipeline<ReceivedMessage, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
-    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, IPipeline<ReceivedMessage, TOut> pipeline) where TOut : RabbitWorkState;
+    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, int batchSize, bool? ensureOrdered, Func<int, bool?, IPipeline<IReceivedMessage, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
+    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, IPipeline<IReceivedMessage, TOut> pipeline) where TOut : RabbitWorkState;
 
-    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, Func<int, bool?, IPipeline<ReceivedMessage, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
+    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, Func<int, bool?, IPipeline<IReceivedMessage, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
 
     Task DecomcryptAsync(IMessage message);
     Task<bool> DecompressAsync(IMessage message);
@@ -45,8 +45,8 @@ public interface IRabbitService
     bool Encrypt(IMessage message);
     Task<ReadOnlyMemory<byte>?> GetAsync(string queueName);
     Task<T> GetAsync<T>(string queueName);
-    IConsumer<ReceivedMessage> GetConsumer(string consumerName);
-    IConsumer<ReceivedMessage> GetConsumerByPipelineName(string consumerPipelineName);
+    IConsumer<IReceivedMessage> GetConsumer(string consumerName);
+    IConsumer<IReceivedMessage> GetConsumerByPipelineName(string consumerPipelineName);
 
     ValueTask ShutdownAsync(bool immediately);
 }
@@ -65,7 +65,7 @@ public class RabbitService : IRabbitService, IDisposable
     public IEncryptionProvider EncryptionProvider { get; }
     public ICompressionProvider CompressionProvider { get; }
 
-    public ConcurrentDictionary<string, IConsumer<ReceivedMessage>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<ReceivedMessage>>();
+    public ConcurrentDictionary<string, IConsumer<IReceivedMessage>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<IReceivedMessage>>();
     private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerOptions { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
 
     public string TimeFormat { get; set; } = TimeHelpers.Formats.CatsAltFormat;
@@ -283,7 +283,7 @@ public class RabbitService : IRabbitService, IDisposable
         string consumerName,
         int batchSize,
         bool? ensureOrdered,
-        Func<int, bool?, IPipeline<ReceivedMessage, TOut>> pipelineBuilder)
+        Func<int, bool?, IPipeline<IReceivedMessage, TOut>> pipelineBuilder)
         where TOut : RabbitWorkState
     {
         var consumer = GetConsumer(consumerName);
@@ -294,7 +294,7 @@ public class RabbitService : IRabbitService, IDisposable
 
     public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
         string consumerName,
-        Func<int, bool?, IPipeline<ReceivedMessage, TOut>> pipelineBuilder)
+        Func<int, bool?, IPipeline<IReceivedMessage, TOut>> pipelineBuilder)
         where TOut : RabbitWorkState
     {
         var consumer = GetConsumer(consumerName);
@@ -307,7 +307,7 @@ public class RabbitService : IRabbitService, IDisposable
 
     public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
         string consumerName,
-        IPipeline<ReceivedMessage, TOut> pipeline)
+        IPipeline<IReceivedMessage, TOut> pipeline)
         where TOut : RabbitWorkState
     {
         var consumer = GetConsumer(consumerName);
@@ -315,14 +315,14 @@ public class RabbitService : IRabbitService, IDisposable
         return new ConsumerPipeline<TOut>(consumer, pipeline);
     }
 
-    public IConsumer<ReceivedMessage> GetConsumer(string consumerName)
+    public IConsumer<IReceivedMessage> GetConsumer(string consumerName)
     {
-        if (!Consumers.TryGetValue(consumerName, out IConsumer<ReceivedMessage> value))
+        if (!Consumers.TryGetValue(consumerName, out IConsumer<IReceivedMessage> value))
         { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerOptionsMessage, consumerName)); }
         return value;
     }
 
-    public IConsumer<ReceivedMessage> GetConsumerByPipelineName(string consumerPipelineName)
+    public IConsumer<IReceivedMessage> GetConsumerByPipelineName(string consumerPipelineName)
     {
         if (!ConsumerPipelineNameToConsumerOptions.TryGetValue(consumerPipelineName, out ConsumerOptions value))
         { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerPipelineOptionsMessage, consumerPipelineName)); }
@@ -355,14 +355,13 @@ public class RabbitService : IRabbitService, IDisposable
     // Returns Success
     public bool Encrypt(IMessage message)
     {
-        var metadata = message.GetMetadata();
-        if (!metadata.Encrypted)
+        if (!message.Metadata.Encrypted)
         {
             message.Body = EncryptionProvider.Encrypt(message.Body);
-            metadata.Encrypted = true;
-            metadata.CustomFields[Constants.HeaderForEncrypted] = true;
-            metadata.CustomFields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
-            metadata.CustomFields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeFormat);
+            message.Metadata.Encrypted = true;
+            message.Metadata.Fields[Constants.HeaderForEncrypted] = true;
+            message.Metadata.Fields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
+            message.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeFormat);
 
             return true;
         }
@@ -373,15 +372,14 @@ public class RabbitService : IRabbitService, IDisposable
     // Returns Success
     public bool Decrypt(IMessage message)
     {
-        var metadata = message.GetMetadata();
-        if (metadata.Encrypted)
+        if (message.Metadata.Encrypted)
         {
             message.Body = EncryptionProvider.Decrypt(message.Body);
-            metadata.Encrypted = false;
-            metadata.CustomFields[Constants.HeaderForEncrypted] = false;
+            message.Metadata.Encrypted = false;
+            message.Metadata.Fields[Constants.HeaderForEncrypted] = false;
 
-            metadata.CustomFields.Remove(Constants.HeaderForEncryption);
-            metadata.CustomFields.Remove(Constants.HeaderForEncryptDate);
+            message.Metadata.Fields.Remove(Constants.HeaderForEncryption);
+            message.Metadata.Fields.Remove(Constants.HeaderForEncryptDate);
 
             return true;
         }
@@ -392,16 +390,15 @@ public class RabbitService : IRabbitService, IDisposable
     // Returns Success
     public async Task<bool> CompressAsync(IMessage message)
     {
-        var metadata = message.GetMetadata();
-        if (metadata.Encrypted)
+        if (message.Metadata.Encrypted)
         { return false; } // Don't compress after encryption.
 
-        if (!metadata.Compressed)
+        if (!message.Metadata.Compressed)
         {
             message.Body = (await CompressionProvider.CompressAsync(message.Body).ConfigureAwait(false)).ToArray();
-            metadata.Compressed = true;
-            metadata.CustomFields[Constants.HeaderForCompressed] = true;
-            metadata.CustomFields[Constants.HeaderForCompression] = CompressionProvider.Type;
+            message.Metadata.Compressed = true;
+            message.Metadata.Fields[Constants.HeaderForCompressed] = true;
+            message.Metadata.Fields[Constants.HeaderForCompression] = CompressionProvider.Type;
 
             return true;
         }
@@ -412,19 +409,18 @@ public class RabbitService : IRabbitService, IDisposable
     // Returns Success
     public async Task<bool> DecompressAsync(IMessage message)
     {
-        var metadata = message.GetMetadata();
-        if (metadata.Encrypted)
+        if (message.Metadata.Encrypted)
         { return false; } // Don't decompress before decryption.
 
-        if (metadata.Compressed)
+        if (message.Metadata.Compressed)
         {
             try
             {
                 message.Body = (await CompressionProvider.DecompressAsync(message.Body).ConfigureAwait(false)).ToArray();
-                metadata.Compressed = false;
-                metadata.CustomFields[Constants.HeaderForCompressed] = false;
+                message.Metadata.Compressed = false;
+                message.Metadata.Fields[Constants.HeaderForCompressed] = false;
 
-                metadata.CustomFields.Remove(Constants.HeaderForCompression);
+                message.Metadata.Fields.Remove(Constants.HeaderForCompression);
             }
             catch { return false; }
         }

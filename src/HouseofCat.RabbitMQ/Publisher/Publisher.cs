@@ -232,8 +232,7 @@ public class Publisher : IPublisher, IDisposable
         if (!AutoPublisherStarted) throw new InvalidOperationException(ExceptionMessages.AutoPublisherNotStartedError);
         Guard.AgainstNull(message, nameof(message));
 
-        var metadata = message.GetMetadata();
-        _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, metadata?.PayloadId);
+        _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, message.Metadata?.PayloadId);
 
         _messageQueue.Writer.TryWrite(message);
     }
@@ -251,8 +250,7 @@ public class Publisher : IPublisher, IDisposable
             throw new InvalidOperationException(ExceptionMessages.QueueChannelError);
         }
 
-        var metadata = message.GetMetadata();
-        _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, metadata?.PayloadId);
+        _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, message.Metadata?.PayloadId);
 
         await _messageQueue
             .Writer
@@ -270,26 +268,26 @@ public class Publisher : IPublisher, IDisposable
                 if (message == null)
                 { continue; }
 
-                var metadata = message.GetMetadata();
+                message.Metadata ??= new Metadata();
 
                 if (_compress)
                 {
                     message.Body = _compressionProvider.Compress(message.Body).ToArray();
-                    metadata.Compressed = _compress;
-                    metadata.CustomFields[Constants.HeaderForCompressed] = _compress;
-                    metadata.CustomFields[Constants.HeaderForCompression] = _compressionProvider.Type;
+                    message.Metadata.Compressed = _compress;
+                    message.Metadata.Fields[Constants.HeaderForCompressed] = _compress;
+                    message.Metadata.Fields[Constants.HeaderForCompression] = _compressionProvider.Type;
                 }
 
                 if (_encrypt)
                 {
                     message.Body = _encryptionProvider.Encrypt(message.Body).ToArray();
-                    metadata.Encrypted = _encrypt;
-                    metadata.CustomFields[Constants.HeaderForEncrypted] = _encrypt;
-                    metadata.CustomFields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
-                    metadata.CustomFields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeHelpers.Formats.RFC3339Long);
+                    message.Metadata.Encrypted = _encrypt;
+                    message.Metadata.Fields[Constants.HeaderForEncrypted] = _encrypt;
+                    message.Metadata.Fields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
+                    message.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeHelpers.Formats.RFC3339Long);
                 }
 
-                _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.MessageId, metadata?.PayloadId);
+                _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.MessageId, message.Metadata?.PayloadId);
 
                 await PublishAsync(message, _createPublishReceipts, _withHeaders)
                     .ConfigureAwait(false);
@@ -309,21 +307,20 @@ public class Publisher : IPublisher, IDisposable
     // Super simple version to bake in requeueing of all failed to publish messages.
     private async ValueTask ProcessReceiptAsync(IPublishReceipt receipt)
     {
-        var originalMessage = receipt.GetOriginalMessage();
-        if (receipt.IsError && originalMessage != null)
+        if (receipt.IsError && receipt.OriginalMessage != null)
         {
             if (AutoPublisherStarted)
             {
-                _logger.LogWarning($"Failed publish for message ({originalMessage.MessageId}). Retrying with AutoPublishing...");
+                _logger.LogWarning($"Failed publish for message ({receipt.OriginalMessage.MessageId}). Retrying with AutoPublishing...");
 
                 try
-                { await QueueMessageAsync(receipt.GetOriginalMessage()); }
+                { await QueueMessageAsync(receipt.OriginalMessage); }
                 catch (Exception ex) /* No-op */
                 { _logger.LogDebug("Error ({0}) occurred on retry, most likely because retry during shutdown.", ex.Message); }
             }
             else
             {
-                _logger.LogError($"Failed publish for message ({originalMessage.MessageId}). Unable to retry as the original message was not received.");
+                _logger.LogError($"Failed publish for message ({receipt.OriginalMessage.MessageId}). Unable to retry as the original message was not received.");
             }
         }
     }
@@ -545,7 +542,7 @@ public class Publisher : IPublisher, IDisposable
 
         try
         {
-            var body = message.GetBodyToPublish(_serializationProvider);
+            var body = _serializationProvider.Serialize(message.Body);
             chanHost
                 .GetChannel()
                 .BasicPublish(
@@ -604,7 +601,7 @@ public class Publisher : IPublisher, IDisposable
                     message.RoutingKey,
                     message.Mandatory,
                     message.BuildProperties(chanHost, withOptionalHeaders),
-                    message.GetBodyToPublish(_serializationProvider));
+                    _serializationProvider.Serialize(message.Body));
 
             chanHost.GetChannel().WaitForConfirmsOrDie(_waitForConfirmation);
         }
@@ -653,7 +650,7 @@ public class Publisher : IPublisher, IDisposable
                     messages[i].RoutingKey,
                     messages[i].Mandatory,
                     messages[i].BuildProperties(chanHost, withOptionalHeaders),
-                    messages[i].GetBodyToPublish(_serializationProvider));
+                    _serializationProvider.Serialize(messages[i].Body));
             }
             catch (Exception ex)
             {
@@ -701,7 +698,7 @@ public class Publisher : IPublisher, IDisposable
                         messages[i].RoutingKey,
                         messages[i].Mandatory,
                         messages[i].BuildProperties(chanHost, withOptionalHeaders),
-                        messages[i].GetBodyToPublish(_serializationProvider));
+                        _serializationProvider.Serialize(messages[i].Body));
 
                     if (createReceipt)
                     {

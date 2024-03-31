@@ -22,16 +22,16 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     public string WorkflowName { get; }
 
     private readonly IRabbitService _rabbitService;
-    private readonly ICollection<IConsumer<ReceivedMessage>> _consumers;
+    private readonly ICollection<IConsumer<IReceivedMessage>> _consumers;
     private readonly ConsumerOptions _consumerOptions;
     private readonly TaskScheduler _taskScheduler;
     private readonly string _consumerName;
     private readonly int _consumerCount;
 
     // Main Flow - Ingestion
-    private readonly List<ConsumerBlock<ReceivedMessage>> _consumerBlocks;
-    protected ITargetBlock<ReceivedMessage> _inputBuffer;
-    private TransformBlock<ReceivedMessage, TState> _buildStateBlock;
+    private readonly List<ConsumerBlock<IReceivedMessage>> _consumerBlocks;
+    protected ITargetBlock<IReceivedMessage> _inputBuffer;
+    private TransformBlock<IReceivedMessage, TState> _buildStateBlock;
     private TransformBlock<TState, TState> _createSendMessage;
     protected TransformBlock<TState, TState> _decryptBlock;
     protected TransformBlock<TState, TState> _decompressBlock;
@@ -80,7 +80,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             TaskScheduler = _taskScheduler,
         };
 
-        _consumerBlocks = new List<ConsumerBlock<ReceivedMessage>>();
+        _consumerBlocks = new List<ConsumerBlock<IReceivedMessage>>();
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     public ConsumerDataflow(
         IRabbitService rabbitService,
         string workflowName,
-        ICollection<IConsumer<ReceivedMessage>> consumers,
+        ICollection<IConsumer<IReceivedMessage>> consumers,
         GlobalConsumerPipelineOptions globalConsumerPipelineOptions,
         TaskScheduler taskScheduler = null) : this(
             rabbitService,
@@ -121,7 +121,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     public ConsumerDataflow(
         IRabbitService rabbitService,
         string workflowName,
-        ICollection<IConsumer<ReceivedMessage>> consumers,
+        ICollection<IConsumer<IReceivedMessage>> consumers,
         int maxDoP,
         bool ensureOrdered,
         TaskScheduler taskScheduler = null)
@@ -146,12 +146,12 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             TaskScheduler = _taskScheduler,
         };
 
-        _consumerBlocks = new List<ConsumerBlock<ReceivedMessage>>();
+        _consumerBlocks = new List<ConsumerBlock<IReceivedMessage>>();
     }
 
-    public virtual Task StartAsync() => StartAsync<ConsumerBlock<ReceivedMessage>>();
+    public virtual Task StartAsync() => StartAsync<ConsumerBlock<IReceivedMessage>>();
 
-    protected async Task StartAsync<TConsumerBlock>() where TConsumerBlock : ConsumerBlock<ReceivedMessage>, new()
+    protected async Task StartAsync<TConsumerBlock>() where TConsumerBlock : ConsumerBlock<IReceivedMessage>, new()
     {
         BuildLinkages<TConsumerBlock>();
 
@@ -481,13 +481,13 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     #region Step Linking
 
     protected virtual void BuildLinkages<TConsumerBlock>(DataflowLinkOptions overrideOptions = null)
-        where TConsumerBlock : ConsumerBlock<ReceivedMessage>, new()
+        where TConsumerBlock : ConsumerBlock<IReceivedMessage>, new()
     {
         Guard.AgainstNull(_buildStateBlock, nameof(_buildStateBlock)); // Create State Is Mandatory
         Guard.AgainstNull(_finalization, nameof(_finalization)); // Leaving The Workflow Is Mandatory
         Guard.AgainstNull(_errorAction, nameof(_errorAction)); // Processing Errors Is Mandatory
 
-        _inputBuffer ??= new BufferBlock<ReceivedMessage>();
+        _inputBuffer ??= new BufferBlock<IReceivedMessage>();
 
         _readyBuffer ??= new BufferBlock<TState>();
 
@@ -519,7 +519,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             }
         }
 
-        ((ISourceBlock<ReceivedMessage>)_inputBuffer).LinkTo(_buildStateBlock, overrideOptions ?? _linkStepOptions);
+        ((ISourceBlock<IReceivedMessage>)_inputBuffer).LinkTo(_buildStateBlock, overrideOptions ?? _linkStepOptions);
         _buildStateBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x == null);
         SetCurrentSourceBlock(_buildStateBlock);
 
@@ -597,7 +597,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
     #region Step Wrappers
 
-    public virtual TState BuildState(ReceivedMessage data)
+    public virtual TState BuildState(IReceivedMessage data)
     {
         var state = new TState
         {
@@ -628,7 +628,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return state;
     }
 
-    public virtual TState BuildStateAndPayload<TOut>(string key, ReceivedMessage data)
+    public virtual TState BuildStateAndPayload<TOut>(string key, IReceivedMessage data)
     {
         var state = new TState
         {
@@ -667,11 +667,11 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return state;
     }
 
-    public TransformBlock<ReceivedMessage, TState> GetBuildStateWithPayloadBlock<TOut>(
+    public TransformBlock<IReceivedMessage, TState> GetBuildStateWithPayloadBlock<TOut>(
         string key,
         ExecutionDataflowBlockOptions options)
     {
-        TState BuildStateWrap(ReceivedMessage data)
+        TState BuildStateWrap(IReceivedMessage data)
         {
             try
             { return BuildStateAndPayload<TOut>(key, data); }
@@ -679,13 +679,13 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             { return null; }
         }
 
-        return new TransformBlock<ReceivedMessage, TState>(BuildStateWrap, options);
+        return new TransformBlock<IReceivedMessage, TState>(BuildStateWrap, options);
     }
 
-    public TransformBlock<ReceivedMessage, TState> GetBuildStateBlock(
+    public TransformBlock<IReceivedMessage, TState> GetBuildStateBlock(
         ExecutionDataflowBlockOptions options)
     {
-        TState BuildStateWrap(ReceivedMessage data)
+        TState BuildStateWrap(IReceivedMessage data)
         {
             try
             { return BuildState(data); }
@@ -693,7 +693,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             { return null; }
         }
 
-        return new TransformBlock<ReceivedMessage, TState>(BuildStateWrap, options);
+        return new TransformBlock<IReceivedMessage, TState>(BuildStateWrap, options);
     }
 
     public TransformBlock<TState, TState> GetByteManipulationTransformBlock(

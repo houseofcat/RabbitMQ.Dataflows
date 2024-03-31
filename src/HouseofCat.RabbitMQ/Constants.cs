@@ -10,7 +10,9 @@ public static class Constants
 
     // Consumer
     public static string HeaderForContentType { get; set; } = "ContentType";
-    public static string HeaderValueForContentTypeApplicationJson { get; set; } = "application/json;";
+    public const string HeaderValueForContentTypeBinary = "application/octet-stream";
+    public const string HeaderValueForContentTypePlainText = "text/plain";
+    public const string HeaderValueForContentTypeJson = "application/json";
     public static string HeaderForObjectType { get; set; } = "X-RD-OBJECTTYPE";
     public static string HeaderValueForMessageObjectType { get; set; } = "IMESSAGE";
 

@@ -19,11 +19,12 @@ public interface IReceivedMessage
     DateTime EncryptedDateTime { get; }
     bool Compressed { get; }
     string CompressionType { get; }
+    public string TraceParentHeader { get; }
 
     ReadOnlyMemory<byte> Body { get; set; }
     string ConsumerTag { get; }
     ulong DeliveryTag { get; }
-    Message Message { get; set; }
+    IMessage Message { get; set; }
 
     IBasicProperties Properties { get; }
 
@@ -37,19 +38,16 @@ public interface IReceivedMessage
 
 public sealed class ReceivedMessage : IReceivedMessage, IDisposable
 {
-    /// <summary>
-    /// Indicates that the content was not deserializeable based on the provided headers.
-    /// </summary>
-    public bool FailedToDeserialize { get; private set; }
     public IBasicProperties Properties { get; }
     public bool Ackable { get; }
     public IModel Channel { get; set; }
     public string ConsumerTag { get; }
     public ulong DeliveryTag { get; }
     public ReadOnlyMemory<byte> Body { get; set; }
-    public Message Message { get; set; }
+    public IMessage Message { get; set; }
 
     // Retrieved From Headers
+    public bool FailedToDeserialize { get; private set; }
     public string ContentType { get; private set; }
     public string ObjectType { get; private set; }
     public bool Encrypted { get; private set; }
@@ -109,10 +107,23 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
             if (ObjectType == Constants.HeaderValueForMessageObjectType
                 && Body.Length > 0)
             {
-                try
-                { Message = JsonSerializer.Deserialize<Message>(Body.Span); }
-                catch
-                { FailedToDeserialize = true; }
+                switch (ContentType)
+                {
+                    case Constants.HeaderValueForContentTypeJson:
+                        try
+                        { Message = JsonSerializer.Deserialize<Message>(Body.Span); }
+                        catch
+                        { FailedToDeserialize = true; }
+                        break;
+
+                    case Constants.HeaderValueForContentTypeBinary:
+                    case Constants.HeaderValueForContentTypePlainText:
+                        Message = new Message{ Body = Body };
+                        break;
+
+                    default:
+                        break;
+                }
             }
 
             if (Properties.Headers.TryGetValue(Constants.HeaderForEncrypted, out object encryptedValue))
@@ -208,7 +219,13 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
     /// <summary>
     /// A way to indicate this message is fully finished with.
     /// </summary>
-    public void Complete() => _completionSource.SetResult(true);
+    public void Complete()
+    {
+        if (_completionSource.Task.Status < TaskStatus.RanToCompletion)
+        {
+            _completionSource.SetResult(true);
+        }
+    }
 
     private void Dispose(bool disposing)
     {
@@ -216,6 +233,7 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
         {
             if (disposing)
             {
+                Complete();
                 _completionSource.Task.Dispose();
             }
 
