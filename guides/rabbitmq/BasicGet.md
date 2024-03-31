@@ -17,8 +17,8 @@ I will use this as a file named `SampleRabbitOptions.json`
     "TopologyRecovery": true,
     "NetRecoveryTimeout": 5
     "ServiceName": "HoC.RabbitMQ",
-    "MaxConnections": 2,
-    "MaxAckableChannels": 5,
+    "Connections": 2,
+    "AckableChannels": 5,
     "TansientChannelStartRange": 10000
   }
 }

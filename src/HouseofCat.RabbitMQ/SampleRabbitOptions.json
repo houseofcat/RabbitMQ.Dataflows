@@ -20,9 +20,9 @@
       "ProtocolVersions": 3072
     },
     "ServiceName": "HoC.RabbitMQ",
-    "MaxConnections": 2,
-    "MaxChannels": 0,
-    "MaxAckableChannels": 10,
+    "Connections": 2,
+    "Channels": 1,
+    "AckableChannels": 1,
     "SleepOnErrorInterval": 1000,
     "TansientChannelStartRange": 10000,
     "UseTransientChannels": false
@@ -30,79 +30,31 @@
   "PublisherOptions": {
     "MessageQueueBufferSize": 100,
     "BehaviorWhenFull": 0,
-    "AutoPublisherSleepInterval": 0,
+    "AutoPublisherSleepInterval": 1,
     "CreatePublishReceipts": true,
     "Compress": false,
-    "Encrypt": false
-  },
-  "GlobalConsumerOptions": {
-    "AggressiveSettings": {
-      "ErrorSuffix": "Error",
-      "BatchSize": 128,
-      "BehaviorWhenFull": 0,
-      "SleepOnIdleInterval": 0,
-      "UseTransientChannels": true,
-      "AutoAck": false,
-      "NoLocal": false,
-      "Exclusive": false,
-      "GlobalConsumerPipelineOptions": {
-        "WaitForCompletion": false,
-        "MaxDegreesOfParallelism": 64,
-        "EnsureOrdered": false
-      }
-    },
-    "ModerateSettings": {
-      "ErrorSuffix": "Error",
-      "BatchSize": 48,
-      "BehaviorWhenFull": 0,
-      "SleepOnIdleInterval": 100,
-      "UseTransientChannels": true,
-      "AutoAck": false,
-      "NoLocal": false,
-      "Exclusive": false,
-      "GlobalConsumerPipelineOptions": {
-        "WaitForCompletion": true,
-        "MaxDegreesOfParallelism": 24,
-        "EnsureOrdered": false
-      }
-    },
-    "LightSettings": {
-      "ErrorSuffix": "Error",
-      "BatchSize": 8,
-      "BehaviorWhenFull": 0,
-      "SleepOnIdleInterval": 100,
-      "UseTransientChannels": true,
-      "AutoAck": false,
-      "NoLocal": false,
-      "Exclusive": false,
-      "GlobalConsumerPipelineOptions": {
-        "WaitForCompletion": true,
-        "MaxDegreesOfParallelism": 4,
-        "EnsureOrdered": false
-      }
-    },
-    "SingleThreaded": {
-      "ErrorSuffix": "Error",
-      "BatchSize": 1,
-      "BehaviorWhenFull": 0,
-      "SleepOnIdleInterval": 0,
-      "UseTransientChannels": true,
-      "AutoAck": false,
-      "NoLocal": false,
-      "Exclusive": false,
-      "GlobalConsumerPipelineOptions": {
-        "WaitForCompletion": true,
-        "MaxDegreesOfParallelism": 1,
-        "EnsureOrdered": false
-      }
-    }
+    "Encrypt": false,
+    "WaitForConfirmationTimeoutInMilliseconds": 500
   },
   "ConsumerOptions": {
-    "ConsumerFromConfig": {
+    "TestConsumer": {
       "Enabled": true,
-      "GlobalSettings": "AggressiveSettings",
-      "ConsumerName": "ConsumerFromConfig",
-      "QueueName": "TestRabbitServiceQueue"
+      "ConsumerName": "TestConsumer",
+      "QueueName": "TestQueue",
+      "ErrorSuffix": "Error",
+      "BatchSize": 5,
+      "BehaviorWhenFull": 0,
+      "SleepOnIdleInterval": 0,
+      "UseTransientChannels": true,
+      "AutoAck": false,
+      "NoLocal": false,
+      "Exclusive": false,
+      "WorkflowName": "TestConsumerWorkflow",
+      "WorkflowMaxDegreesOfParallelism": 1,
+      "WorkflowConsumerCount": 1,
+      "WorkflowBatchSize":  5,
+      "WorkflowEnsureOrdered": false,
+      "WorkflowWaitForCompletion": false
     }
   }
 }

@@ -9,9 +9,9 @@
     "ContinuationTimeout": 10,
     "EnableDispatchConsumersAsync": true,
     "ServiceName": "HoC.RabbitMQ",
-    "MaxConnections": 2,
-    "MaxChannels": 0,
-    "MaxAckableChannels": 0,
+    "Connections": 2,
+    "Channels": 0,
+    "AckableChannels": 0,
     "SleepOnErrorInterval": 5000,
     "TansientChannelStartRange": 10000,
     "UseTransientChannels": false

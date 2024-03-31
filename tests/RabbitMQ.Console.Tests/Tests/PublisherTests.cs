@@ -58,9 +58,9 @@ public static class PublisherTests
             {
                 Uri = new Uri("amqp://guest:guest@localhost:5672"),
                 ServiceName = "TestService",
-                MaxConnections = 2,
-                MaxChannels = 10,
-                MaxAckableChannels = 0
+                Connections = 2,
+                Channels = 10,
+                AckableChannels = 0
             },
             PublisherOptions = new PublisherOptions
             {

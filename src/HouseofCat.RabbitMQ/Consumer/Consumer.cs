@@ -338,16 +338,6 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 
     private static readonly string _consumerShutdownExceptionMessage = "Consumer's ChannelHost {0} had an unhandled exception during recovery.";
 
-    /// <summary>
-    /// This method used to rebuild channels/connections for Consumers. Due to recent
-    /// changes in RabbitMQ.Client, it is now possible for the consumer to be in a state
-    /// of self-recovery. Unfortunately, there are still some edge cases where the channel
-    /// has exception and is closed server side and this library needs to be able to recover
-    /// from those events.
-    /// </summary>
-    /// <para>Docs: https://www.rabbitmq.com/client-libraries/dotnet-api-guide#recovery</para>
-    /// <param name="e"></param>
-    /// <returns></returns>
     protected virtual async Task HandleRecoverableShutdownAsync(ShutdownEventArgs e)
     {
         try

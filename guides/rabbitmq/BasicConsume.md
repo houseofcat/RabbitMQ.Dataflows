@@ -19,9 +19,9 @@ I will use this as a file named `SampleRabbitOptions.json`
     "ContinuationTimeout": 10,
     "EnableDispatchConsumersAsync": true
     "ServiceName": "HoC.RabbitMQ",
-    "MaxConnections": 2,
-    "MaxChannels": 2,
-    "MaxAckableChannels": 0,
+    "Connections": 2,
+    "Channels": 2,
+    "AckableChannels": 0,
     "TansientChannelStartRange": 10000
   }
 }

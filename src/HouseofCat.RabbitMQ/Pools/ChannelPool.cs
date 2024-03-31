@@ -81,14 +81,14 @@ public class ChannelPool : IChannelPool, IDisposable
         _connectionPool = connPool;
         _flaggedChannels = new ConcurrentDictionary<ulong, bool>();
 
-        if (Options.PoolOptions.MaxChannels > 0)
+        if (Options.PoolOptions.Channels > 0)
         {
-            _channels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxChannels);
+            _channels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.Channels);
         }
 
-        if (Options.PoolOptions.MaxAckableChannels > 0)
+        if (Options.PoolOptions.AckableChannels > 0)
         {
-            _ackChannels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.MaxAckableChannels);
+            _ackChannels = Channel.CreateBounded<IChannelHost>(Options.PoolOptions.AckableChannels);
         }
 
         if (!Options.PoolOptions.OnlyTransientChannels)
@@ -101,7 +101,7 @@ public class ChannelPool : IChannelPool, IDisposable
 
     private async Task CreateChannelsAsync()
     {
-        for (var i = 0; i < Options.PoolOptions.MaxChannels; i++)
+        for (var i = 0; i < Options.PoolOptions.Channels; i++)
         {
             var chanHost = await CreateChannelAsync(CurrentChannelId++, false).ConfigureAwait(false);
 
@@ -110,7 +110,7 @@ public class ChannelPool : IChannelPool, IDisposable
                 .WriteAsync(chanHost);
         }
 
-        for (var i = 0; i < Options.PoolOptions.MaxAckableChannels; i++)
+        for (var i = 0; i < Options.PoolOptions.AckableChannels; i++)
         {
             var chanHost = await CreateChannelAsync(CurrentChannelId++, true).ConfigureAwait(false);
 

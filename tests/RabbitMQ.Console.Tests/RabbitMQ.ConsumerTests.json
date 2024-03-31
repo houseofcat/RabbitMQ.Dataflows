@@ -9,36 +9,32 @@
     "ContinuationTimeout": 10,
     "EnableDispatchConsumersAsync": true,
     "ServiceName": "HoC.RabbitMQ",
-    "MaxConnections": 2,
-    "MaxChannels": 0,
-    "MaxAckableChannels": 0,
+    "Connections": 2,
+    "Channels": 0,
+    "AckableChannels": 0,
     "SleepOnErrorInterval": 5000,
     "TansientChannelStartRange": 10000,
     "UseTransientChannels": false
   },
-  "GlobalConsumerOptions": {
-    "SingleThreaded": {
+  "ConsumerOptions": {
+    "TestConsumer": {
+      "Enabled": true,
+      "ConsumerName": "TestConsumer",
+      "QueueName": "TestQueue",
       "ErrorSuffix": "Error",
-      "BatchSize": 1,
+      "BatchSize": 5,
       "BehaviorWhenFull": 0,
       "SleepOnIdleInterval": 0,
       "UseTransientChannels": true,
       "AutoAck": false,
       "NoLocal": false,
       "Exclusive": false,
-      "GlobalConsumerPipelineOptions": {
-        "WaitForCompletion": true,
-        "MaxDegreesOfParallelism": 1,
-        "EnsureOrdered": false
-      }
-    }
-  },
-  "ConsumerOptions": {
-    "TestConsumer": {
-      "Enabled": true,
-      "GlobalSettings": "SingleThreaded",
-      "ConsumerName": "TestConsumer",
-      "QueueName": "TestQueue"
+      "WorkflowName": "TestConsumerWorkflow",
+      "WorkflowMaxDegreesOfParallelism": 1,
+      "WorkflowConsumerCount": 1,
+      "WorkflowBatchSize": 5,
+      "WorkflowEnsureOrdered": false,
+      "WorkflowWaitForCompletion": false
     }
   }
 }

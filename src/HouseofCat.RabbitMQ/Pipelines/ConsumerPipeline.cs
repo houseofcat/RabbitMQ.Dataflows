@@ -44,10 +44,9 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
         Pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
         Consumer = consumer ?? throw new ArgumentNullException(nameof(consumer));
         ConsumerOptions = consumer.ConsumerOptions ?? throw new ArgumentNullException(nameof(consumer.Options));
-        if (consumer.ConsumerOptions.ConsumerPipelineOptions == null) throw new ArgumentNullException(nameof(consumer.ConsumerOptions.ConsumerPipelineOptions));
 
-        ConsumerPipelineName = !string.IsNullOrWhiteSpace(consumer.ConsumerOptions.ConsumerPipelineOptions.ConsumerPipelineName)
-            ? consumer.ConsumerOptions.ConsumerPipelineOptions.ConsumerPipelineName
+        ConsumerPipelineName = !string.IsNullOrEmpty(consumer.ConsumerOptions.WorkflowName)
+            ? consumer.ConsumerOptions.WorkflowName
             : "Unknown";
     }
 
@@ -74,7 +73,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
                             () =>
                                 PipelineStreamEngineAsync(
                                     Pipeline,
-                                    ConsumerOptions.ConsumerPipelineOptions.WaitForCompletion!.Value,
+                                    ConsumerOptions.WorkflowWaitForCompletion,
                                     token.Equals(default)
                                         ? _cancellationTokenSource.Token
                                         : token),
@@ -86,7 +85,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
                             () =>
                                 PipelineExecutionEngineAsync(
                                     Pipeline,
-                                    ConsumerOptions.ConsumerPipelineOptions.WaitForCompletion!.Value,
+                                    ConsumerOptions.WorkflowWaitForCompletion,
                                     token.Equals(default)
                                         ? _cancellationTokenSource.Token
                                         : token),

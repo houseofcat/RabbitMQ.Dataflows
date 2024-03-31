@@ -19,7 +19,6 @@ namespace HouseofCat.RabbitMQ.Services;
 
 public interface IRabbitService
 {
-    IPublisher Publisher { get; }
     IChannelPool ChannelPool { get; }
     ITopologer Topologer { get; }
     RabbitOptions Options { get; }
@@ -30,23 +29,23 @@ public interface IRabbitService
     IEncryptionProvider EncryptionProvider { get; }
     ICompressionProvider CompressionProvider { get; }
 
+    IPublisher Publisher { get; }
+
     ConcurrentDictionary<string, IConsumer<IReceivedMessage>> Consumers { get; }
+    ConcurrentDictionary<string, ConsumerOptions> ConsumerOptions { get; }
 
     Task ComcryptAsync(IMessage message);
     Task<bool> CompressAsync(IMessage message);
-    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, int batchSize, bool? ensureOrdered, Func<int, bool?, IPipeline<IReceivedMessage, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
-    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, IPipeline<IReceivedMessage, TOut> pipeline) where TOut : RabbitWorkState;
-
-    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, Func<int, bool?, IPipeline<IReceivedMessage, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
 
     Task DecomcryptAsync(IMessage message);
     Task<bool> DecompressAsync(IMessage message);
+
     bool Decrypt(IMessage message);
     bool Encrypt(IMessage message);
-    Task<ReadOnlyMemory<byte>?> GetAsync(string queueName);
+
+    Task<ReadOnlyMemory<byte>> GetAsync(string queueName);
     Task<T> GetAsync<T>(string queueName);
     IConsumer<IReceivedMessage> GetConsumer(string consumerName);
-    IConsumer<IReceivedMessage> GetConsumerByPipelineName(string consumerPipelineName);
 
     ValueTask ShutdownAsync(bool immediately);
 }
@@ -66,7 +65,7 @@ public class RabbitService : IRabbitService, IDisposable
     public ICompressionProvider CompressionProvider { get; }
 
     public ConcurrentDictionary<string, IConsumer<IReceivedMessage>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<IReceivedMessage>>();
-    private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerOptions { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
+    public ConcurrentDictionary<string, ConsumerOptions> ConsumerOptions { get; private set; } = new ConcurrentDictionary<string, ConsumerOptions>();
 
     public string TimeFormat { get; set; } = TimeHelpers.Formats.CatsAltFormat;
 
@@ -129,7 +128,6 @@ public class RabbitService : IRabbitService, IDisposable
 
         Topologer = new Topologer(ChannelPool);
 
-        Options.ApplyGlobalConsumerOptions();
         BuildConsumers();
 
         Publisher.StartAutoPublish(processReceiptAsync);
@@ -173,13 +171,10 @@ public class RabbitService : IRabbitService, IDisposable
 
     private void BuildConsumers()
     {
-        foreach (var consumerSetting in Options.ConsumerOptions)
+        foreach (var options in Options.ConsumerOptions)
         {
-            if (!string.IsNullOrEmpty(consumerSetting.Value.ConsumerPipelineOptions.ConsumerPipelineName))
-            {
-                ConsumerPipelineNameToConsumerOptions.TryAdd(consumerSetting.Value.ConsumerPipelineOptions.ConsumerPipelineName, consumerSetting.Value);
-            }
-            Consumers.TryAdd(consumerSetting.Value.ConsumerName, new Consumer(ChannelPool, consumerSetting.Value));
+            ConsumerOptions.TryAdd(options.Value.ConsumerName, options.Value);
+            Consumers.TryAdd(options.Value.ConsumerName, new Consumer(ChannelPool, options.Value));
         }
     }
 
@@ -253,66 +248,7 @@ public class RabbitService : IRabbitService, IDisposable
                         .ConfigureAwait(false);
                 }
             }
-
-            if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.AltSuffix)
-                && !string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.AltQueueName))
-            {
-                if (consumer.Value.ConsumerOptions.AltQueueArgs == null
-                    || consumer.Value.ConsumerOptions.AltQueueArgs.Count == 0)
-                {
-                    await Topologer
-                        .CreateQueueAsync(consumer.Value.ConsumerOptions.AltQueueName)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await Topologer
-                        .CreateQueueAsync(
-                            consumer.Value.ConsumerOptions.AltQueueName,
-                            true,
-                            false,
-                            false,
-                            consumer.Value.ConsumerOptions.AltQueueArgs)
-                        .ConfigureAwait(false);
-                }
-            }
         }
-    }
-
-    public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
-        string consumerName,
-        int batchSize,
-        bool? ensureOrdered,
-        Func<int, bool?, IPipeline<IReceivedMessage, TOut>> pipelineBuilder)
-        where TOut : RabbitWorkState
-    {
-        var consumer = GetConsumer(consumerName);
-        var pipeline = pipelineBuilder.Invoke(batchSize, ensureOrdered);
-
-        return new ConsumerPipeline<TOut>(consumer, pipeline);
-    }
-
-    public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
-        string consumerName,
-        Func<int, bool?, IPipeline<IReceivedMessage, TOut>> pipelineBuilder)
-        where TOut : RabbitWorkState
-    {
-        var consumer = GetConsumer(consumerName);
-        var pipeline = pipelineBuilder.Invoke(
-            consumer.ConsumerOptions.ConsumerPipelineOptions.MaxDegreesOfParallelism ?? 1,
-            consumer.ConsumerOptions.ConsumerPipelineOptions.EnsureOrdered ?? true);
-
-        return new ConsumerPipeline<TOut>(consumer, pipeline);
-    }
-
-    public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
-        string consumerName,
-        IPipeline<IReceivedMessage, TOut> pipeline)
-        where TOut : RabbitWorkState
-    {
-        var consumer = GetConsumer(consumerName);
-
-        return new ConsumerPipeline<TOut>(consumer, pipeline);
     }
 
     public IConsumer<IReceivedMessage> GetConsumer(string consumerName)
@@ -320,15 +256,6 @@ public class RabbitService : IRabbitService, IDisposable
         if (!Consumers.TryGetValue(consumerName, out IConsumer<IReceivedMessage> value))
         { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerOptionsMessage, consumerName)); }
         return value;
-    }
-
-    public IConsumer<IReceivedMessage> GetConsumerByPipelineName(string consumerPipelineName)
-    {
-        if (!ConsumerPipelineNameToConsumerOptions.TryGetValue(consumerPipelineName, out ConsumerOptions value))
-        { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerPipelineOptionsMessage, consumerPipelineName)); }
-        if (!Consumers.TryGetValue(value.ConsumerName, out var consumer))
-        { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerOptionsMessage, value.ConsumerName)); }
-        return consumer;
     }
 
     public async Task DecomcryptAsync(IMessage message)
@@ -352,7 +279,6 @@ public class RabbitService : IRabbitService, IDisposable
         Encrypt(message);
     }
 
-    // Returns Success
     public bool Encrypt(IMessage message)
     {
         if (!message.Metadata.Encrypted)
@@ -369,7 +295,6 @@ public class RabbitService : IRabbitService, IDisposable
         return false;
     }
 
-    // Returns Success
     public bool Decrypt(IMessage message)
     {
         if (message.Metadata.Encrypted)
@@ -387,7 +312,6 @@ public class RabbitService : IRabbitService, IDisposable
         return false;
     }
 
-    // Returns Success
     public async Task<bool> CompressAsync(IMessage message)
     {
         if (message.Metadata.Encrypted)
@@ -406,7 +330,6 @@ public class RabbitService : IRabbitService, IDisposable
         return true;
     }
 
-    // Returns Success
     public async Task<bool> DecompressAsync(IMessage message)
     {
         if (message.Metadata.Encrypted)
@@ -428,7 +351,7 @@ public class RabbitService : IRabbitService, IDisposable
         return true;
     }
 
-    public async Task<ReadOnlyMemory<byte>?> GetAsync(string queueName)
+    public async Task<ReadOnlyMemory<byte>> GetAsync(string queueName)
     {
         IChannelHost chanHost;
 
@@ -447,6 +370,8 @@ public class RabbitService : IRabbitService, IDisposable
             result = chanHost
                 .Channel
                 .BasicGet(queueName, true);
+
+            return result.Body;
         }
         catch { error = true; }
         finally
@@ -456,14 +381,9 @@ public class RabbitService : IRabbitService, IDisposable
                 .ConfigureAwait(false);
         }
 
-        return result?.Body;
+        return default;
     }
 
-    /// <summary>
-    /// Simple retrieve message (byte[]) from queue and convert to type T. Default (assumed null) if nothing was available (or on transmission error).
-    /// <para>AutoAcks message.</para>
-    /// </summary>
-    /// <param name="queueName"></param>
     public async Task<T> GetAsync<T>(string queueName)
     {
         IChannelHost chanHost;
@@ -492,7 +412,9 @@ public class RabbitService : IRabbitService, IDisposable
                 .ConfigureAwait(false);
         }
 
-        return result != null ? SerializationProvider.Deserialize<T>(result.Body) : default;
+        return result != null
+            ? SerializationProvider.Deserialize<T>(result.Body)
+            : default;
     }
 
     protected virtual void Dispose(bool disposing)
@@ -505,7 +427,7 @@ public class RabbitService : IRabbitService, IDisposable
             }
 
             Consumers = null;
-            ConsumerPipelineNameToConsumerOptions = null;
+            ConsumerOptions = null;
             _disposedValue = true;
         }
     }

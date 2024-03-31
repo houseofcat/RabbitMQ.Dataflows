@@ -21,7 +21,6 @@ public abstract class RabbitWorkState : IRabbitWorkState
 
     public virtual ReadOnlyMemory<byte> SendData { get; set; }
     public virtual IMessage SendMessage { get; set; }
-
     public virtual bool SendMessageSent { get; set; }
 
     public virtual IDictionary<string, object> Data { get; set; }

@@ -73,38 +73,13 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
         _executeStepOptions = new ExecutionDataflowBlockOptions
         {
-            MaxDegreeOfParallelism = _consumerOptions.ConsumerPipelineOptions.MaxDegreesOfParallelism ?? 1,
+            MaxDegreeOfParallelism = _consumerOptions.WorkflowMaxDegreesOfParallelism,
             SingleProducerConstrained = true,
-            EnsureOrdered = _consumerOptions.ConsumerPipelineOptions.EnsureOrdered ?? true,
+            EnsureOrdered = _consumerOptions.WorkflowEnsureOrdered,
             TaskScheduler = _taskScheduler,
         };
 
         _consumerBlocks = new List<ConsumerBlock<IReceivedMessage>>();
-    }
-
-    /// <summary>
-    /// This constructor is used for when you want to supply Consumers manually, or custom Consumers without having to write a custom IRabbitService,
-    /// and have global consumer pipeline options to retrieve maxDoP and ensureOrdered from.
-    /// </summary>
-    /// <param name="rabbitService"></param>
-    /// <param name="workflowName"></param>
-    /// <param name="consumers"></param>
-    /// <param name="globalConsumerPipelineOptions"></param>
-    /// <param name="taskScheduler"></param>
-    public ConsumerDataflow(
-        IRabbitService rabbitService,
-        string workflowName,
-        ICollection<IConsumer<IReceivedMessage>> consumers,
-        GlobalConsumerPipelineOptions globalConsumerPipelineOptions,
-        TaskScheduler taskScheduler = null) : this(
-            rabbitService,
-            workflowName,
-            consumers,
-            globalConsumerPipelineOptions?.MaxDegreesOfParallelism ?? 1,
-            globalConsumerPipelineOptions?.EnsureOrdered ?? true,
-            taskScheduler)
-    {
-        Guard.AgainstNull(globalConsumerPipelineOptions, nameof(globalConsumerPipelineOptions));
     }
 
     /// <summary>

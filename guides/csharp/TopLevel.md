@@ -117,72 +117,52 @@ Let me copy in a basic HoC config with our consumer settings in it. This file ne
 
 ```json
 {
-    "PoolOptions": {
-      "Uri": "amqp://guest:guest@localhost:5672/",
-      "MaxChannelsPerConnection": 2000,
-      "HeartbeatInterval": 6,
-      "AutoRecovery": true,
-      "TopologyRecovery": true,
-      "NetRecoveryTimeout": 5,
-      "ContinuationTimeout": 10,
-      "EnableDispatchConsumersAsync": true,
-      "ServiceName": "HoC.RabbitMQ",
-      "MaxConnections": 2,
-      "MaxChannels": 10,
-      "MaxAckableChannels": 0,
-      "SleepOnErrorInterval": 5000,
-      "TansientChannelStartRange": 10000,
-      "UseTransientChannels": false
-    },
-    "PublisherOptions": {
-        "MessageQueueBufferSize": 100,
-        "PriorityMessageQueueBufferSize": 100,
-        "BehaviorWhenFull": 0,
-        "AutoPublisherSleepInterval": 0,
-        "CreatePublishReceipts": true,
-        "Compress": false,
-        "Encrypt": false
-    },
-    "GlobalConsumerOptions": {
-    "AggressiveOptions": {
-        "ErrorSuffix": "Error",
-        "BatchSize": 128,
-        "BehaviorWhenFull": 0,
-        "SleepOnIdleInterval": 0,
-        "UseTransientChannels": true,
-        "AutoAck": false,
-        "NoLocal": false,
-        "Exclusive": false,
-        "GlobalConsumerPipelineOptions": {
-        "WaitForCompletion": false,
-        "MaxDegreesOfParallelism": 64,
-        "EnsureOrdered": false
-        }
-    },
-    "SingleThreadedOptions": {
-        "ErrorSuffix": "Error",
-        "BatchSize": 1,
-        "BehaviorWhenFull": 0,
-        "SleepOnIdleInterval": 0,
-        "UseTransientChannels": true,
-        "AutoAck": false,
-        "NoLocal": false,
-        "Exclusive": false,
-        "GlobalConsumerPipelineOptions": {
-        "WaitForCompletion": true,
-        "MaxDegreesOfParallelism": 1,
-        "EnsureOrdered": true
-        }
+  "PoolOptions": {
+    "Uri": "amqp://guest:guest@localhost:5672/",
+    "MaxChannelsPerConnection": 2000,
+    "HeartbeatInterval": 6,
+    "AutoRecovery": true,
+    "TopologyRecovery": true,
+    "NetRecoveryTimeout": 5,
+    "ContinuationTimeout": 10,
+    "EnableDispatchConsumersAsync": true,
+    "ServiceName": "HoC.RabbitMQ",
+    "Connections": 2,
+    "Channels": 10,
+    "AckableChannels": 0,
+    "SleepOnErrorInterval": 5000,
+    "TansientChannelStartRange": 10000,
+    "UseTransientChannels": false
+  },
+  "PublisherOptions": {
+    "MessageQueueBufferSize": 100,
+    "BehaviorWhenFull": 0,
+    "AutoPublisherSleepInterval": 0,
+    "CreatePublishReceipts": true,
+    "Compress": false,
+    "Encrypt": false
+  },
+  "ConsumerOptions": {
+    "HoC-Consume": {
+      "Enabled": true,
+      "ConsumerName": "HoC-Consume",
+      "QueueName": "TestQueue",
+      "ErrorSuffix": "Error",
+      "BatchSize": 5,
+      "BehaviorWhenFull": 0,
+      "SleepOnIdleInterval": 0,
+      "UseTransientChannels": true,
+      "AutoAck": false,
+      "NoLocal": false,
+      "Exclusive": false,
+      "WorkflowName": "TestConsumerWorkflow",
+      "WorkflowMaxDegreesOfParallelism": 1,
+      "WorkflowConsumerCount": 1,
+      "WorkflowBatchSize":  5,
+      "WorkflowEnsureOrdered": false,
+      "WorkflowWaitForCompletion": false
     }
-    },
-    "ConsumerOptions": {
-        "HoC-Consumer": {
-            "Enabled": true,
-            "GlobalSettings": "AggressiveOptions",
-            "ConsumerName": "HoC-Consumer",
-            "QueueName": "HoC-ConsumerQueue"
-        }
-    }
+  }
 }
 ```
 

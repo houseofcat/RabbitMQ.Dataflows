@@ -1,11 +1,23 @@
+using HouseofCat.RabbitMQ.Dataflows;
+using HouseofCat.RabbitMQ.Services;
 using System.Collections.Generic;
+using System.Threading.Channels;
 
 namespace HouseofCat.RabbitMQ;
 
-public class ConsumerOptions : GlobalConsumerOptions
+public class ConsumerOptions
 {
+    public bool? NoLocal { get; set; }
+    public bool? Exclusive { get; set; }
+    public ushort? BatchSize { get; set; } = 5;
+    public bool? AutoAck { get; set; }
+
+    public string ErrorSuffix { get; set; }
+    public string AltSuffix { get; set; }
+
+    public BoundedChannelFullMode? BehaviorWhenFull { get; set; } = BoundedChannelFullMode.Wait;
+
     public bool Enabled { get; set; }
-    public string GlobalSettings { get; set; }
 
     public string ConsumerName { get; set; }
 
@@ -18,37 +30,11 @@ public class ConsumerOptions : GlobalConsumerOptions
 
     public string ErrorQueueName => $"{QueueName}.{ErrorSuffix ?? "Error"}";
     public IDictionary<string, object> ErrorQueueArgs { get; set; }
-    public string AltQueueName => $"{QueueName}.{AltSuffix ?? "Alt"}";
-    public IDictionary<string, object> AltQueueArgs { get; set; }
 
-    public ConsumerPipelineOptions ConsumerPipelineOptions { get; set; }
-
-    public void ApplyGlobalOptions(GlobalConsumerOptions globalConsumerOptions)
-    {
-        NoLocal = globalConsumerOptions.NoLocal ?? NoLocal;
-        Exclusive = globalConsumerOptions.Exclusive ?? Exclusive;
-        BatchSize = globalConsumerOptions.BatchSize ?? BatchSize;
-
-        AutoAck = globalConsumerOptions.AutoAck ?? AutoAck;
-        ErrorSuffix = globalConsumerOptions.ErrorSuffix ?? ErrorSuffix;
-        AltSuffix = globalConsumerOptions.AltSuffix ?? AltSuffix;
-        BehaviorWhenFull = globalConsumerOptions.BehaviorWhenFull ?? BehaviorWhenFull;
-
-        if (globalConsumerOptions.GlobalConsumerPipelineOptions != null)
-        {
-            ConsumerPipelineOptions ??= new ConsumerPipelineOptions();
-
-            ConsumerPipelineOptions.WaitForCompletion =
-                globalConsumerOptions.GlobalConsumerPipelineOptions.WaitForCompletion
-                ?? ConsumerPipelineOptions.WaitForCompletion;
-
-            ConsumerPipelineOptions.MaxDegreesOfParallelism =
-                globalConsumerOptions.GlobalConsumerPipelineOptions.MaxDegreesOfParallelism
-                ?? ConsumerPipelineOptions.MaxDegreesOfParallelism;
-
-            ConsumerPipelineOptions.EnsureOrdered =
-                globalConsumerOptions.GlobalConsumerPipelineOptions.EnsureOrdered
-                ?? ConsumerPipelineOptions.EnsureOrdered;
-        }
-    }
+    public string WorkflowName { get; set; }
+    public int WorkflowMaxDegreesOfParallelism { get; set; } = 1;
+    public int WorkflowConsumerCount { get; set; } = 1;
+    public int WorkflowBatchSize { get; set; } = 5;
+    public bool WorkflowEnsureOrdered { get; set; } = true;
+    public bool WorkflowWaitForCompletion { get;set; }
 }

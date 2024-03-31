@@ -85,19 +85,19 @@ public class PoolOptions
     /// Number of connections to be created in the ConnectionPool. Used in round-robin to create channels.
     /// <para>Deafult valuse is 2.</para>
     /// </summary>
-    public ushort MaxConnections { get; set; } = 2;
+    public ushort Connections { get; set; } = 2;
 
     /// <summary>
     /// Number of channels to keep in each of the channel pool. Used in round-robin to perform actions.
     /// <para>Default value is 0.</para>
     /// </summary>
-    public ushort MaxChannels { get; set; }
+    public ushort Channels { get; set; }
 
     /// <summary>
     /// Number of ackable channels to keep in each of the channel pool. Used in round-robin to perform actions.
     /// <para>Default value is 10.</para>
     /// </summary>
-    public ushort MaxAckableChannels { get; set; } = 10;
+    public ushort AckableChannels { get; set; } = 10;
 
     /// <summary>
     /// The time to sleep (in ms) when an error occurs on Channel or Connection creation. It's best not to be hyper aggressive with this value.

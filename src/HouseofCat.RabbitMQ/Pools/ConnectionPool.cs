@@ -42,7 +42,7 @@ public class ConnectionPool : IConnectionPool, IDisposable
 
         _logger = LogHelpers.GetLogger<ConnectionPool>();
 
-        _connections = Channel.CreateBounded<IConnectionHost>(Options.PoolOptions.MaxConnections);
+        _connections = Channel.CreateBounded<IConnectionHost>(Options.PoolOptions.Connections);
 
         if (oauth2ClientHandler is not null)
         {
@@ -63,7 +63,7 @@ public class ConnectionPool : IConnectionPool, IDisposable
 
         _logger = LogHelpers.GetLogger<ConnectionPool>();
 
-        _connections = Channel.CreateBounded<IConnectionHost>(Options.PoolOptions.MaxConnections);
+        _connections = Channel.CreateBounded<IConnectionHost>(Options.PoolOptions.Connections);
         _connectionFactory = BuildConnectionFactory();
 
         CreateConnectionsAsync().GetAwaiter().GetResult();
@@ -154,7 +154,7 @@ public class ConnectionPool : IConnectionPool, IDisposable
     {
         _logger.LogTrace(LogMessages.ConnectionPools.CreateConnections);
 
-        for (int i = 0; i < Options.PoolOptions.MaxConnections; i++)
+        for (int i = 0; i < Options.PoolOptions.Connections; i++)
         {
             var serviceName = string.IsNullOrEmpty(Options.PoolOptions.ServiceName)
                 ? $"HoC.RabbitMQ:{i}"
