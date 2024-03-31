@@ -26,16 +26,16 @@ public static class PublisherTests
         try
         {
             await publisher.StartAutoPublishAsync();
-            var letterTemplate = new Message("", Shared.QueueName, null, new Metadata());
+            var messageTemplate = new Message("", Shared.QueueName, null, new Metadata());
 
             for (var i = 0; i < testCount; i++)
             {
-                var letter = letterTemplate.Clone();
-                letter.MessageId = Guid.NewGuid().ToString();
-                letter.Body = Encoding.UTF8.GetBytes($"Hello World! {i}");
+                var message = messageTemplate.Clone();
+                message.MessageId = Guid.NewGuid().ToString();
+                message.Body = Encoding.UTF8.GetBytes($"Hello World! {i}");
 
-                await publisher.QueueMessageAsync(letter);
-                logger.LogInformation("Published message [Id: {MessageId}].", letter.MessageId);
+                await publisher.QueueMessageAsync(message);
+                logger.LogInformation("Published message [Id: {MessageId}].", message.MessageId);
 
                 await Task.Delay(delay);
             }

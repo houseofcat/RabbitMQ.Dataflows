@@ -140,17 +140,17 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
 
         try
         {
-            await foreach (var receivedData in Consumer.GetConsumerBuffer().ReadAllAsync(token))
+            await foreach (var receivedMessage in Consumer.GetConsumerBuffer().ReadAllAsync(token))
             {
-                if (receivedData == null) { continue; }
+                if (receivedMessage == null) { continue; }
 
                 _logger.LogDebug(
                     ConsumerPipelines.ConsumerPipelineQueueing,
                     ConsumerOptions.ConsumerName,
-                    receivedData.DeliveryTag);
+                    receivedMessage.DeliveryTag);
 
                 await pipeline
-                    .QueueForExecutionAsync(receivedData)
+                    .QueueForExecutionAsync(receivedMessage)
                     .ConfigureAwait(false);
 
                 if (waitForCompletion)
@@ -158,16 +158,16 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
                     _logger.LogTrace(
                         ConsumerPipelines.ConsumerPipelineWaiting,
                         ConsumerOptions.ConsumerName,
-                        receivedData.DeliveryTag);
+                        receivedMessage.DeliveryTag);
 
-                    await receivedData
+                    await receivedMessage
                         .Completion
                         .ConfigureAwait(false);
 
                     _logger.LogTrace(
                         ConsumerPipelines.ConsumerPipelineWaitingDone,
                         ConsumerOptions.ConsumerName,
-                        receivedData.DeliveryTag);
+                        receivedMessage.DeliveryTag);
                 }
 
                 if (token.IsCancellationRequested)
@@ -200,17 +200,17 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
         {
             while (await Consumer.GetConsumerBuffer().WaitToReadAsync(token).ConfigureAwait(false))
             {
-                while (Consumer.GetConsumerBuffer().TryRead(out var receivedData))
+                while (Consumer.GetConsumerBuffer().TryRead(out var receivedMessage))
                 {
-                    if (receivedData == null) { continue; }
+                    if (receivedMessage == null) { continue; }
 
                     _logger.LogDebug(
                         ConsumerPipelines.ConsumerPipelineQueueing,
                         ConsumerOptions.ConsumerName,
-                        receivedData.DeliveryTag);
+                        receivedMessage.DeliveryTag);
 
                     await pipeline
-                        .QueueForExecutionAsync(receivedData)
+                        .QueueForExecutionAsync(receivedMessage)
                         .ConfigureAwait(false);
 
                     if (waitForCompletion)
@@ -218,16 +218,16 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
                         _logger.LogTrace(
                             ConsumerPipelines.ConsumerPipelineWaiting,
                             ConsumerOptions.ConsumerName,
-                            receivedData.DeliveryTag);
+                            receivedMessage.DeliveryTag);
 
-                        await receivedData
+                        await receivedMessage
                             .Completion
                             .ConfigureAwait(false);
 
                         _logger.LogTrace(
                             ConsumerPipelines.ConsumerPipelineWaitingDone,
                             ConsumerOptions.ConsumerName,
-                            receivedData.DeliveryTag);
+                            receivedMessage.DeliveryTag);
                     }
 
                     if (token.IsCancellationRequested)

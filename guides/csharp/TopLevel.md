@@ -217,32 +217,32 @@ await consumer.StartConsumerAsync();
 ```
 
 Messages at this point should be sitting in the `ConsumerBuffer`. I am going to use `IAsyncEnumerable` to stream those out of the local buffer for
-further processing. `ForEach ReceivedData` we will read the inner body and then Ack/Nack the message as a processing step (do work step).
+further processing. `ForEach ReceivedMessage` we will read the inner body and then Ack/Nack the message as a processing step (do work step).
 Rather than an ugly/bulky `foreach` let us create a `local function` called `ProcessMessage` to keep things nice and clean. We are not using
 auto-ack so we have to ack our messages for them be marked as finished (or nack/unfinished) with server-side.
 
 ```csharp
-await foreach (var receivedData in consumer.StreamOutUntilClosedAsync()) // this will exit only when the internal buffer closes/exception
+await foreach (var receivedMessage in consumer.StreamOutUntilClosedAsync()) // this will exit only when the internal buffer closes/exception
 {
-    ProcessMessage(receivedData);
+    ProcessMessage(receivedMessage);
 }
 
-void ProcessMessage(IReceivedData receivedData)
+void ProcessMessage(IReceivedMessage receivedMessage)
 {
     try
     {
-        var body = Encoding.UTF8.GetString(receivedData.Data);
+        var body = Encoding.UTF8.GetString(receivedMessage.Data);
         logger.LogInformation($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.ffffff} - [Message Received]: {body}");
 
-        if (receivedData.Ackable)
-        { receivedData.AckMessage(); }
+        if (receivedMessage.Ackable)
+        { receivedMessage.AckMessage(); }
     }
     catch (Exception ex)
     {
         logger.LogError(ex, "An error occurred processing messages from the consumer buffer.");
 
-        if (receivedData.Ackable)
-        { receivedData.NackMessage(requeue: true); }
+        if (receivedMessage.Ackable)
+        { receivedMessage.NackMessage(requeue: true); }
     }
 }
 ```
@@ -272,29 +272,29 @@ var rabbitService = new RabbitService(
 var consumer = rabbitService.GetConsumer("HoC-Consumer");
 await consumer.StartConsumerAsync();
 
-await foreach (var receivedData in consumer.StreamOutUntilClosedAsync())
+await foreach (var receivedMessage in consumer.StreamOutUntilClosedAsync())
 {
-    ProcessMessage(receivedData);
+    ProcessMessage(receivedMessage);
 }
 
 await rabbitService.ShutdownAsync(immediately: false);
 
-void ProcessMessage(IReceivedData receivedData)
+void ProcessMessage(IreceivedMessage receivedMessage)
 {
     try
     {
-        var body = Encoding.UTF8.GetString(receivedData.Data);
+        var body = Encoding.UTF8.GetString(receivedMessage.Data);
         logger.LogInformation($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.ffffff} - [Message Received]: {body}");
 
-        if (receivedData.Ackable)
-        { receivedData.AckMessage(); }
+        if (receivedMessage.Ackable)
+        { receivedMessage.AckMessage(); }
     }
     catch (Exception ex)
     {
         logger.LogError(ex, "An error occurred streaming out messages from the consumer.");
 
-        if (receivedData.Ackable)
-        { receivedData.NackMessage(requeue: true); }
+        if (receivedMessage.Ackable)
+        { receivedMessage.NackMessage(requeue: true); }
     }
 }
 ```

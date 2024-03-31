@@ -15,26 +15,26 @@ public static class RabbitServiceTests
         await consumer.StartConsumerAsync();
 
         var dataAsBytes = rabbitService.SerializationProvider.Serialize(new { Name = "TestName", Age = 42 });
-        var letter = new Message(
+        var message = new Message(
             exchange: Shared.ExchangeName,
             routingKey: Shared.RoutingKey,
             data: dataAsBytes,
             payloadId: Guid.NewGuid().ToString());
 
-        await rabbitService.Publisher.QueueMessageAsync(letter);
+        await rabbitService.Publisher.QueueMessageAsync(message);
 
         // Ping pong the same message.
-        await foreach (var receivedData in consumer.StreamUntilConsumerStopAsync())
+        await foreach (var receivedMessage in consumer.StreamUntilConsumerStopAsync())
         {
-            if (receivedData?.Message is null)
+            if (receivedMessage?.Message is null)
             {
-                receivedData?.AckMessage();
+                receivedMessage?.AckMessage();
                 continue;
             }
 
-            await rabbitService.DecomcryptAsync(receivedData.Message);
-            await rabbitService.Publisher.QueueMessageAsync(receivedData.Message);
-            receivedData.AckMessage();
+            await rabbitService.DecomcryptAsync(receivedMessage.Message);
+            await rabbitService.Publisher.QueueMessageAsync(receivedMessage.Message);
+            receivedMessage.AckMessage();
         }
     }
 
@@ -46,26 +46,26 @@ public static class RabbitServiceTests
         await consumer.StartConsumerAsync();
 
         var dataAsBytes = rabbitService.SerializationProvider.Serialize(new { Name = "TestName", Age = 42 });
-        var letter = new Message(
+        var message = new Message(
             exchange: Shared.ExchangeName,
             routingKey: Shared.RoutingKey,
             data: dataAsBytes,
             payloadId: Guid.NewGuid().ToString());
 
-        await rabbitService.Publisher.QueueMessageAsync(letter);
+        await rabbitService.Publisher.QueueMessageAsync(message);
 
         // Ping pong the same message.
-        await foreach (var receivedData in consumer.StreamUntilConsumerStopAsync())
+        await foreach (var receivedMessage in consumer.StreamUntilConsumerStopAsync())
         {
-            if (receivedData?.Message is null)
+            if (receivedMessage?.Message is null)
             {
-                receivedData?.AckMessage();
+                receivedMessage?.AckMessage();
                 continue;
             }
 
-            await rabbitService.DecomcryptAsync(receivedData.Message);
-            rabbitService.Publisher.QueueMessage(receivedData.Message);
-            receivedData.AckMessage();
+            await rabbitService.DecomcryptAsync(receivedMessage.Message);
+            rabbitService.Publisher.QueueMessage(receivedMessage.Message);
+            receivedMessage.AckMessage();
         }
     }
 }

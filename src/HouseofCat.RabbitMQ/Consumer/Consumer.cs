@@ -449,9 +449,9 @@ public class Consumer : IConsumer<ReceivedMessage>, IDisposable
     {
         if (!await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
 
-        await foreach (var receivedData in _consumerChannel.Reader.ReadAllAsync())
+        await foreach (var receivedMessage in _consumerChannel.Reader.ReadAllAsync())
         {
-            yield return receivedData;
+            yield return receivedMessage;
         }
     }
 
@@ -500,17 +500,17 @@ public class Consumer : IConsumer<ReceivedMessage>, IDisposable
         {
             while (await _consumerChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false))
             {
-                while (_consumerChannel.Reader.TryRead(out var receivedData))
+                while (_consumerChannel.Reader.TryRead(out var receivedMessage))
                 {
-                    if (receivedData != null)
+                    if (receivedMessage != null)
                     {
                         _logger.LogDebug(
                             Consumers.ConsumerDataflowQueueing,
                             ConsumerOptions.ConsumerName,
-                            receivedData.DeliveryTag);
+                            receivedMessage.DeliveryTag);
 
                         await dataflowEngine
-                            .EnqueueWorkAsync(receivedData)
+                            .EnqueueWorkAsync(receivedMessage)
                             .ConfigureAwait(false);
                     }
                 }
@@ -598,16 +598,16 @@ public class Consumer : IConsumer<ReceivedMessage>, IDisposable
         {
             while (await _consumerChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false))
             {
-                var receivedData = await _consumerChannel.Reader.ReadAsync(token);
-                if (receivedData != null)
+                var receivedMessage = await _consumerChannel.Reader.ReadAsync(token);
+                if (receivedMessage != null)
                 {
                     _logger.LogDebug(
                         Consumers.ConsumerDataflowQueueing,
                         ConsumerOptions.ConsumerName,
-                        receivedData.DeliveryTag);
+                        receivedMessage.DeliveryTag);
 
                     await channelBlockEngine
-                        .EnqueueWorkAsync(receivedData)
+                        .EnqueueWorkAsync(receivedMessage)
                         .ConfigureAwait(false);
                 }
             }

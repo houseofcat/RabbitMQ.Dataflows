@@ -28,24 +28,24 @@ public static class PubSubTests
         try
         {
             await publisher.StartAutoPublishAsync();
-            var letterTemplate = new Message("", Shared.QueueName, null, new Metadata());
+            var messageTemplate = new Message("", Shared.QueueName, null, new Metadata());
 
             for (var i = 0; i < testCount; i++)
             {
-                var letter = letterTemplate.Clone();
-                letter.MessageId = Guid.NewGuid().ToString();
-                letter.Body = Encoding.UTF8.GetBytes($"Hello World! {i}");
+                var message = messageTemplate.Clone();
+                message.MessageId = Guid.NewGuid().ToString();
+                message.Body = Encoding.UTF8.GetBytes($"Hello World! {i}");
 
-                await publisher.QueueMessageAsync(letter);
-                logger.LogInformation("Published message [Id: {MessageId}].", letter.MessageId);
+                await publisher.QueueMessageAsync(message);
+                logger.LogInformation("Published message [Id: {MessageId}].", message.MessageId);
             }
 
-            var exitLetter = letterTemplate.Clone();
-            exitLetter.MessageId = "exit";
-            exitLetter.Body = Encoding.UTF8.GetBytes("exit");
+            var exitMessage = messageTemplate.Clone();
+            exitMessage.MessageId = "exit";
+            exitMessage.Body = Encoding.UTF8.GetBytes("exit");
 
             logger.LogInformation("Publishing exit message.");
-            await publisher.PublishAsync(exitLetter, false);
+            await publisher.PublishAsync(exitMessage, false);
 
             logger.LogInformation("Stopping publisher.");
             await publisher.StopAutoPublishAsync();
@@ -66,27 +66,27 @@ public static class PubSubTests
         {
             await consumer.StartConsumerAsync();
 
-            await foreach (var receivedData in consumer.StreamUntilConsumerStopAsync())
+            await foreach (var receivedMessage in consumer.StreamUntilConsumerStopAsync())
             {
                 try
                 {
-                    var letter = JsonSerializer.Deserialize<Message>(receivedData.Data.Span);
-                    var dataAsString = Encoding.UTF8.GetString(letter.Body.Span);
+                    var message = JsonSerializer.Deserialize<Message>(receivedMessage.Data.Span);
+                    var dataAsString = Encoding.UTF8.GetString(message.Body.Span);
 
                     if (dataAsString.StartsWith("exit"))
                     {
                         logger.LogInformation("Exit message received.");
-                        receivedData.AckMessage();
+                        receivedMessage.AckMessage();
                         break; // Can leave messages in the internal queue, but we'll just break here.
                     }
                     else
                     {
                         logger.LogInformation(
                             "Received message [Id: {MessageId}]: [{data}]",
-                            receivedData.Message.MessageId,
+                            receivedMessage.Message.MessageId,
                             dataAsString);
 
-                        receivedData.AckMessage();
+                        receivedMessage.AckMessage();
                     }
                 }
                 catch (Exception ex)
@@ -123,14 +123,14 @@ public static class PubSubTests
         try
         {
             await publisher.StartAutoPublishAsync();
-            var letterTemplate = new Message("", Shared.QueueName, null, new Metadata());
+            var messageTemplate = new Message("", Shared.QueueName, null, new Metadata());
 
             for (var i = 0; i < testCount; i++)
             {
-                var letter = letterTemplate.Clone();
-                letter.MessageId = Guid.NewGuid().ToString();
-                letter.Body = Encoding.UTF8.GetBytes(i.ToString());
-                await publisher.QueueMessageAsync(letter);
+                var message = messageTemplate.Clone();
+                message.MessageId = Guid.NewGuid().ToString();
+                message.Body = Encoding.UTF8.GetBytes(i.ToString());
+                await publisher.QueueMessageAsync(message);
 
                 await Task.Delay(delay);
             }
@@ -154,10 +154,10 @@ public static class PubSubTests
         {
             await consumer.StartConsumerAsync();
 
-            await foreach (var receivedData in consumer.StreamUntilConsumerStopAsync())
+            await foreach (var receivedMessage in consumer.StreamUntilConsumerStopAsync())
             {
-                var letter = JsonSerializer.Deserialize<Message>(receivedData.Data.Span);
-                var number = Encoding.UTF8.GetString(letter.Body.Span);
+                var message = JsonSerializer.Deserialize<Message>(receivedMessage.Data.Span);
+                var number = Encoding.UTF8.GetString(message.Body.Span);
 
                 if (!hashSet.Add(number))
                 {
@@ -165,7 +165,7 @@ public static class PubSubTests
                     break;
                 }
 
-                receivedData.AckMessage();
+                receivedMessage.AckMessage();
 
                 if (hashSet.Count == testCount)
                 {

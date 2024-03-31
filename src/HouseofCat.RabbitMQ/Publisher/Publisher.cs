@@ -530,7 +530,7 @@ public class Publisher : IPublisher, IDisposable
     }
 
     /// <summary>
-    /// Acquires a channel from the channel pool, then publishes message based on the letter/envelope parameters.
+    /// Acquires a channel from the channel pool, then publishes message based on the message parameters.
     /// <para>Only throws exception when failing to acquire channel or when creating a receipt after the ReceiptBuffer is closed.</para>
     /// </summary>
     /// <param name="message"></param>
@@ -579,7 +579,7 @@ public class Publisher : IPublisher, IDisposable
     }
 
     /// <summary>
-    /// Acquires an ackable channel from the channel pool, then publishes message based on the letter/envelope parameters and waits for confirmation.
+    /// Acquires an ackable channel from the channel pool, then publishes message based on the message parameters and waits for confirmation.
     /// <para>Only throws exception when failing to acquire channel or when creating a receipt after the ReceiptBuffer is closed.</para>
     /// <para>Not fully ready for production yet.</para>
     /// </summary>
@@ -676,7 +676,7 @@ public class Publisher : IPublisher, IDisposable
     }
 
     /// <summary>
-    /// Use this method when a group of letters who have the same properties (deliverymode, messagetype, priority).
+    /// Use this method when a group of messages who have the same properties (deliverymode, messagetype, priority).
     /// <para>Receipt with no error indicates that we successfully handed off to internal library, not necessarily published.</para>
     /// </summary>
     /// <param name="messages"></param>

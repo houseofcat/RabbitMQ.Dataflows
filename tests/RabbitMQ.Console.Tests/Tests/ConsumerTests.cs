@@ -15,10 +15,10 @@ public static class ConsumerTests
         {
             await consumer.StartConsumerAsync();
 
-            await foreach (var receivedData in consumer.StreamUntilConsumerStopAsync())
+            await foreach (var receivedMessage in consumer.StreamUntilConsumerStopAsync())
             {
-                logger.LogInformation("Received message: [{message}]", Encoding.UTF8.GetString(receivedData.Data.Span));
-                receivedData.AckMessage();
+                logger.LogInformation("Received message: [{message}]", Encoding.UTF8.GetString(receivedMessage.Data.Span));
+                receivedMessage.AckMessage();
             }
         }
         catch (Exception ex)

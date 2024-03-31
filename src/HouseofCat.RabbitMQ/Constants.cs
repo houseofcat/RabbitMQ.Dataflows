@@ -139,6 +139,6 @@ public static class LogMessages
 
         public const string ConsumerDataflowActionCancelled = "Consumer [{0}] dataflow engine actions were cancelled.";
         public const string ConsumerDataflowError = "Consumer [{0}] dataflow engine encountered an error. Error: {1}";
-        public const string ConsumerDataflowQueueing = "Consumer [{0}] dataflow engine queueing unit of work [ReceivedData:DT:{1}].";
+        public const string ConsumerDataflowQueueing = "Consumer [{0}] dataflow engine queueing unit of work [receivedMessage:DT:{1}].";
     }
 }
