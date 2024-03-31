@@ -137,28 +137,35 @@ Let me copy in a basic HoC config with our consumer settings in it. This file ne
   "PublisherOptions": {
     "MessageQueueBufferSize": 100,
     "BehaviorWhenFull": 0,
-    "AutoPublisherSleepInterval": 0,
-    "CreatePublishReceipts": true,
+    "CreatePublishReceipts": false,
     "Compress": false,
-    "Encrypt": false
+    "Encrypt": false,
+    "WaitForConfirmationTimeoutInMilliseconds": 500
   },
   "ConsumerOptions": {
-    "HoC-Consume": {
+    "HoC-Consumer": {
       "Enabled": true,
-      "ConsumerName": "HoC-Consume",
-      "QueueName": "TestQueue",
-      "ErrorSuffix": "Error",
+      "ConsumerName": "HoC-Consumer",
       "BatchSize": 5,
       "BehaviorWhenFull": 0,
-      "SleepOnIdleInterval": 0,
       "UseTransientChannels": true,
       "AutoAck": false,
       "NoLocal": false,
       "Exclusive": false,
+      "QueueName": "TestQueue",
+      "QueueArguments": null,
+      "TargetQueueName": "TestTargetQueue",
+      "TargetQueueArgs": null,
+      "ErrorQueueName": "TestQueue.Error",
+      "ErrorQueueArgs": null,
+      "BuildQueues": true,
+      "BuildQueueDurable": true,
+      "BuildQueueExclusive": false,
+      "BuildQueueAutoDelete": false,
       "WorkflowName": "TestConsumerWorkflow",
       "WorkflowMaxDegreesOfParallelism": 1,
       "WorkflowConsumerCount": 1,
-      "WorkflowBatchSize":  5,
+      "WorkflowBatchSize": 5,
       "WorkflowEnsureOrdered": false,
       "WorkflowWaitForCompletion": false
     }
@@ -253,7 +260,7 @@ await foreach (var receivedMessage in consumer.StreamOutUntilClosedAsync())
 
 await rabbitService.ShutdownAsync(immediately: false);
 
-void ProcessMessage(IreceivedMessage receivedMessage)
+void ProcessMessage(IReceivedMessage receivedMessage)
 {
     try
     {

@@ -19,9 +19,9 @@
   "PublisherOptions": {
     "MessageQueueBufferSize": 100,
     "BehaviorWhenFull": 0,
-    "AutoPublisherSleepInterval": 1,
     "CreatePublishReceipts": true,
     "Compress": false,
-    "Encrypt": false
+    "Encrypt": false,
+    "WaitForConfirmationTimeoutInMilliseconds": 500
   }
 }

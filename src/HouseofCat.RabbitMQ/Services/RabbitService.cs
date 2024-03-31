@@ -182,71 +182,43 @@ public class RabbitService : IRabbitService, IDisposable
     {
         foreach (var consumer in Consumers)
         {
+            if (!consumer.Value.ConsumerOptions.BuildQueues)
+            { continue; }
+
             if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.QueueName))
             {
-                if (consumer.Value.ConsumerOptions.QueueArgs == null
-                    || consumer.Value.ConsumerOptions.QueueArgs.Count == 0)
-                {
-                    await Topologer
-                        .CreateQueueAsync(consumer.Value.ConsumerOptions.QueueName)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await Topologer
-                        .CreateQueueAsync(
-                            consumer.Value.ConsumerOptions.QueueName,
-                            true,
-                            false,
-                            false,
-                            consumer.Value.ConsumerOptions.QueueArgs)
-                        .ConfigureAwait(false);
-                }
+                await Topologer
+                    .CreateQueueAsync(
+                        consumer.Value.ConsumerOptions.QueueName,
+                        consumer.Value.ConsumerOptions.BuildQueueDurable,
+                        consumer.Value.ConsumerOptions.BuildQueueExclusive,
+                        consumer.Value.ConsumerOptions.BuildQueueAutoDelete,
+                        consumer.Value.ConsumerOptions.QueueArgs)
+                    .ConfigureAwait(false);
             }
 
             if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.TargetQueueName))
             {
-                if (consumer.Value.ConsumerOptions.TargetQueueArgs == null
-                    || consumer.Value.ConsumerOptions.TargetQueueArgs.Count == 0)
-                {
-                    await Topologer
-                        .CreateQueueAsync(consumer.Value.ConsumerOptions.TargetQueueName)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await Topologer
-                        .CreateQueueAsync(
-                            consumer.Value.ConsumerOptions.TargetQueueName,
-                            true,
-                            false,
-                            false,
-                            consumer.Value.ConsumerOptions.TargetQueueArgs)
-                        .ConfigureAwait(false);
-                }
+                await Topologer
+                    .CreateQueueAsync(
+                        consumer.Value.ConsumerOptions.TargetQueueName,
+                        consumer.Value.ConsumerOptions.BuildQueueDurable,
+                        consumer.Value.ConsumerOptions.BuildQueueExclusive,
+                        consumer.Value.ConsumerOptions.BuildQueueAutoDelete,
+                        consumer.Value.ConsumerOptions.TargetQueueArgs)
+                    .ConfigureAwait(false);
             }
 
-            if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorSuffix)
-                && !string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorQueueName))
+            if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorQueueName))
             {
-                if (consumer.Value.ConsumerOptions.ErrorQueueArgs == null
-                    || consumer.Value.ConsumerOptions.ErrorQueueArgs.Count == 0)
-                {
-                    await Topologer
-                        .CreateQueueAsync(consumer.Value.ConsumerOptions.ErrorQueueName)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await Topologer
-                        .CreateQueueAsync(
-                            consumer.Value.ConsumerOptions.ErrorQueueName,
-                            true,
-                            false,
-                            false,
-                            consumer.Value.ConsumerOptions.ErrorQueueArgs)
-                        .ConfigureAwait(false);
-                }
+                await Topologer
+                    .CreateQueueAsync(
+                        consumer.Value.ConsumerOptions.ErrorQueueName,
+                        consumer.Value.ConsumerOptions.BuildQueueDurable,
+                        consumer.Value.ConsumerOptions.BuildQueueExclusive,
+                        consumer.Value.ConsumerOptions.BuildQueueAutoDelete,
+                        consumer.Value.ConsumerOptions.ErrorQueueArgs)
+                    .ConfigureAwait(false);
             }
         }
     }

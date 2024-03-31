@@ -10,9 +10,6 @@ public class ConsumerOptions
     public ushort BatchSize { get; set; } = 5;
     public bool AutoAck { get; set; }
 
-    public string ErrorSuffix { get; set; }
-    public string AltSuffix { get; set; }
-
     public BoundedChannelFullMode? BehaviorWhenFull { get; set; } = BoundedChannelFullMode.Wait;
 
     public bool Enabled { get; set; }
@@ -24,10 +21,14 @@ public class ConsumerOptions
 
     public string TargetQueueName { get; set; }
     public IDictionary<string, object> TargetQueueArgs { get; set; }
-    public Dictionary<string, string> TargetQueues { get; set; } = new Dictionary<string, string>();
 
-    public string ErrorQueueName => $"{QueueName}.{ErrorSuffix ?? "Error"}";
+    public string ErrorQueueName { get; set; }
     public IDictionary<string, object> ErrorQueueArgs { get; set; }
+
+    public bool BuildQueues { get; set; } = true;
+    public bool BuildQueueDurable { get; set; } = true;
+    public bool BuildQueueExclusive { get; set; }
+    public bool BuildQueueAutoDelete { get; set; }
 
     public string WorkflowName { get; set; }
     public int WorkflowMaxDegreesOfParallelism { get; set; } = 1;
