@@ -74,40 +74,40 @@ public class ConnectionPool : IConnectionPool, IDisposable
         var cf = new ConnectionFactory
         {
             AutomaticRecoveryEnabled = true,
-            TopologyRecoveryEnabled = Options.FactoryOptions.TopologyRecovery,
-            NetworkRecoveryInterval = TimeSpan.FromSeconds(Options.FactoryOptions.NetRecoveryTimeout),
-            ContinuationTimeout = TimeSpan.FromSeconds(Options.FactoryOptions.ContinuationTimeout),
-            RequestedHeartbeat = TimeSpan.FromSeconds(Options.FactoryOptions.HeartbeatInterval),
-            RequestedChannelMax = Options.FactoryOptions.MaxChannelsPerConnection,
-            DispatchConsumersAsync = Options.FactoryOptions.EnableDispatchConsumersAsync,
+            TopologyRecoveryEnabled = Options.PoolOptions.TopologyRecovery,
+            NetworkRecoveryInterval = TimeSpan.FromSeconds(Options.PoolOptions.NetRecoveryTimeout),
+            ContinuationTimeout = TimeSpan.FromSeconds(Options.PoolOptions.ContinuationTimeout),
+            RequestedHeartbeat = TimeSpan.FromSeconds(Options.PoolOptions.HeartbeatInterval),
+            RequestedChannelMax = Options.PoolOptions.MaxChannelsPerConnection,
+            DispatchConsumersAsync = Options.PoolOptions.EnableDispatchConsumersAsync,
         };
 
-        if (Options.FactoryOptions.Uri != null)
+        if (Options.PoolOptions.Uri != null)
         {
-            cf.Uri = Options.FactoryOptions.Uri;
+            cf.Uri = Options.PoolOptions.Uri;
         }
         else
         {
-            cf.VirtualHost = Options.FactoryOptions.VirtualHost;
-            cf.HostName = Options.FactoryOptions.HostName;
-            cf.UserName = Options.FactoryOptions.UserName;
-            cf.Password = Options.FactoryOptions.Password;
-            if (Options.FactoryOptions.Port != AmqpTcpEndpoint.UseDefaultPort)
+            cf.VirtualHost = Options.PoolOptions.VirtualHost;
+            cf.HostName = Options.PoolOptions.HostName;
+            cf.UserName = Options.PoolOptions.UserName;
+            cf.Password = Options.PoolOptions.Password;
+            if (Options.PoolOptions.Port != AmqpTcpEndpoint.UseDefaultPort)
             {
-                cf.Port = Options.FactoryOptions.Port;
+                cf.Port = Options.PoolOptions.Port;
             }
         }
 
-        if (Options.FactoryOptions.SslOptions.EnableSsl)
+        if (Options.PoolOptions.SslOptions.EnableSsl)
         {
             cf.Ssl = new SslOption
             {
-                Enabled = Options.FactoryOptions.SslOptions.EnableSsl,
-                AcceptablePolicyErrors = Options.FactoryOptions.SslOptions.AcceptedPolicyErrors,
-                ServerName = Options.FactoryOptions.SslOptions.CertServerName,
-                CertPath = Options.FactoryOptions.SslOptions.LocalCertPath,
-                CertPassphrase = Options.FactoryOptions.SslOptions.LocalCertPassword,
-                Version = Options.FactoryOptions.SslOptions.ProtocolVersions
+                Enabled = Options.PoolOptions.SslOptions.EnableSsl,
+                AcceptablePolicyErrors = Options.PoolOptions.SslOptions.AcceptedPolicyErrors,
+                ServerName = Options.PoolOptions.SslOptions.CertServerName,
+                CertPath = Options.PoolOptions.SslOptions.LocalCertPath,
+                CertPassphrase = Options.PoolOptions.SslOptions.LocalCertPassword,
+                Version = Options.PoolOptions.SslOptions.ProtocolVersions
             };
         }
 
@@ -117,26 +117,26 @@ public class ConnectionPool : IConnectionPool, IDisposable
     protected virtual ConnectionFactory BuildConnectionFactory(RabbitOptions options, HttpClientHandler oauth2ClientHandler)
     {
         var oAuth2ClientBuilder = new OAuth2ClientBuilder(
-            Options.FactoryOptions.OAuth2Options.ClientId,
-            Options.FactoryOptions.OAuth2Options.ClientSecret,
-            new Uri(Options.FactoryOptions.OAuth2Options.TokenEndpointUrl));
+            Options.PoolOptions.OAuth2Options.ClientId,
+            Options.PoolOptions.OAuth2Options.ClientSecret,
+            new Uri(Options.PoolOptions.OAuth2Options.TokenEndpointUrl));
 
         oAuth2ClientBuilder.SetHttpClientHandler(oauth2ClientHandler);
         var oAuth2Client = oAuth2ClientBuilder.Build();
 
         var credentialsProvider = new OAuth2ClientCredentialsProvider(
-            Options.FactoryOptions.OAuth2Options.OAuth2ClientName,
+            Options.PoolOptions.OAuth2Options.OAuth2ClientName,
             oAuth2Client);
 
         var cf = new ConnectionFactory
         {
             AutomaticRecoveryEnabled = true,
-            TopologyRecoveryEnabled = Options.FactoryOptions.TopologyRecovery,
-            NetworkRecoveryInterval = TimeSpan.FromSeconds(Options.FactoryOptions.NetRecoveryTimeout),
-            ContinuationTimeout = TimeSpan.FromSeconds(Options.FactoryOptions.ContinuationTimeout),
-            RequestedHeartbeat = TimeSpan.FromSeconds(Options.FactoryOptions.HeartbeatInterval),
-            RequestedChannelMax = Options.FactoryOptions.MaxChannelsPerConnection,
-            DispatchConsumersAsync = Options.FactoryOptions.EnableDispatchConsumersAsync,
+            TopologyRecoveryEnabled = Options.PoolOptions.TopologyRecovery,
+            NetworkRecoveryInterval = TimeSpan.FromSeconds(Options.PoolOptions.NetRecoveryTimeout),
+            ContinuationTimeout = TimeSpan.FromSeconds(Options.PoolOptions.ContinuationTimeout),
+            RequestedHeartbeat = TimeSpan.FromSeconds(Options.PoolOptions.HeartbeatInterval),
+            RequestedChannelMax = Options.PoolOptions.MaxChannelsPerConnection,
+            DispatchConsumersAsync = Options.PoolOptions.EnableDispatchConsumersAsync,
             CredentialsProvider = credentialsProvider,
             CredentialsRefresher = new TimerBasedCredentialRefresher()
         };

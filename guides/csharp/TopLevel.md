@@ -117,28 +117,22 @@ Let me copy in a basic HoC config with our consumer settings in it. This file ne
 
 ```json
 {
-    "FactoryOptions": {
-    "Uri": "amqp://guest:guest@localhost:5672/",
-    "MaxChannelsPerConnection": 2000,
-    "HeartbeatInterval": 6,
-    "AutoRecovery": true,
-    "TopologyRecovery": true,
-    "NetRecoveryTimeout": 10,
-    "ContinuationTimeout": 10,
-    "EnableDispatchConsumersAsync": true,
-    "SslOptions": {
-        "EnableSsl": false,
-        "CertServerName": "",
-        "LocalCertPath": "",
-        "LocalCertPassword": "",
-        "ProtocolVersions": 3072
-        }
-    },
     "PoolOptions": {
-        "ServiceName": "TopLevel-HoC-Consumer",
-        "MaxConnections": 5,
-        "MaxChannels": 25,
-        "SleepOnErrorInterval": 1000
+      "Uri": "amqp://guest:guest@localhost:5672/",
+      "MaxChannelsPerConnection": 2000,
+      "HeartbeatInterval": 6,
+      "AutoRecovery": true,
+      "TopologyRecovery": true,
+      "NetRecoveryTimeout": 5,
+      "ContinuationTimeout": 10,
+      "EnableDispatchConsumersAsync": true,
+      "ServiceName": "HoC.RabbitMQ",
+      "MaxConnections": 2,
+      "MaxChannels": 10,
+      "MaxAckableChannels": 0,
+      "SleepOnErrorInterval": 5000,
+      "TansientChannelStartRange": 10000,
+      "UseTransientChannels": false
     },
     "PublisherOptions": {
         "MessageQueueBufferSize": 100,

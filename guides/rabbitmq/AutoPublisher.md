@@ -20,12 +20,9 @@ using System.Text;
 // Step 1: Configure RabbitOptions (or load from file or IConfiguration).
 var rabbitOptions = new RabbitOptions
 {
-    FactoryOptions = new FactoryOptions
-    {
-        Uri = new Uri("amqp://guest:guest@localhost:5672"),
-    },
     PoolOptions = new PoolOptions
     {
+        Uri = new Uri("amqp://guest:guest@localhost:5672"),
         ServiceName = "TestService",
         MaxConnections = 2,
         MaxChannels = 10,

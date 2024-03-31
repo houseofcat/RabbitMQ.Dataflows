@@ -7,7 +7,7 @@ Review tutorials and documentation under `./guides/rabbitmq`.
 Sample Config File
 ```json
 {
-  "FactoryOptions": {
+  "PoolOptions": {
     "Uri": "amqp://guest:guest@localhost:5672/",
     "MaxChannelsPerConnection": 2000,
     "HeartbeatInterval": 6,
@@ -16,8 +16,6 @@ Sample Config File
     "NetRecoveryTimeout": 5,
     "ContinuationTimeout": 10,
     "EnableDispatchConsumersAsync": true
-  },
-  "PoolOptions": {
     "ServiceName": "HoC.RabbitMQ",
     "MaxConnections": 2,
     "MaxChannels": 10,

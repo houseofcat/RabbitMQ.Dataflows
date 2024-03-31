@@ -7,11 +7,6 @@ namespace HouseofCat.RabbitMQ;
 public class RabbitOptions
 {
     /// <summary>
-    /// Class to hold settings for ConnectionFactory (RabbitMQ) options.
-    /// </summary>
-    public FactoryOptions FactoryOptions { get; set; } = new FactoryOptions();
-
-    /// <summary>
     /// Class to hold settings for Channel/ConnectionPool options.
     /// </summary>
     public PoolOptions PoolOptions { get; set; } = new PoolOptions();

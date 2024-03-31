@@ -54,12 +54,9 @@ public static class PublisherTests
         // Step 1: Create RabbitOptions
         var rabbitOptions = new RabbitOptions
         {
-            FactoryOptions = new FactoryOptions
-            {
-                Uri = new Uri("amqp://guest:guest@localhost:5672"),
-            },
             PoolOptions = new PoolOptions
             {
+                Uri = new Uri("amqp://guest:guest@localhost:5672"),
                 ServiceName = "TestService",
                 MaxConnections = 2,
                 MaxChannels = 10,

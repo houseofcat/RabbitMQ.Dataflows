@@ -199,7 +199,7 @@ public class Consumer : IConsumer<ReceivedMessage>, IDisposable
             { return false; }
         }
 
-        if (Options.FactoryOptions.EnableDispatchConsumersAsync)
+        if (Options.PoolOptions.EnableDispatchConsumersAsync)
         {
             if (_asyncConsumer != null) // Cleanup operation, this prevents an EventHandler leak.
             {
