@@ -628,7 +628,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return state;
     }
 
-    public virtual TState BuildStateAndPayload<TOut>(string key, IReceivedMessage data)
+    public virtual TState BuildStateAndObjectFromPayload<TOut>(string key, IReceivedMessage data)
     {
         var state = new TState
         {
@@ -674,7 +674,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         TState BuildStateWrap(IReceivedMessage data)
         {
             try
-            { return BuildStateAndPayload<TOut>(key, data); }
+            { return BuildStateAndObjectFromPayload<TOut>(key, data); }
             catch
             { return null; }
         }

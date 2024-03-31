@@ -10,16 +10,15 @@ public static class BasicGetTests
     {
         var channelPool = await Shared.SetupTestsAsync(logger, configFileNamePath);
         var channelHost = await channelPool.GetTransientChannelAsync(true);
-        var channel = channelHost.GetChannel();
 
         try
         {
-            var properties = channel.CreateBasicProperties();
+            var properties = channelHost.Channel.CreateBasicProperties();
             properties.DeliveryMode = 2;
 
             var messageAsBytes = Encoding.UTF8.GetBytes("Hello World");
 
-            channel.BasicPublish(Shared.ExchangeName, Shared.RoutingKey, properties, messageAsBytes);
+            channelHost.Channel.BasicPublish(Shared.ExchangeName, Shared.RoutingKey, properties, messageAsBytes);
 
             logger.LogInformation(
                 "Getting message from Queue [{queueName}]",
@@ -28,12 +27,12 @@ public static class BasicGetTests
             BasicGetResult result = null;
             do
             {
-                result = channel.BasicGet(Shared.QueueName, false);
+                result = channelHost.Channel.BasicGet(Shared.QueueName, false);
                 if (result is not null)
                 {
                     var message = Encoding.UTF8.GetString(result.Body.Span);
                     logger.LogInformation("Received message: [{message}]", message);
-                    channel.BasicAck(result.DeliveryTag, false);
+                    channelHost.Channel.BasicAck(result.DeliveryTag, false);
                 }
                 else
                 {

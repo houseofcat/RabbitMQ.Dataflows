@@ -229,8 +229,8 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
     {
         EventingBasicConsumer consumer = null;
 
-        _chanHost.GetChannel().BasicQos(0, ConsumerOptions.BatchSize!.Value, false);
-        consumer = new EventingBasicConsumer(_chanHost.GetChannel());
+        _chanHost.Channel.BasicQos(0, ConsumerOptions.BatchSize!.Value, false);
+        consumer = new EventingBasicConsumer(_chanHost.Channel);
 
         consumer.Received += ReceiveHandler;
         consumer.Shutdown += ConsumerShutdown;
@@ -271,8 +271,8 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
     {
         AsyncEventingBasicConsumer consumer = null;
 
-        _chanHost.GetChannel().BasicQos(0, ConsumerOptions.BatchSize!.Value, false);
-        consumer = new AsyncEventingBasicConsumer(_chanHost.GetChannel());
+        _chanHost.Channel.BasicQos(0, ConsumerOptions.BatchSize!.Value, false);
+        consumer = new AsyncEventingBasicConsumer(_chanHost.Channel);
 
         consumer.Received += ReceiveHandlerAsync;
         consumer.Shutdown += ConsumerShutdownAsync;
@@ -298,7 +298,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         {
             await _consumerChannel
                 .Writer
-                .WriteAsync(new ReceivedMessage(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false)))
+                .WriteAsync(new ReceivedMessage(_chanHost.Channel, bdea, !(ConsumerOptions.AutoAck ?? false)))
                 .ConfigureAwait(false);
             return true;
         }

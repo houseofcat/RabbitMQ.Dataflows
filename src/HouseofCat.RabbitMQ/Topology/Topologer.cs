@@ -146,7 +146,7 @@ public class Topologer : ITopologer
 
         try
         {
-            chanHost.GetChannel().QueueDeclare(
+            chanHost.Channel.QueueDeclare(
                 queue: queueName,
                 durable: durable,
                 exclusive: exclusive,
@@ -179,7 +179,7 @@ public class Topologer : ITopologer
 
         try
         {
-            chanHost.GetChannel().QueueDelete(
+            chanHost.Channel.QueueDelete(
                 queue: queueName,
                 ifUnused: onlyIfUnused,
                 ifEmpty: onlyIfEmpty);
@@ -213,7 +213,7 @@ public class Topologer : ITopologer
 
         try
         {
-            chanHost.GetChannel().QueueBind(
+            chanHost.Channel.QueueBind(
                 queue: queueName,
                 exchange: exchangeName,
                 routingKey: routingKey,
@@ -248,7 +248,7 @@ public class Topologer : ITopologer
 
         try
         {
-            chanHost.GetChannel().QueueUnbind(
+            chanHost.Channel.QueueUnbind(
                 queue: queueName,
                 exchange: exchangeName,
                 routingKey: routingKey,
@@ -284,7 +284,7 @@ public class Topologer : ITopologer
 
         try
         {
-            chanHost.GetChannel().ExchangeDeclare(
+            chanHost.Channel.ExchangeDeclare(
                 exchange: exchangeName,
                 type: exchangeType,
                 durable: durable,
@@ -313,7 +313,7 @@ public class Topologer : ITopologer
 
         try
         {
-            chanHost.GetChannel().ExchangeDelete(
+            chanHost.Channel.ExchangeDelete(
                 exchange: exchangeName,
                 ifUnused: onlyIfUnused);
         }
@@ -346,7 +346,7 @@ public class Topologer : ITopologer
 
         try
         {
-            chanHost.GetChannel().ExchangeBind(
+            chanHost.Channel.ExchangeBind(
                 destination: childExchangeName,
                 source: parentExchangeName,
                 routingKey: routingKey,
@@ -381,7 +381,7 @@ public class Topologer : ITopologer
 
         try
         {
-            chanHost.GetChannel().ExchangeUnbind(
+            chanHost.Channel.ExchangeUnbind(
                 destination: childExchangeName,
                 source: parentExchangeName,
                 routingKey: routingKey,

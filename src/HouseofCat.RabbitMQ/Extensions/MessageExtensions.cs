@@ -67,7 +67,7 @@ public static class MessageExtensions
         bool withOptionalHeaders,
         IMetadata metadata)
     {
-        var basicProperties = channelHost.GetChannel().CreateBasicProperties();
+        var basicProperties = channelHost.Channel.CreateBasicProperties();
 
         basicProperties.DeliveryMode = message.DeliveryMode;
         basicProperties.ContentType = new string(message.ContentType);

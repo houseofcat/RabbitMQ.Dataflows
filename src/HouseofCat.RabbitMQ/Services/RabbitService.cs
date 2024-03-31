@@ -445,7 +445,7 @@ public class RabbitService : IRabbitService, IDisposable
         try
         {
             result = chanHost
-                .GetChannel()
+                .Channel
                 .BasicGet(queueName, true);
         }
         catch { error = true; }
@@ -481,7 +481,7 @@ public class RabbitService : IRabbitService, IDisposable
         try
         {
             result = chanHost
-                .GetChannel()
+                .Channel
                 .BasicGet(queueName, true);
         }
         catch { error = true; }

@@ -344,7 +344,7 @@ public class Publisher : IPublisher, IDisposable
         var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
         if (basicProperties == null)
         {
-            basicProperties = channelHost.GetChannel().CreateBasicProperties();
+            basicProperties = channelHost.Channel.CreateBasicProperties();
             basicProperties.DeliveryMode = 2;
             basicProperties.MessageId = messageId ?? Guid.NewGuid().ToString();
 
@@ -359,7 +359,7 @@ public class Publisher : IPublisher, IDisposable
         try
         {
             channelHost
-                .GetChannel()
+                .Channel
                 .BasicPublish(
                     exchange: exchangeName ?? string.Empty,
                     routingKey: routingKey,
@@ -399,7 +399,7 @@ public class Publisher : IPublisher, IDisposable
         try
         {
             channelHost
-                .GetChannel()
+                .Channel
                 .BasicPublish(
                     exchange: exchangeName ?? string.Empty,
                     routingKey: routingKey,
@@ -440,7 +440,7 @@ public class Publisher : IPublisher, IDisposable
         var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
         if (messageProperties == null)
         {
-            messageProperties = channelHost.GetChannel().CreateBasicProperties();
+            messageProperties = channelHost.Channel.CreateBasicProperties();
             messageProperties.DeliveryMode = 2;
             messageProperties.MessageId = Guid.NewGuid().ToString();
 
@@ -455,7 +455,7 @@ public class Publisher : IPublisher, IDisposable
 
         try
         {
-            var batch = channelHost.GetChannel().CreateBasicPublishBatch();
+            var batch = channelHost.Channel.CreateBasicPublishBatch();
 
             for (int i = 0; i < payloads.Count; i++)
             {
@@ -499,7 +499,7 @@ public class Publisher : IPublisher, IDisposable
 
         try
         {
-            var batch = channelHost.GetChannel().CreateBasicPublishBatch();
+            var batch = channelHost.Channel.CreateBasicPublishBatch();
 
             for (int i = 0; i < payloads.Count; i++)
             {
@@ -544,7 +544,7 @@ public class Publisher : IPublisher, IDisposable
         {
             var body = _serializationProvider.Serialize(message.Body);
             chanHost
-                .GetChannel()
+                .Channel
                 .BasicPublish(
                     message.Exchange,
                     message.RoutingKey,
@@ -592,10 +592,10 @@ public class Publisher : IPublisher, IDisposable
 
         try
         {
-            chanHost.GetChannel().WaitForConfirmsOrDie(_waitForConfirmation);
+            chanHost.Channel.WaitForConfirmsOrDie(_waitForConfirmation);
 
             chanHost
-                .GetChannel()
+                .Channel
                 .BasicPublish(
                     message.Exchange,
                     message.RoutingKey,
@@ -603,7 +603,7 @@ public class Publisher : IPublisher, IDisposable
                     message.BuildProperties(chanHost, withOptionalHeaders),
                     _serializationProvider.Serialize(message.Body));
 
-            chanHost.GetChannel().WaitForConfirmsOrDie(_waitForConfirmation);
+            chanHost.Channel.WaitForConfirmsOrDie(_waitForConfirmation);
         }
         catch (Exception ex)
         {
@@ -645,7 +645,7 @@ public class Publisher : IPublisher, IDisposable
         {
             try
             {
-                chanHost.GetChannel().BasicPublish(
+                chanHost.Channel.BasicPublish(
                     messages[i].Exchange,
                     messages[i].RoutingKey,
                     messages[i].Mandatory,
@@ -690,7 +690,7 @@ public class Publisher : IPublisher, IDisposable
         {
             if (messages.Count > 0)
             {
-                var publishBatch = chanHost.GetChannel().CreateBasicPublishBatch();
+                var publishBatch = chanHost.Channel.CreateBasicPublishBatch();
                 for (int i = 0; i < messages.Count; i++)
                 {
                     publishBatch.Add(
@@ -761,7 +761,7 @@ public class Publisher : IPublisher, IDisposable
         byte? priority = 0,
         byte? deliveryMode = 2)
     {
-        var basicProperties = channelHost.GetChannel().CreateBasicProperties();
+        var basicProperties = channelHost.Channel.CreateBasicProperties();
         basicProperties.DeliveryMode = deliveryMode ?? 2; // Default Persisted
         basicProperties.Priority = priority ?? 0; // Default Priority
         basicProperties.MessageId = messageId ?? Guid.NewGuid().ToString();
