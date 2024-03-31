@@ -73,7 +73,7 @@ public class ReceivedMessage : IReceivedMessage, IDisposable
         Channel = channel;
         DeliveryTag = result.DeliveryTag;
         Properties = result.BasicProperties;
-        Data = result.Body.ToArray();
+        Data = result.Body;
 
         ReadHeaders();
     }
@@ -88,7 +88,7 @@ public class ReceivedMessage : IReceivedMessage, IDisposable
         ConsumerTag = args.ConsumerTag;
         DeliveryTag = args.DeliveryTag;
         Properties = args.BasicProperties;
-        Data = args.Body.ToArray();
+        Data = args.Body;
 
         ReadHeaders();
     }
