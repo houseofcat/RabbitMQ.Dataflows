@@ -27,13 +27,12 @@ public static class Shared
         var channelPool = new ChannelPool(rabbitOptions);
 
         var channelHost = await channelPool.GetTransientChannelAsync(true);
-        var channel = channelHost.GetChannel();
 
         logger.LogInformation("Declaring Exchange: [{ExchangeName}]", ExchangeName);
-        channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, true, false, null);
+        channelHost.Channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, true, false, null);
 
         logger.LogInformation("Declaring Queue: [{QueueName}]", QueueName);
-        channel.QueueDeclare(QueueName, true, false, false, null);
+        channelHost.Channel.QueueDeclare(QueueName, true, false, false, null);
 
         logger.LogInformation(
             "Binding Queue [{queueName}] To Exchange: [{exchangeName}]. RoutingKey: [{routingKey}]",
@@ -41,7 +40,7 @@ public static class Shared
             ExchangeName,
             RoutingKey);
 
-        channel.QueueBind(QueueName, ExchangeName, RoutingKey);
+        channelHost.Channel.QueueBind(QueueName, ExchangeName, RoutingKey);
 
         logger.LogInformation(
             "Publishing message to Exchange [{exchangeName}] with RoutingKey [{routingKey}]",

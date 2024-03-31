@@ -44,9 +44,6 @@ public class ChannelHost : IChannelHost, IDisposable
     public bool FlowControlled { get; private set; }
     public bool UsedByConsumer { get; private set; }
 
-    private readonly SemaphoreSlim _hostLock = new SemaphoreSlim(1, 1);
-    private bool _disposedValue;
-
     public ChannelHost(ulong channelId, IConnectionHost connHost, bool ackable)
     {
         _logger = LogHelpers.GetLogger<ChannelHost>();
@@ -93,8 +90,6 @@ public class ChannelHost : IChannelHost, IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<bool> BuildRabbitMQChannelAsync(int autoRecoveryDelay = 1000, CancellationToken token = default)
     {
-        await _hostLock.WaitAsync(token).ConfigureAwait(false);
-
         try
         {
             var connectionHealthy = await _connHost
@@ -150,30 +145,22 @@ public class ChannelHost : IChannelHost, IDisposable
             Channel = null;
             return false;
         }
-        finally
-        { _hostLock.Release(); }
     }
 
     protected virtual void ChannelClose(object sender, ShutdownEventArgs e)
     {
-        _hostLock.Wait();
         _logger.LogDebug(e.ReplyText);
         Closed = true;
-        _hostLock.Release();
     }
 
     protected virtual void FlowControl(object sender, FlowControlEventArgs e)
     {
-        _hostLock.Wait();
-
         if (e.Active)
         { _logger.LogWarning(LogMessages.ChannelHosts.FlowControlled, ChannelId); }
         else
         { _logger.LogInformation(LogMessages.ChannelHosts.FlowControlFinished, ChannelId); }
 
         FlowControlled = e.Active;
-
-        _hostLock.Release();
     }
 
     public async Task<bool> ChannelHealthyAsync()
@@ -246,16 +233,12 @@ public class ChannelHost : IChannelHost, IDisposable
         }
         catch { /* SWALLOW */ }
     }
+    private bool _disposedValue;
 
     protected virtual void Dispose(bool disposing)
     {
         if (!_disposedValue)
         {
-            if (disposing)
-            {
-                _hostLock.Dispose();
-            }
-
             Channel = null;
             _connHost = null;
             _disposedValue = true;

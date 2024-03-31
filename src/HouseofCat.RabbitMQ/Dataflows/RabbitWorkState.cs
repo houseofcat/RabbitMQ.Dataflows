@@ -1,5 +1,6 @@
 ﻿using HouseofCat.Dataflows;
 using OpenTelemetry.Trace;
+using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 using System.Runtime.Serialization;
@@ -18,7 +19,7 @@ public abstract class RabbitWorkState : IRabbitWorkState
     [IgnoreDataMember]
     public virtual IReceivedMessage ReceivedMessage { get; set; }
 
-    public virtual byte[] SendData { get; set; }
+    public virtual ReadOnlyMemory<byte> SendData { get; set; }
     public virtual IMessage SendMessage { get; set; }
 
     public virtual bool SendMessageSent { get; set; }

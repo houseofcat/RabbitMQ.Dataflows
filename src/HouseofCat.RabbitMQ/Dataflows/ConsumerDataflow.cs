@@ -710,10 +710,10 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             {
                 if (outbound)
                 {
-                    if (state.SendData?.Length > 0)
-                    { state.SendData = action(state.SendData.AsMemory()).ToArray(); }
+                    if (state.SendData.Length > 0)
+                    { state.SendData = action(state.SendData); }
                     else if (state.SendMessage.Body.Length > 0)
-                    { state.SendMessage.Body = action(state.SendMessage.Body).ToArray(); }
+                    { state.SendMessage.Body = action(state.SendMessage.Body); }
                 }
                 else if (predicate.Invoke(state))
                 {
@@ -722,10 +722,10 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                         if (state.ReceivedMessage.Message == null)
                         { state.ReceivedMessage.Message = _serializationProvider.Deserialize<Message>(state.ReceivedMessage.Body); }
 
-                        state.ReceivedMessage.Message.Body = action(state.ReceivedMessage.Message.Body).ToArray();
+                        state.ReceivedMessage.Message.Body = action(state.ReceivedMessage.Message.Body);
                     }
                     else
-                    { state.ReceivedMessage.Body = action(state.ReceivedMessage.Body).ToArray(); }
+                    { state.ReceivedMessage.Body = action(state.ReceivedMessage.Body); }
                 }
 
                 return state;
@@ -758,7 +758,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
                 if (outbound)
                 {
-                    if (state.SendData?.Length > 0)
+                    if (state.SendData.Length > 0)
                     { state.SendData = await action(state.SendData).ConfigureAwait(false); }
                     else if (state.SendMessage.Body.Length > 0)
                     { state.SendMessage.Body = await action(state.SendMessage.Body).ConfigureAwait(false); }

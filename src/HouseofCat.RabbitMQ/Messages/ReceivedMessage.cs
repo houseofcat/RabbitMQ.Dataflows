@@ -9,24 +9,30 @@ namespace HouseofCat.RabbitMQ;
 
 public interface IReceivedMessage
 {
+    IMessage Message { get; set; }
+    ReadOnlyMemory<byte> Body { get; set; }
+    IBasicProperties Properties { get; }
+
+    IModel Channel { get; }
+
     bool Ackable { get; }
-    IModel Channel { get; set; }
 
     string ContentType { get; }
     string ObjectType { get; }
+
     bool Encrypted { get; }
     string EncryptionType { get; }
     DateTime EncryptedDateTime { get; }
+
     bool Compressed { get; }
     string CompressionType { get; }
+
     public string TraceParentHeader { get; }
 
-    ReadOnlyMemory<byte> Body { get; set; }
     string ConsumerTag { get; }
     ulong DeliveryTag { get; }
-    IMessage Message { get; set; }
 
-    IBasicProperties Properties { get; }
+    bool FailedToDeserialize { get; }
 
     bool AckMessage();
     void Complete();
@@ -38,24 +44,30 @@ public interface IReceivedMessage
 
 public sealed class ReceivedMessage : IReceivedMessage, IDisposable
 {
-    public IBasicProperties Properties { get; }
-    public bool Ackable { get; }
-    public IModel Channel { get; set; }
-    public string ConsumerTag { get; }
-    public ulong DeliveryTag { get; }
-    public ReadOnlyMemory<byte> Body { get; set; }
     public IMessage Message { get; set; }
+    public ReadOnlyMemory<byte> Body { get; set; }
+    public IBasicProperties Properties { get; }
 
-    // Retrieved From Headers
-    public bool FailedToDeserialize { get; private set; }
+    public IModel Channel { get; private set; }
+
+    public bool Ackable { get; }
+
     public string ContentType { get; private set; }
     public string ObjectType { get; private set; }
+
     public bool Encrypted { get; private set; }
     public string EncryptionType { get; private set; }
     public DateTime EncryptedDateTime { get; private set; }
+
     public bool Compressed { get; private set; }
     public string CompressionType { get; private set; }
+
     public string TraceParentHeader { get; private set; }
+
+    public string ConsumerTag { get; }
+    public ulong DeliveryTag { get; }
+
+    public bool FailedToDeserialize { get; private set; }
 
     private readonly TaskCompletionSource<bool> _completionSource = new TaskCompletionSource<bool>();
     public Task<bool> Completion => _completionSource.Task;
@@ -118,9 +130,6 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
 
                     case Constants.HeaderValueForContentTypeBinary:
                     case Constants.HeaderValueForContentTypePlainText:
-                        Message = new Message{ Body = Body };
-                        break;
-
                     default:
                         break;
                 }
