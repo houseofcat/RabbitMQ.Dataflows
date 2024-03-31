@@ -363,11 +363,10 @@ public class RabbitService : IRabbitService, IDisposable
         }
         catch { return default; }
 
-        BasicGetResult result = null;
         var error = false;
         try
         {
-            result = chanHost
+            var result = chanHost
                 .Channel
                 .BasicGet(queueName, true);
 

@@ -182,10 +182,10 @@ public class ChannelHost : IChannelHost, IDisposable
         _consumerTag = Channel
             .BasicConsume(
                 options.QueueName,
-                options.AutoAck ?? false,
+                options.AutoAck,
                 options.ConsumerName,
-                options.NoLocal ?? false,
-                options.Exclusive ?? false,
+                options.NoLocal,
+                options.Exclusive,
                 null,
                 internalConsumer);
 

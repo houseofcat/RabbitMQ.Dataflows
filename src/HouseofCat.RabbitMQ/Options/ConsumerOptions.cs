@@ -1,5 +1,3 @@
-using HouseofCat.RabbitMQ.Dataflows;
-using HouseofCat.RabbitMQ.Services;
 using System.Collections.Generic;
 using System.Threading.Channels;
 
@@ -7,10 +5,10 @@ namespace HouseofCat.RabbitMQ;
 
 public class ConsumerOptions
 {
-    public bool? NoLocal { get; set; }
-    public bool? Exclusive { get; set; }
-    public ushort? BatchSize { get; set; } = 5;
-    public bool? AutoAck { get; set; }
+    public bool NoLocal { get; set; }
+    public bool Exclusive { get; set; }
+    public ushort BatchSize { get; set; } = 5;
+    public bool AutoAck { get; set; }
 
     public string ErrorSuffix { get; set; }
     public string AltSuffix { get; set; }
@@ -36,5 +34,5 @@ public class ConsumerOptions
     public int WorkflowConsumerCount { get; set; } = 1;
     public int WorkflowBatchSize { get; set; } = 5;
     public bool WorkflowEnsureOrdered { get; set; } = true;
-    public bool WorkflowWaitForCompletion { get;set; }
+    public bool WorkflowWaitForCompletion { get; set; }
 }

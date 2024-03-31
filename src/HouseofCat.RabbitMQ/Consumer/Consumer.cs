@@ -81,9 +81,9 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                 await SetChannelHostAsync().ConfigureAwait(false);
                 _shutdown = false;
                 _consumerChannel = Channel.CreateBounded<IReceivedMessage>(
-                    new BoundedChannelOptions(ConsumerOptions.BatchSize!.Value)
+                    new BoundedChannelOptions(ConsumerOptions.BatchSize)
                     {
-                        FullMode = ConsumerOptions.BehaviorWhenFull!.Value
+                        FullMode = ConsumerOptions.BehaviorWhenFull.Value
                     });
 
                 await Task.Yield();
@@ -211,11 +211,10 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 
     protected virtual async Task SetChannelHostAsync()
     {
-        var autoAck = ConsumerOptions.AutoAck ?? false;
         _logger.LogTrace(Consumers.GettingTransientChannelHost, ConsumerOptions.ConsumerName);
 
         _chanHost = await ChannelPool
-            .GetTransientChannelAsync(!autoAck)
+            .GetTransientChannelAsync(!ConsumerOptions.AutoAck)
             .ConfigureAwait(false);
 
         _logger.LogDebug(
@@ -228,7 +227,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
     {
         EventingBasicConsumer consumer = null;
 
-        _chanHost.Channel.BasicQos(0, ConsumerOptions.BatchSize!.Value, false);
+        _chanHost.Channel.BasicQos(0, ConsumerOptions.BatchSize, false);
         consumer = new EventingBasicConsumer(_chanHost.Channel);
 
         consumer.Received += ReceiveHandler;
@@ -270,7 +269,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
     {
         AsyncEventingBasicConsumer consumer = null;
 
-        _chanHost.Channel.BasicQos(0, ConsumerOptions.BatchSize!.Value, false);
+        _chanHost.Channel.BasicQos(0, ConsumerOptions.BatchSize, false);
         consumer = new AsyncEventingBasicConsumer(_chanHost.Channel);
 
         consumer.Received += ReceiveHandlerAsync;
@@ -297,7 +296,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         {
             await _consumerChannel
                 .Writer
-                .WriteAsync(new ReceivedMessage(_chanHost.Channel, bdea, !(ConsumerOptions.AutoAck ?? false)))
+                .WriteAsync(new ReceivedMessage(_chanHost.Channel, bdea, !ConsumerOptions.AutoAck))
                 .ConfigureAwait(false);
             return true;
         }
