@@ -1,4 +1,4 @@
-﻿using HouseofCat.Utilities;
+﻿using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -51,7 +51,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
         TaskScheduler taskScheduler = null)
     {
         _cts = new CancellationTokenSource();
-        _logger = LogHelper.GetLogger<Pipeline<TIn, TOut>>();
+        _logger = LogHelpers.GetLogger<Pipeline<TIn, TOut>>();
 
         _linkStepOptions = new DataflowLinkOptions { PropagateCompletion = true };
         _executeStepOptions = new ExecutionDataflowBlockOptions

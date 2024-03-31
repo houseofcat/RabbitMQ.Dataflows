@@ -1,4 +1,4 @@
-﻿using HouseofCat.Utilities;
+﻿using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Resources;
@@ -6,8 +6,8 @@ using OpenTelemetry.Trace;
 using RabbitMQ.ConsumerDataflows.Tests;
 using System.Text;
 
-var loggerFactory = LogHelper.CreateConsoleLoggerFactory(LogLevel.Information);
-LogHelper.LoggerFactory = loggerFactory;
+var loggerFactory = LogHelpers.CreateConsoleLoggerFactory(LogLevel.Information);
+LogHelpers.LoggerFactory = loggerFactory;
 var logger = loggerFactory.CreateLogger<Program>();
 
 var applicationName = "RabbitMQ.ConsumerDataflow.Tests";
@@ -42,8 +42,8 @@ dataflowService.AddErrorHandling(
     (state) =>
     {
         logger.LogError(state?.EDI?.SourceException, "Error Step!");
-        state.ReceivedData.NackMessage(requeue: true);
-        state.ReceivedData.Complete();
+        state?.ReceivedData?.NackMessage(requeue: true);
+        state?.ReceivedData?.Complete();
     });
 
 await dataflowService.StartAsync();

@@ -3,8 +3,8 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
+using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 
 namespace HouseofCat.Dataflows;
@@ -27,7 +27,7 @@ public class ChannelReaderBlock<TOut> : ISourceBlock<TOut>
     protected ChannelReaderBlock(ChannelReader<TOut> channelReader, ITargetBlock<TOut> targetBlock)
     {
         Guard.AgainstNull(channelReader, nameof(channelReader));
-        _logger = LogHelper.LoggerFactory.CreateLogger<ChannelReaderBlock<TOut>>();
+        _logger = LogHelpers.LoggerFactory.CreateLogger<ChannelReaderBlock<TOut>>();
         _channelReader = channelReader;
 
         if (targetBlock is ISourceBlock<TOut> sourceBlock)

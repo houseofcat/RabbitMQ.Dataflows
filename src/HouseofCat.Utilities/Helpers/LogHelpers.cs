@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace HouseofCat.Utilities;
+namespace HouseofCat.Utilities.Helpers;
 
-public static class LogHelper
+public static class LogHelpers
 {
     private readonly static object _syncObj = new object();
     private static ILoggerFactory _factory;

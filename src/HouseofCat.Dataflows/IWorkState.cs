@@ -19,6 +19,6 @@ public interface IWorkState
     // Outbound
     byte[] SendData { get; set; }
 
-    // RootSpan
-    TelemetrySpan RootSpan { get; set; }
+    // RootSpan or ChildSpan derived from TraceParentHeader
+    TelemetrySpan WorkflowSpan { get; set; }
 }

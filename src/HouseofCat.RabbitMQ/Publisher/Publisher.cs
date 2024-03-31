@@ -2,9 +2,8 @@ using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
-using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
-using HouseofCat.Utilities.Time;
+using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System;
@@ -94,7 +93,7 @@ public class Publisher : IPublisher, IDisposable
     private Task _processReceiptsAsync;
     private bool _disposedValue;
 
-    public string TimeFormat { get; set; } = Time.Formats.CatsAltFormat;
+    public string TimeFormat { get; set; } = TimeHelpers.Formats.CatsAltFormat;
 
     public Publisher(
         RabbitOptions options,
@@ -118,7 +117,7 @@ public class Publisher : IPublisher, IDisposable
         Guard.AgainstNull(serializationProvider, nameof(serializationProvider));
 
         Options = channelPool.Options;
-        _logger = LogHelper.GetLogger<Publisher>();
+        _logger = LogHelpers.GetLogger<Publisher>();
         _serializationProvider = serializationProvider;
 
         if (Options.PublisherOptions.Encrypt && encryptionProvider == null)
@@ -287,7 +286,7 @@ public class Publisher : IPublisher, IDisposable
                     metadata.Encrypted = _encrypt;
                     metadata.CustomFields[Constants.HeaderForEncrypted] = _encrypt;
                     metadata.CustomFields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
-                    metadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(Time.Formats.RFC3339Long);
+                    metadata.CustomFields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeHelpers.Formats.RFC3339Long);
                 }
 
                 _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.MessageId, metadata?.Id);
@@ -339,27 +338,26 @@ public class Publisher : IPublisher, IDisposable
         string routingKey,
         ReadOnlyMemory<byte> payload,
         bool mandatory = false,
-        IBasicProperties messageProperties = null,
+        IBasicProperties basicProperties = null,
         string messageId = null)
     {
         Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
 
         var error = false;
         var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
-        if (messageProperties == null)
+        if (basicProperties == null)
         {
-            messageProperties = channelHost.GetChannel().CreateBasicProperties();
-            messageProperties.DeliveryMode = 2;
-            messageProperties.MessageId = messageId ?? Guid.NewGuid().ToString();
+            basicProperties = channelHost.GetChannel().CreateBasicProperties();
+            basicProperties.DeliveryMode = 2;
+            basicProperties.MessageId = messageId ?? Guid.NewGuid().ToString();
 
-            if (!messageProperties.IsHeadersPresent())
+            if (!basicProperties.IsHeadersPresent())
             {
-                messageProperties.Headers = new Dictionary<string, object>();
+                basicProperties.Headers = new Dictionary<string, object>();
             }
         }
 
-        // Non-optional Header.
-        messageProperties.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
+        SetMandatoryHeaders(basicProperties);
 
         try
         {
@@ -369,7 +367,7 @@ public class Publisher : IPublisher, IDisposable
                     exchange: exchangeName ?? string.Empty,
                     routingKey: routingKey,
                     mandatory: mandatory,
-                    basicProperties: messageProperties,
+                    basicProperties: basicProperties,
                     body: payload);
         }
         catch (Exception ex)
@@ -743,6 +741,13 @@ public class Publisher : IPublisher, IDisposable
             .ConfigureAwait(false);
     }
 
+    private static void SetMandatoryHeaders(IBasicProperties basicProperties)
+    {
+        basicProperties.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
+        var openTelHeader = OpenTelemetryHelpers.CreateOpenTelemetryHeaderFromCurrentActivityOrDefault();
+        basicProperties.Headers[Constants.HeaderForTraceParent] = openTelHeader;
+    }
+
     /// <summary>
     /// Intended to bring feature parity and include properties when publishing byte[], which you get for free when publishing with IMessage objects.
     /// </summary>
@@ -759,14 +764,14 @@ public class Publisher : IPublisher, IDisposable
         byte? priority = 0,
         byte? deliveryMode = 2)
     {
-        var props = channelHost.GetChannel().CreateBasicProperties();
-        props.DeliveryMode = deliveryMode ?? 2; // Default Persisted
-        props.Priority = priority ?? 0; // Default Priority
-        props.MessageId = messageId ?? Guid.NewGuid().ToString();
+        var basicProperties = channelHost.GetChannel().CreateBasicProperties();
+        basicProperties.DeliveryMode = deliveryMode ?? 2; // Default Persisted
+        basicProperties.Priority = priority ?? 0; // Default Priority
+        basicProperties.MessageId = messageId ?? Guid.NewGuid().ToString();
 
-        if (!props.IsHeadersPresent())
+        if (!basicProperties.IsHeadersPresent())
         {
-            props.Headers = new Dictionary<string, object>();
+            basicProperties.Headers = new Dictionary<string, object>();
         }
 
         if (headers?.Count > 0)
@@ -775,15 +780,14 @@ public class Publisher : IPublisher, IDisposable
             {
                 if (kvp.Key.StartsWith(Constants.HeaderPrefix, StringComparison.OrdinalIgnoreCase))
                 {
-                    props.Headers[kvp.Key] = kvp.Value;
+                    basicProperties.Headers[kvp.Key] = kvp.Value;
                 }
             }
         }
 
-        // Non-optional Header.
-        props.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
+        SetMandatoryHeaders(basicProperties);
 
-        return props;
+        return basicProperties;
     }
 
     protected virtual void Dispose(bool disposing)

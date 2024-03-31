@@ -5,6 +5,7 @@ using HouseofCat.Encryption;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
+using HouseofCat.Utilities.Helpers;
 using OpenTelemetry.Trace;
 using System;
 using System.Collections.Generic;
@@ -618,7 +619,11 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             attributes.Add(KeyValuePair.Create(nameof(state.ReceivedData.Letter.Metadata.Id), state.ReceivedData.Letter.Metadata.Id));
         }
 
-        state.StartRootSpan(WorkflowName, spanKind: SpanKind.Consumer, suppliedAttributes: attributes);
+        state.StartWorkflowSpan(
+            WorkflowName,
+            spanKind: SpanKind.Consumer,
+            suppliedAttributes: attributes,
+            traceHeader: data.TraceParentHeader);
 
         return state;
     }
@@ -645,7 +650,11 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             attributes.Add(KeyValuePair.Create(nameof(state.ReceivedData.Letter.Metadata.Id), state.ReceivedData.Letter.Metadata.Id));
         }
 
-        state.StartRootSpan(WorkflowName, spanKind: SpanKind.Consumer, suppliedAttributes: attributes);
+        state.StartWorkflowSpan(
+            WorkflowName,
+            spanKind: SpanKind.Consumer,
+            suppliedAttributes: attributes,
+            traceHeader: data.TraceParentHeader);
 
         if (_serializationProvider != null
             && data.ObjectType != Constants.HeaderValueForUnknownObjectType)
@@ -692,11 +701,11 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         ExecutionDataflowBlockOptions options,
         bool outbound,
         Predicate<TState> predicate,
-        string metricIdentifier)
+        string spanName)
     {
         TState WrapAction(TState state)
         {
-            using var childSpan = state.CreateActiveSpan(metricIdentifier, SpanKind.Consumer);
+            using var childSpan = state.CreateActiveChildSpan(spanName, state.WorkflowSpan.Context, SpanKind.Consumer);
             try
             {
                 if (outbound)
@@ -739,11 +748,11 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         ExecutionDataflowBlockOptions options,
         bool outbound,
         Predicate<TState> predicate,
-        string metricIdentifier)
+        string spanName)
     {
         async Task<TState> WrapActionAsync(TState state)
         {
-            using var childSpan = state.CreateActiveSpan(metricIdentifier, SpanKind.Consumer);
+            using var childSpan = state.CreateActiveChildSpan(spanName, state.WorkflowSpan.Context, SpanKind.Consumer);
             try
             {
 
@@ -788,7 +797,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     {
         async Task<TState> WrapPublishAsync(TState state)
         {
-            using var childSpan = state.CreateActiveSpan(PublishStepIdentifier, SpanKind.Producer);
+            using var childSpan = state.CreateActiveChildSpan(PublishStepIdentifier, state.WorkflowSpan.Context, SpanKind.Producer);
             try
             {
                 await service.Publisher.PublishAsync(state.SendMessage, true, true).ConfigureAwait(false);

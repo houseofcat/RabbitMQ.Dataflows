@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Globalization;
 
-namespace HouseofCat.Utilities.Time;
+namespace HouseofCat.Utilities.Helpers;
 
-public static class Time
+public static class TimeHelpers
 {
     public static string GetDateTimeNow(string format) => DateTime.Now.ToString(format, DateTimeFormatInfo.InvariantInfo);
     public static string GetDateTimeUtcNow(string format) => DateTime.UtcNow.ToString(format, DateTimeFormatInfo.InvariantInfo);

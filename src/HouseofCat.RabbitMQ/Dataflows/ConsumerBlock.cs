@@ -1,5 +1,5 @@
-﻿using HouseofCat.Utilities;
-using HouseofCat.Utilities.Errors;
+﻿using HouseofCat.Utilities.Errors;
+using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
@@ -35,7 +35,7 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
 
     protected ConsumerBlock(ITargetBlock<TOut> bufferBlock, ISourceBlock<TOut> sourceBufferBlock)
     {
-        _logger = LogHelper.LoggerFactory.CreateLogger<ConsumerBlock<TOut>>();
+        _logger = LogHelpers.LoggerFactory.CreateLogger<ConsumerBlock<TOut>>();
         _bufferBlock = bufferBlock;
         _sourceBufferBlock = sourceBufferBlock;
         Completion = _bufferBlock.Completion;

@@ -7,7 +7,7 @@ using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
-using HouseofCat.Utilities.Time;
+using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System;
@@ -68,7 +68,7 @@ public class RabbitService : IRabbitService, IDisposable
     public ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<ReceivedData>>();
     private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerOptions { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
 
-    public string TimeFormat { get; set; } = Time.Formats.CatsAltFormat;
+    public string TimeFormat { get; set; } = TimeHelpers.Formats.CatsAltFormat;
 
     public RabbitService(
         string fileNamePath,
@@ -113,7 +113,7 @@ public class RabbitService : IRabbitService, IDisposable
     {
         Guard.AgainstNull(chanPool, nameof(chanPool));
         Guard.AgainstNull(serializationProvider, nameof(serializationProvider));
-        LogHelper.LoggerFactory = loggerFactory;
+        LogHelpers.LoggerFactory = loggerFactory;
 
         Options = chanPool.Options;
         ChannelPool = chanPool;
@@ -362,7 +362,7 @@ public class RabbitService : IRabbitService, IDisposable
             metadata.Encrypted = true;
             metadata.CustomFields[Constants.HeaderForEncrypted] = true;
             metadata.CustomFields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
-            metadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(TimeFormat);
+            metadata.CustomFields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeFormat);
 
             return true;
         }

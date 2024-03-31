@@ -21,6 +21,8 @@ public static class Constants
     public static string HeaderForCompressed { get; set; } = "X-RD-COMPRESSED";
     public static string HeaderForCompression { get; set; } = "X-RD-COMPRESSION";
 
+    public static string HeaderForTraceParent { get; set; } = "traceparent";
+
     public const string RangeErrorMessage = "Value for {0} must be between {1} and {2}.";
 
     // Pipeline

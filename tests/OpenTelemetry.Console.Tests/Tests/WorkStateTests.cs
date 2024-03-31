@@ -21,7 +21,7 @@ public static class WorkStateTests
 
         var workstate = new CustomWorkState();
 
-        workstate.StartRootSpan(workflowName, spanKind: SpanKind.Internal);
+        workstate.StartWorkflowSpan(workflowName, spanKind: SpanKind.Internal);
         workstate.EndRootSpan();
 
         logger.LogInformation($"Finished {nameof(RunRootSpanTest)}.");
@@ -33,7 +33,7 @@ public static class WorkStateTests
 
         var workstate = new CustomWorkState();
 
-        workstate.StartRootSpan(workflowName, spanKind: SpanKind.Internal);
+        workstate.StartWorkflowSpan(workflowName, spanKind: SpanKind.Internal);
         using (var span = workstate.CreateActiveSpan("ChildStep", spanKind: SpanKind.Internal))
         {
             span.SetStatus(Status.Ok);
@@ -49,7 +49,7 @@ public static class WorkStateTests
 
         var workstate = new CustomWorkState();
 
-        workstate.StartRootSpan(workflowName, spanKind: SpanKind.Internal);
+        workstate.StartWorkflowSpan(workflowName, spanKind: SpanKind.Internal);
 
         using (var span = workstate.CreateActiveSpan("ChildStep", spanKind: SpanKind.Internal))
         {
@@ -67,7 +67,7 @@ public static class WorkStateTests
 
         var workstate = new CustomWorkState();
 
-        workstate.StartRootSpan(workflowName, spanKind: SpanKind.Internal);
+        workstate.StartWorkflowSpan(workflowName, spanKind: SpanKind.Internal);
 
         for (var i = 0; i < 10; i++)
         {

@@ -1,5 +1,6 @@
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
+using HouseofCat.Utilities.Helpers;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
@@ -39,13 +40,15 @@ public class Letter : IMessage
     {
         MessageId ??= Guid.NewGuid().ToString();
 
-        var props = this.CreateBasicProperties(channelHost, withOptionalHeaders, Metadata);
-        props.MessageId = MessageId;
+        var basicProperties = this.CreateBasicProperties(channelHost, withOptionalHeaders, Metadata);
+        basicProperties.MessageId = MessageId;
 
         // Non-optional Header.
-        props.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
+        basicProperties.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
+        var openTelHeader = OpenTelemetryHelpers.CreateOpenTelemetryHeaderFromCurrentActivityOrDefault();
+        basicProperties.Headers[Constants.HeaderForTraceParent] = openTelHeader;
 
-        return props;
+        return basicProperties;
     }
 
     public Letter() { }

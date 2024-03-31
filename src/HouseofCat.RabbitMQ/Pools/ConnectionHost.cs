@@ -1,4 +1,4 @@
-using HouseofCat.Utilities;
+using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -37,7 +37,7 @@ public class ConnectionHost : IConnectionHost, IDisposable
 
     public ConnectionHost(ulong connectionId, IConnection connection)
     {
-        _logger = LogHelper.GetLogger<ConnectionHost>();
+        _logger = LogHelpers.GetLogger<ConnectionHost>();
         ConnectionId = connectionId;
 
         AssignConnection(connection);

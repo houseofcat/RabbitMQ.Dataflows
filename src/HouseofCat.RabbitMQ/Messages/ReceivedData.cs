@@ -57,6 +57,7 @@ public class ReceivedData : IReceivedData, IDisposable
     public DateTime EncryptedDateTime { get; private set; }
     public bool Compressed { get; private set; }
     public string CompressionType { get; private set; }
+    public string TraceParentHeader { get; private set; }
 
     private readonly TaskCompletionSource<bool> _completionSource = new TaskCompletionSource<bool>();
     public Task<bool> Completion => _completionSource.Task;
@@ -136,6 +137,11 @@ public class ReceivedData : IReceivedData, IDisposable
             {
                 ContentType = Encoding.UTF8.GetString((byte[])contentType);
             }
+        }
+
+        if (Properties.Headers.TryGetValue(Constants.HeaderForTraceParent, out object traceParentHeader))
+        {
+            TraceParentHeader = Encoding.UTF8.GetString((byte[])traceParentHeader);
         }
     }
 

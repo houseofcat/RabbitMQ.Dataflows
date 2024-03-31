@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using HouseofCat.Utilities;
+using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 
 namespace HouseofCat.Dataflows;
@@ -38,7 +38,7 @@ public class ChannelReaderBlockEngine<TIn, TOut>
         TaskScheduler taskScheduler,
         Func<TOut, Task> postWorkBodyAsync = null)
     {
-        _logger = LogHelper.GetLogger<ChannelReaderBlockEngine<TIn, TOut>>();
+        _logger = LogHelpers.GetLogger<ChannelReaderBlockEngine<TIn, TOut>>();
         _workBodyAsync = workBodyAsync ?? throw new ArgumentNullException(nameof(workBodyAsync));
 
         _executeOptions = new ExecutionDataflowBlockOptions

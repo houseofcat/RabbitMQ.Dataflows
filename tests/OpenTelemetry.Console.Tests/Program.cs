@@ -1,12 +1,12 @@
-﻿using HouseofCat.Utilities;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Tests;
+using HouseofCat.Utilities.Helpers;
 
-var loggerFactory = LogHelper.CreateConsoleLoggerFactory(LogLevel.Information);
-LogHelper.LoggerFactory = loggerFactory;
+var loggerFactory = LogHelpers.CreateConsoleLoggerFactory(LogLevel.Information);
+LogHelpers.LoggerFactory = loggerFactory;
 var logger = loggerFactory.CreateLogger<Program>();
 
 var applicationName = "OpenTelemetry.ConsoleTests";

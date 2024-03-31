@@ -1,4 +1,4 @@
-﻿using System;
+﻿using HouseofCat.Utilities.Helpers;
 using System.Collections.Concurrent;
 using System.Reflection;
 
@@ -15,29 +15,10 @@ public static class AssemblyExtensions
             return cachedVersion;
         }
 
-        var version = Assembly.GetExecutingAssembly().GetName().GetFlexibleSemVersion();
+        var version = AppHelpers.GetFlexibleSemVersion(Assembly.GetExecutingAssembly().GetName());
         _assemblyVersion.TryAdd(assembly, version);
         return version;
     }
 
-    public static string GetFlexibleSemVersion(this AssemblyName assemblyName)
-    {
-        if (assemblyName == null)
-        {
-            return null;
-        }
 
-        var versionParts = assemblyName
-             .Version
-             .ToString()
-             .Split('.', StringSplitOptions.RemoveEmptyEntries);
-
-        return (versionParts?.Length ?? 0) switch
-        {
-            0 => null,
-            1 => versionParts[0],
-            2 => $"{versionParts[0]}.{versionParts[1]}",
-            _ => $"{versionParts[0]}.{versionParts[1]}.{versionParts[2]}"
-        };
-    }
 }

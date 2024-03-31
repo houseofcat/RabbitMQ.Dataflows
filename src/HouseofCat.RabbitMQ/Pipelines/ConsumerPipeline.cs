@@ -1,6 +1,6 @@
 ﻿using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.RabbitMQ.Dataflows;
-using HouseofCat.Utilities;
+using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
@@ -40,7 +40,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
         IConsumer<ReceivedData> consumer,
         IPipeline<ReceivedData, TOut> pipeline)
     {
-        _logger = LogHelper.GetLogger<ConsumerPipeline<TOut>>();
+        _logger = LogHelpers.GetLogger<ConsumerPipeline<TOut>>();
         Pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
         Consumer = consumer ?? throw new ArgumentNullException(nameof(consumer));
         ConsumerOptions = consumer.ConsumerOptions ?? throw new ArgumentNullException(nameof(consumer.Options));

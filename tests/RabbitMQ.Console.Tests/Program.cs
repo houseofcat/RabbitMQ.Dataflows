@@ -1,9 +1,9 @@
 ﻿using RabbitMQ.Console.Tests;
-using HouseofCat.Utilities;
 using Microsoft.Extensions.Logging;
+using HouseofCat.Utilities.Helpers;
 
-var loggerFactory = LogHelper.CreateConsoleLoggerFactory(LogLevel.Information);
-LogHelper.LoggerFactory = loggerFactory;
+var loggerFactory = LogHelpers.CreateConsoleLoggerFactory(LogLevel.Information);
+LogHelpers.LoggerFactory = loggerFactory;
 var logger = loggerFactory.CreateLogger<Program>();
 
 // Basic Tests

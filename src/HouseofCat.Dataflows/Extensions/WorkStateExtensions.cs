@@ -1,4 +1,5 @@
 ﻿using HouseofCat.Utilities.Extensions;
+using HouseofCat.Utilities.Helpers;
 using OpenTelemetry.Trace;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,7 +14,7 @@ public static class WorkStateExtensions
         if (state is null) return;
         state.SetCurrentActivityAsError(message);
 
-        if (state.RootSpan is null) return;
+        if (state.WorkflowSpan is null) return;
         state.SetCurrentSpanAsError(message);
     }
 
@@ -46,24 +47,27 @@ public static class WorkStateExtensions
     {
         if (span is null) return;
 
-        span.SetStatus(Status.Error);
-        span.SetAttribute("Error", message);
         if (state?.EDI is not null)
         {
+            span.SetStatus(Status.Error.WithDescription(message ?? state.EDI.SourceException?.Message));
             if (state.EDI.SourceException is not null)
             {
                 span.RecordException(state.EDI.SourceException);
             }
         }
+        else
+        {
+            span.SetStatus(Status.Error.WithDescription(message));
+        }
     }
 
-    public static string DefaultRootSpanNameFormat { get; set; } = "{0}.root";
-    public static string DefaultChildSpanNameFormat { get; set; } = "{0}.{1}.child";
+    public static string DefaultSpanNameFormat { get; set; } = "{0}.workflow";
+    public static string DefaultChildSpanNameFormat { get; set; } = "{0}.{1}.workflow.step";
     public static string DefaultWorkflowNameKey { get; set; } = "hoc.workflow.name";
     public static string DefaultWorkflowVersionKey { get; set; } = "hoc.workflow.version";
 
     /// <summary>
-    /// Start a new RootSpan with respect to State.
+    /// Start a new RootSpan/ChildSpan with respect to WorkState.
     /// </summary>
     /// <param name="state"></param>
     /// <param name="workflowName"></param>
@@ -71,12 +75,13 @@ public static class WorkStateExtensions
     /// <param name="uniqueIdentifier"></param>
     /// <param name="spanKind"></param>
     /// <param name="spanAttributes"></param>
-    public static void StartRootSpan(
+    public static void StartWorkflowSpan(
         this IWorkState state,
         string workflowName,
         string workflowVersion = null,
         SpanKind spanKind = SpanKind.Internal,
-        IEnumerable<KeyValuePair<string, string>> suppliedAttributes = null)
+        IEnumerable<KeyValuePair<string, string>> suppliedAttributes = null,
+        string traceHeader = null)
     {
         if (state is null) return;
 
@@ -86,18 +91,10 @@ public static class WorkStateExtensions
             workflowVersion = assembly.GetExecutingSemanticVersion();
         }
 
-        var traceProvider = TracerProvider
-            .Default
-            .GetTracer(
-                workflowName,
-                workflowVersion);
-
-        if (traceProvider is null) return;
-
         state.Data[DefaultWorkflowNameKey] = workflowName;
         state.Data[DefaultWorkflowVersionKey] = workflowVersion;
 
-        var rootSpanName = string.Format(DefaultRootSpanNameFormat, workflowName);
+        var spanName = string.Format(DefaultSpanNameFormat, workflowName);
 
         var attributes = new SpanAttributes();
         attributes.Add(DefaultWorkflowNameKey, workflowName);
@@ -111,11 +108,29 @@ public static class WorkStateExtensions
             }
         }
 
-        state.RootSpan = traceProvider
+        if (traceHeader is not null)
+        {
+            var spanContext = OpenTelemetryHelpers.ExtractSpanContext(traceHeader);
+            if (spanContext.HasValue)
+            {
+                state.WorkflowSpan = OpenTelemetryHelpers
+                    .StartActiveChildSpan(
+                        workflowName?.ToString(),
+                        spanName,
+                        spanContext.Value,
+                        workflowVersion?.ToString(),
+                        spanKind: spanKind,
+                        attributes: attributes);
+            }
+        }
+
+        state.WorkflowSpan = OpenTelemetryHelpers
             .StartRootSpan(
-                rootSpanName,
+                workflowName?.ToString(),
+                spanName,
+                workflowVersion?.ToString(),
                 spanKind,
-                initialAttributes: attributes);
+                attributes: attributes);
     }
 
     /// <summary>
@@ -130,7 +145,7 @@ public static class WorkStateExtensions
         this IWorkState state,
         string spanName,
         SpanKind spanKind = SpanKind.Internal,
-        SpanAttributes spanAttributes = null)
+        IEnumerable<KeyValuePair<string, string>> suppliedAttributes = null)
     {
         if (state?.Data is null) return null;
 
@@ -139,22 +154,24 @@ public static class WorkStateExtensions
 
         if (workflowName is null) return null;
 
-        var traceProvider = TracerProvider
-            .Default
-            .GetTracer(
-                workflowName.ToString(),
-                workflowVersion?.ToString());
+        var attributes = new SpanAttributes();
 
-        if (traceProvider is null) return null;
+        if (suppliedAttributes is not null)
+        {
+            foreach (var kvp in suppliedAttributes)
+            {
+                attributes.Add(kvp.Key, kvp.Value);
+            }
+        }
 
-        var childSpanName = string.Format(DefaultChildSpanNameFormat, workflowName, spanName);
-
-        return traceProvider
+        return OpenTelemetryHelpers
             .StartActiveSpan(
-                childSpanName,
+                workflowName?.ToString(),
+                spanName,
+                workflowVersion?.ToString(),
                 spanKind,
-                parentContext: state.RootSpan?.Context ?? default,
-                initialAttributes: spanAttributes);
+                parentContext: state.WorkflowSpan?.Context ?? default,
+                attributes: attributes);
     }
 
     /// <summary>
@@ -170,29 +187,23 @@ public static class WorkStateExtensions
         string spanName,
         SpanContext spanContext,
         SpanKind spanKind = SpanKind.Internal,
-        SpanAttributes spanAttributes = null)
+        SpanAttributes attributes = null)
     {
         if (state?.Data is null) return null;
 
         state.Data.TryGetValue(DefaultWorkflowNameKey, out var workflowName);
         state.Data.TryGetValue(DefaultWorkflowVersionKey, out var workflowVersion);
 
-        var traceProvider = TracerProvider
-            .Default
-            .GetTracer(
-                workflowName.ToString(),
-                workflowVersion?.ToString());
-
-        if (traceProvider is null) return null;
-
         var childSpanName = string.Format(DefaultChildSpanNameFormat, workflowName, spanName);
 
-        return traceProvider
-            .StartActiveSpan(
+        return OpenTelemetryHelpers
+            .StartActiveChildSpan(
+                workflowName?.ToString(),
                 childSpanName,
+                spanContext,
+                workflowVersion?.ToString(),
                 spanKind,
-                parentContext: spanContext,
-                initialAttributes: spanAttributes);
+                attributes: attributes);
     }
 
     public static void EndRootSpan(
@@ -205,6 +216,6 @@ public static class WorkStateExtensions
         {
             state.SetOpenTelemetryError();
         }
-        state.RootSpan?.Dispose();
+        state.WorkflowSpan?.Dispose();
     }
 }

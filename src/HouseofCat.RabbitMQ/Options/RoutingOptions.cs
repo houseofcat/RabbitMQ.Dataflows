@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace HouseofCat.RabbitMQ;
 
-public class RoutingOptions
+public record RoutingOptions
 {
     [Range(1, 2, ErrorMessage = Constants.RangeErrorMessage)]
     public byte DeliveryMode { get; set; } = 2;
@@ -14,9 +14,7 @@ public class RoutingOptions
     [Range(0, 10, ErrorMessage = Constants.RangeErrorMessage)]
     public byte PriorityLevel { get; set; }
 
-    private static readonly string _jsonContentType = "application/json;";
-
-    public string ContentType { get; set; } = _jsonContentType;
+    public string ContentType { get; set; } = Constants.HeaderValueForContentTypeApplicationJson;
 
     public static RoutingOptions CreateDefaultRoutingOptions(byte priority = 0)
     {

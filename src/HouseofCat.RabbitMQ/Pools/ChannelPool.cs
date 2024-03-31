@@ -1,5 +1,5 @@
-using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
+using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -77,7 +77,7 @@ public class ChannelPool : IChannelPool, IDisposable
             ? 10000
             : Options.PoolOptions.TansientChannelStartRange;
 
-        _logger = LogHelper.GetLogger<ChannelPool>();
+        _logger = LogHelpers.GetLogger<ChannelPool>();
         _connectionPool = connPool;
         _flaggedChannels = new ConcurrentDictionary<ulong, bool>();
 

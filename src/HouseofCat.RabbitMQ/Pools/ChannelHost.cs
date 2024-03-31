@@ -1,5 +1,5 @@
-using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
+using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -50,7 +50,7 @@ public class ChannelHost : IChannelHost, IDisposable
 
     public ChannelHost(ulong channelId, IConnectionHost connHost, bool ackable)
     {
-        _logger = LogHelper.GetLogger<ChannelHost>();
+        _logger = LogHelpers.GetLogger<ChannelHost>();
 
         ChannelId = channelId;
         _connHost = connHost;

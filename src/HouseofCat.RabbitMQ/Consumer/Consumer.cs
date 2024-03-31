@@ -1,5 +1,4 @@
 using HouseofCat.Dataflows;
-using HouseofCat.Utilities;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities.Errors;
 using Microsoft.Extensions.Logging;
@@ -11,6 +10,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using static HouseofCat.RabbitMQ.LogMessages;
+using HouseofCat.Utilities.Helpers;
 
 namespace HouseofCat.RabbitMQ;
 
@@ -100,7 +100,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         Guard.AgainstNull(channelPool, nameof(channelPool));
         Guard.AgainstNull(consumerOptions, nameof(consumerOptions));
 
-        _logger = LogHelper.GetLogger<Consumer>();
+        _logger = LogHelpers.GetLogger<Consumer>();
         Options = channelPool.Options;
         ChannelPool = channelPool;
         ConsumerOptions = consumerOptions;

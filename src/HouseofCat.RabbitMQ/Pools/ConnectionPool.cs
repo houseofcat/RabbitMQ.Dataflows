@@ -1,5 +1,5 @@
-using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
+using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.OAuth2;
@@ -40,7 +40,7 @@ public class ConnectionPool : IConnectionPool, IDisposable
         Guard.AgainstNull(options, nameof(options));
         Options = options;
 
-        _logger = LogHelper.GetLogger<ConnectionPool>();
+        _logger = LogHelpers.GetLogger<ConnectionPool>();
 
         _connections = Channel.CreateBounded<IConnectionHost>(Options.PoolOptions.MaxConnections);
 
@@ -61,7 +61,7 @@ public class ConnectionPool : IConnectionPool, IDisposable
         Guard.AgainstNull(options, nameof(options));
         Options = options;
 
-        _logger = LogHelper.GetLogger<ConnectionPool>();
+        _logger = LogHelpers.GetLogger<ConnectionPool>();
 
         _connections = Channel.CreateBounded<IConnectionHost>(Options.PoolOptions.MaxConnections);
         _connectionFactory = BuildConnectionFactory();
