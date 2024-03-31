@@ -15,7 +15,7 @@ public static class RabbitServiceTests
         await consumer.StartConsumerAsync();
 
         var dataAsBytes = rabbitService.SerializationProvider.Serialize(new { Name = "TestName", Age = 42 });
-        var letter = new Letter(
+        var letter = new Message(
             exchange: Shared.ExchangeName,
             routingKey: Shared.RoutingKey,
             data: dataAsBytes,
@@ -46,7 +46,7 @@ public static class RabbitServiceTests
         await consumer.StartConsumerAsync();
 
         var dataAsBytes = rabbitService.SerializationProvider.Serialize(new { Name = "TestName", Age = 42 });
-        var letter = new Letter(
+        var letter = new Message(
             exchange: Shared.ExchangeName,
             routingKey: Shared.RoutingKey,
             data: dataAsBytes,

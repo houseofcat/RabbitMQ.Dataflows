@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ;
 
-public interface IReceivedData
+public interface IReceivedMessage
 {
     bool Ackable { get; }
     IModel Channel { get; set; }
@@ -23,7 +23,7 @@ public interface IReceivedData
     ReadOnlyMemory<byte> Data { get; set; }
     string ConsumerTag { get; }
     ulong DeliveryTag { get; }
-    Letter Letter { get; set; }
+    Message Letter { get; set; }
 
     IBasicProperties Properties { get; }
 
@@ -35,7 +35,7 @@ public interface IReceivedData
     bool RejectMessage(bool requeue);
 }
 
-public class ReceivedData : IReceivedData, IDisposable
+public class ReceivedMessage : IReceivedMessage, IDisposable
 {
     /// <summary>
     /// Indicates that the content was not deserializeable based on the provided headers.
@@ -47,7 +47,7 @@ public class ReceivedData : IReceivedData, IDisposable
     public string ConsumerTag { get; }
     public ulong DeliveryTag { get; }
     public ReadOnlyMemory<byte> Data { get; set; }
-    public Letter Letter { get; set; }
+    public Message Letter { get; set; }
 
     // Headers
     public string ContentType { get; private set; }
@@ -64,7 +64,7 @@ public class ReceivedData : IReceivedData, IDisposable
 
     private bool _disposedValue;
 
-    public ReceivedData(
+    public ReceivedMessage(
         IModel channel,
         BasicGetResult result,
         bool ackable)
@@ -78,7 +78,7 @@ public class ReceivedData : IReceivedData, IDisposable
         ReadHeaders();
     }
 
-    public ReceivedData(
+    public ReceivedMessage(
         IModel channel,
         BasicDeliverEventArgs args,
         bool ackable)
@@ -110,7 +110,7 @@ public class ReceivedData : IReceivedData, IDisposable
                 && Data.Length > 0)
             {
                 try
-                { Letter = JsonSerializer.Deserialize<Letter>(Data.Span); }
+                { Letter = JsonSerializer.Deserialize<Message>(Data.Span); }
                 catch
                 { FailedToDeserialize = true; }
             }

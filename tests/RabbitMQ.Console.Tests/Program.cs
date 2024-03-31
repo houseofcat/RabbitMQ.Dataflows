@@ -1,4 +1,4 @@
-﻿using RabbitMQ.Console.Tests;
+﻿using RabbitMQ.ConsoleTests;
 using Microsoft.Extensions.Logging;
 using HouseofCat.Utilities.Helpers;
 

@@ -25,8 +25,8 @@ public static class MetadataExtensions
 
     public static T GetHeader<T>(this IMetadata metadata, string key)
     {
-        Guard.AgainstNull(metadata, nameof(LetterMetadata));
-        Guard.AgainstNullOrEmpty(metadata.CustomFields, nameof(LetterMetadata.CustomFields));
+        Guard.AgainstNull(metadata, nameof(Metadata));
+        Guard.AgainstNullOrEmpty(metadata.CustomFields, nameof(Metadata.CustomFields));
 
         if (metadata.CustomFields.TryGetValue(key, out object value))
         {
@@ -47,8 +47,8 @@ public static class MetadataExtensions
 
     public static bool RemoveHeader(this IMetadata metadata, string key)
     {
-        Guard.AgainstNull(metadata, nameof(LetterMetadata));
-        Guard.AgainstNullOrEmpty(metadata.CustomFields, nameof(LetterMetadata.CustomFields));
+        Guard.AgainstNull(metadata, nameof(Metadata));
+        Guard.AgainstNullOrEmpty(metadata.CustomFields, nameof(Metadata.CustomFields));
 
         return metadata
             .CustomFields
@@ -57,8 +57,8 @@ public static class MetadataExtensions
 
     public static IDictionary<string, object> GetHeadersOutOfMetadata(this IMetadata metadata)
     {
-        Guard.AgainstNull(metadata, nameof(LetterMetadata));
-        Guard.AgainstNullOrEmpty(metadata.CustomFields, nameof(LetterMetadata.CustomFields));
+        Guard.AgainstNull(metadata, nameof(Metadata));
+        Guard.AgainstNullOrEmpty(metadata.CustomFields, nameof(Metadata.CustomFields));
 
         var dict = new Dictionary<string, object>();
 

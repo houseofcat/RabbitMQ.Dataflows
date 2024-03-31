@@ -15,17 +15,11 @@ public static class MessageExtensions
     {
         return new TMessage
         {
-            Envelope = new Envelope
-            {
-                Exchange = new string(message.Envelope.Exchange),
-                RoutingKey = new string(message.Envelope.RoutingKey),
-                RoutingOptions = new RoutingOptions
-                {
-                    DeliveryMode = message.Envelope.RoutingOptions?.DeliveryMode ?? 2,
-                    Mandatory = message.Envelope.RoutingOptions?.Mandatory ?? false,
-                    PriorityLevel = message.Envelope.RoutingOptions?.PriorityLevel ?? 0,
-                }
-            }
+            Exchange = new string(message.Exchange),
+            RoutingKey = new string(message.RoutingKey),
+            DeliveryMode = message.DeliveryMode,
+            Mandatory = message.Mandatory,
+            PriorityLevel = message.PriorityLevel
         };
     }
 
@@ -49,9 +43,9 @@ public static class MessageExtensions
     {
         var props = channelHost.GetChannel().CreateBasicProperties();
 
-        props.DeliveryMode = message.Envelope.RoutingOptions.DeliveryMode;
-        props.ContentType = new string(message.Envelope.RoutingOptions.ContentType);
-        props.Priority = message.Envelope.RoutingOptions.PriorityLevel;
+        props.DeliveryMode = message.DeliveryMode;
+        props.ContentType = new string(message.ContentType);
+        props.Priority = message.PriorityLevel;
         props.MessageId = message.MessageId == null
             ? new string(message.MessageId)
             : Guid.NewGuid().ToString();
@@ -80,20 +74,14 @@ public static class MessageExtensions
         var payload = new byte[bodySize];
         XorShift.FillBuffer(payload, 0, bodySize);
 
-        return new Letter
+        return new Message
         {
             MessageId = Guid.NewGuid().ToString(),
-            Metadata = new LetterMetadata(),
-            Envelope = new Envelope
-            {
-                Exchange = string.Empty,
-                RoutingKey = new string(queueName),
-                RoutingOptions = new RoutingOptions
-                {
-                    DeliveryMode = 1,
-                    PriorityLevel = 0
-                }
-            },
+            Metadata = new Metadata(),
+            Exchange = string.Empty,
+            RoutingKey = new string(queueName),
+            DeliveryMode = 1,
+            PriorityLevel = 0,
             Body = payload
         };
     }

@@ -26,7 +26,7 @@ public static class PublisherTests
         try
         {
             await publisher.StartAutoPublishAsync();
-            var letterTemplate = new Letter("", Shared.QueueName, null, new LetterMetadata());
+            var letterTemplate = new Message("", Shared.QueueName, null, new Metadata());
 
             for (var i = 0; i < testCount; i++)
             {
@@ -91,7 +91,7 @@ public static class PublisherTests
 
             // Step 4: Create Message
             var data = Encoding.UTF8.GetBytes("Hello, RabbitMQ!");
-            var message = new Letter(Shared.ExchangeName, Shared.RoutingKey, data, Guid.NewGuid().ToString())
+            var message = new Message(Shared.ExchangeName, Shared.RoutingKey, data, Guid.NewGuid().ToString())
             {
                 // DeliveryId for tracking/routing through Publisher/Consumer.
                 MessageId = Guid.NewGuid().ToString(),

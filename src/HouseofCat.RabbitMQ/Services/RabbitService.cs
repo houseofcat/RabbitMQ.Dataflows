@@ -30,14 +30,14 @@ public interface IRabbitService
     IEncryptionProvider EncryptionProvider { get; }
     ICompressionProvider CompressionProvider { get; }
 
-    ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; }
+    ConcurrentDictionary<string, IConsumer<ReceivedMessage>> Consumers { get; }
 
     Task ComcryptAsync(IMessage message);
     Task<bool> CompressAsync(IMessage message);
-    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, int batchSize, bool? ensureOrdered, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
-    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, IPipeline<ReceivedData, TOut> pipeline) where TOut : RabbitWorkState;
+    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, int batchSize, bool? ensureOrdered, Func<int, bool?, IPipeline<ReceivedMessage, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
+    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, IPipeline<ReceivedMessage, TOut> pipeline) where TOut : RabbitWorkState;
 
-    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
+    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, Func<int, bool?, IPipeline<ReceivedMessage, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
 
     Task DecomcryptAsync(IMessage message);
     Task<bool> DecompressAsync(IMessage message);
@@ -45,8 +45,8 @@ public interface IRabbitService
     bool Encrypt(IMessage message);
     Task<ReadOnlyMemory<byte>?> GetAsync(string queueName);
     Task<T> GetAsync<T>(string queueName);
-    IConsumer<ReceivedData> GetConsumer(string consumerName);
-    IConsumer<ReceivedData> GetConsumerByPipelineName(string consumerPipelineName);
+    IConsumer<ReceivedMessage> GetConsumer(string consumerName);
+    IConsumer<ReceivedMessage> GetConsumerByPipelineName(string consumerPipelineName);
 
     ValueTask ShutdownAsync(bool immediately);
 }
@@ -65,7 +65,7 @@ public class RabbitService : IRabbitService, IDisposable
     public IEncryptionProvider EncryptionProvider { get; }
     public ICompressionProvider CompressionProvider { get; }
 
-    public ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<ReceivedData>>();
+    public ConcurrentDictionary<string, IConsumer<ReceivedMessage>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<ReceivedMessage>>();
     private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerOptions { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
 
     public string TimeFormat { get; set; } = TimeHelpers.Formats.CatsAltFormat;
@@ -283,7 +283,7 @@ public class RabbitService : IRabbitService, IDisposable
         string consumerName,
         int batchSize,
         bool? ensureOrdered,
-        Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder)
+        Func<int, bool?, IPipeline<ReceivedMessage, TOut>> pipelineBuilder)
         where TOut : RabbitWorkState
     {
         var consumer = GetConsumer(consumerName);
@@ -294,7 +294,7 @@ public class RabbitService : IRabbitService, IDisposable
 
     public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
         string consumerName,
-        Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder)
+        Func<int, bool?, IPipeline<ReceivedMessage, TOut>> pipelineBuilder)
         where TOut : RabbitWorkState
     {
         var consumer = GetConsumer(consumerName);
@@ -307,7 +307,7 @@ public class RabbitService : IRabbitService, IDisposable
 
     public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
         string consumerName,
-        IPipeline<ReceivedData, TOut> pipeline)
+        IPipeline<ReceivedMessage, TOut> pipeline)
         where TOut : RabbitWorkState
     {
         var consumer = GetConsumer(consumerName);
@@ -315,14 +315,14 @@ public class RabbitService : IRabbitService, IDisposable
         return new ConsumerPipeline<TOut>(consumer, pipeline);
     }
 
-    public IConsumer<ReceivedData> GetConsumer(string consumerName)
+    public IConsumer<ReceivedMessage> GetConsumer(string consumerName)
     {
-        if (!Consumers.TryGetValue(consumerName, out IConsumer<ReceivedData> value))
+        if (!Consumers.TryGetValue(consumerName, out IConsumer<ReceivedMessage> value))
         { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerOptionsMessage, consumerName)); }
         return value;
     }
 
-    public IConsumer<ReceivedData> GetConsumerByPipelineName(string consumerPipelineName)
+    public IConsumer<ReceivedMessage> GetConsumerByPipelineName(string consumerPipelineName)
     {
         if (!ConsumerPipelineNameToConsumerOptions.TryGetValue(consumerPipelineName, out ConsumerOptions value))
         { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerPipelineOptionsMessage, consumerPipelineName)); }

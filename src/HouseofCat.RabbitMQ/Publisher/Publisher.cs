@@ -549,9 +549,9 @@ public class Publisher : IPublisher, IDisposable
             chanHost
                 .GetChannel()
                 .BasicPublish(
-                    message.Envelope.Exchange,
-                    message.Envelope.RoutingKey,
-                    message.Envelope.RoutingOptions?.Mandatory ?? false,
+                    message.Exchange,
+                    message.RoutingKey,
+                    message.Mandatory,
                     message.BuildProperties(chanHost, withOptionalHeaders),
                     body);
         }
@@ -559,7 +559,7 @@ public class Publisher : IPublisher, IDisposable
         {
             _logger.LogDebug(
                 LogMessages.Publishers.PublishMessageFailed,
-                $"{message.Envelope.Exchange}->{message.Envelope.RoutingKey}",
+                $"{message.Exchange}->{message.RoutingKey}",
                 message.MessageId,
                 ex.Message);
 
@@ -600,9 +600,9 @@ public class Publisher : IPublisher, IDisposable
             chanHost
                 .GetChannel()
                 .BasicPublish(
-                    message.Envelope.Exchange,
-                    message.Envelope.RoutingKey,
-                    message.Envelope.RoutingOptions?.Mandatory ?? false,
+                    message.Exchange,
+                    message.RoutingKey,
+                    message.Mandatory,
                     message.BuildProperties(chanHost, withOptionalHeaders),
                     message.GetBodyToPublish(_serializationProvider));
 
@@ -612,7 +612,7 @@ public class Publisher : IPublisher, IDisposable
         {
             _logger.LogDebug(
                 LogMessages.Publishers.PublishMessageFailed,
-                $"{message.Envelope.Exchange}->{message.Envelope.RoutingKey}",
+                $"{message.Exchange}->{message.RoutingKey}",
                 message.MessageId,
                 ex.Message);
 
@@ -649,9 +649,9 @@ public class Publisher : IPublisher, IDisposable
             try
             {
                 chanHost.GetChannel().BasicPublish(
-                    messages[i].Envelope.Exchange,
-                    messages[i].Envelope.RoutingKey,
-                    messages[i].Envelope.RoutingOptions.Mandatory,
+                    messages[i].Exchange,
+                    messages[i].RoutingKey,
+                    messages[i].Mandatory,
                     messages[i].BuildProperties(chanHost, withOptionalHeaders),
                     messages[i].GetBodyToPublish(_serializationProvider));
             }
@@ -659,7 +659,7 @@ public class Publisher : IPublisher, IDisposable
             {
                 _logger.LogDebug(
                     LogMessages.Publishers.PublishMessageFailed,
-                    $"{messages[i].Envelope.Exchange}->{messages[i].Envelope.RoutingKey}",
+                    $"{messages[i].Exchange}->{messages[i].RoutingKey}",
                     messages[i].MessageId,
                     ex.Message);
 
@@ -697,9 +697,9 @@ public class Publisher : IPublisher, IDisposable
                 for (int i = 0; i < messages.Count; i++)
                 {
                     publishBatch.Add(
-                        messages[i].Envelope.Exchange,
-                        messages[i].Envelope.RoutingKey,
-                        messages[i].Envelope.RoutingOptions.Mandatory,
+                        messages[i].Exchange,
+                        messages[i].RoutingKey,
+                        messages[i].Mandatory,
                         messages[i].BuildProperties(chanHost, withOptionalHeaders),
                         messages[i].GetBodyToPublish(_serializationProvider));
 

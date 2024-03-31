@@ -8,7 +8,7 @@ namespace HouseofCat.RabbitMQ.Dataflows;
 
 public interface IRabbitWorkState : IWorkState
 {
-    IReceivedData ReceivedData { get; set; }
+    IReceivedMessage ReceivedData { get; set; }
     IMessage SendMessage { get; set; }
     bool SendMessageSent { get; set; }
 }
@@ -16,7 +16,7 @@ public interface IRabbitWorkState : IWorkState
 public abstract class RabbitWorkState : IRabbitWorkState
 {
     [IgnoreDataMember]
-    public virtual IReceivedData ReceivedData { get; set; }
+    public virtual IReceivedMessage ReceivedData { get; set; }
 
     public virtual byte[] SendData { get; set; }
     public virtual IMessage SendMessage { get; set; }

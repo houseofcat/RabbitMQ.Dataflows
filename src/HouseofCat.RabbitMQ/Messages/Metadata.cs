@@ -11,7 +11,7 @@ public interface IMetadata
     Dictionary<string, object> CustomFields { get; set; }
 }
 
-public class LetterMetadata : IMetadata
+public class Metadata : IMetadata
 {
     /// <summary>
     /// An alternative Id field, intended to be user-supplied.

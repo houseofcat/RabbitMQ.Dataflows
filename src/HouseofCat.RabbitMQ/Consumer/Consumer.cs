@@ -40,7 +40,7 @@ public interface IConsumer<TFromQueue>
         CancellationToken token = default);
 
     Task ChannelExecutionEngineAsync(
-        Func<ReceivedData, Task<bool>> workBodyAsync,
+        Func<ReceivedMessage, Task<bool>> workBodyAsync,
         int maxDoP = 4,
         bool ensureOrdered = true,
         Func<bool, Task> postWorkBodyAsync = null,
@@ -49,7 +49,7 @@ public interface IConsumer<TFromQueue>
         CancellationToken token = default);
 
     Task DirectChannelExecutionEngineAsync(
-        Func<ReceivedData, Task<bool>> workBodyAsync,
+        Func<ReceivedMessage, Task<bool>> workBodyAsync,
         int maxDoP = 4,
         bool ensureOrdered = true,
         TaskScheduler taskScheduler = null,
@@ -64,14 +64,14 @@ public interface IConsumer<TFromQueue>
     IAsyncEnumerable<TFromQueue> StreamUntilQueueEmptyAsync();
 }
 
-public class Consumer : IConsumer<ReceivedData>, IDisposable
+public class Consumer : IConsumer<ReceivedMessage>, IDisposable
 {
     private readonly ILogger<Consumer> _logger;
     private readonly SemaphoreSlim _conLock = new SemaphoreSlim(1, 1);
     private readonly SemaphoreSlim _executionLock = new SemaphoreSlim(1, 1);
     private IChannelHost _chanHost;
     private bool _disposedValue;
-    private Channel<ReceivedData> _consumerChannel;
+    private Channel<ReceivedMessage> _consumerChannel;
 
     public string ConsumerTag { get; private set; }
     private bool _shutdown;
@@ -116,7 +116,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             {
                 await SetChannelHostAsync().ConfigureAwait(false);
                 _shutdown = false;
-                _consumerChannel = Channel.CreateBounded<ReceivedData>(
+                _consumerChannel = Channel.CreateBounded<ReceivedMessage>(
                     new BoundedChannelOptions(ConsumerOptions.BatchSize!.Value)
                     {
                         FullMode = ConsumerOptions.BehaviorWhenFull!.Value
@@ -334,7 +334,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         {
             await _consumerChannel
                 .Writer
-                .WriteAsync(new ReceivedData(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false)))
+                .WriteAsync(new ReceivedMessage(_chanHost.GetChannel(), bdea, !(ConsumerOptions.AutoAck ?? false)))
                 .ConfigureAwait(false);
             return true;
         }
@@ -406,9 +406,9 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             _chanHost.ChannelId);
     }
 
-    public ChannelReader<ReceivedData> GetConsumerBuffer() => _consumerChannel.Reader;
+    public ChannelReader<ReceivedMessage> GetConsumerBuffer() => _consumerChannel.Reader;
 
-    public async ValueTask<ReceivedData> ReadAsync()
+    public async ValueTask<ReceivedMessage> ReadAsync()
     {
         if (!await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
 
@@ -418,11 +418,11 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
             .ConfigureAwait(false);
     }
 
-    public async Task<IEnumerable<ReceivedData>> ReadUntilEmptyAsync()
+    public async Task<IEnumerable<ReceivedMessage>> ReadUntilEmptyAsync()
     {
         if (!await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
 
-        var list = new List<ReceivedData>();
+        var list = new List<ReceivedMessage>();
         await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false);
         while (_consumerChannel.Reader.TryRead(out var message))
         {
@@ -433,7 +433,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         return list;
     }
 
-    public async IAsyncEnumerable<ReceivedData> StreamUntilQueueEmptyAsync()
+    public async IAsyncEnumerable<ReceivedMessage> StreamUntilQueueEmptyAsync()
     {
         if (!await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
 
@@ -445,7 +445,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         }
     }
 
-    public async IAsyncEnumerable<ReceivedData> StreamUntilConsumerStopAsync()
+    public async IAsyncEnumerable<ReceivedMessage> StreamUntilConsumerStopAsync()
     {
         if (!await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
 
@@ -456,29 +456,29 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     }
 
     public async Task DataflowExecutionEngineAsync(
-        Func<ReceivedData, Task<bool>> workBodyAsync,
+        Func<ReceivedMessage, Task<bool>> workBodyAsync,
         int maxDoP = 4,
         bool ensureOrdered = true,
         int boundedCapacity = 1000,
         TaskScheduler taskScheduler = null,
         CancellationToken token = default)
     {
-        var dataflowEngine = new DataflowEngine<ReceivedData, bool>(workBodyAsync, maxDoP, ensureOrdered, null, null, boundedCapacity, taskScheduler);
+        var dataflowEngine = new DataflowEngine<ReceivedMessage, bool>(workBodyAsync, maxDoP, ensureOrdered, null, null, boundedCapacity, taskScheduler);
 
         await TransferDataToDataflowEngine(dataflowEngine, token);
     }
 
     public async Task DataflowExecutionEngineAsync(
-        Func<ReceivedData, Task<bool>> workBodyAsync,
+        Func<ReceivedMessage, Task<bool>> workBodyAsync,
         int maxDoP = 4,
         bool ensureOrdered = true,
-        Func<ReceivedData, Task<ReceivedData>> preWorkBodyAsync = null,
+        Func<ReceivedMessage, Task<ReceivedMessage>> preWorkBodyAsync = null,
         Func<bool, Task> postWorkBodyAsync = null,
         int boundedCapacity = 1000,
         TaskScheduler taskScheduler = null,
         CancellationToken token = default)
     {
-        var dataflowEngine = new DataflowEngine<ReceivedData, bool>(
+        var dataflowEngine = new DataflowEngine<ReceivedMessage, bool>(
             workBodyAsync,
             maxDoP,
             ensureOrdered,
@@ -491,7 +491,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     }
 
     private async Task TransferDataToDataflowEngine(
-        DataflowEngine<ReceivedData, bool> dataflowEngine,
+        DataflowEngine<ReceivedMessage, bool> dataflowEngine,
         CancellationToken token = default)
     {
         await _executionLock.WaitAsync(2000, token).ConfigureAwait(false);
@@ -533,7 +533,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     }
 
     public async Task ChannelExecutionEngineAsync(
-        Func<ReceivedData, Task<bool>> workBodyAsync,
+        Func<ReceivedMessage, Task<bool>> workBodyAsync,
         int maxDoP = 4,
         bool ensureOrdered = true,
         Func<bool, Task> postWorkBodyAsync = null,
@@ -541,7 +541,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
         TaskScheduler taskScheduler = null,
         CancellationToken token = default)
     {
-        var channelBlockEngine = new ChannelBlockEngine<ReceivedData, bool>(
+        var channelBlockEngine = new ChannelBlockEngine<ReceivedMessage, bool>(
             workBodyAsync,
             maxDoP,
             ensureOrdered,
@@ -554,13 +554,13 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     }
 
     public async Task DirectChannelExecutionEngineAsync(
-        Func<ReceivedData, Task<bool>> workBodyAsync,
+        Func<ReceivedMessage, Task<bool>> workBodyAsync,
         int maxDoP = 4,
         bool ensureOrdered = true,
         TaskScheduler taskScheduler = null,
         CancellationToken token = default)
     {
-        _ = new ChannelBlockEngine<ReceivedData, bool>(
+        _ = new ChannelBlockEngine<ReceivedMessage, bool>(
             _consumerChannel, workBodyAsync, maxDoP, ensureOrdered, taskScheduler, token);
 
         await _executionLock.WaitAsync(2000, token).ConfigureAwait(false);
@@ -589,7 +589,7 @@ public class Consumer : IConsumer<ReceivedData>, IDisposable
     }
 
     private async Task TransferDataToChannelBlockEngine(
-        ChannelBlockEngine<ReceivedData, bool> channelBlockEngine,
+        ChannelBlockEngine<ReceivedMessage, bool> channelBlockEngine,
         CancellationToken token = default)
     {
         await _executionLock.WaitAsync(2000, token).ConfigureAwait(false);

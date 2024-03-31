@@ -27,8 +27,8 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
     public bool Started { get; private set; }
 
     private readonly ILogger<ConsumerPipeline<TOut>> _logger;
-    private IConsumer<ReceivedData> Consumer { get; }
-    private IPipeline<ReceivedData, TOut> Pipeline { get; }
+    private IConsumer<ReceivedMessage> Consumer { get; }
+    private IPipeline<ReceivedMessage, TOut> Pipeline { get; }
     private Task FeedPipelineWithDataTasks { get; set; }
     private TaskCompletionSource<bool> _completionSource;
     private CancellationTokenSource _cancellationTokenSource;
@@ -37,8 +37,8 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
     private readonly SemaphoreSlim _pipeExecLock = new SemaphoreSlim(1, 1);
 
     public ConsumerPipeline(
-        IConsumer<ReceivedData> consumer,
-        IPipeline<ReceivedData, TOut> pipeline)
+        IConsumer<ReceivedMessage> consumer,
+        IPipeline<ReceivedMessage, TOut> pipeline)
     {
         _logger = LogHelpers.GetLogger<ConsumerPipeline<TOut>>();
         Pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
@@ -130,7 +130,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
     }
 
     public async Task PipelineStreamEngineAsync(
-        IPipeline<ReceivedData, TOut> pipeline,
+        IPipeline<ReceivedMessage, TOut> pipeline,
         bool waitForCompletion,
         CancellationToken token = default)
     {
@@ -190,7 +190,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
         finally { _pipeExecLock.Release(); }
     }
 
-    public async Task PipelineExecutionEngineAsync(IPipeline<ReceivedData, TOut> pipeline, bool waitForCompletion, CancellationToken token = default)
+    public async Task PipelineExecutionEngineAsync(IPipeline<ReceivedMessage, TOut> pipeline, bool waitForCompletion, CancellationToken token = default)
     {
         await _pipeExecLock
             .WaitAsync(2000, token)

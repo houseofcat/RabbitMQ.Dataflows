@@ -28,7 +28,7 @@ public static class PubSubTests
         try
         {
             await publisher.StartAutoPublishAsync();
-            var letterTemplate = new Letter("", Shared.QueueName, null, new LetterMetadata());
+            var letterTemplate = new Message("", Shared.QueueName, null, new Metadata());
 
             for (var i = 0; i < testCount; i++)
             {
@@ -70,7 +70,7 @@ public static class PubSubTests
             {
                 try
                 {
-                    var letter = JsonSerializer.Deserialize<Letter>(receivedData.Data.Span);
+                    var letter = JsonSerializer.Deserialize<Message>(receivedData.Data.Span);
                     var dataAsString = Encoding.UTF8.GetString(letter.Body.Span);
 
                     if (dataAsString.StartsWith("exit"))
@@ -123,7 +123,7 @@ public static class PubSubTests
         try
         {
             await publisher.StartAutoPublishAsync();
-            var letterTemplate = new Letter("", Shared.QueueName, null, new LetterMetadata());
+            var letterTemplate = new Message("", Shared.QueueName, null, new Metadata());
 
             for (var i = 0; i < testCount; i++)
             {
@@ -156,7 +156,7 @@ public static class PubSubTests
 
             await foreach (var receivedData in consumer.StreamUntilConsumerStopAsync())
             {
-                var letter = JsonSerializer.Deserialize<Letter>(receivedData.Data.Span);
+                var letter = JsonSerializer.Deserialize<Message>(receivedData.Data.Span);
                 var number = Encoding.UTF8.GetString(letter.Body.Span);
 
                 if (!hashSet.Add(number))

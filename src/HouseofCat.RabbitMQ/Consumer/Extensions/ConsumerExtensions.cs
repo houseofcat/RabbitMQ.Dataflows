@@ -9,13 +9,13 @@ namespace HouseofCat.RabbitMQ;
 public static class ConsumerExtensions
 {
     public static ValueTask DirectChannelExecutionEngineAsync(
-        this IConsumer<ReceivedData> consumer,
-        Func<ReceivedData, Task<IRabbitWorkState>> workBodyAsync,
+        this IConsumer<ReceivedMessage> consumer,
+        Func<ReceivedMessage, Task<IRabbitWorkState>> workBodyAsync,
         Func<IRabbitWorkState, Task> postWorkBodyAsync = null,
         TaskScheduler taskScheduler = null,
         CancellationToken cancellationToken = default)
     {
-        var channelReaderBlockEngine = new ChannelReaderBlockEngine<ReceivedData, IRabbitWorkState>(
+        var channelReaderBlockEngine = new ChannelReaderBlockEngine<ReceivedMessage, IRabbitWorkState>(
             consumer.GetConsumerBuffer(),
             workBodyAsync,
             consumer.ConsumerOptions.ConsumerPipelineOptions.MaxDegreesOfParallelism,

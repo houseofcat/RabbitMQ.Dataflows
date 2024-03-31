@@ -4,13 +4,24 @@ using HouseofCat.Utilities.Helpers;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace HouseofCat.RabbitMQ;
 
 public interface IMessage
 {
     string MessageId { get; set; }
-    Envelope Envelope { get; set; }
+    string Exchange { get; set; }
+    string RoutingKey { get; set; }
+
+    byte DeliveryMode { get; set; }
+
+    bool Mandatory { get; set; }
+
+    byte PriorityLevel { get; set; }
+
+    string ContentType { get; set; }
+
     ReadOnlyMemory<byte> Body { get; set; }
 
     IMetadata GetMetadata();
@@ -28,10 +39,23 @@ public interface IMessage
     IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders);
 }
 
-public class Letter : IMessage
+public class Message : IMessage
 {
-    public Envelope Envelope { get; set; }
     public string MessageId { get; set; }
+
+    public string Exchange { get; set; }
+    public string RoutingKey { get; set; }
+
+    [Range(1, 2, ErrorMessage = Constants.RangeErrorMessage)]
+    public byte DeliveryMode { get; set; } = 2;
+
+    public bool Mandatory { get; set; }
+
+    // Max Priority letter level is 255, however, the max-queue priority though is 10, so > 10 is treated as 10.
+    [Range(0, 10, ErrorMessage = Constants.RangeErrorMessage)]
+    public byte PriorityLevel { get; set; }
+
+    public string ContentType { get; set; } = Constants.HeaderValueForContentTypeApplicationJson;
 
     public IMetadata Metadata { get; set; }
     public ReadOnlyMemory<byte> Body { get; set; }
@@ -51,54 +75,47 @@ public class Letter : IMessage
         return basicProperties;
     }
 
-    public Letter() { }
+    public Message() { }
 
-    public Letter(string exchange, string routingKey, ReadOnlyMemory<byte> data, LetterMetadata metadata = null, RoutingOptions routingOptions = null)
+    public Message(
+        string exchange,
+        string routingKey,
+        ReadOnlyMemory<byte> data,
+        Metadata metadata = null)
     {
-        Envelope = new Envelope
-        {
-            Exchange = exchange,
-            RoutingKey = routingKey,
-            RoutingOptions = routingOptions ?? RoutingOptions.CreateDefaultRoutingOptions()
-        };
+        Exchange = exchange;
+        RoutingKey = routingKey;
         Body = data;
-        Metadata = metadata ?? new LetterMetadata();
+        Metadata = metadata ?? new Metadata();
     }
 
-    public Letter(string exchange, string routingKey, ReadOnlyMemory<byte> data, string id, RoutingOptions routingOptions = null)
+    public Message(string exchange, string routingKey, ReadOnlyMemory<byte> data, string id)
     {
-        Envelope = new Envelope
-        {
-            Exchange = exchange,
-            RoutingKey = routingKey,
-            RoutingOptions = routingOptions ?? RoutingOptions.CreateDefaultRoutingOptions()
-        };
+        Exchange = exchange;
+        RoutingKey = routingKey;
+        Body = data;
+
+        if (!string.IsNullOrWhiteSpace(id))
+        { Metadata = new Metadata { Id = id }; }
+        else
+        { Metadata = new Metadata(); }
+    }
+
+    public Message(string exchange, string routingKey, byte[] data, string id, byte priority)
+    {
+        Exchange = exchange;
+        RoutingKey = routingKey;
         Body = data;
         if (!string.IsNullOrWhiteSpace(id))
-        { Metadata = new LetterMetadata { Id = id }; }
+        { Metadata = new Metadata { Id = id }; }
         else
-        { Metadata = new LetterMetadata(); }
+        { Metadata = new Metadata(); }
     }
 
-    public Letter(string exchange, string routingKey, byte[] data, string id, byte priority)
+    public Message Clone()
     {
-        Envelope = new Envelope
-        {
-            Exchange = exchange,
-            RoutingKey = routingKey,
-            RoutingOptions = RoutingOptions.CreateDefaultRoutingOptions(priority)
-        };
-        Body = data;
-        if (!string.IsNullOrWhiteSpace(id))
-        { Metadata = new LetterMetadata { Id = id }; }
-        else
-        { Metadata = new LetterMetadata(); }
-    }
-
-    public Letter Clone()
-    {
-        var clone = this.Clone<Letter>();
-        clone.Metadata = Metadata.Clone<LetterMetadata>();
+        var clone = this.Clone<Message>();
+        clone.Metadata = Metadata.Clone<Metadata>();
         return clone;
     }
 
@@ -106,7 +123,7 @@ public class Letter : IMessage
 
     public IMetadata CreateMetadataIfMissing()
     {
-        Metadata ??= new LetterMetadata();
+        Metadata ??= new Metadata();
         return Metadata;
     }
 
