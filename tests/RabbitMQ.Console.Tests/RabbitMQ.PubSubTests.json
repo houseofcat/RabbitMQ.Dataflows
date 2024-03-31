@@ -19,8 +19,7 @@
     "UseTransientChannels": false
   },
   "PublisherOptions": {
-    "LetterQueueBufferSize": 100,
-    "PriorityLetterQueueBufferSize": 100,
+    "MessageQueueBufferSize": 100,
     "BehaviorWhenFull": 0,
     "AutoPublisherSleepInterval": 1,
     "CreatePublishReceipts": true,

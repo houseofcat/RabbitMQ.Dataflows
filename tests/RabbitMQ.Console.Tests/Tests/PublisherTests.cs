@@ -68,7 +68,7 @@ public static class PublisherTests
             PublisherOptions = new PublisherOptions
             {
                 CreatePublishReceipts = true,
-                LetterQueueBufferSize = 10_000,
+                MessageQueueBufferSize = 10_000,
                 BehaviorWhenFull = BoundedChannelFullMode.Wait,
                 Compress = false,
                 Encrypt = false,

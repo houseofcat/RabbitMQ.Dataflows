@@ -175,7 +175,7 @@ public class Publisher : IPublisher, IDisposable
     private void SetupPublisher(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
     {
         _messageQueue = Channel.CreateBounded<IMessage>(
-        new BoundedChannelOptions(Options.PublisherOptions.LetterQueueBufferSize)
+        new BoundedChannelOptions(Options.PublisherOptions.MessageQueueBufferSize)
         {
             FullMode = Options.PublisherOptions.BehaviorWhenFull
         });

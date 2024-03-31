@@ -5,7 +5,7 @@
 Review tutorials and documentation under `./guides/rabbitmq`.
 
 Sample Config File
-```javascript
+```json
 {
   "FactoryOptions": {
     "Uri": "amqp://guest:guest@localhost:5672/",
@@ -27,8 +27,7 @@ Sample Config File
     "UseTransientChannels": false
   },
   "PublisherOptions": {
-    "LetterQueueBufferSize": 100,
-    "PriorityLetterQueueBufferSize": 100,
+    "MessageQueueBufferSize": 100,
     "BehaviorWhenFull": 0,
     "AutoPublisherSleepInterval": 1,
     "CreatePublishReceipts": true,
