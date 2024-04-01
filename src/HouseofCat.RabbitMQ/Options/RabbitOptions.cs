@@ -23,7 +23,10 @@ public class RabbitOptions
 
     public ConsumerOptions GetConsumerOptions(string consumerName)
     {
-        if (!ConsumerOptions.TryGetValue(consumerName, out ConsumerOptions value)) throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, ExceptionMessages.NoConsumerOptionsMessage, consumerName));
+        if (!ConsumerOptions.TryGetValue(consumerName, out ConsumerOptions value))
+        {
+            throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerOptionsMessage, consumerName));
+        }
         return value;
     }
 }

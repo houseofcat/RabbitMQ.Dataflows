@@ -35,9 +35,9 @@ public static class AppHelpers
         return (versionParts?.Length ?? 0) switch
         {
             0 => null,
-            1 => versionParts[0],
-            2 => $"{versionParts[0]}.{versionParts[1]}",
-            _ => $"{versionParts[0]}.{versionParts[1]}.{versionParts[2]}"
+            1 => $"v{versionParts[0]}",
+            2 => $"v{versionParts[0]}.{versionParts[1]}",
+            _ => $"v{versionParts[0]}.{versionParts[1]}.{versionParts[2]}"
         };
     }
 }

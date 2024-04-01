@@ -17,7 +17,6 @@ public interface IReceivedMessage
 
     bool Ackable { get; }
 
-    string ContentType { get; }
     string ObjectType { get; }
 
     bool Encrypted { get; }
@@ -52,7 +51,6 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
 
     public bool Ackable { get; }
 
-    public string ContentType { get; private set; }
     public string ObjectType { get; private set; }
 
     public bool Encrypted { get; private set; }
@@ -111,26 +109,28 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
         {
             ObjectType = Encoding.UTF8.GetString((byte[])objectType);
 
-            if (Properties.Headers.TryGetValue(Constants.HeaderForObjectType, out object contentType))
-            {
-                ContentType = Encoding.UTF8.GetString((byte[])contentType);
-            }
-
             if (ObjectType == Constants.HeaderValueForMessageObjectType
                 && Body.Length > 0)
             {
-                switch (ContentType)
+                switch (Properties.ContentType)
                 {
                     case Constants.HeaderValueForContentTypeJson:
                         try
-                        { Message = JsonSerializer.Deserialize<Message>(Body.Span); }
+                        {
+                            Message = JsonSerializer.Deserialize<Message>(Body.Span);
+                        }
                         catch
                         { FailedToDeserialize = true; }
                         break;
 
                     case Constants.HeaderValueForContentTypeBinary:
                     case Constants.HeaderValueForContentTypePlainText:
+                        break;
                     default:
+                        try
+                        { Message = JsonSerializer.Deserialize<Message>(Body.Span); }
+                        catch
+                        { FailedToDeserialize = true; }
                         break;
                 }
             }
@@ -153,10 +153,6 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
         else
         {
             ObjectType = Constants.HeaderValueForUnknownObjectType;
-            if (Properties.Headers.TryGetValue(Constants.HeaderForContentType, out object contentType))
-            {
-                ContentType = Encoding.UTF8.GetString((byte[])contentType);
-            }
         }
 
         if (Properties.Headers.TryGetValue(Constants.HeaderForTraceParent, out object traceParentHeader))

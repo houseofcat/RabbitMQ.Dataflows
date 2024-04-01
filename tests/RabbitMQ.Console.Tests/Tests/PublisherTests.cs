@@ -88,7 +88,7 @@ public static class PublisherTests
 
             // Step 4: Create Message
             var data = Encoding.UTF8.GetBytes("Hello, RabbitMQ!");
-            var message = new Message(Shared.ExchangeName, Shared.RoutingKey, data, Guid.NewGuid().ToString())
+            var message = new Message(Shared.ExchangeName, Shared.RoutingKey, data)
             {
                 // DeliveryId for tracking/routing through Publisher/Consumer.
                 MessageId = Guid.NewGuid().ToString(),

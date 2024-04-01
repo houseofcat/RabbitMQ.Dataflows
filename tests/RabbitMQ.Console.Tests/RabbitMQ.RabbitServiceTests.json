@@ -19,9 +19,9 @@
   "PublisherOptions": {
     "MessageQueueBufferSize": 100,
     "BehaviorWhenFull": 0,
-    "CreatePublishReceipts": true,
-    "Compress": false,
-    "Encrypt": false,
+    "CreatePublishReceipts": false,
+    "Compress": true,
+    "Encrypt": true,
     "WaitForConfirmationTimeoutInMilliseconds": 500
   },
   "ConsumerOptions": {

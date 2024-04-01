@@ -72,7 +72,8 @@ public static class MessageExtensions
         basicProperties.DeliveryMode = message.DeliveryMode;
         basicProperties.ContentType = new string(message.ContentType);
         basicProperties.Priority = message.PriorityLevel;
-        basicProperties.MessageId = message.MessageId == null
+
+        basicProperties.MessageId = string.IsNullOrEmpty(message.MessageId)
             ? new string(message.MessageId)
             : Guid.NewGuid().ToString();
 

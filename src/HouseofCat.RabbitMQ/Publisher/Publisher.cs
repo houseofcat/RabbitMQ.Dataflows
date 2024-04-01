@@ -182,9 +182,11 @@ public class Publisher : IPublisher, IDisposable
 
         _publishingTask = ProcessMessagesAsync(_messageQueue.Reader);
 
-        processReceiptAsync ??= ProcessReceiptAsync;
-
-        _processReceiptsAsync ??= ProcessReceiptsAsync(processReceiptAsync);
+        if (Options.PublisherOptions.CreatePublishReceipts)
+        {
+            processReceiptAsync ??= ProcessReceiptAsync;
+            _processReceiptsAsync ??= ProcessReceiptsAsync(processReceiptAsync);
+        }
 
         AutoPublisherStarted = true;
     }
@@ -542,7 +544,7 @@ public class Publisher : IPublisher, IDisposable
 
         try
         {
-            var body = _serializationProvider.Serialize(message.Body);
+            var body = _serializationProvider.Serialize(message);
             chanHost
                 .Channel
                 .BasicPublish(
@@ -601,7 +603,7 @@ public class Publisher : IPublisher, IDisposable
                     message.RoutingKey,
                     message.Mandatory,
                     message.BuildProperties(chanHost, withOptionalHeaders),
-                    _serializationProvider.Serialize(message.Body));
+                    _serializationProvider.Serialize(message));
 
             chanHost.Channel.WaitForConfirmsOrDie(_waitForConfirmation);
         }
@@ -741,7 +743,7 @@ public class Publisher : IPublisher, IDisposable
     private static void SetMandatoryHeaders(IBasicProperties basicProperties)
     {
         basicProperties.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
-        var openTelHeader = OpenTelemetryHelpers.CreateOpenTelemetryHeaderFromCurrentActivityOrDefault();
+        var openTelHeader = OpenTelemetryHelpers.GetOrCreateTraceHeaderFromCurrentActivity();
         basicProperties.Headers[Constants.HeaderForTraceParent] = openTelHeader;
     }
 

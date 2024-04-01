@@ -3,13 +3,16 @@ using HouseofCat.Utilities.Helpers;
 using RabbitMQ.Client;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace HouseofCat.RabbitMQ;
 
 public interface IMessage
 {
     string MessageId { get; set; }
+
     string Exchange { get; set; }
+
     string RoutingKey { get; set; }
 
     byte DeliveryMode { get; set; }
@@ -22,7 +25,7 @@ public interface IMessage
 
     ReadOnlyMemory<byte> Body { get; set; }
 
-    IMetadata Metadata { get; set; }
+    Metadata Metadata { get; set; }
 
     IPublishReceipt GetPublishReceipt(bool error);
 
@@ -33,7 +36,12 @@ public sealed class Message : IMessage
 {
     public string MessageId { get; set; }
 
+    public Metadata Metadata { get; set; }
+
+    public ReadOnlyMemory<byte> Body { get; set; }
+
     public string Exchange { get; set; }
+
     public string RoutingKey { get; set; }
 
     [Range(1, 2, ErrorMessage = Constants.RangeErrorMessage)]
@@ -47,10 +55,10 @@ public sealed class Message : IMessage
 
     public string ContentType { get; set; } = Constants.HeaderValueForContentTypeJson;
 
-    public IMetadata Metadata { get; set; }
-    public ReadOnlyMemory<byte> Body { get; set; }
-
-    public Message() { }
+    public Message()
+    {
+        MessageId ??= Guid.NewGuid().ToString();
+    }
 
     public Message(
         string exchange,
@@ -58,6 +66,7 @@ public sealed class Message : IMessage
         ReadOnlyMemory<byte> body,
         Metadata metadata = null)
     {
+        MessageId ??= Guid.NewGuid().ToString();
         Exchange = exchange;
         RoutingKey = routingKey;
         Body = body;
@@ -66,6 +75,7 @@ public sealed class Message : IMessage
 
     public Message(string exchange, string routingKey, ReadOnlyMemory<byte> body, string payloadId)
     {
+        MessageId ??= Guid.NewGuid().ToString();
         Exchange = exchange;
         RoutingKey = routingKey;
         Body = body;
@@ -78,23 +88,15 @@ public sealed class Message : IMessage
 
     public IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders)
     {
-        MessageId ??= Guid.NewGuid().ToString();
-
         var basicProperties = this.CreateBasicProperties(channelHost, withOptionalHeaders, Metadata);
         basicProperties.MessageId = MessageId;
 
         // Non-optional Header.
         basicProperties.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
-        var openTelHeader = OpenTelemetryHelpers.CreateOpenTelemetryHeaderFromCurrentActivityOrDefault();
+        var openTelHeader = OpenTelemetryHelpers.GetOrCreateTraceHeaderFromCurrentActivity();
         basicProperties.Headers[Constants.HeaderForTraceParent] = openTelHeader;
 
         return basicProperties;
-    }
-
-    public IMetadata CreateMetadataIfMissing()
-    {
-        Metadata ??= new Metadata();
-        return Metadata;
     }
 
     public IPublishReceipt GetPublishReceipt(bool error) =>
