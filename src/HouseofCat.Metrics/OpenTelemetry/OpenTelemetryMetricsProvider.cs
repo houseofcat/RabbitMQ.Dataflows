@@ -21,7 +21,7 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
 
     private bool _disposedValue;
 
-    public OpenTelemetryMetricsProvider(IMeterFactory meterFactory, string meterName, string activitySourceName)
+    public OpenTelemetryMetricsProvider(IMeterFactory meterFactory, string meterName, string activitySourceName = null, string activityVersion = null)
     {
         Guard.AgainstNull(meterFactory, nameof(meterFactory));
         Guard.AgainstNullOrEmpty(meterName, nameof(meterName));
@@ -30,7 +30,7 @@ public class OpenTelemetryMetricsProvider : IMetricsProvider, IDisposable
         _meterName = meterName;
 
         _meter = _factory.Create(_meterName);
-        _activitySource = new ActivitySource(activitySourceName ?? "HouseofCat.Metrics");
+        _activitySource = new ActivitySource(activitySourceName ?? "HouseofCat.Metrics", activityVersion);
     }
 
     public Counter<T> GetOrAddCounter<T>(string name, string unit = null, string description = null) where T : struct
