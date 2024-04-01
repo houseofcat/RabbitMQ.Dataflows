@@ -34,7 +34,6 @@ public class Letter : IMessage
     public Envelope Envelope { get; set; }
     public string MessageId { get; set; }
     public ActivityContext? ActivityContext { get; set; }
-
     public LetterMetadata LetterMetadata { get; set; }
     public ReadOnlyMemory<byte> Body { get; set; }
 
@@ -107,28 +106,13 @@ public class Letter : IMessage
         return LetterMetadata;
     }
 
-    public T GetHeader<T>(string key)
-    {
-        return LetterMetadata.GetHeader<T>(key);
-    }
+    public T GetHeader<T>(string key) => LetterMetadata.GetHeader<T>(key);
+    public bool RemoveHeader(string key) => LetterMetadata.RemoveHeader(key);
+    public IDictionary<string, object> GetHeadersOutOfMetadata() => LetterMetadata.GetHeadersOutOfMetadata();
 
-    public bool RemoveHeader(string key)
-    {
-        return LetterMetadata.RemoveHeader(key);
-    }
+    public ReadOnlyMemory<byte> GetBodyToPublish(ISerializationProvider serializationProvider) =>
+        serializationProvider.Serialize(this).ToArray();
 
-    public IDictionary<string, object> GetHeadersOutOfMetadata()
-    {
-        return LetterMetadata.GetHeadersOutOfMetadata();
-    }
-
-    public ReadOnlyMemory<byte> GetBodyToPublish(ISerializationProvider serializationProvider)
-    {
-        return serializationProvider.Serialize(this).ToArray();
-    }
-
-    public IPublishReceipt GetPublishReceipt(bool error)
-    {
-        return new PublishReceipt { MessageId = MessageId, IsError = error, OriginalLetter = error ? this : null };
-    }
+    public IPublishReceipt GetPublishReceipt(bool error) =>
+        new PublishReceipt { MessageId = MessageId, IsError = error, OriginalLetter = error ? this : null };
 }
