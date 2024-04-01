@@ -218,4 +218,48 @@ public static class OpenTelemetryHelpers
     }
 
     #endregion
+
+    #region Error Handling
+
+    public static void SetCurrentActivityAsError(Exception ex, string message = null)
+    {
+        var activity = Activity.Current;
+        if (activity is null) return;
+
+        SetActivityAsError(activity, ex, message);
+    }
+
+    public static void SetActivityAsError(Activity activity, Exception ex, string message = null)
+    {
+        if (activity is null) return;
+
+        if (ex is not null)
+        {
+            activity.RecordException(ex);
+        }
+
+        activity.SetStatus(ActivityStatusCode.Error, message);
+    }
+
+    public static void SetCurrentSpanAsError(Exception ex, string message = null)
+    {
+        var span = Tracer.CurrentSpan;
+        if (span is null) return;
+
+        SetSpanAsError(span, ex, message);
+    }
+
+    public static void SetSpanAsError(TelemetrySpan span, Exception ex, string message = null)
+    {
+        if (span is null) return;
+
+        if (ex is not null)
+        {
+            span.RecordException(ex);
+        }
+
+        span.SetStatus(Status.Error.WithDescription(message));
+    }
+
+    #endregion
 }

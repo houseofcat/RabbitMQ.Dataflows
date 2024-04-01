@@ -1,7 +1,6 @@
 ﻿using HouseofCat.Utilities.Helpers;
 using OpenTelemetry.Trace;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace HouseofCat.Dataflows.Extensions;
 
@@ -18,27 +17,12 @@ public static class WorkStateExtensions
 
     public static void SetCurrentActivityAsError(this IWorkState state, string message = null)
     {
-        var activity = Activity.Current;
-        if (activity is null) return;
-
-        activity.SetStatus(ActivityStatusCode.Error, message ?? state.EDI.SourceException?.Message);
-        if (state?.EDI is not null)
-        {
-            if (state.EDI.SourceException is not null)
-            {
-                activity.RecordException(state.EDI.SourceException);
-            }
-        }
-        else
-        {
-            activity.SetStatus(ActivityStatusCode.Error, message);
-        }
+        OpenTelemetryHelpers.SetCurrentActivityAsError(state?.EDI?.SourceException, message);
     }
 
     public static void SetCurrentSpanAsError(this IWorkState state, string message = null)
     {
-        var span = Tracer.CurrentSpan;
-        state.SetSpanAsError(span, message);
+        OpenTelemetryHelpers.SetCurrentSpanAsError(state?.EDI?.SourceException, message);
     }
 
     public static void SetSpanAsError(this IWorkState state, TelemetrySpan span, string message = null)
