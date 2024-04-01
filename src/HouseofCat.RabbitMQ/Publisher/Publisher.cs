@@ -1,5 +1,6 @@
 using HouseofCat.Compression;
 using HouseofCat.Encryption;
+using HouseofCat.RabbitMQ.Extensions;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities;
@@ -566,7 +567,7 @@ public class Publisher : IPublisher, IDisposable
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-name
 
         string activityName = $"{message.Envelope.RoutingKey} publish";
-        
+
 
         using Activity activity = Activity.Current ??
             _activitySource.StartActivity(activityName, ActivityKind.Producer, parentContext: message.ActivityContext ?? default);
@@ -582,7 +583,7 @@ public class Publisher : IPublisher, IDisposable
             }
 
             IBasicProperties basicProperties = message.BuildProperties(channelHost, withOptionalHeaders);
-            AddMessagingTags(activity, message);
+            activity.AddMessagingTags(message);
             // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
             Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), basicProperties, InjectTraceContextIntoBasicProperties);
 
@@ -825,6 +826,20 @@ public class Publisher : IPublisher, IDisposable
         return props;
     }
 
+    private void InjectTraceContextIntoBasicProperties(IBasicProperties props, string key, string value)
+    {
+        try
+        {
+            props.Headers ??= new Dictionary<string, object>();
+
+            props.Headers[key] = value;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to inject trace context.");
+        }
+    }
+
     protected virtual void Dispose(bool disposing)
     {
         if (!_disposedValue)
@@ -840,31 +855,6 @@ public class Publisher : IPublisher, IDisposable
         }
     }
 
-    private void InjectTraceContextIntoBasicProperties(IBasicProperties props, string key, string value)
-    {
-        try
-        {
-            props.Headers ??= new Dictionary<string, object>();
-
-            props.Headers[key] = value;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to inject trace context.");
-        }
-    }
-    public static void AddMessagingTags(Activity activity, IMessage message)
-    {
-        // See:
-        //   * https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#messaging-attributes
-        //   * https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/rabbitmq.md
-        activity?.SetTag("messaging.system", "rabbitmq");
-        activity?.SetTag("messaging.destination_kind", "queue");
-        activity?.SetTag("messaging.destination", message.Envelope.Exchange);
-        activity?.SetTag("messaging.rabbitmq.routing_key", message.Envelope.RoutingKey);
-        activity?.SetTag("messaging.message.id", message.MessageId);
-        activity?.SetTag("messaging.operation", "publish");
-    }
     public void Dispose()
     {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

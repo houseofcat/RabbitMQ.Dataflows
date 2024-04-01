@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ.Extensions;
 public static class ActivityExtensions
@@ -16,9 +12,26 @@ public static class ActivityExtensions
             return;
         }
 
-        activity.AddTag("exception.message", ex.Message);
-        activity.AddTag("exception.stacktrace", ex.ToString());
-        activity.AddTag("exception.type", ex.GetType().FullName);
-        activity.SetStatus(ActivityStatusCode.Error);
+        _ = activity.AddTag("exception.message", ex.Message);
+        _ = activity.AddTag("exception.stacktrace", ex.ToString());
+        _ = activity.AddTag("exception.type", ex.GetType().FullName);
+        _ = activity.SetStatus(ActivityStatusCode.Error);
+    }
+
+    public static void AddMessagingTags(this Activity activity, IMessage message)
+    {
+        if (activity is null)
+        {
+            return;
+        }
+        // See:
+        //   * https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#messaging-attributes
+        //   * https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/rabbitmq.md
+        _ = activity.SetTag("messaging.system", "rabbitmq");
+        _ = activity.SetTag("messaging.destination_kind", "queue");
+        _ = activity.SetTag("messaging.destination", message.Envelope.Exchange);
+        _ = activity.SetTag("messaging.rabbitmq.routing_key", message.Envelope.RoutingKey);
+        _ = activity.SetTag("messaging.message.id", message.MessageId);
+        _ = activity.SetTag("messaging.operation", "publish");
     }
 }

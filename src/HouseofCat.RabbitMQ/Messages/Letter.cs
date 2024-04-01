@@ -38,12 +38,11 @@ public class Letter : IMessage
     public LetterMetadata LetterMetadata { get; set; }
     public ReadOnlyMemory<byte> Body { get; set; }
 
-
     public IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders)
     {
         MessageId ??= Guid.NewGuid().ToString();
 
-        var props = this.CreateBasicProperties(channelHost, withOptionalHeaders, LetterMetadata);
+        IBasicProperties props = this.CreateBasicProperties(channelHost, withOptionalHeaders, LetterMetadata);
         props.MessageId = MessageId;
 
         // Non-optional Header.
@@ -75,10 +74,7 @@ public class Letter : IMessage
             RoutingOptions = routingOptions ?? RoutingOptions.CreateDefaultRoutingOptions()
         };
         Body = data;
-        if (!string.IsNullOrWhiteSpace(id))
-        { LetterMetadata = new LetterMetadata { Id = id }; }
-        else
-        { LetterMetadata = new LetterMetadata(); }
+        LetterMetadata = !string.IsNullOrWhiteSpace(id) ? new LetterMetadata { Id = id } : new LetterMetadata();
     }
 
     public Letter(string exchange, string routingKey, byte[] data, string id, byte priority)
@@ -90,20 +86,20 @@ public class Letter : IMessage
             RoutingOptions = RoutingOptions.CreateDefaultRoutingOptions(priority)
         };
         Body = data;
-        if (!string.IsNullOrWhiteSpace(id))
-        { LetterMetadata = new LetterMetadata { Id = id }; }
-        else
-        { LetterMetadata = new LetterMetadata(); }
+        LetterMetadata = !string.IsNullOrWhiteSpace(id) ? new LetterMetadata { Id = id } : new LetterMetadata();
     }
 
     public Letter Clone()
     {
-        var clone = this.Clone<Letter>();
+        Letter clone = this.Clone<Letter>();
         clone.LetterMetadata = LetterMetadata.Clone<LetterMetadata>();
         return clone;
     }
 
-    public IMetadata GetMetadata() => LetterMetadata;
+    public IMetadata GetMetadata()
+    {
+        return LetterMetadata;
+    }
 
     public IMetadata CreateMetadataIfMissing()
     {
@@ -111,13 +107,28 @@ public class Letter : IMessage
         return LetterMetadata;
     }
 
-    public T GetHeader<T>(string key) => LetterMetadata.GetHeader<T>(key);
-    public bool RemoveHeader(string key) => LetterMetadata.RemoveHeader(key);
-    public IDictionary<string, object> GetHeadersOutOfMetadata() => LetterMetadata.GetHeadersOutOfMetadata();
+    public T GetHeader<T>(string key)
+    {
+        return LetterMetadata.GetHeader<T>(key);
+    }
 
-    public ReadOnlyMemory<byte> GetBodyToPublish(ISerializationProvider serializationProvider) =>
-        serializationProvider.Serialize(this).ToArray();
+    public bool RemoveHeader(string key)
+    {
+        return LetterMetadata.RemoveHeader(key);
+    }
 
-    public IPublishReceipt GetPublishReceipt(bool error) =>
-        new PublishReceipt { MessageId = MessageId, IsError = error, OriginalLetter = error ? this : null };
+    public IDictionary<string, object> GetHeadersOutOfMetadata()
+    {
+        return LetterMetadata.GetHeadersOutOfMetadata();
+    }
+
+    public ReadOnlyMemory<byte> GetBodyToPublish(ISerializationProvider serializationProvider)
+    {
+        return serializationProvider.Serialize(this).ToArray();
+    }
+
+    public IPublishReceipt GetPublishReceipt(bool error)
+    {
+        return new PublishReceipt { MessageId = MessageId, IsError = error, OriginalLetter = error ? this : null };
+    }
 }
