@@ -1,9 +1,9 @@
-using HouseofCat.Serialization;
+using HouseofCat.Utilities.Helpers;
+using OpenTelemetry.Trace;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ;
@@ -28,6 +28,7 @@ public interface IReceivedMessage
     string CompressionType { get; }
 
     public string TraceParentHeader { get; }
+    public SpanContext? ParentSpanContext { get; }
 
     string ConsumerTag { get; }
     ulong DeliveryTag { get; }
@@ -62,6 +63,7 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
     public string CompressionType { get; private set; }
 
     public string TraceParentHeader { get; private set; }
+    public SpanContext? ParentSpanContext { get; private set; }
 
     public string ConsumerTag { get; }
     public ulong DeliveryTag { get; }
@@ -133,6 +135,10 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
         if (Properties.Headers.TryGetValue(Constants.HeaderForTraceParent, out object traceParentHeader))
         {
             TraceParentHeader = Encoding.UTF8.GetString((byte[])traceParentHeader);
+            if (!string.IsNullOrEmpty(TraceParentHeader))
+            {
+                ParentSpanContext = OpenTelemetryHelpers.ExtractSpanContextFromTraceHeader(TraceParentHeader);
+            }
         }
     }
 

@@ -543,7 +543,11 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         _currentBlock.LinkTo(_finalization, overrideOptions ?? _linkStepOptions); // Last Action
     }
 
-    private void LinkWithFaultRoute(ISourceBlock<TState> source, IPropagatorBlock<TState, TState> target, Predicate<TState> faultPredicate, DataflowLinkOptions overrideOptions = null)
+    private void LinkWithFaultRoute(
+        ISourceBlock<TState> source,
+        IPropagatorBlock<TState, TState> target,
+        Predicate<TState> faultPredicate,
+        DataflowLinkOptions overrideOptions = null)
     {
         source.LinkTo(target, overrideOptions ?? _linkStepOptions);
         target.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, faultPredicate); // Fault Linkage
@@ -554,17 +558,31 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
     #region Step Wrappers
 
-    public virtual TState BuildState(IReceivedMessage data)
+    public virtual TState BuildState(IReceivedMessage receivedMessage)
     {
         var state = new TState
         {
-            ReceivedMessage = data,
+            ReceivedMessage = receivedMessage,
             Data = new Dictionary<string, object>()
         };
 
+        var attributes = GetSpanAttributes(state, receivedMessage);
+
+        state.StartWorkflowSpan(
+            WorkflowName,
+            spanKind: SpanKind.Internal,
+            suppliedAttributes: attributes,
+            parentSpanContext: receivedMessage.ParentSpanContext);
+
+        return state;
+    }
+
+    protected virtual List<KeyValuePair<string, string>> GetSpanAttributes(TState state, IReceivedMessage receivedMessage)
+    {
         var attributes = new List<KeyValuePair<string, string>>()
         {
-            KeyValuePair.Create(nameof(_consumerOptions.ConsumerName), _consumerOptions.ConsumerName)
+            KeyValuePair.Create(nameof(_consumerOptions.ConsumerName), _consumerOptions.ConsumerName),
+            KeyValuePair.Create(Constants.MessagingOperationKey, Constants.MessagingOperationProcessValue)
         };
 
         if (state.ReceivedMessage?.Message?.MessageId is not null)
@@ -580,13 +598,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             attributes.Add(KeyValuePair.Create(Constants.MessagingMessageDeliveryTagIdKey, state.ReceivedMessage.DeliveryTag.ToString()));
         }
 
-        state.StartWorkflowSpan(
-            WorkflowName,
-            spanKind: SpanKind.Consumer,
-            suppliedAttributes: attributes,
-            traceHeader: data.TraceParentHeader);
-
-        return state;
+        return attributes;
     }
 
     public TransformBlock<IReceivedMessage, TState> GetBuildStateBlock(

@@ -3,6 +3,7 @@ using HouseofCat.Utilities.Helpers;
 using RabbitMQ.Client;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace HouseofCat.RabbitMQ;
 
@@ -10,16 +11,22 @@ public interface IMessage
 {
     string MessageId { get; set; }
 
+    [JsonIgnore]
     string Exchange { get; set; }
 
+    [JsonIgnore]
     string RoutingKey { get; set; }
 
+    [JsonIgnore]
     byte DeliveryMode { get; set; }
 
+    [JsonIgnore]
     bool Mandatory { get; set; }
 
+    [JsonIgnore]
     byte PriorityLevel { get; set; }
 
+    [JsonIgnore]
     string ContentType { get; set; }
 
     ReadOnlyMemory<byte> Body { get; set; }
@@ -39,19 +46,24 @@ public sealed class Message : IMessage
 
     public ReadOnlyMemory<byte> Body { get; set; }
 
+    [JsonIgnore]
     public string Exchange { get; set; }
 
+    [JsonIgnore]
     public string RoutingKey { get; set; }
 
+    [JsonIgnore]
     [Range(1, 2, ErrorMessage = Constants.RangeErrorMessage)]
     public byte DeliveryMode { get; set; } = 2;
 
+    [JsonIgnore]
     public bool Mandatory { get; set; }
 
     // The max-queue priority though is 10, so > 10 is treated as 10.
     [Range(0, 10, ErrorMessage = Constants.RangeErrorMessage)]
     public byte PriorityLevel { get; set; }
 
+    [JsonIgnore]
     public string ContentType { get; set; } = Constants.HeaderValueForContentTypeJson;
 
     public Message()

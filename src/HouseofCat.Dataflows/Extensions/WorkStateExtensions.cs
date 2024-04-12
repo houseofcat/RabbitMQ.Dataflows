@@ -62,7 +62,7 @@ public static class WorkStateExtensions
         string workflowName,
         SpanKind spanKind = SpanKind.Internal,
         IEnumerable<KeyValuePair<string, string>> suppliedAttributes = null,
-        string traceHeader = null)
+        SpanContext? parentSpanContext = null)
     {
         if (state is null) return;
 
@@ -81,18 +81,14 @@ public static class WorkStateExtensions
             }
         }
 
-        if (traceHeader is not null)
+        if (parentSpanContext.HasValue)
         {
-            var spanContext = OpenTelemetryHelpers.ExtractSpanContextFromTraceHeader(traceHeader);
-            if (spanContext.HasValue)
-            {
-                state.WorkflowSpan = OpenTelemetryHelpers
-                    .StartActiveSpan(
-                        spanName,
-                        spanKind: spanKind,
-                        spanContext.Value,
-                        attributes: attributes);
-            }
+            state.WorkflowSpan = OpenTelemetryHelpers
+                .StartActiveSpan(
+                    spanName,
+                    spanKind: spanKind,
+                    parentSpanContext.Value,
+                    attributes: attributes);
         }
 
         state.WorkflowSpan = OpenTelemetryHelpers

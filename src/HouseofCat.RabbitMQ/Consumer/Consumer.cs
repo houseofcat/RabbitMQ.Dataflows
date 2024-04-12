@@ -3,6 +3,8 @@ using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Trace;
+using Org.BouncyCastle.Asn1.Cms;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -298,33 +300,13 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         try
         {
             var receivedMessage = new ReceivedMessage(_chanHost.Channel, bdea, !ConsumerOptions.AutoAck);
-            if (receivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType
-                && receivedMessage.Body.Length > 0)
-            {
-                switch (receivedMessage.Properties.ContentType)
-                {
-                    case Constants.HeaderValueForContentTypeJson:
-                        try
-                        {
-                            receivedMessage.Message = JsonSerializer.Deserialize<Message>(receivedMessage.Body.Span);
-                        }
-                        catch
-                        { receivedMessage.FailedToDeserialize = true; }
-                        break;
-                    case Constants.HeaderValueForContentTypeMessagePack:
-                        try
-                        {
-                            receivedMessage.Message = MessagePackProvider.GlobalDeserialize<Message>(receivedMessage.Body);
-                        }
-                        catch
-                        { receivedMessage.FailedToDeserialize = true; }
-                        break;
-                    case Constants.HeaderValueForContentTypeBinary:
-                    case Constants.HeaderValueForContentTypePlainText:
-                    default:
-                        break;
-                }
-            }
+            using var span = OpenTelemetryHelpers.StartActiveSpan(
+                nameof(HandleMessageAsync),
+                SpanKind.Consumer,
+                receivedMessage.ParentSpanContext ?? default);
+
+            AutoDeserialize(receivedMessage);
+
             await _consumerChannel
                 .Writer
                 .WriteAsync(receivedMessage)
@@ -338,6 +320,37 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                 ConsumerOptions.ConsumerName,
                 ex.Message);
             return false;
+        }
+    }
+
+    protected virtual void AutoDeserialize(ReceivedMessage receivedMessage)
+    {
+        if (receivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType
+            && receivedMessage.Body.Length > 0)
+        {
+            switch (receivedMessage.Properties.ContentType)
+            {
+                case Constants.HeaderValueForContentTypeJson:
+                    try
+                    {
+                        receivedMessage.Message = JsonSerializer.Deserialize<Message>(receivedMessage.Body.Span);
+                    }
+                    catch
+                    { receivedMessage.FailedToDeserialize = true; }
+                    break;
+                case Constants.HeaderValueForContentTypeMessagePack:
+                    try
+                    {
+                        receivedMessage.Message = MessagePackProvider.GlobalDeserialize<Message>(receivedMessage.Body);
+                    }
+                    catch
+                    { receivedMessage.FailedToDeserialize = true; }
+                    break;
+                case Constants.HeaderValueForContentTypeBinary:
+                case Constants.HeaderValueForContentTypePlainText:
+                default:
+                    break;
+            }
         }
     }
 

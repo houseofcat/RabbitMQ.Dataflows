@@ -173,6 +173,7 @@ public static class OpenTelemetryHelpers
         if (string.IsNullOrEmpty(traceHeader)) return default;
 
         var split = traceHeader.Split('-');
+        if (split.Length < 3) return default;
 
         try
         {
