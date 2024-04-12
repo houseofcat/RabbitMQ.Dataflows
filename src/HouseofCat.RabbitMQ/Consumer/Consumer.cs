@@ -92,6 +92,8 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                 {
                     _logger.LogTrace(Consumers.StartingConsumerLoop, ConsumerOptions.ConsumerName);
                     success = await StartConsumingAsync().ConfigureAwait(false);
+                    if (!success)
+                    { await Task.Delay(Options.PoolOptions.SleepOnErrorInterval); }
                 }
 
                 _logger.LogDebug(Consumers.Started, ConsumerOptions.ConsumerName);

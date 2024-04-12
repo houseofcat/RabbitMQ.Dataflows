@@ -140,27 +140,45 @@ public static class MessageExtensions
 
     public static void EnrichSpanWithTags(this IMessage message, TelemetrySpan span)
     {
-        if (message == null || span == null) return;
+        if (message == null || span == null || !span.IsRecording) return;
 
         span.SetAttribute(Constants.MessagingSystemKey, Constants.MessagingSystemValue);
-        span.SetAttribute(Constants.MessagingDestinationNameKey, message.Exchange);
 
-        span.SetAttribute(Constants.MessagingMessageMessageIdKey, message.MessageId);
-        span.SetAttribute(Constants.MessagingMessageRoutingKeyKey, message.RoutingKey);
+        if (!string.IsNullOrEmpty(message.Exchange))
+        {
+            span.SetAttribute(Constants.MessagingDestinationNameKey, message.Exchange);
+        }
+        if (!string.IsNullOrEmpty(message.MessageId))
+        {
+            span.SetAttribute(Constants.MessagingMessageMessageIdKey, message.MessageId);
+        }
+        if (!string.IsNullOrEmpty(message.RoutingKey))
+        {
+            span.SetAttribute(Constants.MessagingMessageRoutingKeyKey, message.RoutingKey);
+        }
+        if (!string.IsNullOrEmpty(message.ContentType))
+        {
+            span.SetAttribute(Constants.MessagingMessageContentTypeKey, message.ContentType);
+        }
+
         span.SetAttribute(Constants.MessagingMessageDeliveryModeKey, message.DeliveryMode);
         span.SetAttribute(Constants.MessagingMessagePriorityKey, message.PriorityLevel);
-        span.SetAttribute(Constants.MessagingMessageContentTypeKey, message.ContentType);
         span.SetAttribute(Constants.MessagingMessageMandatoryKey, message.Mandatory);
 
-        span.SetAttribute(Constants.MessagingMessagePayloadIdKey, message.Metadata?.PayloadId);
+        if (!string.IsNullOrEmpty(message.Metadata?.PayloadId))
+        {
+            span.SetAttribute(Constants.MessagingMessagePayloadIdKey, message.Metadata?.PayloadId);
+        }
 
-        if (message.Metadata?.Encrypted() != null)
+        var encrypted = message.Metadata?.Encrypted();
+        if (encrypted.HasValue && encrypted.Value)
         {
             span.SetAttribute(Constants.MessagingMessageEncryptedKey, "true");
             span.SetAttribute(Constants.MessagingMessageEncryptedDateKey, message.Metadata?.EncryptedDate());
             span.SetAttribute(Constants.MessagingMessageEncryptionKey, message.Metadata?.EncryptionType());
         }
-        if (message.Metadata?.Compressed() != null)
+        var compressed = message.Metadata?.Compressed();
+        if (compressed.HasValue && compressed.Value)
         {
             span.SetAttribute(Constants.MessagingMessageCompressedKey, "true");
             span.SetAttribute(Constants.MessagingMessageCompressionKey, message.Metadata?.CompressionType());

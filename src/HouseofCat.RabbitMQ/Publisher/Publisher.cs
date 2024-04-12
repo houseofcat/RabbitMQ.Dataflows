@@ -351,6 +351,9 @@ public class Publisher : IPublisher, IDisposable
     {
         Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
 
+        using var span = OpenTelemetryHelpers.StartActiveSpan(nameof(PublishAsync), SpanKind.Producer);
+        EnrichSpanWithTags(span, exchangeName, routingKey, messageId);
+
         var error = false;
         var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
         if (basicProperties == null)
@@ -380,6 +383,7 @@ public class Publisher : IPublisher, IDisposable
         }
         catch (Exception ex)
         {
+            OpenTelemetryHelpers.SetSpanAsError(span, ex);
             _logger.LogDebug(LogMessages.Publishers.PublishFailed, $"{exchangeName}->{routingKey}", ex.Message);
             error = true;
         }
@@ -406,7 +410,7 @@ public class Publisher : IPublisher, IDisposable
     {
         Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
 
-        using var span = OpenTelemetryHelpers.StartActiveSpan(nameof(PublishBatchAsync), SpanKind.Producer);
+        using var span = OpenTelemetryHelpers.StartActiveSpan(nameof(PublishAsync), SpanKind.Producer);
         EnrichSpanWithTags(span, exchangeName, routingKey);
 
         var error = false;
@@ -425,6 +429,7 @@ public class Publisher : IPublisher, IDisposable
         }
         catch (Exception ex)
         {
+            OpenTelemetryHelpers.SetSpanAsError(span, ex);
             _logger.LogDebug(
                 LogMessages.Publishers.PublishFailed,
                 $"{exchangeName}->{routingKey}",
@@ -487,6 +492,7 @@ public class Publisher : IPublisher, IDisposable
         }
         catch (Exception ex)
         {
+            OpenTelemetryHelpers.SetSpanAsError(span, ex);
             _logger.LogDebug(
                 LogMessages.Publishers.PublishFailed,
                 $"{exchangeName}->{routingKey}",
@@ -540,6 +546,8 @@ public class Publisher : IPublisher, IDisposable
         }
         catch (Exception ex)
         {
+            OpenTelemetryHelpers.SetSpanAsError(span, ex);
+
             _logger.LogDebug(
                 LogMessages.Publishers.PublishFailed,
                 $"{exchangeName}->{routingKey}",
@@ -587,6 +595,7 @@ public class Publisher : IPublisher, IDisposable
         }
         catch (Exception ex)
         {
+            OpenTelemetryHelpers.SetSpanAsError(span, ex);
             _logger.LogDebug(
                 LogMessages.Publishers.PublishMessageFailed,
                 $"{message.Exchange}->{message.RoutingKey}",
@@ -643,6 +652,7 @@ public class Publisher : IPublisher, IDisposable
         }
         catch (Exception ex)
         {
+            OpenTelemetryHelpers.SetSpanAsError(span, ex);
             _logger.LogDebug(
                 LogMessages.Publishers.PublishMessageFailed,
                 $"{message.Exchange}->{message.RoutingKey}",
@@ -700,6 +710,7 @@ public class Publisher : IPublisher, IDisposable
             }
             catch (Exception ex)
             {
+                OpenTelemetryHelpers.SetSpanAsError(span, ex);
                 _logger.LogDebug(
                     LogMessages.Publishers.PublishMessageFailed,
                     $"{messages[i].Exchange}->{messages[i].RoutingKey}",
@@ -767,6 +778,7 @@ public class Publisher : IPublisher, IDisposable
         }
         catch (Exception ex)
         {
+            OpenTelemetryHelpers.SetSpanAsError(span, ex);
             _logger.LogDebug(
                 LogMessages.Publishers.PublishBatchFailed,
                 ex.Message);
@@ -854,14 +866,18 @@ public class Publisher : IPublisher, IDisposable
         string routingKey,
         string messageId = null)
     {
+        if (span == null || !span.IsRecording) return;
+
         span.SetAttribute(Constants.MessagingSystemKey, Constants.MessagingSystemValue);
-        span.SetAttribute(Constants.MessagingDestinationNameKey, exchangeName);
-        span.SetAttribute(Constants.MessagingMessageRoutingKeyKey, routingKey);
+
+        if (!string.IsNullOrEmpty(exchangeName))
+        { span.SetAttribute(Constants.MessagingDestinationNameKey, exchangeName); }
+
+        if (!string.IsNullOrEmpty(routingKey))
+        { span.SetAttribute(Constants.MessagingMessageRoutingKeyKey, routingKey); }
 
         if (!string.IsNullOrEmpty(messageId))
-        {
-            span.SetAttribute(Constants.MessagingMessageMessageIdKey, messageId);
-        }
+        { span.SetAttribute(Constants.MessagingMessageMessageIdKey, messageId); }
     }
 
     protected virtual void Dispose(bool disposing)
