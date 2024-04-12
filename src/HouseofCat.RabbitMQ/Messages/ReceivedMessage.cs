@@ -1,3 +1,4 @@
+using HouseofCat.Serialization;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -118,6 +119,14 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
                         try
                         {
                             Message = JsonSerializer.Deserialize<Message>(Body.Span);
+                        }
+                        catch
+                        { FailedToDeserialize = true; }
+                        break;
+                    case Constants.HeaderValueForContentTypeMessagePack:
+                        try
+                        {
+                            Message = MessagePackProvider.GlobalDeserialize<Message>(Body);
                         }
                         catch
                         { FailedToDeserialize = true; }

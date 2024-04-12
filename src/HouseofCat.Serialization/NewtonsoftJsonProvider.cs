@@ -11,6 +11,8 @@ public sealed class NewtonsoftJsonProvider : ISerializationProvider
 {
     private readonly JsonSerializer _jsonSerializer = new JsonSerializer();
 
+    public string ContentType { get; private set; } = "application/json";
+
     public TOut Deserialize<TOut>(ReadOnlyMemory<byte> input)
     {
         Guard.AgainstEmpty(input, nameof(input));

@@ -10,6 +10,7 @@ public static class Constants
     public const string HeaderValueForContentTypeBinary = "application/octet-stream";
     public const string HeaderValueForContentTypePlainText = "text/plain";
     public const string HeaderValueForContentTypeJson = "application/json";
+    public const string HeaderValueForContentTypeMessagePack = "application/msgpack";
     public static string HeaderForObjectType { get; set; } = "X-RD-OBJECTTYPE";
     public static string HeaderValueForMessageObjectType { get; set; } = "IMESSAGE";
 
