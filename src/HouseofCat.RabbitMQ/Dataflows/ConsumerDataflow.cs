@@ -569,11 +569,15 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
         if (state.ReceivedMessage?.Message?.MessageId is not null)
         {
-            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedMessage.Message.MessageId), state.ReceivedMessage.Message.MessageId));
+            attributes.Add(KeyValuePair.Create(Constants.MessagingMessageMessageIdKey, state.ReceivedMessage.Message.MessageId));
         }
         if (state.ReceivedMessage?.Message?.Metadata?.PayloadId is not null)
         {
-            attributes.Add(KeyValuePair.Create(nameof(state.ReceivedMessage.Message.Metadata.PayloadId), state.ReceivedMessage.Message.Metadata.PayloadId));
+            attributes.Add(KeyValuePair.Create(Constants.MessagingMessagePayloadIdKey, state.ReceivedMessage.Message.Metadata.PayloadId));
+        }
+        if (state.ReceivedMessage?.DeliveryTag is not null)
+        {
+            attributes.Add(KeyValuePair.Create(Constants.MessagingMessageDeliveryTagIdKey, state.ReceivedMessage.DeliveryTag.ToString()));
         }
 
         state.StartWorkflowSpan(

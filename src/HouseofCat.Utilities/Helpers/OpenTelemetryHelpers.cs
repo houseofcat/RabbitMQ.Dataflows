@@ -24,6 +24,12 @@ public static class OpenTelemetryHelpers
         _sourceVersion = assembly.GetSemanticVersion();
     }
 
+    public static void SetAssemblyAsSourceForTelemetry(Assembly assembly)
+    {
+        _sourceName = assembly.GetName().Name;
+        _sourceVersion = assembly.GetSemanticVersion();
+    }
+
     #region Span Helpers
 
     public static TelemetrySpan StartRootSpan(
@@ -49,6 +55,17 @@ public static class OpenTelemetryHelpers
             startTime: startTime);
     }
 
+    /// <summary>
+    /// Starts a new active span, automatically setting the parent ontext if there is a current span
+    /// create a new active child span automatically.
+    /// </summary>
+    /// <param name="spanName"></param>
+    /// <param name="spanKind"></param>
+    /// <param name="parentContext"></param>
+    /// <param name="attributes"></param>
+    /// <param name="links"></param>
+    /// <param name="startTime"></param>
+    /// <returns></returns>
     public static TelemetrySpan StartActiveSpan(
         string spanName,
         SpanKind spanKind = SpanKind.Internal,
@@ -65,6 +82,12 @@ public static class OpenTelemetryHelpers
 
         if (provider is null) return null;
 
+        var currentSpan = Tracer.CurrentSpan;
+        if (parentContext == default && currentSpan != null)
+        {
+            parentContext = currentSpan.Context;
+        }
+
         return provider.StartActiveSpan(
             spanName,
             spanKind,
@@ -72,27 +95,6 @@ public static class OpenTelemetryHelpers
             parentContext: parentContext,
             links: links,
             startTime: startTime);
-    }
-
-    public static TelemetrySpan StartActiveChildSpan(
-        string spanName,
-        SpanContext parentContext,
-        SpanKind spanKind = SpanKind.Internal,
-        SpanAttributes attributes = null)
-    {
-        var provider = TracerProvider
-            .Default
-            .GetTracer(
-                _sourceName,
-                _sourceVersion);
-
-        if (provider is null) return null;
-
-        return provider.StartActiveSpan(
-            spanName,
-            spanKind,
-            initialAttributes: attributes,
-            parentContext: parentContext);
     }
 
     #endregion

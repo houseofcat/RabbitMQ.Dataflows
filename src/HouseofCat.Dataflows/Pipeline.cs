@@ -218,7 +218,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
     {
         if (Ready) throw new InvalidOperationException(_invalidAddError);
 
-        for (int i = 0; i < stepFunctions.Count; i++)
+        for (var i = 0; i < stepFunctions.Count; i++)
         {
             AddStep(stepFunctions[i], localMaxDoP, ensureOrdered, bufferSizeOverride);
         }

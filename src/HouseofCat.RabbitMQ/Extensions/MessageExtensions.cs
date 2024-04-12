@@ -1,5 +1,6 @@
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities.Random;
+using OpenTelemetry.Trace;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
@@ -32,9 +33,7 @@ public static class MessageExtensions
         {
             clonedMessage.Metadata = new Metadata
             {
-                PayloadId = new string(message.Metadata.PayloadId),
-                Encrypted = message.Metadata.Encrypted,
-                Compressed = message.Metadata.Compressed,
+                PayloadId = new string(message.Metadata.PayloadId)
             };
 
             if (message.Metadata.Fields is not null)
@@ -137,5 +136,34 @@ public static class MessageExtensions
         }
 
         return messages;
+    }
+
+    public static void EnrichSpanWithTags(this IMessage message, TelemetrySpan span)
+    {
+        if (message == null || span == null) return;
+
+        span.SetAttribute(Constants.MessagingSystemKey, Constants.MessagingSystemValue);
+        span.SetAttribute(Constants.MessagingDestinationNameKey, message.Exchange);
+
+        span.SetAttribute(Constants.MessagingMessageMessageIdKey, message.MessageId);
+        span.SetAttribute(Constants.MessagingMessageRoutingKeyKey, message.RoutingKey);
+        span.SetAttribute(Constants.MessagingMessageDeliveryModeKey, message.DeliveryMode);
+        span.SetAttribute(Constants.MessagingMessagePriorityKey, message.PriorityLevel);
+        span.SetAttribute(Constants.MessagingMessageContentTypeKey, message.ContentType);
+        span.SetAttribute(Constants.MessagingMessageMandatoryKey, message.Mandatory);
+
+        span.SetAttribute(Constants.MessagingMessagePayloadIdKey, message.Metadata?.PayloadId);
+
+        if (message.Metadata?.Encrypted() != null)
+        {
+            span.SetAttribute(Constants.MessagingMessageEncryptedKey, "true");
+            span.SetAttribute(Constants.MessagingMessageEncryptedDateKey, message.Metadata?.EncryptedDate());
+            span.SetAttribute(Constants.MessagingMessageEncryptionKey, message.Metadata?.EncryptionType());
+        }
+        if (message.Metadata?.Compressed() != null)
+        {
+            span.SetAttribute(Constants.MessagingMessageCompressedKey, "true");
+            span.SetAttribute(Constants.MessagingMessageCompressionKey, message.Metadata?.CompressionType());
+        }
     }
 }

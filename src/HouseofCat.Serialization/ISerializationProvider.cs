@@ -6,6 +6,7 @@ namespace HouseofCat.Serialization;
 
 public interface ISerializationProvider
 {
+    string ContentType { get; }
     TOut Deserialize<TOut>(string input);
     TOut Deserialize<TOut>(ReadOnlyMemory<byte> input);
     TOut Deserialize<TOut>(Stream inputStream);

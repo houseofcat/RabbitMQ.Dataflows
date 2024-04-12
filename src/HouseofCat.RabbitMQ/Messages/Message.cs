@@ -3,7 +3,6 @@ using HouseofCat.Utilities.Helpers;
 using RabbitMQ.Client;
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace HouseofCat.RabbitMQ;
 
@@ -29,7 +28,7 @@ public interface IMessage
 
     IPublishReceipt GetPublishReceipt(bool error);
 
-    IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders);
+    IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders, string contentType);
 }
 
 public sealed class Message : IMessage
@@ -86,13 +85,14 @@ public sealed class Message : IMessage
         { Metadata = new Metadata(); }
     }
 
-    public IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders)
+    public IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders, string contentType)
     {
         var basicProperties = this.CreateBasicProperties(channelHost, withOptionalHeaders, Metadata);
         basicProperties.MessageId = MessageId;
 
         // Non-optional Header.
         basicProperties.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
+        basicProperties.Headers[Constants.HeaderForContentType] = contentType;
         var openTelHeader = OpenTelemetryHelpers.GetOrCreateTraceHeaderFromCurrentActivity();
         basicProperties.Headers[Constants.HeaderForTraceParent] = openTelHeader;
 

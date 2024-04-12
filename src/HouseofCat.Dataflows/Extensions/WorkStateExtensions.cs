@@ -87,10 +87,10 @@ public static class WorkStateExtensions
             if (spanContext.HasValue)
             {
                 state.WorkflowSpan = OpenTelemetryHelpers
-                    .StartActiveChildSpan(
+                    .StartActiveSpan(
                         spanName,
-                        spanContext.Value,
                         spanKind: spanKind,
+                        spanContext.Value,
                         attributes: attributes);
             }
         }
@@ -157,10 +157,10 @@ public static class WorkStateExtensions
         var childSpanName = string.Format(DefaultChildSpanNameFormat, workflowName, spanName);
 
         return OpenTelemetryHelpers
-            .StartActiveChildSpan(
+            .StartActiveSpan(
                 childSpanName,
-                spanContext,
                 spanKind,
+                spanContext,
                 attributes: attributes);
     }
 

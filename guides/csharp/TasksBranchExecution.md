@@ -154,7 +154,7 @@ namespace Tasks
             // All my messages, assigned to a Task assigned inside an array.
             // Execution of each task begins when created but there is no blocking here.
             var tasks = new Task[myStrings.Count];
-            for (int i = 0; i < myStrings.Count; i++)
+            for (var i = 0; i < myStrings.Count; i++)
             {
                 tasks[i] = ProcessMessageAsync(myStrings[i]);
             }

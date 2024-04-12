@@ -122,15 +122,9 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
                         catch
                         { FailedToDeserialize = true; }
                         break;
-
                     case Constants.HeaderValueForContentTypeBinary:
                     case Constants.HeaderValueForContentTypePlainText:
-                        break;
                     default:
-                        try
-                        { Message = JsonSerializer.Deserialize<Message>(Body.Span); }
-                        catch
-                        { FailedToDeserialize = true; }
                         break;
                 }
             }

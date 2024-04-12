@@ -253,10 +253,9 @@ public class RabbitService : IRabbitService, IDisposable
 
     public bool Encrypt(IMessage message)
     {
-        if (!message.Metadata.Encrypted)
+        if (!message.Metadata.Encrypted())
         {
             message.Body = EncryptionProvider.Encrypt(message.Body);
-            message.Metadata.Encrypted = true;
             message.Metadata.Fields[Constants.HeaderForEncrypted] = true;
             message.Metadata.Fields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
             message.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeFormat);
@@ -269,10 +268,9 @@ public class RabbitService : IRabbitService, IDisposable
 
     public bool Decrypt(IMessage message)
     {
-        if (message.Metadata.Encrypted)
+        if (message.Metadata.Encrypted())
         {
             message.Body = EncryptionProvider.Decrypt(message.Body);
-            message.Metadata.Encrypted = false;
             message.Metadata.Fields[Constants.HeaderForEncrypted] = false;
 
             message.Metadata.Fields.Remove(Constants.HeaderForEncryption);
@@ -286,13 +284,12 @@ public class RabbitService : IRabbitService, IDisposable
 
     public async Task<bool> CompressAsync(IMessage message)
     {
-        if (message.Metadata.Encrypted)
+        if (message.Metadata.Encrypted())
         { return false; } // Don't compress after encryption.
 
-        if (!message.Metadata.Compressed)
+        if (!message.Metadata.Compressed())
         {
             message.Body = (await CompressionProvider.CompressAsync(message.Body).ConfigureAwait(false)).ToArray();
-            message.Metadata.Compressed = true;
             message.Metadata.Fields[Constants.HeaderForCompressed] = true;
             message.Metadata.Fields[Constants.HeaderForCompression] = CompressionProvider.Type;
 
@@ -304,15 +301,14 @@ public class RabbitService : IRabbitService, IDisposable
 
     public async Task<bool> DecompressAsync(IMessage message)
     {
-        if (message.Metadata.Encrypted)
+        if (message.Metadata.Encrypted())
         { return false; } // Don't decompress before decryption.
 
-        if (message.Metadata.Compressed)
+        if (message.Metadata.Compressed())
         {
             try
             {
                 message.Body = (await CompressionProvider.DecompressAsync(message.Body).ConfigureAwait(false)).ToArray();
-                message.Metadata.Compressed = false;
                 message.Metadata.Fields[Constants.HeaderForCompressed] = false;
 
                 message.Metadata.Fields.Remove(Constants.HeaderForCompression);

@@ -154,7 +154,7 @@ public class ConnectionPool : IConnectionPool, IDisposable
     {
         _logger.LogTrace(LogMessages.ConnectionPools.CreateConnections);
 
-        for (int i = 0; i < Options.PoolOptions.Connections; i++)
+        for (var i = 0; i < Options.PoolOptions.Connections; i++)
         {
             var serviceName = string.IsNullOrEmpty(Options.PoolOptions.ServiceName)
                 ? $"HoC.RabbitMQ:{i}"

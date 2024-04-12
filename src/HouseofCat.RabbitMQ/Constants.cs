@@ -2,9 +2,6 @@ namespace HouseofCat.RabbitMQ;
 
 public static class Constants
 {
-    // RabbitService 
-    public static int EncryptionKeySize { get; set; } = 32; // AES256
-
     // Publisher
     public static string HeaderPrefix { get; set; } = "X-";
 
@@ -27,8 +24,33 @@ public static class Constants
 
     public const string RangeErrorMessage = "Value for {0} must be between {1} and {2}.";
 
-    // Pipeline
-    public static string DefaultPipelineName { get; set; } = "NoNameProvided";
+    public static string MessagingSystemKey { get; set; } = "messaging.system";
+    public static string MessagingSystemValue { get; set; } = "rabbitmq";
+
+    public static string MessagingOperationKey { get; set; } = "messaging.operation";
+    public static string MessagingOperationPublishValue { get; set; } = "publish";
+    public static string MessagingOperationConsumeValue { get; set; } = "receive";
+    public static string MessagingOperationProcessValue { get; set; } = "process";
+
+    public static string MessagingDestinationNameKey { get; set; } = "messaging.destination.name";
+    public static string MessagingMessageMessageIdKey { get; set; } = "messaging.message.id";
+
+    public static string MessagingMessageRoutingKeyKey { get; set; } = "messaging.rabbitmq.message.routing_key";
+    public static string MessagingMessageDeliveryTagIdKey { get; set; } = "messaging.rabbitmq.message.delivery_tag";
+
+    public static string MessagingMessageDeliveryModeKey { get; set; } = "messaging.rabbitmq.message.delivery_mode";
+    public static string MessagingMessagePriorityKey { get; set; } = "messaging.rabbitmq.message.priority";
+    public static string MessagingMessageContentTypeKey { get; set; } = "messaging.rabbitmq.message.content_type";
+    public static string MessagingMessageMandatoryKey { get; set; } = "messaging.rabbitmq.message.mandatory";
+
+    public static string MessagingBatchProcessValue { get; set; } = "messaging.batch.message_count";
+
+    public static string MessagingMessagePayloadIdKey { get; set; } = "messaging.rabbitmq.message.payload_id";
+    public static string MessagingMessageEncryptedKey { get; set; } = "messaging.rabbitmq.message.encrypted";
+    public static string MessagingMessageEncryptedDateKey { get; set; } = "messaging.rabbitmq.message.encrypted_date";
+    public static string MessagingMessageEncryptionKey { get; set; } = "messaging.rabbitmq.message.encryption";
+    public static string MessagingMessageCompressedKey { get; set; } = "messaging.rabbitmq.message.compressed";
+    public static string MessagingMessageCompressionKey { get; set; } = "messaging.rabbitmq.message.compression";
 }
 
 public static class ExceptionMessages

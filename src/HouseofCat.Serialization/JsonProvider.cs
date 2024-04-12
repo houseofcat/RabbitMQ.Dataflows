@@ -9,6 +9,8 @@ namespace HouseofCat.Serialization;
 
 public class JsonProvider : ISerializationProvider
 {
+    public string ContentType { get; private set; } = "application/json";
+
     private readonly JsonSerializerOptions _options;
 
     public JsonProvider(JsonSerializerOptions options = null)

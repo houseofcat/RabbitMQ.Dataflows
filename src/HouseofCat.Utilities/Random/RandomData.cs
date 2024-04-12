@@ -24,7 +24,7 @@ public static class Data
 
             int length = Rand.Next(minLength, maxLength + 1);
 
-            for (int i = 0; i < length; ++i)
+            for (var i = 0; i < length; ++i)
             {
                 chars[i] = AllowedChars[Rand.Next(setLength)];
             }
@@ -45,7 +45,7 @@ public static class Data
 
         int length = Rand.Next(minLength, maxLength + 1);
 
-        for (int i = 0; i < length; ++i)
+        for (var i = 0; i < length; ++i)
         {
             chars[i] = AllowedChars[Rand.Next(setLength)];
         }
@@ -58,7 +58,7 @@ public static class Data
         var ints = new int[count];
         var validatedInt = ((maxValue < 2 ? 2 : maxValue) / 2) - 1;
 
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
             ints[i] = Rand.Next(validatedInt) - Rand.Next(validatedInt);
         }
