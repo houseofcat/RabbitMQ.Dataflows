@@ -1,4 +1,5 @@
 using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
@@ -6,6 +7,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -31,14 +33,13 @@ public interface IConsumer<TFromQueue>
 public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 {
     private readonly ILogger<Consumer> _logger;
-    private readonly SemaphoreSlim _conLock = new SemaphoreSlim(1, 1);
-    private readonly SemaphoreSlim _executionLock = new SemaphoreSlim(1, 1);
-    private IChannelHost _chanHost;
-    private bool _disposedValue;
-    private Channel<IReceivedMessage> _consumerChannel;
+    protected readonly SemaphoreSlim _conLock = new SemaphoreSlim(1, 1);
+    protected IChannelHost _chanHost;
+    protected bool _disposedValue;
+    protected Channel<IReceivedMessage> _consumerChannel;
 
     public string ConsumerTag { get; private set; }
-    private bool _shutdown;
+    protected bool _shutdown;
 
     public RabbitOptions Options { get; }
     public ConsumerOptions ConsumerOptions { get; }
@@ -139,12 +140,12 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         finally { _conLock.Release(); }
     }
 
-    private AsyncEventingBasicConsumer _asyncConsumer;
-    private EventingBasicConsumer _consumer;
+    protected AsyncEventingBasicConsumer _asyncConsumer;
+    protected EventingBasicConsumer _consumer;
 
-    private CancellationTokenSource _cts;
+    protected CancellationTokenSource _cts;
 
-    private async Task<bool> StartConsumingAsync()
+    protected async Task<bool> StartConsumingAsync()
     {
         if (_shutdown) return false;
 
@@ -248,7 +249,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         await HandleMessageAsync(bdea).ConfigureAwait(false);
     }
 
-    private async void ConsumerShutdown(object sender, ShutdownEventArgs e)
+    protected async void ConsumerShutdown(object sender, ShutdownEventArgs e)
     {
         if (await _conLock.WaitAsync(0))
         {
@@ -267,7 +268,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         }
     }
 
-    private AsyncEventingBasicConsumer CreateAsyncConsumer()
+    protected AsyncEventingBasicConsumer CreateAsyncConsumer()
     {
         AsyncEventingBasicConsumer consumer = null;
 
@@ -296,9 +297,37 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 
         try
         {
+            var receivedMessage = new ReceivedMessage(_chanHost.Channel, bdea, !ConsumerOptions.AutoAck);
+            if (receivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType
+                && receivedMessage.Body.Length > 0)
+            {
+                switch (receivedMessage.Properties.ContentType)
+                {
+                    case Constants.HeaderValueForContentTypeJson:
+                        try
+                        {
+                            receivedMessage.Message = JsonSerializer.Deserialize<Message>(receivedMessage.Body.Span);
+                        }
+                        catch
+                        { receivedMessage.FailedToDeserialize = true; }
+                        break;
+                    case Constants.HeaderValueForContentTypeMessagePack:
+                        try
+                        {
+                            receivedMessage.Message = MessagePackProvider.GlobalDeserialize<Message>(receivedMessage.Body);
+                        }
+                        catch
+                        { receivedMessage.FailedToDeserialize = true; }
+                        break;
+                    case Constants.HeaderValueForContentTypeBinary:
+                    case Constants.HeaderValueForContentTypePlainText:
+                    default:
+                        break;
+                }
+            }
             await _consumerChannel
                 .Writer
-                .WriteAsync(new ReceivedMessage(_chanHost.Channel, bdea, !ConsumerOptions.AutoAck))
+                .WriteAsync(receivedMessage)
                 .ConfigureAwait(false);
             return true;
         }
@@ -337,7 +366,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         }
     }
 
-    private static readonly string _consumerShutdownExceptionMessage = "Consumer's ChannelHost {0} had an unhandled exception during recovery.";
+    protected static readonly string _consumerShutdownExceptionMessage = "Consumer's ChannelHost {0} had an unhandled exception during recovery.";
 
     protected virtual async Task HandleRecoverableShutdownAsync(ShutdownEventArgs e)
     {
@@ -403,7 +432,6 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         {
             if (disposing)
             {
-                _executionLock.Dispose();
                 _conLock.Dispose();
             }
 

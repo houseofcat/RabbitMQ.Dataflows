@@ -66,7 +66,7 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
     public string ConsumerTag { get; }
     public ulong DeliveryTag { get; }
 
-    public bool FailedToDeserialize { get; private set; }
+    public bool FailedToDeserialize { get; set; }
 
     private readonly TaskCompletionSource<bool> _completionSource = new TaskCompletionSource<bool>();
     public Task<bool> Completion => _completionSource.Task;
@@ -109,34 +109,6 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
         if (Properties.Headers.TryGetValue(Constants.HeaderForObjectType, out object objectType))
         {
             ObjectType = Encoding.UTF8.GetString((byte[])objectType);
-
-            if (ObjectType == Constants.HeaderValueForMessageObjectType
-                && Body.Length > 0)
-            {
-                switch (Properties.ContentType)
-                {
-                    case Constants.HeaderValueForContentTypeJson:
-                        try
-                        {
-                            Message = JsonSerializer.Deserialize<Message>(Body.Span);
-                        }
-                        catch
-                        { FailedToDeserialize = true; }
-                        break;
-                    case Constants.HeaderValueForContentTypeMessagePack:
-                        try
-                        {
-                            Message = MessagePackProvider.GlobalDeserialize<Message>(Body);
-                        }
-                        catch
-                        { FailedToDeserialize = true; }
-                        break;
-                    case Constants.HeaderValueForContentTypeBinary:
-                    case Constants.HeaderValueForContentTypePlainText:
-                    default:
-                        break;
-                }
-            }
 
             if (Properties.Headers.TryGetValue(Constants.HeaderForEncrypted, out object encryptedValue))
             { Encrypted = (bool)encryptedValue; }
