@@ -5,12 +5,15 @@ using OpenTelemetry.Exporter;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace HouseofCat.Utilities.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+    public static string DeploymentEnvironmentKey { get; set; } = "deployment.environment";
+
     public static void AddOpenTelemetryExporter(
         this IServiceCollection services,
         IConfiguration config)
@@ -22,6 +25,7 @@ public static class ServiceCollectionExtensions
         bool.TryParse(config["OpenTelemetry:Enabled"] ?? "false", out var enabled);
         if (!enabled) return;
 
+        var environment = config["OpenTelemetry:Environment"] ?? "Dev";
         var otlpServiceName = config["OpenTelemetry:ServiceName"] ?? sourceName;
         var otlpServiceNamespace = config["OpenTelemetry:ServiceNamespace"] ?? "hoc";
         var otlpServiceVersion = config["OpenTelemetry:ServiceVersion"] ?? sourceVersion;
@@ -39,7 +43,12 @@ public static class ServiceCollectionExtensions
                 resource => resource.AddService(
                     serviceName: otlpServiceName,
                     serviceNamespace: otlpServiceNamespace,
-                    serviceVersion: otlpServiceVersion));
+                    serviceVersion: otlpServiceVersion)
+                .AddAttributes(
+                    new[]
+                    {
+                        new KeyValuePair<string, object>(DeploymentEnvironmentKey, environment)
+                    }));
 
         otlpBuilder
             .WithTracing(

@@ -191,6 +191,19 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
     #region Step Adders
 
+    protected static readonly string _defaultSpanNameFormat = "{0}.{1}";
+    protected static readonly string _defaultStepSpanNameFormat = "{0}.{1}.{2}";
+
+    protected string GetSpanName(string stepName)
+    {
+        return string.Format(_defaultSpanNameFormat, WorkflowName, stepName);
+    }
+
+    protected string GetStepSpanName(string stepName)
+    {
+        return string.Format(_defaultStepSpanNameFormat, WorkflowName, _suppliedTransforms.Count, stepName);
+    }
+
     protected virtual ITargetBlock<TState> CreateTargetBlock(
         int boundedCapacity, TaskScheduler taskScheduler = null) =>
         new BufferBlock<TState>(
@@ -212,7 +225,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         {
             _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _errorAction = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}.ErrorHandler");
+            _errorAction = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("error_handler"));
         }
         return this;
     }
@@ -229,7 +242,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         {
             _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _errorAction = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}.ErrorHandler");
+            _errorAction = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("error_handler"));
         }
         return this;
     }
@@ -238,19 +251,6 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     {
         _readyBuffer ??= CreateTargetBlock(boundedCapacity, taskScheduler);
         return this;
-    }
-
-    protected static readonly string _defaultSpanNameFormat = "{0}.{1}";
-    protected static readonly string _defaultStepSpanNameFormat = "{0}.{1}.{2}";
-
-    protected string GetSpanName(string stepName)
-    {
-        return string.Format(_defaultSpanNameFormat, WorkflowName, stepName);
-    }
-
-    protected string GetStepSpanName(string stepName)
-    {
-        return string.Format(_defaultStepSpanNameFormat, WorkflowName, _suppliedTransforms.Count, stepName);
     }
 
     public ConsumerDataflow<TState> AddStep(

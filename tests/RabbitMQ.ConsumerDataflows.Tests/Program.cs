@@ -29,7 +29,12 @@ dataflowService.AddStep(
     "write_message_to_console",
     (state) =>
     {
-        Console.WriteLine(Encoding.UTF8.GetString(state.ReceivedMessage.Body.Span));
+        var message = Encoding.UTF8.GetString(state.ReceivedMessage.Body.Span);
+        if (message == "throw")
+        {
+            throw new Exception("Throwing an exception!");
+        }
+        Console.WriteLine(message);
         return state;
     });
 
@@ -75,7 +80,6 @@ dataflowService.AddErrorHandling(
     (state) =>
     {
         logger.LogError(state?.EDI?.SourceException, "Error Step!");
-        state?.ReceivedMessage?.NackMessage(requeue: true);
         state?.ReceivedMessage?.Complete();
     });
 

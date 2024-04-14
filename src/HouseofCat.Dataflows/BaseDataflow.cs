@@ -76,8 +76,8 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
             }
             catch (Exception ex)
             {
-                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
                 childSpan?.RecordException(ex);
+                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
                 state.IsFaulted = true;
                 state.EDI = ExceptionDispatchInfo.Capture(ex);
                 return state;
@@ -101,8 +101,8 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
             }
             catch (Exception ex)
             {
-                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
                 childSpan?.RecordException(ex);
+                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
                 state.IsFaulted = true;
                 state.EDI = ExceptionDispatchInfo.Capture(ex);
                 return state;
@@ -126,12 +126,12 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
             }
             catch (Exception ex)
             {
-                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
                 childSpan?.RecordException(ex);
+                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
             }
 
             childSpan?.End();
-            state.EndRootSpan();
+            state.EndRootSpan(true);
         }
 
         return new ActionBlock<TState>(WrapAction, options);
@@ -151,12 +151,12 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
             }
             catch (Exception ex)
             {
-                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
                 childSpan?.RecordException(ex);
+                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
             }
 
             childSpan?.End();
-            state.EndRootSpan();
+            state.EndRootSpan(true);
         }
 
         return new ActionBlock<TState>(WrapAction, options);
@@ -176,12 +176,12 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
             }
             catch (Exception ex)
             {
-                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
                 childSpan?.RecordException(ex);
+                childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
             }
 
             childSpan?.End();
-            state.EndRootSpan();
+            state.EndRootSpan(true);
         }
 
         return new ActionBlock<TState>(WrapActionAsync, options);
