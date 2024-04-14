@@ -1,8 +1,5 @@
 ﻿using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 using RabbitMQ.ConsumerDataflows.Tests;
 using System.Text;
 
@@ -10,14 +7,7 @@ var loggerFactory = LogHelpers.CreateConsoleLoggerFactory(LogLevel.Information);
 LogHelpers.LoggerFactory = loggerFactory;
 var logger = loggerFactory.CreateLogger<Program>();
 
-var applicationName = "RabbitMQ.ConsumerDataflows.Tests";
-
-using var traceProvider = Sdk
-    .CreateTracerProviderBuilder()
-    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(applicationName, serviceVersion: "v1.0.0"))
-    .AddSource(applicationName)
-    .AddConsoleExporter()
-    .Build();
+using var traceProvider = OpenTelemetryHelpers.CreateTraceProvider(addConsoleExporter: true);
 
 var rabbitService = await Shared.SetupRabbitServiceAsync(loggerFactory, "./RabbitMQ.RabbitServiceTests.json");
 var dataflowService = new ConsumerDataflowService(rabbitService);

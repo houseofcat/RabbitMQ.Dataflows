@@ -42,6 +42,12 @@ public static class RabbitServiceTests
         }
     }
 
+    /// <summary>
+    /// Test for synchronous publish message queueing.
+    /// </summary>
+    /// <param name="loggerFactory"></param>
+    /// <param name="configFileNamePath"></param>
+    /// <returns></returns>
     public static async Task RunRabbitServiceAltPingPongTestAsync(ILoggerFactory loggerFactory, string configFileNamePath)
     {
         var rabbitService = await Shared.SetupRabbitServiceAsync(loggerFactory, configFileNamePath);
@@ -56,7 +62,7 @@ public static class RabbitServiceTests
             body: dataAsBytes,
             payloadId: Guid.NewGuid().ToString());
 
-        await rabbitService.Publisher.QueueMessageAsync(message);
+        rabbitService.Publisher.QueueMessage(message);
 
         // Ping pong the same message.
         await foreach (var receivedMessage in consumer.StreamUntilConsumerStopAsync())

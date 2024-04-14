@@ -1,4 +1,6 @@
 ﻿using HouseofCat.Utilities.Extensions;
+using OpenTelemetry;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System;
 using System.Collections.Generic;
@@ -28,6 +30,48 @@ public static class OpenTelemetryHelpers
     {
         _sourceName = assembly.GetName().Name;
         _sourceVersion = assembly.GetSemanticVersion();
+    }
+
+    public static TracerProvider CreateTraceProvider(
+        string appName = null,
+        string appVersion = null,
+        string sourceName = null,
+        bool addConsoleExporter = false)
+    {
+        var builder = Sdk
+            .CreateTracerProviderBuilder()
+            .SetResourceBuilder(
+                ResourceBuilder
+                .CreateDefault()
+                .AddService(
+                    appName ?? _sourceName,
+                    serviceVersion: appVersion ?? _sourceVersion))
+            .AddSource(sourceName ?? _sourceName);
+
+        if (addConsoleExporter)
+        {
+            builder.AddConsoleExporter();
+        }
+
+        return builder.Build();
+    }
+
+    public static TracerProvider CreateTraceProvider(
+        ResourceBuilder resourceBuilder,
+        bool addConsoleExporter = false,
+        params string[] sourceNames)
+    {
+        var builder = Sdk
+            .CreateTracerProviderBuilder()
+            .SetResourceBuilder(resourceBuilder)
+            .AddSource(sourceNames);
+
+        if (addConsoleExporter)
+        {
+            builder.AddConsoleExporter();
+        }
+
+        return builder.Build();
     }
 
     #region Span Helpers

@@ -624,7 +624,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     {
         TState WrapAction(TState state)
         {
-            using var childSpan = state.CreateActiveChildSpan(spanName, state.WorkflowSpan.Context, SpanKind.Consumer);
+            using var childSpan = state.CreateActiveChildSpan(spanName, state.WorkflowSpan.Context, SpanKind.Internal);
             try
             {
                 if (outbound)
@@ -671,7 +671,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     {
         async Task<TState> WrapActionAsync(TState state)
         {
-            using var childSpan = state.CreateActiveChildSpan(spanName, state.WorkflowSpan.Context, SpanKind.Consumer);
+            using var childSpan = state.CreateActiveChildSpan(spanName, state.WorkflowSpan.Context, SpanKind.Internal);
             try
             {
 

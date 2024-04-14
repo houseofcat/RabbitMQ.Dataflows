@@ -64,7 +64,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     {
         TState WrapAction(TState state)
         {
-            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
+            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Internal);
             try
             {
 
@@ -90,7 +90,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     {
         async Task<TState> WrapActionAsync(TState state)
         {
-            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
+            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Internal);
             try
             {
                 return await action(state).ConfigureAwait(false);
@@ -115,7 +115,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     {
         void WrapAction(TState state)
         {
-            var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
+            var childSpan = state.CreateActiveSpan(spanName, SpanKind.Internal);
             try
             {
                 action(state);
@@ -140,7 +140,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     {
         void WrapAction(TState state)
         {
-            var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
+            var childSpan = state.CreateActiveSpan(spanName, SpanKind.Internal);
             try
             {
                 action(state);
@@ -165,7 +165,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     {
         async Task WrapActionAsync(TState state)
         {
-            var childSpan = state.CreateActiveSpan(spanName, SpanKind.Consumer);
+            var childSpan = state.CreateActiveSpan(spanName, SpanKind.Internal);
             try
             {
                 await action(state).ConfigureAwait(false);
