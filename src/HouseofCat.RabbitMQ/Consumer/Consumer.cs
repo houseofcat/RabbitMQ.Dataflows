@@ -320,12 +320,16 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                 SpanKind.Consumer,
                 receivedMessage.ParentSpanContext ?? default);
 
+            receivedMessage.ParentSpanContext = span.Context;
+
             AutoDeserialize(receivedMessage);
 
             await _consumerChannel
                 .Writer
                 .WriteAsync(receivedMessage)
                 .ConfigureAwait(false);
+
+            span.End();
             return true;
         }
         catch (Exception ex)

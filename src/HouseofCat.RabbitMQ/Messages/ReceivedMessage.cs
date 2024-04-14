@@ -28,7 +28,7 @@ public interface IReceivedMessage
     string CompressionType { get; }
 
     public string TraceParentHeader { get; }
-    public SpanContext? ParentSpanContext { get; }
+    public SpanContext? ParentSpanContext { get; set; }
 
     string ConsumerTag { get; }
     ulong DeliveryTag { get; }
@@ -63,7 +63,7 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
     public string CompressionType { get; private set; }
 
     public string TraceParentHeader { get; private set; }
-    public SpanContext? ParentSpanContext { get; private set; }
+    public SpanContext? ParentSpanContext { get; set; }
 
     public string ConsumerTag { get; }
     public ulong DeliveryTag { get; }

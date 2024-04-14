@@ -115,7 +115,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     {
         void WrapAction(TState state)
         {
-            var childSpan = state.CreateActiveSpan(spanName, SpanKind.Internal);
+            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Internal);
             try
             {
                 action(state);
@@ -126,7 +126,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
                 childSpan?.RecordException(ex);
             }
 
-            childSpan?.Dispose();
+            childSpan?.End();
             state.EndRootSpan();
         }
 
@@ -140,7 +140,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     {
         void WrapAction(TState state)
         {
-            var childSpan = state.CreateActiveSpan(spanName, SpanKind.Internal);
+            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Internal);
             try
             {
                 action(state);
@@ -151,7 +151,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
                 childSpan?.RecordException(ex);
             }
 
-            childSpan?.Dispose();
+            childSpan?.End();
             state.EndRootSpan();
         }
 
@@ -165,7 +165,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
     {
         async Task WrapActionAsync(TState state)
         {
-            var childSpan = state.CreateActiveSpan(spanName, SpanKind.Internal);
+            using var childSpan = state.CreateActiveSpan(spanName, SpanKind.Internal);
             try
             {
                 await action(state).ConfigureAwait(false);
@@ -176,7 +176,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
                 childSpan?.RecordException(ex);
             }
 
-            childSpan?.Dispose();
+            childSpan?.End();
             state.EndRootSpan();
         }
 

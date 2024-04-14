@@ -585,7 +585,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     {
         var attributes = new List<KeyValuePair<string, string>>()
         {
-            KeyValuePair.Create(nameof(_consumerOptions.ConsumerName), _consumerOptions.ConsumerName),
+            KeyValuePair.Create(Constants.MessagingConsumerNameKey, _consumerOptions.ConsumerName),
             KeyValuePair.Create(Constants.MessagingOperationKey, Constants.MessagingOperationProcessValue)
         };
 
@@ -650,8 +650,6 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                     else
                     { state.ReceivedMessage.Body = action(state.ReceivedMessage.Body); }
                 }
-
-                return state;
             }
             catch (Exception ex)
             {
@@ -659,8 +657,10 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 childSpan?.RecordException(ex);
                 state.IsFaulted = true;
                 state.EDI = ExceptionDispatchInfo.Capture(ex);
-                return state;
             }
+
+            childSpan?.End();
+            return state;
         }
 
         return new TransformBlock<TState, TState>(WrapAction, options);
@@ -698,7 +698,6 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                     else
                     { state.ReceivedMessage.Body = await action(state.ReceivedMessage.Body).ConfigureAwait(false); }
                 }
-                return state;
             }
             catch (Exception ex)
             {
@@ -706,8 +705,10 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 childSpan?.RecordException(ex);
                 state.IsFaulted = true;
                 state.EDI = ExceptionDispatchInfo.Capture(ex);
-                return state;
             }
+
+            childSpan?.End();
+            return state;
         }
 
         return new TransformBlock<TState, TState>(WrapActionAsync, options);
@@ -725,8 +726,6 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             {
                 await service.Publisher.PublishAsync(state.SendMessage, true, true).ConfigureAwait(false);
                 state.SendMessageSent = true;
-
-                return state;
             }
             catch (Exception ex)
             {
@@ -734,8 +733,10 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 childSpan?.RecordException(ex);
                 state.IsFaulted = true;
                 state.EDI = ExceptionDispatchInfo.Capture(ex);
-                return state;
             }
+
+            childSpan?.End();
+            return state;
         }
 
         return new TransformBlock<TState, TState>(WrapPublishAsync, options);

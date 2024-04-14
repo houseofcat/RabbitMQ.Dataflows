@@ -34,6 +34,7 @@ public static class Constants
     public static string MessagingOperationProcessValue { get; set; } = "process";
 
     public static string MessagingDestinationNameKey { get; set; } = "messaging.destination.name";
+    public static string MessagingConsumerNameKey { get; set; } = "messaging.rabbitmq.consumer.name";
     public static string MessagingMessageMessageIdKey { get; set; } = "messaging.message.id";
 
     public static string MessagingMessageRoutingKeyKey { get; set; } = "messaging.rabbitmq.message.routing_key";

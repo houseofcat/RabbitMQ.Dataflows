@@ -43,10 +43,11 @@ public static class WorkStateExtensions
         }
     }
 
-    public static string DefaultSpanNameFormat { get; set; } = "{0}.workflow";
-    public static string DefaultChildSpanNameFormat { get; set; } = "{0}.{1}.workflow.step";
+    public static string DefaultSpanNameFormat { get; set; } = "{0}";
+    public static string DefaultChildSpanNameFormat { get; set; } = "{0}.{1}";
     public static string DefaultWorkflowNameKey { get; set; } = "hoc.workflow.name";
-    public static string DefaultWorkflowVersionKey { get; set; } = "hoc.workflow.version";
+
+    public static string DefaultWorkflowStepIdKey { get; set; } = "hoc.workflow.step.id";
 
     /// <summary>
     /// Start a new RootSpan/ChildSpan with respect to WorkState.
@@ -121,6 +122,8 @@ public static class WorkStateExtensions
             {
                 attributes.Add(kvp.Key, kvp.Value);
             }
+
+            attributes.Add(DefaultWorkflowStepIdKey, spanName);
         }
 
         return OpenTelemetryHelpers
