@@ -62,10 +62,10 @@ public static class ServiceCollectionExtensions
                         otlpOptions.Headers = string.Format(otlpHeaderFormat, otlpHeaderKey, otlpApiKey);
                     })
 #if DEBUG
-                .AddSource(sourceName)
+                .AddSource(otlpServiceName)
                 .AddConsoleExporter());
 #else
-                .AddSource(sourceName));
+                .AddSource(otlpServiceName));
 #endif
     }
 }
