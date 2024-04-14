@@ -33,6 +33,10 @@ public static class RabbitServiceTests
             }
 
             await rabbitService.DecomcryptAsync(receivedMessage.Message);
+
+            receivedMessage.Message.Exchange = Shared.ExchangeName;
+            receivedMessage.Message.RoutingKey = Shared.RoutingKey;
+            receivedMessage.Message.Metadata.PayloadId = Guid.NewGuid().ToString();
             await rabbitService.Publisher.QueueMessageAsync(receivedMessage.Message);
             receivedMessage.AckMessage();
         }
@@ -64,6 +68,10 @@ public static class RabbitServiceTests
             }
 
             await rabbitService.DecomcryptAsync(receivedMessage.Message);
+
+            receivedMessage.Message.Exchange = Shared.ExchangeName;
+            receivedMessage.Message.RoutingKey = Shared.RoutingKey;
+            receivedMessage.Message.Metadata.PayloadId = Guid.NewGuid().ToString();
             rabbitService.Publisher.QueueMessage(receivedMessage.Message);
             receivedMessage.AckMessage();
         }

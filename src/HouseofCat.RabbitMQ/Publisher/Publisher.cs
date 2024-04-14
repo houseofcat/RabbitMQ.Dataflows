@@ -173,7 +173,7 @@ public class Publisher : IPublisher, IDisposable
 
     public void StartAutoPublish(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
     {
-        _pubLock.Wait();
+        if (!_pubLock.Wait(0)) return;
 
         try { SetupAutoPublisher(processReceiptAsync); }
         finally { _pubLock.Release(); }
@@ -181,7 +181,7 @@ public class Publisher : IPublisher, IDisposable
 
     public async Task StartAutoPublishAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
     {
-        await _pubLock.WaitAsync().ConfigureAwait(false);
+        if (!await _pubLock.WaitAsync(0).ConfigureAwait(false)) return;
 
         try { SetupAutoPublisher(processReceiptAsync); }
         finally { _pubLock.Release(); }
@@ -210,7 +210,7 @@ public class Publisher : IPublisher, IDisposable
 
     public async Task StopAutoPublishAsync(bool immediately = false)
     {
-        await _pubLock.WaitAsync().ConfigureAwait(false);
+        if (!await _pubLock.WaitAsync(0).ConfigureAwait(false)) return;
 
         try
         {

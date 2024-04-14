@@ -2,9 +2,9 @@ using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.Helpers;
+using HouseofCat.Utilities.Json;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
-using Org.BouncyCastle.Asn1.Cms;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -49,20 +49,27 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
     public IChannelPool ChannelPool { get; }
     public bool Started { get; private set; }
 
-    public Consumer(RabbitOptions options, string consumerName)
-        : this(new ChannelPool(options), consumerName)
+    public Consumer(
+        RabbitOptions options,
+        string consumerName,
+        JsonSerializerOptions jsonOptions = null)
+        : this(new ChannelPool(options), consumerName, jsonOptions)
     { }
 
-    public Consumer(IChannelPool channelPool, string consumerName)
-        : this(
-              channelPool,
-              channelPool.Options.GetConsumerOptions(consumerName))
+    public Consumer(
+        IChannelPool channelPool,
+        string consumerName,
+        JsonSerializerOptions jsonOptions = null)
+        : this(channelPool, channelPool.Options.GetConsumerOptions(consumerName), jsonOptions)
     {
         Guard.AgainstNull(channelPool, nameof(channelPool));
         Guard.AgainstNullOrEmpty(consumerName, nameof(consumerName));
     }
 
-    public Consumer(IChannelPool channelPool, ConsumerOptions consumerOptions)
+    public Consumer(
+        IChannelPool channelPool,
+        ConsumerOptions consumerOptions,
+        JsonSerializerOptions jsonOptions = null)
     {
         Guard.AgainstNull(channelPool, nameof(channelPool));
         Guard.AgainstNull(consumerOptions, nameof(consumerOptions));
@@ -71,6 +78,13 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         Options = channelPool.Options;
         ChannelPool = channelPool;
         ConsumerOptions = consumerOptions;
+
+        _defaultOptions = jsonOptions ?? new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+        };
+
+        _defaultOptions.Converters.Add(new FlexibleObjectReaderConverter());
     }
 
     public async Task StartConsumerAsync()
@@ -323,6 +337,8 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         }
     }
 
+    protected JsonSerializerOptions _defaultOptions;
+
     protected virtual void AutoDeserialize(ReceivedMessage receivedMessage)
     {
         if (receivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType
@@ -333,7 +349,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                 case Constants.HeaderValueForContentTypeJson:
                     try
                     {
-                        receivedMessage.Message = JsonSerializer.Deserialize<Message>(receivedMessage.Body.Span);
+                        receivedMessage.Message = JsonSerializer.Deserialize<Message>(receivedMessage.Body.Span, _defaultOptions);
                     }
                     catch
                     { receivedMessage.FailedToDeserialize = true; }

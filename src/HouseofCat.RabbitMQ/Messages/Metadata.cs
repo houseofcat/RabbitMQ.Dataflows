@@ -23,7 +23,12 @@ public sealed class Metadata : IMetadata
     {
         if (Fields == null) return false;
 
-        return Fields.TryGetValue(Constants.HeaderForEncrypted, out var value) && (bool)value;
+        if (Fields.TryGetValue(Constants.HeaderForEncrypted, out var value))
+        {
+            return (bool)value;
+        }
+
+        return false;
     }
 
     public string EncryptionType()
@@ -67,7 +72,12 @@ public sealed class Metadata : IMetadata
     {
         if (Fields == null) return false;
 
-        return Fields.TryGetValue(Constants.HeaderForCompressed, out var value) && (bool)value;
+        if (Fields.TryGetValue(Constants.HeaderForCompressed, out var value))
+        {
+            return (bool)value;
+        }
+
+        return false;
     }
 
     public string CompressionType()
