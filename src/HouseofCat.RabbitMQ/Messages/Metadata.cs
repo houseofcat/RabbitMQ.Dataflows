@@ -5,7 +5,7 @@ namespace HouseofCat.RabbitMQ;
 
 public interface IMetadata
 {
-    string PayloadId { get; }
+    string PayloadId { get; set; }
 
     Dictionary<string, object> Fields { get; set; }
 }

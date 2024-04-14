@@ -73,7 +73,9 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
         _executeStepOptions = new ExecutionDataflowBlockOptions
         {
-            MaxDegreeOfParallelism = _consumerOptions.WorkflowMaxDegreesOfParallelism,
+            MaxDegreeOfParallelism = _consumerOptions.WorkflowMaxDegreesOfParallelism < 1
+                ? 1
+                : _consumerOptions.WorkflowMaxDegreesOfParallelism,
             SingleProducerConstrained = true,
             EnsureOrdered = _consumerOptions.WorkflowEnsureOrdered,
             TaskScheduler = _taskScheduler,
@@ -114,7 +116,9 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
         _executeStepOptions = new ExecutionDataflowBlockOptions
         {
-            MaxDegreeOfParallelism = maxDoP,
+            MaxDegreeOfParallelism = maxDoP < 1
+                ? 1
+                : maxDoP,
             SingleProducerConstrained = true,
             EnsureOrdered = ensureOrdered,
             TaskScheduler = _taskScheduler,

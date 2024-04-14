@@ -1,4 +1,7 @@
-﻿using HouseofCat.Utilities.Helpers;
+﻿using HouseofCat.Utilities.Extensions;
+using HouseofCat.Utilities.Helpers;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.ConsumerDataflows.Tests;
 using System.Text;
@@ -7,7 +10,15 @@ var loggerFactory = LogHelpers.CreateConsoleLoggerFactory(LogLevel.Information);
 LogHelpers.LoggerFactory = loggerFactory;
 var logger = loggerFactory.CreateLogger<Program>();
 
-using var traceProvider = OpenTelemetryHelpers.CreateTraceProvider(addConsoleExporter: true);
+var builder = WebApplication.CreateBuilder(args);
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(AppContext.BaseDirectory)
+    .AddJsonFile("appsettings.json")
+    .Build();
+
+builder.Services.AddOpenTelemetryExporter(configuration);
+
+using var app = builder.Build();
 
 var rabbitService = await Shared.SetupRabbitServiceAsync(loggerFactory, "./RabbitMQ.RabbitServiceTests.json");
 var dataflowService = new ConsumerDataflowService(rabbitService);
@@ -38,18 +49,20 @@ dataflowService.AddErrorHandling(
 
 await dataflowService.StartAsync();
 
-logger.LogInformation("Listening for Messages! Press Return to stop consumer...");
+logger.LogInformation("Listening for Messages! Press CTRL+C to initiate graceful shutdown and stop consumer...");
 
-Console.ReadLine();
+app.Lifetime.ApplicationStopping.Register(
+    async () =>
+    {
+        logger.LogInformation("ConsumerService stopping...");
 
-logger.LogInformation("ConsumerService stopping...");
+        await dataflowService.StopAsync();
 
-await dataflowService.StopAsync();
+        logger.LogInformation("RabbitMQ AutoPublish stopping...");
 
-logger.LogInformation("RabbitMQ AutoPublish stopping...");
+        await rabbitService.Publisher.StopAutoPublishAsync();
 
-await rabbitService.Publisher.StopAutoPublishAsync();
+        logger.LogInformation("All stopped! Press return to exit...");
+    });
 
-logger.LogInformation("All stopped! Press return to exit...");
-
-Console.ReadLine();
+await app.RunAsync();

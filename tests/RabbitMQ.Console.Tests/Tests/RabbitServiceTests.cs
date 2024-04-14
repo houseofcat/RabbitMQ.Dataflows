@@ -24,7 +24,7 @@ public static class RabbitServiceTests
         await rabbitService.Publisher.QueueMessageAsync(message);
 
         // Ping pong the same message.
-        await foreach (var receivedMessage in consumer.StreamUntilConsumerStopAsync())
+        await foreach (var receivedMessage in consumer.ReadUntilStopAsync())
         {
             if (receivedMessage?.Message is null)
             {
@@ -43,7 +43,7 @@ public static class RabbitServiceTests
     }
 
     /// <summary>
-    /// Test for synchronous publish message queueing.
+    /// Test for sync publish message queueing.
     /// </summary>
     /// <param name="loggerFactory"></param>
     /// <param name="configFileNamePath"></param>
@@ -65,7 +65,7 @@ public static class RabbitServiceTests
         rabbitService.Publisher.QueueMessage(message);
 
         // Ping pong the same message.
-        await foreach (var receivedMessage in consumer.StreamUntilConsumerStopAsync())
+        await foreach (var receivedMessage in consumer.ReadUntilStopAsync())
         {
             if (receivedMessage?.Message is null)
             {

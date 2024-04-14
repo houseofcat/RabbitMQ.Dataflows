@@ -9,6 +9,7 @@ using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Trace;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Concurrent;
@@ -139,7 +140,7 @@ public class RabbitService : IRabbitService, IDisposable
 
     public async ValueTask ShutdownAsync(bool immediately)
     {
-        await _serviceLock.WaitAsync().ConfigureAwait(false);
+        if (await _serviceLock.WaitAsync(0).ConfigureAwait(false)) return;
 
         try
         {
@@ -321,15 +322,13 @@ public class RabbitService : IRabbitService, IDisposable
 
     public async Task<ReadOnlyMemory<byte>> GetAsync(string queueName)
     {
-        IChannelHost chanHost;
+        using var span = OpenTelemetryHelpers.StartActiveSpan(
+            nameof(GetAsync),
+            SpanKind.Consumer);
 
-        try
-        {
-            chanHost = await ChannelPool
-                .GetChannelAsync()
-                .ConfigureAwait(false);
-        }
-        catch { return default; }
+        var chanHost = await ChannelPool
+            .GetChannelAsync()
+            .ConfigureAwait(false);
 
         var error = false;
         try
@@ -340,7 +339,11 @@ public class RabbitService : IRabbitService, IDisposable
 
             return result.Body;
         }
-        catch { error = true; }
+        catch (Exception ex)
+        {
+            OpenTelemetryHelpers.SetSpanAsError(span, ex);
+            error = true;
+        }
         finally
         {
             await ChannelPool
@@ -353,15 +356,13 @@ public class RabbitService : IRabbitService, IDisposable
 
     public async Task<T> GetAsync<T>(string queueName)
     {
-        IChannelHost chanHost;
+        using var span = OpenTelemetryHelpers.StartActiveSpan(
+            nameof(GetAsync),
+            SpanKind.Consumer);
 
-        try
-        {
-            chanHost = await ChannelPool
-                .GetChannelAsync()
-                .ConfigureAwait(false);
-        }
-        catch { return default; }
+        var chanHost = await ChannelPool
+            .GetChannelAsync()
+            .ConfigureAwait(false);
 
         BasicGetResult result = null;
         var error = false;
@@ -371,7 +372,11 @@ public class RabbitService : IRabbitService, IDisposable
                 .Channel
                 .BasicGet(queueName, true);
         }
-        catch { error = true; }
+        catch (Exception ex)
+        {
+            OpenTelemetryHelpers.SetSpanAsError(span, ex);
+            error = true;
+        }
         finally
         {
             await ChannelPool

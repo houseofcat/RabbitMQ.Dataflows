@@ -60,6 +60,7 @@ public sealed class Message : IMessage
     public bool Mandatory { get; set; }
 
     // The max-queue priority though is 10, so > 10 is treated as 10.
+    [JsonIgnore]
     [Range(0, 10, ErrorMessage = Constants.RangeErrorMessage)]
     public byte PriorityLevel { get; set; }
 

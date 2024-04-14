@@ -56,7 +56,9 @@ public static class Shared
     public static readonly string EncryptionSalt = "SaltySaltSalt";
     public static readonly int KeySize = 32;
 
-    public static async Task<IRabbitService> SetupRabbitServiceAsync(ILoggerFactory loggerFactory, string configFileNamePath)
+    public static async Task<IRabbitService> SetupRabbitServiceAsync(
+        ILoggerFactory loggerFactory,
+        string configFileNamePath)
     {
         var rabbitOptions = await RabbitExtensions.GetRabbitOptionsFromJsonFileAsync(configFileNamePath);
         var jsonProvider = new JsonProvider();
