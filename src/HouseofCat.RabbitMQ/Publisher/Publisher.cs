@@ -564,6 +564,8 @@ public class Publisher : IPublisher, IDisposable
         return error;
     }
 
+    private static readonly string _defaultSpanName = "messaging.rabbitmq.publisher";
+
     /// <summary>
     /// Acquires a channel from the channel pool, then publishes message based on the message parameters.
     /// <para>Only throws exception when failing to acquire channel or when creating a receipt after the ReceiptBuffer is closed.</para>
@@ -573,7 +575,11 @@ public class Publisher : IPublisher, IDisposable
     /// <param name="withOptionalHeaders"></param>
     public async Task PublishAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true)
     {
-        using var span = OpenTelemetryHelpers.StartActiveSpan(nameof(PublishAsync), SpanKind.Producer);
+        using var span = OpenTelemetryHelpers.StartActiveSpan(
+            _defaultSpanName,
+            SpanKind.Producer,
+            message.ParentSpanContext ?? default);
+
         message.EnrichSpanWithTags(span);
 
         var error = false;
@@ -614,6 +620,8 @@ public class Publisher : IPublisher, IDisposable
 
             await _channelPool
                 .ReturnChannelAsync(chanHost, error);
+
+            span?.End();
         }
     }
 
@@ -627,7 +635,11 @@ public class Publisher : IPublisher, IDisposable
     /// <param name="withOptionalHeaders"></param>
     public async Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true)
     {
-        using var span = OpenTelemetryHelpers.StartActiveSpan(nameof(PublishWithConfirmationAsync), SpanKind.Producer);
+        using var span = OpenTelemetryHelpers.StartActiveSpan(
+            _defaultSpanName,
+            SpanKind.Producer,
+            message.ParentSpanContext ?? default);
+
         message.EnrichSpanWithTags(span);
 
         var error = false;
@@ -671,6 +683,8 @@ public class Publisher : IPublisher, IDisposable
 
             await _channelPool
                 .ReturnChannelAsync(chanHost, error);
+
+            span?.End();
         }
     }
 

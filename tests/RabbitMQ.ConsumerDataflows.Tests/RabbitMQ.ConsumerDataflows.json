@@ -44,7 +44,7 @@
       "BuildQueueDurable": true,
       "BuildQueueExclusive": false,
       "BuildQueueAutoDelete": false,
-      "WorkflowName": "TestConsumerWorkflow",
+      "WorkflowName": "test_workflow",
       "WorkflowMaxDegreesOfParallelism": 1,
       "WorkflowConsumerCount": 1,
       "WorkflowBatchSize": 5,

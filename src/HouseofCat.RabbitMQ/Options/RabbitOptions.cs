@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace HouseofCat.RabbitMQ;
 
@@ -23,10 +22,10 @@ public class RabbitOptions
 
     public ConsumerOptions GetConsumerOptions(string consumerName)
     {
-        if (!ConsumerOptions.TryGetValue(consumerName, out ConsumerOptions value))
+        if (ConsumerOptions.TryGetValue(consumerName, out ConsumerOptions value))
         {
-            throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerOptionsMessage, consumerName));
+            return value;
         }
-        return value;
+        throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerOptionsMessage, consumerName));
     }
 }

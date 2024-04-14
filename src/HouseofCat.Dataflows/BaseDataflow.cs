@@ -27,7 +27,11 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
         _currentBlock = (ISourceBlock<TState>)block;
     }
 
-    protected ExecutionDataflowBlockOptions GetExecuteStepOptions(int? maxDoP, bool? ensureOrdered, int? boundedCapacity, TaskScheduler taskScheduler = null)
+    protected ExecutionDataflowBlockOptions GetExecuteStepOptions(
+        int? maxDoP,
+        bool? ensureOrdered,
+        int? boundedCapacity,
+        TaskScheduler taskScheduler = null)
     {
         if (maxDoP.HasValue || ensureOrdered.HasValue || boundedCapacity.HasValue)
         {

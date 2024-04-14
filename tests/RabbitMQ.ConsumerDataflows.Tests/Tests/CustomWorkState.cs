@@ -1,6 +1,6 @@
 ﻿using HouseofCat.RabbitMQ.Dataflows;
 
-namespace RabbitMQ.ConsumerDataflows.Tests;
+namespace RabbitMQ.ConsumerDataflowService;
 
 public sealed class CustomWorkState : RabbitWorkState
 {

@@ -126,19 +126,24 @@ public static class OpenTelemetryHelpers
 
         if (provider is null) return null;
 
-        var currentSpan = Tracer.CurrentSpan;
-        if (parentContext == default && currentSpan != null)
+        if (parentContext == default)
         {
-            parentContext = currentSpan.Context;
+            var currentSpan = Tracer.CurrentSpan;
+            if (currentSpan != null)
+            {
+                parentContext = currentSpan.Context;
+            }
         }
 
-        return provider.StartActiveSpan(
+        var span = provider.StartActiveSpan(
             spanName,
             spanKind,
             initialAttributes: attributes,
             parentContext: parentContext,
             links: links,
             startTime: startTime);
+
+        return span;
     }
 
     #endregion

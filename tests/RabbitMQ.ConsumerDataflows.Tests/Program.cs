@@ -1,9 +1,11 @@
-﻿using HouseofCat.Utilities.Extensions;
+﻿using HouseofCat.RabbitMQ;
+using HouseofCat.RabbitMQ.Services;
+using HouseofCat.Utilities.Extensions;
 using HouseofCat.Utilities.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using RabbitMQ.ConsumerDataflows.Tests;
+using RabbitMQ.ConsumerDataflowService;
 using System.Text;
 
 var loggerFactory = LogHelpers.CreateConsoleLoggerFactory(LogLevel.Information);
@@ -20,14 +22,40 @@ builder.Services.AddOpenTelemetryExporter(configuration);
 
 using var app = builder.Build();
 
-var rabbitService = await Shared.SetupRabbitServiceAsync(loggerFactory, "./RabbitMQ.RabbitServiceTests.json");
-var dataflowService = new ConsumerDataflowService(rabbitService);
+var rabbitService = await Shared.SetupRabbitServiceAsync(loggerFactory, "RabbitMQ.ConsumerDataflows.json");
+var dataflowService = new ConsumerDataflowService<CustomWorkState>(rabbitService, "TestConsumer");
 
 dataflowService.AddStep(
-    "WriteToRabbitMessageToConsole",
+    "write_message_to_console",
     (state) =>
     {
         Console.WriteLine(Encoding.UTF8.GetString(state.ReceivedMessage.Body.Span));
+        return state;
+    });
+
+dataflowService.AddStep(
+    "create_new_message",
+    (state) =>
+    {
+        state.SendMessage = new Message
+        {
+            Exchange = "",
+            RoutingKey = "TestTargetQueue",
+            Body = Encoding.UTF8.GetBytes("Test New Message"),
+            Metadata = new Metadata
+            {
+                PayloadId = Guid.NewGuid().ToString(),
+            },
+            ParentSpanContext = state.WorkflowSpan?.Context,
+        };
+        return state;
+    });
+
+dataflowService.AddStep(
+    "queue_new_message",
+    async (state) =>
+    {
+        await rabbitService.Publisher.QueueMessageAsync(state.SendMessage);
         return state;
     });
 

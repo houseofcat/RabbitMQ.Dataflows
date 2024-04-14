@@ -9,7 +9,7 @@ using HouseofCat.Serialization;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace RabbitMQ.ConsumerDataflows.Tests;
+namespace RabbitMQ.ConsumerDataflowService;
 
 public static class Shared
 {
@@ -21,7 +21,7 @@ public static class Shared
     public static readonly string ConsumerName = "TestConsumer";
     public static readonly string ErrorQueue = "TestQueue.Error";
 
-    public static async Task<IChannelPool> SetupTestsAsync(ILogger logger, string configFileNamePath)
+    public static async Task<IChannelPool> SetupAsync(ILogger logger, string configFileNamePath)
     {
         var rabbitOptions = await RabbitExtensions.GetRabbitOptionsFromJsonFileAsync(configFileNamePath);
         var channelPool = new ChannelPool(rabbitOptions);
@@ -74,8 +74,6 @@ public static class Shared
            aes256Provider,
            gzipProvider,
            loggerFactory);
-
-        await rabbitService.Publisher.StartAutoPublishAsync();
 
         return rabbitService;
     }

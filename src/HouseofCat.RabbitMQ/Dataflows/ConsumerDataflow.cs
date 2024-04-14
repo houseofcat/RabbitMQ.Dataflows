@@ -240,9 +240,22 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return this;
     }
 
+    protected static readonly string _defaultSpanNameFormat = "{0}.{1}";
+    protected static readonly string _defaultStepSpanNameFormat = "{0}.{1}.{2}";
+
+    protected string GetSpanName(string stepName)
+    {
+        return string.Format(_defaultSpanNameFormat, WorkflowName, stepName);
+    }
+
+    protected string GetStepSpanName(string stepName)
+    {
+        return string.Format(_defaultStepSpanNameFormat, WorkflowName, _suppliedTransforms.Count, stepName);
+    }
+
     public ConsumerDataflow<TState> AddStep(
         Func<TState, TState> suppliedStep,
-        string spanName,
+        string stepName,
         int? maxDoP = null,
         bool? ensureOrdered = null,
         int? boundedCapacity = null,
@@ -251,13 +264,13 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         Guard.AgainstNull(suppliedStep, nameof(suppliedStep));
 
         var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-        _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions, spanName));
+        _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions, GetStepSpanName(stepName)));
         return this;
     }
 
     public ConsumerDataflow<TState> AddStep(
         Func<TState, Task<TState>> suppliedStep,
-        string spanName,
+        string stepName,
         int? maxDoP = null,
         bool? ensureOrdered = null,
         int? boundedCapacity = null,
@@ -266,7 +279,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         Guard.AgainstNull(suppliedStep, nameof(suppliedStep));
 
         var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-        _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions, spanName));
+        _suppliedTransforms.Add(GetWrappedTransformBlock(suppliedStep, executionOptions, GetStepSpanName(stepName)));
         return this;
     }
 
@@ -288,7 +301,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         if (_finalization == null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _finalization = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}.Finalization");
+            _finalization = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("finalization"));
         }
         return this;
     }
@@ -304,7 +317,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         if (_finalization == null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _finalization = GetLastWrappedActionBlock(action, executionOptions, $"{WorkflowName}.Finalization");
+            _finalization = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("finalization"));
         }
         return this;
     }
@@ -339,7 +352,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 executionOptions,
                 false,
                 x => x.ReceivedMessage.Encrypted,
-                $"{WorkflowName}_Decrypt");
+                GetSpanName("decrypt"));
         }
         return this;
     }
@@ -360,7 +373,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 executionOptions,
                 false,
                 x => x.ReceivedMessage.Compressed,
-                $"{WorkflowName}_Decompress");
+                GetSpanName("decompress"));
         }
 
         return this;
@@ -376,7 +389,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         if (_createSendMessage == null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, $"{WorkflowName}_CreateSendMessage");
+            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("create_send_message"));
         }
         return this;
     }
@@ -397,7 +410,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 executionOptions,
                 true,
                 x => !x.ReceivedMessage.Compressed,
-                $"{WorkflowName}_Compress");
+                GetSpanName("compress"));
         }
         return this;
     }
@@ -418,7 +431,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 executionOptions,
                 true,
                 x => !x.ReceivedMessage.Encrypted,
-                $"{WorkflowName}_Encrypt");
+                GetSpanName("encrypt"));
         }
         return this;
     }

@@ -23,7 +23,7 @@ public static class ServiceCollectionExtensions
         if (!enabled) return;
 
         var otlpServiceName = config["OpenTelemetry:ServiceName"] ?? sourceName;
-        var otlpServiceNamespace = config["OpenTelemetry:ServiceNamespace"];
+        var otlpServiceNamespace = config["OpenTelemetry:ServiceNamespace"] ?? "hoc";
         var otlpServiceVersion = config["OpenTelemetry:ServiceVersion"] ?? sourceVersion;
 
         var otlpEndpoint = config["OpenTelemetry:EndpointUrl"];

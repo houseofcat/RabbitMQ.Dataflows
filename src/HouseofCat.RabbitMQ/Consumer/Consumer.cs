@@ -308,6 +308,8 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         await HandleMessageAsync(bdea).ConfigureAwait(false);
     }
 
+    private static readonly string _consumerSpanNameFormat = "{0}.{1}";
+
     protected virtual async ValueTask<bool> HandleMessageAsync(BasicDeliverEventArgs bdea)
     {
         if (!await _consumerChannel.Writer.WaitToWriteAsync().ConfigureAwait(false)) return false;
@@ -316,11 +318,13 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         {
             var receivedMessage = new ReceivedMessage(_chanHost.Channel, bdea, !ConsumerOptions.AutoAck);
             using var span = OpenTelemetryHelpers.StartActiveSpan(
-                nameof(HandleMessageAsync),
+                string.Format(_consumerSpanNameFormat, ConsumerOptions.ConsumerName, nameof(HandleMessageAsync)),
                 SpanKind.Consumer,
                 receivedMessage.ParentSpanContext ?? default);
 
-            receivedMessage.ParentSpanContext = span.Context;
+            EnrichSpanWithTags(span, receivedMessage);
+
+            receivedMessage.ParentSpanContext = span?.Context;
 
             AutoDeserialize(receivedMessage);
 
@@ -339,6 +343,45 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                 ConsumerOptions.ConsumerName,
                 ex.Message);
             return false;
+        }
+    }
+
+    protected void EnrichSpanWithTags(TelemetrySpan span, IReceivedMessage receivedMessage)
+    {
+        if (span == null || !span.IsRecording) return;
+
+        span.SetAttribute(Constants.MessagingSystemKey, Constants.MessagingSystemValue);
+
+        if (!string.IsNullOrEmpty(receivedMessage?.Message?.MessageId))
+        {
+            span.SetAttribute(Constants.MessagingMessageMessageIdKey, receivedMessage?.Message.MessageId);
+        }
+        if (!string.IsNullOrEmpty(ConsumerOptions.ConsumerName))
+        {
+            span.SetAttribute(Constants.MessagingConsumerNameKey, ConsumerOptions.ConsumerName);
+        }
+        if (!string.IsNullOrEmpty(ConsumerOptions.QueueName))
+        {
+            span.SetAttribute(Constants.MessagingMessageRoutingKeyKey, ConsumerOptions.QueueName);
+        }
+
+        if (!string.IsNullOrEmpty(receivedMessage?.Message?.Metadata?.PayloadId))
+        {
+            span.SetAttribute(Constants.MessagingMessagePayloadIdKey, receivedMessage?.Message?.Metadata?.PayloadId);
+        }
+
+        var encrypted = receivedMessage?.Message?.Metadata?.Encrypted();
+        if (encrypted.HasValue && encrypted.Value)
+        {
+            span.SetAttribute(Constants.MessagingMessageEncryptedKey, "true");
+            span.SetAttribute(Constants.MessagingMessageEncryptedDateKey, receivedMessage?.Message?.Metadata?.EncryptedDate());
+            span.SetAttribute(Constants.MessagingMessageEncryptionKey, receivedMessage?.Message?.Metadata?.EncryptionType());
+        }
+        var compressed = receivedMessage?.Message?.Metadata?.Compressed();
+        if (compressed.HasValue && compressed.Value)
+        {
+            span.SetAttribute(Constants.MessagingMessageCompressedKey, "true");
+            span.SetAttribute(Constants.MessagingMessageCompressionKey, receivedMessage?.Message?.Metadata?.CompressionType());
         }
     }
 

@@ -86,7 +86,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "rabbitmq", "rabbitmq", "{5C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Console.Tests", "tests\OpenTelemetry.Console.Tests\OpenTelemetry.Console.Tests.csproj", "{077E07C3-9A35-42A0-8228-E9778F02DFCE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.ConsumerDataflows.Tests", "tests\RabbitMQ.ConsumerDataflows.Tests\RabbitMQ.ConsumerDataflows.Tests.csproj", "{F6C0B657-E70B-4DE9-96AE-E7612C89AF5F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.ConsumerDataflowService", "tests\RabbitMQ.ConsumerDataflows.Tests\RabbitMQ.ConsumerDataflowService.csproj", "{F6C0B657-E70B-4DE9-96AE-E7612C89AF5F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

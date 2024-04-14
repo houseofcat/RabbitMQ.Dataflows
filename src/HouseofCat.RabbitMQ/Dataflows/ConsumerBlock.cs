@@ -95,15 +95,14 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
     protected virtual async Task PushToBufferBlockAsync(CancellationToken token = default)
     {
         try
-        {
-            while (await Consumer.GetConsumerBuffer().WaitToReadAsync(token).ConfigureAwait(false))
+        { 
+            var consumerBuffer = Consumer.GetConsumerBuffer();
+            while (await consumerBuffer.WaitToReadAsync(token).ConfigureAwait(false))
             {
-                while (Consumer.GetConsumerBuffer().TryRead(out var message))
+                while (consumerBuffer.TryRead(out var message))
                 {
                     await _bufferBlock.SendAsync(message, token).ConfigureAwait(false);
                 }
-
-                if (token.IsCancellationRequested) return;
             }
         }
         catch (OperationCanceledException)

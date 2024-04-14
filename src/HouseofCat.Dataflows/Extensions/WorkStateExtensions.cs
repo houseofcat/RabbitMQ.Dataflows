@@ -8,11 +8,8 @@ public static class WorkStateExtensions
 {
     public static void SetOpenTelemetryError(this IWorkState state, string message = null)
     {
-        if (state is null) return;
-        state.SetCurrentActivityAsError(message);
-
-        if (state.WorkflowSpan is null) return;
-        state.SetCurrentSpanAsError(message);
+        if (state.WorkflowSpan is null || !state.WorkflowSpan.IsRecording) return;
+        state.SetSpanAsError(state.WorkflowSpan, message);
     }
 
     public static void SetCurrentActivityAsError(this IWorkState state, string message = null)
@@ -91,12 +88,14 @@ public static class WorkStateExtensions
                     parentSpanContext.Value,
                     attributes: attributes);
         }
-
-        state.WorkflowSpan = OpenTelemetryHelpers
-            .StartRootSpan(
-                spanName,
-                spanKind,
-                attributes: attributes);
+        else
+        {
+            state.WorkflowSpan = OpenTelemetryHelpers
+                .StartRootSpan(
+                    spanName,
+                    spanKind,
+                    attributes: attributes);
+        }
     }
 
     /// <summary>
@@ -173,6 +172,7 @@ public static class WorkStateExtensions
         {
             state.SetOpenTelemetryError();
         }
+        state.WorkflowSpan?.End();
         state.WorkflowSpan?.Dispose();
     }
 }

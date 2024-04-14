@@ -1,5 +1,6 @@
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities.Helpers;
+using OpenTelemetry.Trace;
 using RabbitMQ.Client;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -36,6 +37,8 @@ public interface IMessage
     IPublishReceipt GetPublishReceipt(bool error);
 
     IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders, string contentType);
+
+    public SpanContext? ParentSpanContext { get; set; }
 }
 
 public sealed class Message : IMessage
@@ -66,6 +69,8 @@ public sealed class Message : IMessage
 
     [JsonIgnore]
     public string ContentType { get; set; } = Constants.HeaderValueForContentTypeJson;
+
+    public SpanContext? ParentSpanContext { get; set; }
 
     public Message()
     {
