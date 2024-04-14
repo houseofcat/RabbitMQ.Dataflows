@@ -84,7 +84,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
             PropertyNameCaseInsensitive = true,
         };
 
-        _defaultOptions.Converters.Add(new FlexibleObjectReaderConverter());
+        _defaultOptions.Converters.Add(new FlexibleObjectJsonConverter());
     }
 
     public async Task StartConsumerAsync()

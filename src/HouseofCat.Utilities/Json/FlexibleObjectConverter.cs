@@ -4,18 +4,18 @@ using System.Text.Json.Serialization;
 
 namespace HouseofCat.Utilities.Json;
 
-public class FlexibleObjectReaderConverter : JsonConverter<object>
+public class FlexibleObjectJsonConverter : JsonConverter<object>
 {
-    public override object Read(ref Utf8JsonReader reader, Type _, JsonSerializerOptions options)
+    public override object Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         return reader.TokenType switch
         {
-            JsonTokenType.StartObject => JsonSerializer.Deserialize<object>(ref reader, options),
-            JsonTokenType.StartArray => JsonSerializer.Deserialize<object>(ref reader, options),
+            JsonTokenType.StartObject => JsonSerializer.Deserialize(ref reader, typeToConvert, options),
+            JsonTokenType.StartArray => JsonSerializer.Deserialize(ref reader, typeToConvert, options),
             JsonTokenType.True => true,
             JsonTokenType.False => false,
             JsonTokenType.Number => reader.TryGetInt64(out long l) ? l : reader.GetDouble(),
-            JsonTokenType.String => reader.TryGetDateTime(out DateTime datetime) ? datetime : reader.GetString(),
+            JsonTokenType.String => reader.GetString(),
             _ => GetObjectFromJsonDocument(ref reader)
         };
     }
