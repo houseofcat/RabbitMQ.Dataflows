@@ -38,6 +38,7 @@ public interface IMessage
 
     IBasicProperties BuildProperties(IChannelHost channelHost, bool withOptionalHeaders, string contentType);
 
+    [JsonIgnore]
     public SpanContext? ParentSpanContext { get; set; }
 }
 
@@ -70,6 +71,7 @@ public sealed class Message : IMessage
     [JsonIgnore]
     public string ContentType { get; set; } = Constants.HeaderValueForContentTypeJson;
 
+    [JsonIgnore]
     public SpanContext? ParentSpanContext { get; set; }
 
     public Message()

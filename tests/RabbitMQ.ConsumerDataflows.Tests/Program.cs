@@ -34,20 +34,24 @@ dataflowService.AddStep(
     });
 
 dataflowService.AddStep(
-    "create_new_message",
-    (state) =>
+    "create_new_secret_message",
+    async (state) =>
     {
-        state.SendMessage = new Message
+        var message = new Message
         {
             Exchange = "",
             RoutingKey = "TestTargetQueue",
-            Body = Encoding.UTF8.GetBytes("Test New Message"),
+            Body = Encoding.UTF8.GetBytes("Secret Message"),
             Metadata = new Metadata
             {
                 PayloadId = Guid.NewGuid().ToString(),
             },
             ParentSpanContext = state.WorkflowSpan?.Context,
         };
+
+        await rabbitService.ComcryptAsync(message);
+
+        state.SendMessage = message;
         return state;
     });
 
