@@ -161,6 +161,7 @@ public static class MessageExtensions
             span.SetAttribute(Constants.MessagingMessageContentTypeKey, message.ContentType);
         }
 
+        span.SetAttribute(Constants.MessagingMessageBodySizeKey, message.Body.Length);
         span.SetAttribute(Constants.MessagingMessageDeliveryModeKey, message.DeliveryMode);
         span.SetAttribute(Constants.MessagingMessagePriorityKey, message.PriorityLevel);
         span.SetAttribute(Constants.MessagingMessageMandatoryKey, message.Mandatory);

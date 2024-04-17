@@ -270,6 +270,10 @@ public class Publisher : IPublisher, IDisposable
             .ConfigureAwait(false);
     }
 
+    private static readonly string _defaultAutoPublisherSpanName = "messaging.rabbitmq.autopublisher process";
+    private static readonly string _compressEventName = "compressed";
+    private static readonly string _encryptEventName = "encrypted";
+
     private async Task ProcessMessagesAsync(ChannelReader<IMessage> channelReader)
     {
         await Task.Yield();
@@ -280,13 +284,25 @@ public class Publisher : IPublisher, IDisposable
                 if (message == null)
                 { continue; }
 
+                using var span = OpenTelemetryHelpers.StartActiveSpan(
+                    _defaultAutoPublisherSpanName,
+                    SpanKind.Internal,
+                    message.ParentSpanContext ?? default);
+
                 message.Metadata ??= new Metadata();
+
+                // If parent span context is not set, set it to the current span.
+                if (message.ParentSpanContext == default)
+                {
+                    message.ParentSpanContext = span.Context;
+                }
 
                 if (_compress)
                 {
                     message.Body = _compressionProvider.Compress(message.Body).ToArray();
                     message.Metadata.Fields[Constants.HeaderForCompressed] = _compress;
                     message.Metadata.Fields[Constants.HeaderForCompression] = _compressionProvider.Type;
+                    span?.AddEvent(_compressEventName);
                 }
 
                 if (_encrypt)
@@ -295,12 +311,15 @@ public class Publisher : IPublisher, IDisposable
                     message.Metadata.Fields[Constants.HeaderForEncrypted] = _encrypt;
                     message.Metadata.Fields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
                     message.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeHelpers.Formats.RFC3339Long);
+                    span?.AddEvent(_encryptEventName);
                 }
 
                 _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.MessageId, message.Metadata?.PayloadId);
 
                 await PublishAsync(message, _createPublishReceipts, _withHeaders)
                     .ConfigureAwait(false);
+
+                span.End();
             }
         }
     }
@@ -389,6 +408,7 @@ public class Publisher : IPublisher, IDisposable
         }
         finally
         {
+            span.End();
             await _channelPool
                 .ReturnChannelAsync(channelHost, error);
         }
@@ -439,6 +459,7 @@ public class Publisher : IPublisher, IDisposable
         }
         finally
         {
+            span.End();
             await _channelPool
                 .ReturnChannelAsync(channelHost, error);
         }
@@ -502,6 +523,7 @@ public class Publisher : IPublisher, IDisposable
         }
         finally
         {
+            span.End();
             await _channelPool
                 .ReturnChannelAsync(channelHost, error);
         }
@@ -557,6 +579,7 @@ public class Publisher : IPublisher, IDisposable
         }
         finally
         {
+            span.End();
             await _channelPool
                 .ReturnChannelAsync(channelHost, error);
         }
@@ -564,7 +587,7 @@ public class Publisher : IPublisher, IDisposable
         return error;
     }
 
-    private static readonly string _defaultSpanName = "messaging.rabbitmq.publisher";
+    private static readonly string _defaultPublishSpanName = "messaging.rabbitmq.publisher publish";
 
     /// <summary>
     /// Acquires a channel from the channel pool, then publishes message based on the message parameters.
@@ -576,7 +599,7 @@ public class Publisher : IPublisher, IDisposable
     public async Task PublishAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true)
     {
         using var span = OpenTelemetryHelpers.StartActiveSpan(
-            _defaultSpanName,
+            _defaultPublishSpanName,
             SpanKind.Producer,
             message.ParentSpanContext ?? default);
 
@@ -590,6 +613,7 @@ public class Publisher : IPublisher, IDisposable
         try
         {
             var body = _serializationProvider.Serialize(message);
+            span?.SetAttribute(Constants.MessagingMessageEnvelopeSizeKey, body.Length);
             chanHost
                 .Channel
                 .BasicPublish(
@@ -612,6 +636,7 @@ public class Publisher : IPublisher, IDisposable
         }
         finally
         {
+            span.End();
             if (createReceipt)
             {
                 await CreateReceiptAsync(message, error)
@@ -620,8 +645,6 @@ public class Publisher : IPublisher, IDisposable
 
             await _channelPool
                 .ReturnChannelAsync(chanHost, error);
-
-            span?.End();
         }
     }
 
@@ -636,7 +659,7 @@ public class Publisher : IPublisher, IDisposable
     public async Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true)
     {
         using var span = OpenTelemetryHelpers.StartActiveSpan(
-            _defaultSpanName,
+            _defaultPublishSpanName,
             SpanKind.Producer,
             message.ParentSpanContext ?? default);
 
@@ -649,7 +672,8 @@ public class Publisher : IPublisher, IDisposable
 
         try
         {
-            chanHost.Channel.WaitForConfirmsOrDie(_waitForConfirmation);
+            var body = _serializationProvider.Serialize(message);
+            span?.SetAttribute(Constants.MessagingMessageEnvelopeSizeKey, body.Length);
 
             chanHost
                 .Channel
@@ -658,7 +682,7 @@ public class Publisher : IPublisher, IDisposable
                     message.RoutingKey,
                     message.Mandatory,
                     message.BuildProperties(chanHost, withOptionalHeaders, _serializationProvider.ContentType),
-                    _serializationProvider.Serialize(message));
+                    body);
 
             chanHost.Channel.WaitForConfirmsOrDie(_waitForConfirmation);
         }
@@ -675,6 +699,7 @@ public class Publisher : IPublisher, IDisposable
         }
         finally
         {
+            span.End();
             if (createReceipt)
             {
                 await CreateReceiptAsync(message, error)
@@ -683,10 +708,10 @@ public class Publisher : IPublisher, IDisposable
 
             await _channelPool
                 .ReturnChannelAsync(chanHost, error);
-
-            span?.End();
         }
     }
+
+    private static readonly string _defaultBatchPublishSpanName = "messaging.rabbitmq.publisher batch";
 
     /// <summary>
     /// Use this method to sequentially publish all messages in a list in the order received.
@@ -696,7 +721,7 @@ public class Publisher : IPublisher, IDisposable
     /// <param name="withOptionalHeaders"></param>
     public async Task PublishManyAsync(IList<IMessage> messages, bool createReceipt, bool withOptionalHeaders = true)
     {
-        using var span = OpenTelemetryHelpers.StartActiveSpan(nameof(PublishManyAsync), SpanKind.Producer);
+        using var span = OpenTelemetryHelpers.StartActiveSpan(_defaultBatchPublishSpanName, SpanKind.Producer);
         span?.SetAttribute(Constants.MessagingBatchProcessValue, messages.Count);
 
         var error = false;
@@ -709,18 +734,21 @@ public class Publisher : IPublisher, IDisposable
             try
             {
                 using var innerSpan = OpenTelemetryHelpers.StartActiveSpan(
-                    nameof(chanHost.Channel.BasicPublish),
+                    _defaultPublishSpanName,
                     SpanKind.Producer,
                     span?.Context ?? default);
 
                 messages[i].EnrichSpanWithTags(innerSpan);
+
+                var body = _serializationProvider.Serialize(messages[i].Body);
+                innerSpan?.SetAttribute(Constants.MessagingMessageEnvelopeSizeKey, body.Length);
 
                 chanHost.Channel.BasicPublish(
                     messages[i].Exchange,
                     messages[i].RoutingKey,
                     messages[i].Mandatory,
                     messages[i].BuildProperties(chanHost, withOptionalHeaders, _serializationProvider.ContentType),
-                    _serializationProvider.Serialize(messages[i].Body));
+                    body);
             }
             catch (Exception ex)
             {
@@ -740,6 +768,7 @@ public class Publisher : IPublisher, IDisposable
             if (error) { break; }
         }
 
+        span.End();
         await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false);
     }
 
@@ -752,6 +781,8 @@ public class Publisher : IPublisher, IDisposable
     /// <param name="withOptionalHeaders"></param>
     public async Task PublishManyAsBatchAsync(IList<IMessage> messages, bool createReceipt, bool withOptionalHeaders = true)
     {
+        if (messages.Count < 1) return;
+
         using var span = OpenTelemetryHelpers.StartActiveSpan(nameof(PublishManyAsBatchAsync), SpanKind.Producer);
         span?.SetAttribute(Constants.MessagingBatchProcessValue, messages.Count);
 
@@ -762,33 +793,33 @@ public class Publisher : IPublisher, IDisposable
 
         try
         {
-            if (messages.Count > 0)
+            var publishBatch = chanHost.Channel.CreateBasicPublishBatch();
+            for (var i = 0; i < messages.Count; i++)
             {
-                var publishBatch = chanHost.Channel.CreateBasicPublishBatch();
-                for (var i = 0; i < messages.Count; i++)
+                using var innerSpan = OpenTelemetryHelpers.StartActiveSpan(
+                    _defaultPublishSpanName,
+                    SpanKind.Producer,
+                    span?.Context ?? default);
+
+                messages[i].EnrichSpanWithTags(innerSpan);
+
+                var body = _serializationProvider.Serialize(messages[i].Body);
+                innerSpan?.SetAttribute(Constants.MessagingMessageEnvelopeSizeKey, body.Length);
+
+                publishBatch.Add(
+                    messages[i].Exchange,
+                    messages[i].RoutingKey,
+                    messages[i].Mandatory,
+                    messages[i].BuildProperties(chanHost, withOptionalHeaders, _serializationProvider.ContentType),
+                    body);
+
+                if (createReceipt)
                 {
-                    using var innerSpan = OpenTelemetryHelpers.StartActiveSpan(
-                        "IBasicPublishBatch.Add",
-                        SpanKind.Producer,
-                        span?.Context ?? default);
-
-                    messages[i].EnrichSpanWithTags(innerSpan);
-
-                    publishBatch.Add(
-                        messages[i].Exchange,
-                        messages[i].RoutingKey,
-                        messages[i].Mandatory,
-                        messages[i].BuildProperties(chanHost, withOptionalHeaders, _serializationProvider.ContentType),
-                        _serializationProvider.Serialize(messages[i].Body));
-
-                    if (createReceipt)
-                    {
-                        await CreateReceiptAsync(messages[i], error).ConfigureAwait(false);
-                    }
+                    await CreateReceiptAsync(messages[i], error).ConfigureAwait(false);
                 }
-
-                publishBatch.Publish();
             }
+
+            publishBatch.Publish();
         }
         catch (Exception ex)
         {
@@ -800,7 +831,10 @@ public class Publisher : IPublisher, IDisposable
             error = true;
         }
         finally
-        { await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false); }
+        {
+            span.End();
+            await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false);
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -818,17 +852,6 @@ public class Publisher : IPublisher, IDisposable
             .Writer
             .WriteAsync(message.GetPublishReceipt(error))
             .ConfigureAwait(false);
-    }
-
-    private static void SetMandatoryHeaders(IBasicProperties basicProperties, string contentType)
-    {
-        basicProperties.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
-        if (!string.IsNullOrEmpty(contentType))
-        {
-            basicProperties.Headers[Constants.HeaderForContentType] = contentType;
-        }
-        var openTelHeader = OpenTelemetryHelpers.GetOrCreateTraceHeaderFromCurrentActivity();
-        basicProperties.Headers[Constants.HeaderForTraceParent] = openTelHeader;
     }
 
     /// <summary>
@@ -872,6 +895,17 @@ public class Publisher : IPublisher, IDisposable
         SetMandatoryHeaders(basicProperties, contentType);
 
         return basicProperties;
+    }
+
+    private static void SetMandatoryHeaders(IBasicProperties basicProperties, string contentType)
+    {
+        basicProperties.Headers[Constants.HeaderForObjectType] = Constants.HeaderValueForMessageObjectType;
+        if (!string.IsNullOrEmpty(contentType))
+        {
+            basicProperties.Headers[Constants.HeaderForContentType] = contentType;
+        }
+        var openTelHeader = OpenTelemetryHelpers.GetOrCreateTraceHeaderFromCurrentActivity();
+        basicProperties.Headers[Constants.HeaderForTraceParent] = openTelHeader;
     }
 
     public static void EnrichSpanWithTags(

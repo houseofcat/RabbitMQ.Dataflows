@@ -37,6 +37,9 @@ public static class Constants
     public static string MessagingConsumerNameKey { get; set; } = "messaging.rabbitmq.consumer.name";
     public static string MessagingMessageMessageIdKey { get; set; } = "messaging.message.id";
 
+    public static string MessagingMessageBodySizeKey { get; set; } = "messaging.rabbitmq.message.body.size";
+    public static string MessagingMessageEnvelopeSizeKey { get; set; } = "messaging.rabbitmq.message.envelope.size";
+
     public static string MessagingMessageRoutingKeyKey { get; set; } = "messaging.rabbitmq.message.routing_key";
     public static string MessagingMessageDeliveryTagIdKey { get; set; } = "messaging.rabbitmq.message.delivery_tag";
 

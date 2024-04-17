@@ -672,7 +672,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 state.EDI = ExceptionDispatchInfo.Capture(ex);
             }
 
-            childSpan?.End();
+            childSpan.End();
             return state;
         }
 
@@ -720,7 +720,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 state.EDI = ExceptionDispatchInfo.Capture(ex);
             }
 
-            childSpan?.End();
+            childSpan.End();
             return state;
         }
 
@@ -748,7 +748,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 state.EDI = ExceptionDispatchInfo.Capture(ex);
             }
 
-            childSpan?.End();
+            childSpan.End();
             return state;
         }
 

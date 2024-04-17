@@ -1,5 +1,8 @@
 ﻿using HouseofCat.RabbitMQ;
+using HouseofCat.RabbitMQ.Services;
+using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Trace;
 
 namespace RabbitMQ.ConsoleTests;
 
@@ -14,6 +17,7 @@ public static class RabbitServiceTests
         var consumer = rabbitService.GetConsumer(Shared.ConsumerName);
         await consumer.StartConsumerAsync();
 
+        using var preProcessSpan = OpenTelemetryHelpers.StartActiveSpan("messaging.rabbitmq.publisher create message", SpanKind.Internal);
         var dataAsBytes = rabbitService.SerializationProvider.Serialize(new { Name = "TestName", Age = 42 });
         var message = new Message(
             exchange: Shared.ExchangeName,
@@ -21,11 +25,19 @@ public static class RabbitServiceTests
             body: dataAsBytes,
             payloadId: Guid.NewGuid().ToString());
 
+        message.ParentSpanContext = preProcessSpan.Context;
+
         await rabbitService.Publisher.QueueMessageAsync(message);
+        preProcessSpan.End();
 
         // Ping pong the same message.
         await foreach (var receivedMessage in consumer.ReadUntilStopAsync())
         {
+            using var consumerSpan = OpenTelemetryHelpers.StartActiveSpan(
+                "messaging.rabbitmq.consumer process",
+                SpanKind.Consumer,
+                parentContext: receivedMessage.ParentSpanContext ?? default);
+
             if (receivedMessage?.Message is null)
             {
                 receivedMessage?.AckMessage();
@@ -33,13 +45,21 @@ public static class RabbitServiceTests
             }
 
             await rabbitService.DecomcryptAsync(receivedMessage.Message);
+            //await RequeueMessageAsync(rabbitService, receivedMessage);
 
-            receivedMessage.Message.Exchange = Shared.ExchangeName;
-            receivedMessage.Message.RoutingKey = Shared.RoutingKey;
-            receivedMessage.Message.Metadata.PayloadId = Guid.NewGuid().ToString();
-            await rabbitService.Publisher.QueueMessageAsync(receivedMessage.Message);
             receivedMessage.AckMessage();
+            consumerSpan.End();
         }
+    }
+
+    private static async Task RequeueMessageAsync(
+        IRabbitService rabbitService,
+        IReceivedMessage receivedMessage)
+    {
+        receivedMessage.Message.Exchange = Shared.ExchangeName;
+        receivedMessage.Message.RoutingKey = Shared.RoutingKey;
+        receivedMessage.Message.Metadata.PayloadId = Guid.NewGuid().ToString();
+        await rabbitService.Publisher.QueueMessageAsync(receivedMessage.Message);
     }
 
     /// <summary>

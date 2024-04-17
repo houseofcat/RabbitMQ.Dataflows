@@ -105,7 +105,6 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                         FullMode = ConsumerOptions.BehaviorWhenFull.Value
                     });
 
-                await Task.Yield();
                 var success = false;
                 while (!success)
                 {
@@ -308,7 +307,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         await HandleMessageAsync(bdea).ConfigureAwait(false);
     }
 
-    private static readonly string _consumerSpanNameFormat = "{0}.{1}";
+    private static readonly string _consumerSpanNameFormat = "messaging.rabbitmq.consumer receive";
 
     protected virtual async ValueTask<bool> HandleMessageAsync(BasicDeliverEventArgs bdea)
     {
@@ -318,7 +317,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         {
             var receivedMessage = new ReceivedMessage(_chanHost.Channel, bdea, !ConsumerOptions.AutoAck);
             using var span = OpenTelemetryHelpers.StartActiveSpan(
-                string.Format(_consumerSpanNameFormat, ConsumerOptions.ConsumerName, nameof(HandleMessageAsync)),
+                _consumerSpanNameFormat,
                 SpanKind.Consumer,
                 receivedMessage.ParentSpanContext ?? default);
 
