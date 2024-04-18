@@ -1,39 +1,39 @@
 {
     "files": [
         {
-            "pattern": "./PublishedApp/src/HouseofCat.Compression/HouseofCat.Compression/*",
+            "pattern": "./PublishedApp/src/HouseofCat.Compression/bin/Release/net8.0/HouseofCat.Compression/*",
             "target": "${NUGET_REPO}/omnikit/"
         },
         {
-            "pattern": "./PublishedApp/src/HouseofCat.Data/HouseofCat.Data/*",
+            "pattern": "./PublishedApp/src/HouseofCat.Data/bin/Release/net8.0/HouseofCat.Data/*",
             "target": "${NUGET_REPO}/omnikit/"
         },
         {
-            "pattern": "./PublishedApp/src/HouseofCat.Dataflows/HouseofCat.Dataflows/*",
+            "pattern": "./PublishedApp/src/HouseofCat.Dataflows/bin/Release/net8.0/HouseofCat.Dataflows/*",
             "target": "${NUGET_REPO}/omnikit/"
         },
         {
-            "pattern": "./PublishedApp/src/HouseofCat.Encryption/HouseofCat.Encryption/*",
+            "pattern": "./PublishedApp/src/HouseofCat.Encryption/bin/Release/net8.0/HouseofCat.Encryption/*",
             "target": "${NUGET_REPO}/omnikit/"
         },
         {
-            "pattern": "./PublishedApp/src/HouseofCat.Hashing/HouseofCat.Hashing/*",
+            "pattern": "./PublishedApp/src/HouseofCat.Hashing/bin/Release/net8.0/HouseofCat.Hashing/*",
             "target": "${NUGET_REPO}/omnikit/"
         },
         {
-            "pattern": "./PublishedApp/src/HouseofCat.Metrics/HouseofCat.Metrics/*",
+            "pattern": "./PublishedApp/src/HouseofCat.Metrics/bin/Release/net8.0/HouseofCat.Metrics/*",
             "target": "${NUGET_REPO}/omnikit/"
         },
         {
-            "pattern": "./PublishedApp/src/HouseofCat.RabbitMQ/HouseofCat.RabbitMQ/*",
+            "pattern": "./PublishedApp/src/HouseofCat.RabbitMQ/bin/Release/net8.0/HouseofCat.RabbitMQ/*",
             "target": "${NUGET_REPO}/omnikit/"
         },
         {
-            "pattern": "./PublishedApp/src/HouseofCat.Serialization/HouseofCat.Serialization/*",
+            "pattern": "./PublishedApp/src/HouseofCat.Serialization/bin/Release/net8.0/HouseofCat.Serialization/*",
             "target": "${NUGET_REPO}/omnikit/"
         },
         {
-            "pattern": "./PublishedApp/src/HouseofCat.Utilities/HouseofCat.Utilities/*",
+            "pattern": "./PublishedApp/src/HouseofCat.Utilities/bin/Release/net8.0/HouseofCat.Utilities/*",
             "target": "${NUGET_REPO}/omnikit/"
         }
     ]
