@@ -19,32 +19,25 @@ env:
   
 jobs:
   build:
-    name: Build NuGet Package
-    runs-on: ubuntu-latest
+    name: Build & Test
+    runs-on: windows-latest
+
     steps:
-      - name: checkout repository code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      
-      # - name: Install gRPC tools
-      #   run: sudo apt-get install -y protobuf-compiler-grpc
+    - uses: actions/checkout@v3
 
-      - name: Restore solution
-        run: dotnet restore RabbitMQ.Dataflows.sln
-          
-      - name: Make publish.ps1 executable
-        run: chmod +x ./scripts/publish.ps1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.x.x'
 
-      - name: Build and Create NuGet Package
-        shell: pwsh
-        run: ./scripts/publish.ps1
-      
-      - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: publishedApp
-          path: .
+    - name: Install dependencies
+      run: dotnet restore RabbitMQ.Dataflows.sln
+
+    - name: Build
+      run: dotnet build RabbitMQ.Dataflows.sln --configuration Release
+
+    - name: Test
+      run: dotnet test "./tests/UnitTests/UnitTests.csproj"
 
   deploy:
     name: 'Publish Nuget Scratch'
