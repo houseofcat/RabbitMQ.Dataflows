@@ -1,0 +1,40 @@
+{
+    "files": [
+        {
+            "pattern": "./PublishedApp/src/HouseofCat.Compression/HouseofCat.Compression/*",
+            "target": "${NUGET_REPO}/omnikit/"
+        },
+        {
+            "pattern": "./PublishedApp/src/HouseofCat.Data/HouseofCat.Data/*",
+            "target": "${NUGET_REPO}/omnikit/"
+        },
+        {
+            "pattern": "./PublishedApp/src/HouseofCat.Dataflows/HouseofCat.Dataflows/*",
+            "target": "${NUGET_REPO}/omnikit/"
+        },
+        {
+            "pattern": "./PublishedApp/src/HouseofCat.Encryption/HouseofCat.Encryption/*",
+            "target": "${NUGET_REPO}/omnikit/"
+        },
+        {
+            "pattern": "./PublishedApp/src/HouseofCat.Hashing/HouseofCat.Hashing/*",
+            "target": "${NUGET_REPO}/omnikit/"
+        },
+        {
+            "pattern": "./PublishedApp/src/HouseofCat.Metrics/HouseofCat.Metrics/*",
+            "target": "${NUGET_REPO}/omnikit/"
+        },
+        {
+            "pattern": "./PublishedApp/src/HouseofCat.RabbitMQ/HouseofCat.RabbitMQ/*",
+            "target": "${NUGET_REPO}/omnikit/"
+        },
+        {
+            "pattern": "./PublishedApp/src/HouseofCat.Serialization/HouseofCat.Serialization/*",
+            "target": "${NUGET_REPO}/omnikit/"
+        },
+        {
+            "pattern": "./PublishedApp/src/HouseofCat.Utilities/HouseofCat.Utilities/*",
+            "target": "${NUGET_REPO}/omnikit/"
+        }
+    ]
+}
