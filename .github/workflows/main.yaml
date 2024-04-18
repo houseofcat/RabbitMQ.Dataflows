@@ -39,6 +39,12 @@ jobs:
     - name: Test
       run: dotnet test "./tests/UnitTests/UnitTests.csproj"
 
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: publishedApp
+        path: .
+
   deploy:
     name: 'Publish Nuget Scratch'
     runs-on: ubuntu-latest
