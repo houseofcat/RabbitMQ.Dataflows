@@ -31,7 +31,7 @@ foreach ($relativeProjectPath in $projectPaths) {
     
     New-Item -ItemType Directory -Path $outputPath | Out-Null
     
-    dotnet pack $projectPath --configuration Release --output $outputPath
+    dotnet build $projectPath --configuration Release --output $outputPath
     
     Write-Host "Done packing $projectName!"
 }
