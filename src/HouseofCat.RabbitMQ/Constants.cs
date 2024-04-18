@@ -42,11 +42,7 @@ public static class Constants
 
     public static string MessagingMessageRoutingKeyKey { get; set; } = "messaging.rabbitmq.message.routing_key";
     public static string MessagingMessageDeliveryTagIdKey { get; set; } = "messaging.rabbitmq.message.delivery_tag";
-
-    public static string MessagingMessageDeliveryModeKey { get; set; } = "messaging.rabbitmq.message.delivery_mode";
-    public static string MessagingMessagePriorityKey { get; set; } = "messaging.rabbitmq.message.priority";
     public static string MessagingMessageContentTypeKey { get; set; } = "messaging.rabbitmq.message.content_type";
-    public static string MessagingMessageMandatoryKey { get; set; } = "messaging.rabbitmq.message.mandatory";
 
     public static string MessagingBatchProcessValue { get; set; } = "messaging.batch.message_count";
 
