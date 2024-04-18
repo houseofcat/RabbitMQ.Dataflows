@@ -2,39 +2,39 @@
     "files": [
         {
             "pattern": "./src/HouseofCat.Compression/bin/Release/net8.0/*",
-            "target": "${NUGET_REPO}/omnikit/"
+            "target": "${NUGET_REPO}/rabbitmq/"
         },
         {
             "pattern": "./src/HouseofCat.Data/bin/Release/net8.0/*",
-            "target": "${NUGET_REPO}/omnikit/"
+            "target": "${NUGET_REPO}/rabbitmq/"
         },
         {
             "pattern": "./src/HouseofCat.Dataflows/bin/Release/net8.0/*",
-            "target": "${NUGET_REPO}/omnikit/"
+            "target": "${NUGET_REPO}/rabbitmq/"
         },
         {
             "pattern": "./src/HouseofCat.Encryption/bin/Release/net8.0/*",
-            "target": "${NUGET_REPO}/omnikit/"
+            "target": "${NUGET_REPO}/rabbitmq/"
         },
         {
             "pattern": "./src/HouseofCat.Hashing/bin/Release/net8.0/*",
-            "target": "${NUGET_REPO}/omnikit/"
+            "target": "${NUGET_REPO}/rabbitmq/"
         },
         {
             "pattern": "./src/HouseofCat.Metrics/bin/Release/net8.0/*",
-            "target": "${NUGET_REPO}/omnikit/"
+            "target": "${NUGET_REPO}/rabbitmq/"
         },
         {
             "pattern": "./src/HouseofCat.RabbitMQ/bin/Release/net8.0/*",
-            "target": "${NUGET_REPO}/omnikit/"
+            "target": "${NUGET_REPO}/rabbitmq/"
         },
         {
             "pattern": "./src/HouseofCat.Serialization/bin/Release/net8.0/*",
-            "target": "${NUGET_REPO}/omnikit/"
+            "target": "${NUGET_REPO}/rabbitmq/"
         },
         {
             "pattern": "./src/HouseofCat.Utilities/bin/Release/net8.0/*",
-            "target": "${NUGET_REPO}/omnikit/"
+            "target": "${NUGET_REPO}/rabbitmq/"
         }
     ]
 }
