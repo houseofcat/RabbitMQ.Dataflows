@@ -47,7 +47,9 @@ public class JsonProvider : ISerializationProvider
 
         if (inputStream.Position == inputStream.Length) { inputStream.Seek(0, SeekOrigin.Begin); }
 
-        return await JsonSerializer.DeserializeAsync<TOut>(inputStream, _options).ConfigureAwait(false);
+        return await JsonSerializer
+            .DeserializeAsync<TOut>(inputStream, _options)
+            .ConfigureAwait(false);
     }
 
     public ReadOnlyMemory<byte> Serialize<TIn>(TIn input)
@@ -63,7 +65,9 @@ public class JsonProvider : ISerializationProvider
 
     public async Task SerializeAsync<TIn>(Stream outputStream, TIn input)
     {
-        await JsonSerializer.SerializeAsync(outputStream, input, _options).ConfigureAwait(false);
+        await JsonSerializer
+            .SerializeAsync(outputStream, input, _options)
+            .ConfigureAwait(false);
     }
 
     private static readonly JsonSerializerOptions _prettyOptions = new JsonSerializerOptions
