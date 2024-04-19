@@ -38,13 +38,7 @@ public class JsonProvider : ISerializationProvider
 
         if (inputStream.Position == inputStream.Length) { inputStream.Seek(0, SeekOrigin.Begin); }
 
-        var length = (int)inputStream.Length;
-        var buffer = new Span<byte>(new byte[length]);
-        var bytesRead = inputStream.Read(buffer);
-        if (bytesRead == 0) throw new InvalidDataException();
-
-        var utf8Reader = new Utf8JsonReader(buffer);
-        return JsonSerializer.Deserialize<TOut>(ref utf8Reader, _options);
+        return JsonSerializer.Deserialize<TOut>(inputStream, _options);
     }
 
     public async Task<TOut> DeserializeAsync<TOut>(Stream inputStream)
@@ -63,7 +57,7 @@ public class JsonProvider : ISerializationProvider
 
     public void Serialize<TIn>(Stream outputStream, TIn input)
     {
-        JsonSerializer.Serialize(new Utf8JsonWriter(outputStream), input, _options);
+        JsonSerializer.Serialize(outputStream, input, _options);
         outputStream.Seek(0, SeekOrigin.Begin);
     }
 
