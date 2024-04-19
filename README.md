@@ -146,14 +146,6 @@ well as the interface to make your own.
  * Supports BouncyCastle AesGcm 128/192/256.  
  * Supports RecyclableMemoryStream variants.  
 
-## HouseofCat.Metrics
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Metrics.svg)](https://www.nuget.org/packages/HouseofCat.Metrics/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Metrics.svg)](https://www.nuget.org/packages/HouseofCat.Metrics/)  
-
-A library that has a collection of .NET IMetricsProvider or the interface to make your own.
-
- * Supports Prometheus.Net.  
-
 # Non-Critical Library Integrations
 
 ## HouseofCat.Data
