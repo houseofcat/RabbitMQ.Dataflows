@@ -9,7 +9,7 @@ I will use this as a file named `SampleRabbitOptions.json`
 
 ```json
 {
-  "FactoryOptions": {
+  "PoolOptions": {
     "Uri": "amqp://guest:guest@localhost:5672/",
     "MaxChannelsPerConnection": 2000,
     "HeartbeatInterval": 6,
@@ -18,12 +18,10 @@ I will use this as a file named `SampleRabbitOptions.json`
     "NetRecoveryTimeout": 5,
     "ContinuationTimeout": 10,
     "EnableDispatchConsumersAsync": true
-  },
-  "PoolOptions": {
     "ServiceName": "HoC.RabbitMQ",
-    "MaxConnections": 2,
-    "MaxChannels": 2,
-    "MaxAckableChannels": 0,
+    "Connections": 2,
+    "Channels": 2,
+    "AckableChannels": 0,
     "TansientChannelStartRange": 10000
   }
 }
@@ -64,7 +62,7 @@ had an error during a `BasicPublish` it is most likely permanently closed and yo
 You can find more information about that [here](https://www.rabbitmq.com/client-libraries/dotnet-api-guide#consuming-async).
 
 ***Note: The type of consumer has to be configured in the ConnectionFactory in the RabbitMQ.Client. See the
-`EnableDispatchConsumersAsync` in the `FactoryOptions` in the `RabbitOptions`.***
+`EnableDispatchConsumersAsync` in the `PoolOptions` in the `RabbitOptions`.***
 
 ```csharp
 using HouseofCat.RabbitMQ.Pools;

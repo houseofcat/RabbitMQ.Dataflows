@@ -8,28 +8,28 @@
 		<IsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</IsWindows>
 		<IsOSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsOSX>
 		<IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux>
-
+		
 		<!-- NuGet Attributes -->
 		<Authors>HouseofCat.io</Authors>
 		<Description>RabbitMQ.Dataflows library helps use RabbitMQ as well as create powerful RabbitMQ powered workflows.</Description>
 		<Copyright>Copyright © 2024</Copyright>
-		<Product>HouseofCat.io - RabbitMQ.Workflows</Product>
+		<Product>HouseofCat.io - RabbitMQ.Dataflows</Product>
 		<PackageIcon>houseofcat.png</PackageIcon>
 		<PackageTags>C# NET8 NetCore RabbitMQ HouseofCat HouseofCat.io TPL Workflows Dataflow Pipelines</PackageTags>
 		<PackageReleaseNotes>Major overhaul!</PackageReleaseNotes>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageProjectUrl>https://github.com/houseofcat/RabbitMQ.Dataflows</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/houseofcat/RabbitMQ.Dataflows</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-
+		
 		<!-- Sourcelink-->
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<EmbedAllSources>true</EmbedAllSources>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
-
+		
 		<!-- Analyze -->
 		<RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
 		<RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
@@ -59,14 +59,14 @@
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
 		</None>
-    <None Include="..\..\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-    <None Include="..\..\README.md">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
+		<None Include="..\..\LICENSE">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+			<None Include="..\..\README.md">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Threading.Channels;
 
-namespace ConnectivityTests.Tests;
+namespace RabbitMQ.ConsoleTests;
 
 public static class PublisherTests
 {
@@ -26,16 +26,16 @@ public static class PublisherTests
         try
         {
             await publisher.StartAutoPublishAsync();
-            var letterTemplate = new Letter("", Shared.QueueName, null, new LetterMetadata());
+            var messageTemplate = new Message("", Shared.QueueName, null, new Metadata());
 
             for (var i = 0; i < testCount; i++)
             {
-                var letter = letterTemplate.Clone();
-                letter.MessageId = Guid.NewGuid().ToString();
-                letter.Body = Encoding.UTF8.GetBytes($"Hello World! {i}");
+                var message = messageTemplate.Clone();
+                message.MessageId = Guid.NewGuid().ToString();
+                message.Body = Encoding.UTF8.GetBytes($"Hello World! {i}");
 
-                await publisher.QueueMessageAsync(letter);
-                logger.LogInformation("Published message [Id: {MessageId}].", letter.MessageId);
+                await publisher.QueueMessageAsync(message);
+                logger.LogInformation("Published message [Id: {MessageId}].", message.MessageId);
 
                 await Task.Delay(delay);
             }
@@ -54,21 +54,18 @@ public static class PublisherTests
         // Step 1: Create RabbitOptions
         var rabbitOptions = new RabbitOptions
         {
-            FactoryOptions = new FactoryOptions
-            {
-                Uri = new Uri("amqp://guest:guest@localhost:5672"),
-            },
             PoolOptions = new PoolOptions
             {
+                Uri = new Uri("amqp://guest:guest@localhost:5672"),
                 ServiceName = "TestService",
-                MaxConnections = 2,
-                MaxChannels = 10,
-                MaxAckableChannels = 0
+                Connections = 2,
+                Channels = 10,
+                AckableChannels = 0
             },
             PublisherOptions = new PublisherOptions
             {
                 CreatePublishReceipts = true,
-                LetterQueueBufferSize = 10_000,
+                MessageQueueBufferSize = 10_000,
                 BehaviorWhenFull = BoundedChannelFullMode.Wait,
                 Compress = false,
                 Encrypt = false,
@@ -91,7 +88,7 @@ public static class PublisherTests
 
             // Step 4: Create Message
             var data = Encoding.UTF8.GetBytes("Hello, RabbitMQ!");
-            var message = new Letter(Shared.ExchangeName, Shared.RoutingKey, data, Guid.NewGuid().ToString())
+            var message = new Message(Shared.ExchangeName, Shared.RoutingKey, data)
             {
                 // DeliveryId for tracking/routing through Publisher/Consumer.
                 MessageId = Guid.NewGuid().ToString(),

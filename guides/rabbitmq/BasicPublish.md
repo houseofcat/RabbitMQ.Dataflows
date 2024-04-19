@@ -12,18 +12,16 @@ It really helps to have `RabbitOptions` already setup and ready to go.
 I will use this as a file named `SampleRabbitOptions.json`
 ```json
 {
-  "FactoryOptions": {
+  "PoolOptions": {
     "Uri": "amqp://guest:guest@localhost:5672/",
     "MaxChannelsPerConnection": 2000,
     "HeartbeatInterval": 6,
     "AutoRecovery": true,
     "TopologyRecovery": true,
     "NetRecoveryTimeout": 5
-  },
-  "PoolOptions": {
     "ServiceName": "HoC.RabbitMQ",
-    "MaxConnections": 2,
-    "MaxChannels": 5,
+    "Connections": 2,
+    "Channels": 5,
     "TansientChannelStartRange": 10000
   }
 }

@@ -29,11 +29,11 @@ public class MaintenanceService : IMaintenanceService
 
         try
         {
-            channelHost.GetChannel().QueuePurge(queueName);
+            channelHost.Channel.QueuePurge(queueName);
 
             if (deleteQueueAfter)
             {
-                channelHost.GetChannel().QueueDelete(queueName, false, false);
+                channelHost.Channel.QueueDelete(queueName, false, false);
             }
         }
         catch { error = true; }
@@ -57,16 +57,16 @@ public class MaintenanceService : IMaintenanceService
 
         var error = false;
         var channelHost = await channelPool.GetChannelAsync().ConfigureAwait(false);
-        var properties = channelHost.GetChannel().CreateBasicProperties();
+        var properties = channelHost.Channel.CreateBasicProperties();
         properties.DeliveryMode = 2;
 
         try
         {
-            var result = channelHost.GetChannel().BasicGet(originQueueName, true);
+            var result = channelHost.Channel.BasicGet(originQueueName, true);
 
             if (result?.Body != null)
             {
-                channelHost.GetChannel().BasicPublish(string.Empty, targetQueueName, false, properties, result.Body);
+                channelHost.Channel.BasicPublish(string.Empty, targetQueueName, false, properties, result.Body);
             }
         }
         catch { error = true; }
@@ -92,13 +92,13 @@ public class MaintenanceService : IMaintenanceService
 
         var error = false;
         var channelHost = await originChannelPool.GetChannelAsync().ConfigureAwait(false);
-        var properties = channelHost.GetChannel().CreateBasicProperties();
+        var properties = channelHost.Channel.CreateBasicProperties();
         properties.DeliveryMode = 2;
 
         BasicGetResult result = null;
         try
         {
-            result = channelHost.GetChannel().BasicGet(originQueueName, true);
+            result = channelHost.Channel.BasicGet(originQueueName, true);
         }
         catch { error = true; }
         finally
@@ -112,7 +112,7 @@ public class MaintenanceService : IMaintenanceService
             try
             {
                 var targetChannelHost = await targetChannelPool.GetChannelAsync().ConfigureAwait(false);
-                targetChannelHost.GetChannel().BasicPublish(string.Empty, targetQueueName, false, properties, result.Body);
+                targetChannelHost.Channel.BasicPublish(string.Empty, targetQueueName, false, properties, result.Body);
             }
             catch { error = true; }
             finally
@@ -136,7 +136,7 @@ public class MaintenanceService : IMaintenanceService
 
         var error = false;
         var channelHost = await channelPool.GetChannelAsync().ConfigureAwait(false);
-        var properties = channelHost.GetChannel().CreateBasicProperties();
+        var properties = channelHost.Channel.CreateBasicProperties();
         properties.DeliveryMode = 2;
 
         try
@@ -145,12 +145,12 @@ public class MaintenanceService : IMaintenanceService
 
             while (true)
             {
-                result = channelHost.GetChannel().BasicGet(originQueueName, true);
+                result = channelHost.Channel.BasicGet(originQueueName, true);
                 if (result == null) { break; }
 
                 if (result?.Body != null)
                 {
-                    channelHost.GetChannel().BasicPublish(string.Empty, targetQueueName, false, properties, result.Body);
+                    channelHost.Channel.BasicPublish(string.Empty, targetQueueName, false, properties, result.Body);
                 }
             }
         }
@@ -177,7 +177,7 @@ public class MaintenanceService : IMaintenanceService
 
         var error = false;
         var channelHost = await originChannelPool.GetChannelAsync().ConfigureAwait(false);
-        var properties = channelHost.GetChannel().CreateBasicProperties();
+        var properties = channelHost.Channel.CreateBasicProperties();
         properties.DeliveryMode = 2;
 
         BasicGetResult result = null;
@@ -186,7 +186,7 @@ public class MaintenanceService : IMaintenanceService
         {
             try
             {
-                result = channelHost.GetChannel().BasicGet(originQueueName, true);
+                result = channelHost.Channel.BasicGet(originQueueName, true);
                 if (result == null) { break; }
             }
             catch { error = true; }
@@ -201,7 +201,7 @@ public class MaintenanceService : IMaintenanceService
                 try
                 {
                     var targetChannelHost = await targetChannelPool.GetChannelAsync().ConfigureAwait(false);
-                    targetChannelHost.GetChannel().BasicPublish(string.Empty, targetQueueName, false, properties, result.Body);
+                    targetChannelHost.Channel.BasicPublish(string.Empty, targetQueueName, false, properties, result.Body);
                 }
                 catch { error = true; }
                 finally

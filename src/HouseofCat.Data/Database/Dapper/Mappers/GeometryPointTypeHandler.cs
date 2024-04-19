@@ -2,7 +2,6 @@
 using Microsoft.Spatial;
 using System;
 using System.Data;
-using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace HouseofCat.Database.Dapper;
@@ -44,6 +43,6 @@ public partial class GeometryPointTypeHandler : SqlMapper.TypeHandler<GeometryPo
 
     private static double ConvertToDouble(string value)
     {
-        return double.Parse(value, CultureInfo.InvariantCulture);
+        return double.Parse(value);
     }
 }

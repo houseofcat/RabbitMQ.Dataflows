@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System.Text;
 
-namespace ConnectivityTests.Tests;
+namespace RabbitMQ.ConsoleTests;
 
 public static class ConsumerTests
 {
@@ -15,10 +15,10 @@ public static class ConsumerTests
         {
             await consumer.StartConsumerAsync();
 
-            await foreach (var receivedData in consumer.StreamUntilConsumerStopAsync())
+            await foreach (var receivedMessage in consumer.ReadUntilStopAsync())
             {
-                logger.LogInformation("Received message: [{message}]", Encoding.UTF8.GetString(receivedData.Data.Span));
-                receivedData.AckMessage();
+                logger.LogInformation("Received message: [{message}]", Encoding.UTF8.GetString(receivedMessage.Body.Span));
+                receivedMessage.AckMessage();
             }
         }
         catch (Exception ex)

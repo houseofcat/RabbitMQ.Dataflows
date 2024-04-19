@@ -1,5 +1,5 @@
 using HouseofCat.Serialization;
-using HouseofCat.Utilities.Time;
+using HouseofCat.Utilities.Helpers;
 using MessagePack;
 
 namespace Serialization;
@@ -29,7 +29,7 @@ public class SerializationTests
             { "I like to eat", "Apples and Bananas" },
             { "TestKey", 12 },
             { "TestKey2", 12.0 },
-            { "Date", Time.GetDateTimeNow(Time.Formats.CatRFC3339) }
+            { "Date", TimeHelpers.GetDateTimeNow(TimeHelpers.Formats.CatRFC3339) }
         };
 
         public IDictionary<string, object> AbstractData { get; set; } = new Dictionary<string, object>
@@ -37,7 +37,7 @@ public class SerializationTests
             { "I like to eat", "Apples and Bananas" },
             { "TestKey", 12 },
             { "TestKey2", 12.0 },
-            { "Date", Time.GetDateTimeNow(Time.Formats.CatRFC3339) }
+            { "Date", TimeHelpers.GetDateTimeNow(TimeHelpers.Formats.CatRFC3339) }
         };
 
         public MyCustomSubClass SubClass { get; set; } = new MyCustomSubClass();
@@ -70,7 +70,7 @@ public class SerializationTests
             { "I like to eat", "Apples and Bananas" },
             { "TestKey", 12 },
             { "TestKey2", 12.0 },
-            { "Date", Time.GetDateTimeNow(Time.Formats.CatRFC3339) }
+            { "Date", TimeHelpers.GetDateTimeNow(TimeHelpers.Formats.CatRFC3339) }
         };
 
         [Key(3)]
@@ -79,7 +79,7 @@ public class SerializationTests
             { "I like to eat", "Apples and Bananas" },
             { "TestKey", 12 },
             { "TestKey2", 12.0 },
-            { "Date", Time.GetDateTimeNow(Time.Formats.CatRFC3339) }
+            { "Date", TimeHelpers.GetDateTimeNow(TimeHelpers.Formats.CatRFC3339) }
         };
 
         [Key(4)]

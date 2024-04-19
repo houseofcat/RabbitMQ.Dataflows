@@ -10,9 +10,18 @@ public class MessagePackProvider : ISerializationProvider
 {
     private readonly MessagePackSerializerOptions _options;
 
+    // After nearly a decade, they haven't made their mind up. Tired of waiting.
+    // https://github.com/msgpack/msgpack/issues/194
+    public string ContentType { get; private set; } = "application/msgpack";
+
     public MessagePackProvider(MessagePackSerializerOptions options = null)
     {
         _options = options;
+    }
+
+    public static TOut GlobalDeserialize<TOut>(ReadOnlyMemory<byte> input, MessagePackSerializerOptions options = null)
+    {
+        return MessagePackSerializer.Deserialize<TOut>(input, options);
     }
 
     public ReadOnlyMemory<byte> Serialize<TIn>(TIn input)

@@ -117,78 +117,59 @@ Let me copy in a basic HoC config with our consumer settings in it. This file ne
 
 ```json
 {
-    "FactoryOptions": {
+  "PoolOptions": {
     "Uri": "amqp://guest:guest@localhost:5672/",
     "MaxChannelsPerConnection": 2000,
     "HeartbeatInterval": 6,
     "AutoRecovery": true,
     "TopologyRecovery": true,
-    "NetRecoveryTimeout": 10,
+    "NetRecoveryTimeout": 5,
     "ContinuationTimeout": 10,
     "EnableDispatchConsumersAsync": true,
-    "SslOptions": {
-        "EnableSsl": false,
-        "CertServerName": "",
-        "LocalCertPath": "",
-        "LocalCertPassword": "",
-        "ProtocolVersions": 3072
-        }
-    },
-    "PoolOptions": {
-        "ServiceName": "TopLevel-HoC-Consumer",
-        "MaxConnections": 5,
-        "MaxChannels": 25,
-        "SleepOnErrorInterval": 1000
-    },
-    "PublisherOptions": {
-        "LetterQueueBufferSize": 100,
-        "PriorityLetterQueueBufferSize": 100,
-        "BehaviorWhenFull": 0,
-        "AutoPublisherSleepInterval": 0,
-        "CreatePublishReceipts": true,
-        "Compress": false,
-        "Encrypt": false
-    },
-    "GlobalConsumerOptions": {
-    "AggressiveOptions": {
-        "ErrorSuffix": "Error",
-        "BatchSize": 128,
-        "BehaviorWhenFull": 0,
-        "SleepOnIdleInterval": 0,
-        "UseTransientChannels": true,
-        "AutoAck": false,
-        "NoLocal": false,
-        "Exclusive": false,
-        "GlobalConsumerPipelineOptions": {
-        "WaitForCompletion": false,
-        "MaxDegreesOfParallelism": 64,
-        "EnsureOrdered": false
-        }
-    },
-    "SingleThreadedOptions": {
-        "ErrorSuffix": "Error",
-        "BatchSize": 1,
-        "BehaviorWhenFull": 0,
-        "SleepOnIdleInterval": 0,
-        "UseTransientChannels": true,
-        "AutoAck": false,
-        "NoLocal": false,
-        "Exclusive": false,
-        "GlobalConsumerPipelineOptions": {
-        "WaitForCompletion": true,
-        "MaxDegreesOfParallelism": 1,
-        "EnsureOrdered": true
-        }
+    "ServiceName": "HoC.RabbitMQ",
+    "Connections": 2,
+    "Channels": 10,
+    "AckableChannels": 0,
+    "SleepOnErrorInterval": 5000,
+    "TansientChannelStartRange": 10000,
+    "UseTransientChannels": false
+  },
+  "PublisherOptions": {
+    "MessageQueueBufferSize": 100,
+    "BehaviorWhenFull": 0,
+    "CreatePublishReceipts": false,
+    "Compress": false,
+    "Encrypt": false,
+    "WaitForConfirmationTimeoutInMilliseconds": 500
+  },
+  "ConsumerOptions": {
+    "HoC-Consumer": {
+      "Enabled": true,
+      "ConsumerName": "HoC-Consumer",
+      "BatchSize": 5,
+      "BehaviorWhenFull": 0,
+      "UseTransientChannels": true,
+      "AutoAck": false,
+      "NoLocal": false,
+      "Exclusive": false,
+      "QueueName": "TestQueue",
+      "QueueArguments": null,
+      "TargetQueueName": "TestTargetQueue",
+      "TargetQueueArgs": null,
+      "ErrorQueueName": "TestQueue.Error",
+      "ErrorQueueArgs": null,
+      "BuildQueues": true,
+      "BuildQueueDurable": true,
+      "BuildQueueExclusive": false,
+      "BuildQueueAutoDelete": false,
+      "WorkflowName": "TestConsumerWorkflow",
+      "WorkflowMaxDegreesOfParallelism": 1,
+      "WorkflowConsumerCount": 1,
+      "WorkflowBatchSize": 5,
+      "WorkflowEnsureOrdered": false,
+      "WorkflowWaitForCompletion": false
     }
-    },
-    "ConsumerOptions": {
-        "HoC-Consumer": {
-            "Enabled": true,
-            "GlobalSettings": "AggressiveOptions",
-            "ConsumerName": "HoC-Consumer",
-            "QueueName": "HoC-ConsumerQueue"
-        }
-    }
+  }
 }
 ```
 
@@ -217,32 +198,32 @@ await consumer.StartConsumerAsync();
 ```
 
 Messages at this point should be sitting in the `ConsumerBuffer`. I am going to use `IAsyncEnumerable` to stream those out of the local buffer for
-further processing. `ForEach ReceivedData` we will read the inner body and then Ack/Nack the message as a processing step (do work step).
+further processing. `ForEach ReceivedMessage` we will read the inner body and then Ack/Nack the message as a processing step (do work step).
 Rather than an ugly/bulky `foreach` let us create a `local function` called `ProcessMessage` to keep things nice and clean. We are not using
 auto-ack so we have to ack our messages for them be marked as finished (or nack/unfinished) with server-side.
 
 ```csharp
-await foreach (var receivedData in consumer.StreamOutUntilClosedAsync()) // this will exit only when the internal buffer closes/exception
+await foreach (var receivedMessage in consumer.StreamOutUntilClosedAsync()) // this will exit only when the internal buffer closes/exception
 {
-    ProcessMessage(receivedData);
+    ProcessMessage(receivedMessage);
 }
 
-void ProcessMessage(IReceivedData receivedData)
+void ProcessMessage(IReceivedMessage receivedMessage)
 {
     try
     {
-        var body = Encoding.UTF8.GetString(receivedData.Data);
+        var body = Encoding.UTF8.GetString(receivedMessage.Data);
         logger.LogInformation($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.ffffff} - [Message Received]: {body}");
 
-        if (receivedData.Ackable)
-        { receivedData.AckMessage(); }
+        if (receivedMessage.Ackable)
+        { receivedMessage.AckMessage(); }
     }
     catch (Exception ex)
     {
         logger.LogError(ex, "An error occurred processing messages from the consumer buffer.");
 
-        if (receivedData.Ackable)
-        { receivedData.NackMessage(requeue: true); }
+        if (receivedMessage.Ackable)
+        { receivedMessage.NackMessage(requeue: true); }
     }
 }
 ```
@@ -272,29 +253,29 @@ var rabbitService = new RabbitService(
 var consumer = rabbitService.GetConsumer("HoC-Consumer");
 await consumer.StartConsumerAsync();
 
-await foreach (var receivedData in consumer.StreamOutUntilClosedAsync())
+await foreach (var receivedMessage in consumer.StreamOutUntilClosedAsync())
 {
-    ProcessMessage(receivedData);
+    ProcessMessage(receivedMessage);
 }
 
 await rabbitService.ShutdownAsync(immediately: false);
 
-void ProcessMessage(IReceivedData receivedData)
+void ProcessMessage(IReceivedMessage receivedMessage)
 {
     try
     {
-        var body = Encoding.UTF8.GetString(receivedData.Data);
+        var body = Encoding.UTF8.GetString(receivedMessage.Data);
         logger.LogInformation($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.ffffff} - [Message Received]: {body}");
 
-        if (receivedData.Ackable)
-        { receivedData.AckMessage(); }
+        if (receivedMessage.Ackable)
+        { receivedMessage.AckMessage(); }
     }
     catch (Exception ex)
     {
         logger.LogError(ex, "An error occurred streaming out messages from the consumer.");
 
-        if (receivedData.Ackable)
-        { receivedData.NackMessage(requeue: true); }
+        if (receivedMessage.Ackable)
+        { receivedMessage.NackMessage(requeue: true); }
     }
 }
 ```

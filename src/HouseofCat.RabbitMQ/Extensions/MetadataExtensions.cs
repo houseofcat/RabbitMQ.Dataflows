@@ -6,29 +6,12 @@ namespace HouseofCat.RabbitMQ;
 
 public static class MetadataExtensions
 {
-    public static T Clone<T>(this IMetadata metadata)
-        where T : IMetadata, new()
-    {
-        var clonedMetadata = new T
-        {
-            Compressed = metadata.Compressed,
-            Encrypted = metadata.Encrypted
-        };
-
-        foreach (var kvp in metadata.CustomFields)
-        {
-            clonedMetadata.CustomFields.Add(kvp.Key, kvp.Value);
-        }
-
-        return clonedMetadata;
-    }
-
     public static T GetHeader<T>(this IMetadata metadata, string key)
     {
-        Guard.AgainstNull(metadata, nameof(LetterMetadata));
-        Guard.AgainstNullOrEmpty(metadata.CustomFields, nameof(LetterMetadata.CustomFields));
+        Guard.AgainstNull(metadata, nameof(Metadata));
+        Guard.AgainstNullOrEmpty(metadata.Fields, nameof(Metadata.Fields));
 
-        if (metadata.CustomFields.TryGetValue(key, out object value))
+        if (metadata.Fields.TryGetValue(key, out object value))
         {
             if (value is T temp)
             { return temp; }
@@ -40,48 +23,41 @@ public static class MetadataExtensions
 
     public static void UpsertHeader(this IMetadata metadata, string key, object value)
     {
-        metadata.CustomFields ??= new Dictionary<string, object>();
-
-        metadata.CustomFields[key] = value;
+        metadata.Fields ??= new Dictionary<string, object>();
+        metadata.Fields[key] = value;
     }
 
     public static bool RemoveHeader(this IMetadata metadata, string key)
     {
-        Guard.AgainstNull(metadata, nameof(LetterMetadata));
-        Guard.AgainstNullOrEmpty(metadata.CustomFields, nameof(LetterMetadata.CustomFields));
+        Guard.AgainstNull(metadata, nameof(Metadata));
+        Guard.AgainstNullOrEmpty(metadata.Fields, nameof(Metadata.Fields));
 
         return metadata
-            .CustomFields
+            .Fields
             .Remove(key);
     }
 
-    public static IDictionary<string, object> GetHeadersOutOfMetadata(this IMetadata metadata)
+    public static IDictionary<string, object> GetHeadersFromMetadata(this IMetadata metadata)
     {
-        Guard.AgainstNull(metadata, nameof(LetterMetadata));
-        Guard.AgainstNullOrEmpty(metadata.CustomFields, nameof(LetterMetadata.CustomFields));
+        Guard.AgainstNull(metadata, nameof(Metadata));
+        Guard.AgainstNullOrEmpty(metadata.Fields, nameof(Metadata.Fields));
 
-        var dict = new Dictionary<string, object>();
-
-        foreach (var kvp in metadata.CustomFields)
-        {
-            if (kvp.Key.StartsWith(Constants.HeaderPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                dict[kvp.Key] = kvp.Value;
-            }
-        }
-
-        return dict;
+        return new Dictionary<string, object>(metadata.Fields);
     }
 
     public static void WriteHeadersToMetadata(this IMetadata metadata, IDictionary<string, object> headers)
     {
-        metadata.CustomFields ??= new Dictionary<string, object>();
+        if (metadata.Fields is null)
+        {
+            metadata.Fields ??= new Dictionary<string, object>(headers);
+            return;
+        }
 
         foreach (var kvp in headers)
         {
             if (kvp.Key.StartsWith(Constants.HeaderPrefix, StringComparison.OrdinalIgnoreCase))
             {
-                metadata.CustomFields[kvp.Key] = kvp.Value;
+                metadata.Fields[kvp.Key] = kvp.Value;
             }
         }
     }

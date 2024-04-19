@@ -1,4 +1,4 @@
-﻿using HouseofCat.Utilities;
+﻿using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
@@ -35,7 +35,7 @@ public class DataflowEngine<TIn, TOut> : IDataBlockEngine<TIn>
         int boundedCapacity = 1000,
         TaskScheduler taskScheduler = null)
     {
-        _logger = LogHelper.GetLogger<DataflowEngine<TIn, TOut>>();
+        _logger = LogHelpers.GetLogger<DataflowEngine<TIn, TOut>>();
         _workBodyAsync = workBodyAsync ?? throw new ArgumentNullException(nameof(workBodyAsync));
 
         _bufferBlock = new BufferBlock<TIn>(

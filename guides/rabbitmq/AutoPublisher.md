@@ -20,21 +20,18 @@ using System.Text;
 // Step 1: Configure RabbitOptions (or load from file or IConfiguration).
 var rabbitOptions = new RabbitOptions
 {
-    FactoryOptions = new FactoryOptions
-    {
-        Uri = new Uri("amqp://guest:guest@localhost:5672"),
-    },
     PoolOptions = new PoolOptions
     {
+        Uri = new Uri("amqp://guest:guest@localhost:5672"),
         ServiceName = "TestService",
-        MaxConnections = 2,
-        MaxChannels = 10,
-        MaxAckableChannels = 0
+        Connections = 2,
+        Channels = 10,
+        AckableChannels = 0
     },
     PublisherOptions = new PublisherOptions
     {
         CreatePublishReceipts = true,
-        LetterQueueBufferSize = 10_000,
+        MessageQueueBufferSize = 10_000,
         BehaviorWhenFull = BoundedChannelFullMode.Wait,
         Compress = false,
         Encrypt = false,
@@ -61,7 +58,7 @@ try
 
     // Step 4: Create IMessage
     var data = Encoding.UTF8.GetBytes("Hello, RabbitMQ!");
-    var message = new Letter(Shared.ExchangeName, Shared.RoutingKey, data, Guid.NewGuid().ToString())
+    var message = new Message(Shared.ExchangeName, Shared.RoutingKey, data, Guid.NewGuid().ToString())
     {
         // DeliveryId for tracking/routing through Publisher/Consumer.
         MessageId = Guid.NewGuid().ToString(),

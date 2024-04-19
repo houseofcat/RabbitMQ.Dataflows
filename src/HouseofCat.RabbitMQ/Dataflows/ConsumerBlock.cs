@@ -1,5 +1,5 @@
-﻿using HouseofCat.Utilities;
-using HouseofCat.Utilities.Errors;
+﻿using HouseofCat.Utilities.Errors;
+using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
@@ -11,10 +11,11 @@ namespace HouseofCat.RabbitMQ.Dataflows;
 public class ConsumerBlock<TOut> : ISourceBlock<TOut>
 {
     public Task Completion { get; }
-    internal IConsumer<TOut> Consumer { set => _consumer = value; }
+
+    public IConsumer<TOut> Consumer { get; set; }
 
     private readonly ILogger<ConsumerBlock<TOut>> _logger;
-    private IConsumer<TOut> _consumer;
+
     private readonly ITargetBlock<TOut> _bufferBlock;
     private readonly ISourceBlock<TOut> _sourceBufferBlock;
 
@@ -27,7 +28,7 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
     public ConsumerBlock(IConsumer<TOut> consumer) : this()
     {
         Guard.AgainstNull(consumer, nameof(consumer));
-        _consumer = consumer;
+        Consumer = consumer;
     }
 
     protected ConsumerBlock(ITargetBlock<TOut> bufferBlock) : this(bufferBlock, (ISourceBlock<TOut>)bufferBlock)
@@ -35,7 +36,7 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
 
     protected ConsumerBlock(ITargetBlock<TOut> bufferBlock, ISourceBlock<TOut> sourceBufferBlock)
     {
-        _logger = LogHelper.LoggerFactory.CreateLogger<ConsumerBlock<TOut>>();
+        _logger = LogHelpers.LoggerFactory.CreateLogger<ConsumerBlock<TOut>>();
         _bufferBlock = bufferBlock;
         _sourceBufferBlock = sourceBufferBlock;
         Completion = _bufferBlock.Completion;
@@ -44,13 +45,13 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
     public async Task StartConsumingAsync()
     {
         _cts = new CancellationTokenSource();
-        await _consumer.StartConsumerAsync().ConfigureAwait(false);
+        await Consumer.StartConsumerAsync().ConfigureAwait(false);
         _bufferProcessor = PushToBufferBlockAsync(_cts.Token);
     }
 
     public async Task StopConsumingAsync(bool immediate = false)
     {
-        await _consumer.StopConsumerAsync(immediate).ConfigureAwait(false);
+        await Consumer.StopConsumerAsync(immediate).ConfigureAwait(false);
         _cts.Cancel();
         await _bufferProcessor.ConfigureAwait(false);
     }
@@ -94,15 +95,14 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
     protected virtual async Task PushToBufferBlockAsync(CancellationToken token = default)
     {
         try
-        {
-            while (await _consumer.GetConsumerBuffer().WaitToReadAsync(token).ConfigureAwait(false))
+        { 
+            var consumerBuffer = Consumer.GetConsumerBuffer();
+            while (await consumerBuffer.WaitToReadAsync(token).ConfigureAwait(false))
             {
-                while (_consumer.GetConsumerBuffer().TryRead(out var message))
+                while (consumerBuffer.TryRead(out var message))
                 {
                     await _bufferBlock.SendAsync(message, token).ConfigureAwait(false);
                 }
-
-                if (token.IsCancellationRequested) return;
             }
         }
         catch (OperationCanceledException)
@@ -116,7 +116,7 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
     {
         try
         {
-            await foreach (var message in _consumer.GetConsumerBuffer().ReadAllAsync(token).ConfigureAwait(false))
+            await foreach (var message in Consumer.GetConsumerBuffer().ReadAllAsync(token).ConfigureAwait(false))
             {
                 await _bufferBlock.SendAsync(message, token).ConfigureAwait(false);
             }

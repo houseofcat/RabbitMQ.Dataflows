@@ -42,6 +42,18 @@ csharp_prefer_simple_default_expression = true:suggestion
 # CA1859: Use concrete types when possible for improved performance
 dotnet_diagnostic.CA1859.severity = silent
 
+# IDE0008: Use explicit type
+dotnet_diagnostic.IDE0008.severity = none
+
+# IDE0019: Use pattern matching
+csharp_style_pattern_matching_over_as_with_null_check = false
+
+# IDE0058: Expression value is never used
+csharp_style_unused_value_expression_statement_preference = unused_local_variable
+
+# CA1806: Do not ignore method results
+dotnet_diagnostic.CA1806.severity = none
+
 [*.{cs,vb}]
 #### Naming styles ####
 

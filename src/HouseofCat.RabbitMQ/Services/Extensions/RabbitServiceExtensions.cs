@@ -1,12 +1,16 @@
 ﻿using HouseofCat.Compression;
 using HouseofCat.Compression.Recyclable;
+using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
+using HouseofCat.RabbitMQ.Dataflows;
+using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ.Services.Extensions;
@@ -102,5 +106,69 @@ public static class RabbitServiceExtensions
         await rabbitService.Publisher.StartAutoPublishAsync();
 
         return rabbitService;
+    }
+
+    public static IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
+        this IRabbitService rabbitService,
+        string consumerName,
+        int maxDoP,
+        int batchSize,
+        bool? ensureOrdered,
+        Func<int, int, bool?, IPipeline<IReceivedMessage, TOut>> pipelineBuilder)
+        where TOut : RabbitWorkState
+    {
+        var consumer = rabbitService.GetConsumer(consumerName);
+        var pipeline = pipelineBuilder.Invoke(maxDoP, batchSize, ensureOrdered);
+
+        return new ConsumerPipeline<TOut>(consumer, pipeline);
+    }
+
+    public static IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
+        this IRabbitService rabbitService,
+        string consumerName,
+        Func<int, int, bool?, IPipeline<IReceivedMessage, TOut>> pipelineBuilder)
+        where TOut : RabbitWorkState
+    {
+        if (rabbitService.ConsumerOptions.TryGetValue(consumerName, out var options))
+        {
+            return rabbitService.CreateConsumerPipeline(
+                consumerName,
+                options.WorkflowMaxDegreesOfParallelism,
+                options.WorkflowBatchSize,
+                options.WorkflowEnsureOrdered,
+                pipelineBuilder);
+        }
+
+        throw new InvalidOperationException($"ConsumerOptions for {consumerName} not found.");
+    }
+
+    public static IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
+        this IRabbitService rabbitService,
+        string consumerName,
+        IPipeline<IReceivedMessage, TOut> pipeline)
+        where TOut : RabbitWorkState
+    {
+        var consumer = rabbitService.GetConsumer(consumerName);
+
+        return new ConsumerPipeline<TOut>(consumer, pipeline);
+    }
+
+    public static ConsumerDataflow<TState> BuildConsumerDataflow<TState>(
+        this IRabbitService rabbitService,
+        string consumerName,
+        TaskScheduler taskScheduler = null)
+        where TState : class, IRabbitWorkState, new()
+    {
+        if (rabbitService.ConsumerOptions.TryGetValue(consumerName, out var options))
+        {
+            return new ConsumerDataflow<TState>(
+                rabbitService,
+                options.WorkflowName,
+                options.ConsumerName,
+                options.WorkflowConsumerCount,
+                taskScheduler);
+        }
+
+        throw new InvalidOperationException($"ConsumerOptions for {consumerName} not found.");
     }
 }

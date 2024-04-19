@@ -7,8 +7,9 @@ using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
-using HouseofCat.Utilities.Time;
+using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Trace;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Concurrent;
@@ -19,7 +20,6 @@ namespace HouseofCat.RabbitMQ.Services;
 
 public interface IRabbitService
 {
-    IPublisher Publisher { get; }
     IChannelPool ChannelPool { get; }
     ITopologer Topologer { get; }
     RabbitOptions Options { get; }
@@ -30,23 +30,23 @@ public interface IRabbitService
     IEncryptionProvider EncryptionProvider { get; }
     ICompressionProvider CompressionProvider { get; }
 
-    ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; }
+    IPublisher Publisher { get; }
+
+    ConcurrentDictionary<string, IConsumer<IReceivedMessage>> Consumers { get; }
+    ConcurrentDictionary<string, ConsumerOptions> ConsumerOptions { get; }
 
     Task ComcryptAsync(IMessage message);
     Task<bool> CompressAsync(IMessage message);
-    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, int batchSize, bool? ensureOrdered, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
-    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, IPipeline<ReceivedData, TOut> pipeline) where TOut : RabbitWorkState;
-
-    IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(string consumerName, Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder) where TOut : RabbitWorkState;
 
     Task DecomcryptAsync(IMessage message);
     Task<bool> DecompressAsync(IMessage message);
+
     bool Decrypt(IMessage message);
     bool Encrypt(IMessage message);
-    Task<ReadOnlyMemory<byte>?> GetAsync(string queueName);
+
+    Task<ReadOnlyMemory<byte>> GetAsync(string queueName);
     Task<T> GetAsync<T>(string queueName);
-    IConsumer<ReceivedData> GetConsumer(string consumerName);
-    IConsumer<ReceivedData> GetConsumerByPipelineName(string consumerPipelineName);
+    IConsumer<IReceivedMessage> GetConsumer(string consumerName);
 
     ValueTask ShutdownAsync(bool immediately);
 }
@@ -65,10 +65,10 @@ public class RabbitService : IRabbitService, IDisposable
     public IEncryptionProvider EncryptionProvider { get; }
     public ICompressionProvider CompressionProvider { get; }
 
-    public ConcurrentDictionary<string, IConsumer<ReceivedData>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<ReceivedData>>();
-    private ConcurrentDictionary<string, ConsumerOptions> ConsumerPipelineNameToConsumerOptions { get; set; } = new ConcurrentDictionary<string, ConsumerOptions>();
+    public ConcurrentDictionary<string, IConsumer<IReceivedMessage>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<IReceivedMessage>>();
+    public ConcurrentDictionary<string, ConsumerOptions> ConsumerOptions { get; private set; } = new ConcurrentDictionary<string, ConsumerOptions>();
 
-    public string TimeFormat { get; set; } = Time.Formats.CatsAltFormat;
+    public string TimeFormat { get; set; } = TimeHelpers.Formats.CatsAltFormat;
 
     public RabbitService(
         string fileNamePath,
@@ -113,7 +113,7 @@ public class RabbitService : IRabbitService, IDisposable
     {
         Guard.AgainstNull(chanPool, nameof(chanPool));
         Guard.AgainstNull(serializationProvider, nameof(serializationProvider));
-        LogHelper.LoggerFactory = loggerFactory;
+        LogHelpers.LoggerFactory = loggerFactory;
 
         Options = chanPool.Options;
         ChannelPool = chanPool;
@@ -129,7 +129,6 @@ public class RabbitService : IRabbitService, IDisposable
 
         Topologer = new Topologer(ChannelPool);
 
-        Options.ApplyGlobalConsumerOptions();
         BuildConsumers();
 
         Publisher.StartAutoPublish(processReceiptAsync);
@@ -141,7 +140,7 @@ public class RabbitService : IRabbitService, IDisposable
 
     public async ValueTask ShutdownAsync(bool immediately)
     {
-        await _serviceLock.WaitAsync().ConfigureAwait(false);
+        if (await _serviceLock.WaitAsync(0).ConfigureAwait(false)) return;
 
         try
         {
@@ -173,13 +172,10 @@ public class RabbitService : IRabbitService, IDisposable
 
     private void BuildConsumers()
     {
-        foreach (var consumerSetting in Options.ConsumerOptions)
+        foreach (var options in Options.ConsumerOptions)
         {
-            if (!string.IsNullOrEmpty(consumerSetting.Value.ConsumerPipelineOptions.ConsumerPipelineName))
-            {
-                ConsumerPipelineNameToConsumerOptions.TryAdd(consumerSetting.Value.ConsumerPipelineOptions.ConsumerPipelineName, consumerSetting.Value);
-            }
-            Consumers.TryAdd(consumerSetting.Value.ConsumerName, new Consumer(ChannelPool, consumerSetting.Value));
+            ConsumerOptions.TryAdd(options.Value.ConsumerName, options.Value);
+            Consumers.TryAdd(options.Value.ConsumerName, new Consumer(ChannelPool, options.Value));
         }
     }
 
@@ -187,148 +183,52 @@ public class RabbitService : IRabbitService, IDisposable
     {
         foreach (var consumer in Consumers)
         {
+            if (!consumer.Value.ConsumerOptions.BuildQueues)
+            { continue; }
+
             if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.QueueName))
             {
-                if (consumer.Value.ConsumerOptions.QueueArgs == null
-                    || consumer.Value.ConsumerOptions.QueueArgs.Count == 0)
-                {
-                    await Topologer
-                        .CreateQueueAsync(consumer.Value.ConsumerOptions.QueueName)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await Topologer
-                        .CreateQueueAsync(
-                            consumer.Value.ConsumerOptions.QueueName,
-                            true,
-                            false,
-                            false,
-                            consumer.Value.ConsumerOptions.QueueArgs)
-                        .ConfigureAwait(false);
-                }
+                await Topologer
+                    .CreateQueueAsync(
+                        consumer.Value.ConsumerOptions.QueueName,
+                        consumer.Value.ConsumerOptions.BuildQueueDurable,
+                        consumer.Value.ConsumerOptions.BuildQueueExclusive,
+                        consumer.Value.ConsumerOptions.BuildQueueAutoDelete,
+                        consumer.Value.ConsumerOptions.QueueArgs)
+                    .ConfigureAwait(false);
             }
 
             if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.TargetQueueName))
             {
-                if (consumer.Value.ConsumerOptions.TargetQueueArgs == null
-                    || consumer.Value.ConsumerOptions.TargetQueueArgs.Count == 0)
-                {
-                    await Topologer
-                        .CreateQueueAsync(consumer.Value.ConsumerOptions.TargetQueueName)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await Topologer
-                        .CreateQueueAsync(
-                            consumer.Value.ConsumerOptions.TargetQueueName,
-                            true,
-                            false,
-                            false,
-                            consumer.Value.ConsumerOptions.TargetQueueArgs)
-                        .ConfigureAwait(false);
-                }
+                await Topologer
+                    .CreateQueueAsync(
+                        consumer.Value.ConsumerOptions.TargetQueueName,
+                        consumer.Value.ConsumerOptions.BuildQueueDurable,
+                        consumer.Value.ConsumerOptions.BuildQueueExclusive,
+                        consumer.Value.ConsumerOptions.BuildQueueAutoDelete,
+                        consumer.Value.ConsumerOptions.TargetQueueArgs)
+                    .ConfigureAwait(false);
             }
 
-            if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorSuffix)
-                && !string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorQueueName))
+            if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.ErrorQueueName))
             {
-                if (consumer.Value.ConsumerOptions.ErrorQueueArgs == null
-                    || consumer.Value.ConsumerOptions.ErrorQueueArgs.Count == 0)
-                {
-                    await Topologer
-                        .CreateQueueAsync(consumer.Value.ConsumerOptions.ErrorQueueName)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await Topologer
-                        .CreateQueueAsync(
-                            consumer.Value.ConsumerOptions.ErrorQueueName,
-                            true,
-                            false,
-                            false,
-                            consumer.Value.ConsumerOptions.ErrorQueueArgs)
-                        .ConfigureAwait(false);
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.AltSuffix)
-                && !string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.AltQueueName))
-            {
-                if (consumer.Value.ConsumerOptions.AltQueueArgs == null
-                    || consumer.Value.ConsumerOptions.AltQueueArgs.Count == 0)
-                {
-                    await Topologer
-                        .CreateQueueAsync(consumer.Value.ConsumerOptions.AltQueueName)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await Topologer
-                        .CreateQueueAsync(
-                            consumer.Value.ConsumerOptions.AltQueueName,
-                            true,
-                            false,
-                            false,
-                            consumer.Value.ConsumerOptions.AltQueueArgs)
-                        .ConfigureAwait(false);
-                }
+                await Topologer
+                    .CreateQueueAsync(
+                        consumer.Value.ConsumerOptions.ErrorQueueName,
+                        consumer.Value.ConsumerOptions.BuildQueueDurable,
+                        consumer.Value.ConsumerOptions.BuildQueueExclusive,
+                        consumer.Value.ConsumerOptions.BuildQueueAutoDelete,
+                        consumer.Value.ConsumerOptions.ErrorQueueArgs)
+                    .ConfigureAwait(false);
             }
         }
     }
 
-    public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
-        string consumerName,
-        int batchSize,
-        bool? ensureOrdered,
-        Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder)
-        where TOut : RabbitWorkState
+    public IConsumer<IReceivedMessage> GetConsumer(string consumerName)
     {
-        var consumer = GetConsumer(consumerName);
-        var pipeline = pipelineBuilder.Invoke(batchSize, ensureOrdered);
-
-        return new ConsumerPipeline<TOut>(consumer, pipeline);
-    }
-
-    public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
-        string consumerName,
-        Func<int, bool?, IPipeline<ReceivedData, TOut>> pipelineBuilder)
-        where TOut : RabbitWorkState
-    {
-        var consumer = GetConsumer(consumerName);
-        var pipeline = pipelineBuilder.Invoke(
-            consumer.ConsumerOptions.ConsumerPipelineOptions.MaxDegreesOfParallelism ?? 1,
-            consumer.ConsumerOptions.ConsumerPipelineOptions.EnsureOrdered ?? true);
-
-        return new ConsumerPipeline<TOut>(consumer, pipeline);
-    }
-
-    public IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
-        string consumerName,
-        IPipeline<ReceivedData, TOut> pipeline)
-        where TOut : RabbitWorkState
-    {
-        var consumer = GetConsumer(consumerName);
-
-        return new ConsumerPipeline<TOut>(consumer, pipeline);
-    }
-
-    public IConsumer<ReceivedData> GetConsumer(string consumerName)
-    {
-        if (!Consumers.TryGetValue(consumerName, out IConsumer<ReceivedData> value))
+        if (!Consumers.TryGetValue(consumerName, out IConsumer<IReceivedMessage> value))
         { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerOptionsMessage, consumerName)); }
         return value;
-    }
-
-    public IConsumer<ReceivedData> GetConsumerByPipelineName(string consumerPipelineName)
-    {
-        if (!ConsumerPipelineNameToConsumerOptions.TryGetValue(consumerPipelineName, out ConsumerOptions value))
-        { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerPipelineOptionsMessage, consumerPipelineName)); }
-        if (!Consumers.TryGetValue(value.ConsumerName, out var consumer))
-        { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerOptionsMessage, value.ConsumerName)); }
-        return consumer;
     }
 
     public async Task DecomcryptAsync(IMessage message)
@@ -352,17 +252,14 @@ public class RabbitService : IRabbitService, IDisposable
         Encrypt(message);
     }
 
-    // Returns Success
     public bool Encrypt(IMessage message)
     {
-        var metadata = message.GetMetadata();
-        if (!metadata.Encrypted)
+        if (!message.Metadata.Encrypted())
         {
             message.Body = EncryptionProvider.Encrypt(message.Body);
-            metadata.Encrypted = true;
-            metadata.CustomFields[Constants.HeaderForEncrypted] = true;
-            metadata.CustomFields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
-            metadata.CustomFields[Constants.HeaderForEncryptDate] = Time.GetDateTimeNow(TimeFormat);
+            message.Metadata.Fields[Constants.HeaderForEncrypted] = true;
+            message.Metadata.Fields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
+            message.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeFormat);
 
             return true;
         }
@@ -370,18 +267,15 @@ public class RabbitService : IRabbitService, IDisposable
         return false;
     }
 
-    // Returns Success
     public bool Decrypt(IMessage message)
     {
-        var metadata = message.GetMetadata();
-        if (metadata.Encrypted)
+        if (message.Metadata.Encrypted())
         {
             message.Body = EncryptionProvider.Decrypt(message.Body);
-            metadata.Encrypted = false;
-            metadata.CustomFields[Constants.HeaderForEncrypted] = false;
+            message.Metadata.Fields[Constants.HeaderForEncrypted] = false;
 
-            metadata.CustomFields.Remove(Constants.HeaderForEncryption);
-            metadata.CustomFields.Remove(Constants.HeaderForEncryptDate);
+            message.Metadata.Fields.Remove(Constants.HeaderForEncryption);
+            message.Metadata.Fields.Remove(Constants.HeaderForEncryptDate);
 
             return true;
         }
@@ -389,19 +283,16 @@ public class RabbitService : IRabbitService, IDisposable
         return false;
     }
 
-    // Returns Success
     public async Task<bool> CompressAsync(IMessage message)
     {
-        var metadata = message.GetMetadata();
-        if (metadata.Encrypted)
+        if (message.Metadata.Encrypted())
         { return false; } // Don't compress after encryption.
 
-        if (!metadata.Compressed)
+        if (!message.Metadata.Compressed())
         {
             message.Body = (await CompressionProvider.CompressAsync(message.Body).ConfigureAwait(false)).ToArray();
-            metadata.Compressed = true;
-            metadata.CustomFields[Constants.HeaderForCompressed] = true;
-            metadata.CustomFields[Constants.HeaderForCompression] = CompressionProvider.Type;
+            message.Metadata.Fields[Constants.HeaderForCompressed] = true;
+            message.Metadata.Fields[Constants.HeaderForCompression] = CompressionProvider.Type;
 
             return true;
         }
@@ -409,22 +300,19 @@ public class RabbitService : IRabbitService, IDisposable
         return true;
     }
 
-    // Returns Success
     public async Task<bool> DecompressAsync(IMessage message)
     {
-        var metadata = message.GetMetadata();
-        if (metadata.Encrypted)
+        if (message.Metadata.Encrypted())
         { return false; } // Don't decompress before decryption.
 
-        if (metadata.Compressed)
+        if (message.Metadata.Compressed())
         {
             try
             {
                 message.Body = (await CompressionProvider.DecompressAsync(message.Body).ConfigureAwait(false)).ToArray();
-                metadata.Compressed = false;
-                metadata.CustomFields[Constants.HeaderForCompressed] = false;
+                message.Metadata.Fields[Constants.HeaderForCompressed] = false;
 
-                metadata.CustomFields.Remove(Constants.HeaderForCompression);
+                message.Metadata.Fields.Remove(Constants.HeaderForCompression);
             }
             catch { return false; }
         }
@@ -432,27 +320,30 @@ public class RabbitService : IRabbitService, IDisposable
         return true;
     }
 
-    public async Task<ReadOnlyMemory<byte>?> GetAsync(string queueName)
+    public async Task<ReadOnlyMemory<byte>> GetAsync(string queueName)
     {
-        IChannelHost chanHost;
+        using var span = OpenTelemetryHelpers.StartActiveSpan(
+            nameof(GetAsync),
+            SpanKind.Consumer);
 
-        try
-        {
-            chanHost = await ChannelPool
-                .GetChannelAsync()
-                .ConfigureAwait(false);
-        }
-        catch { return default; }
+        var chanHost = await ChannelPool
+            .GetChannelAsync()
+            .ConfigureAwait(false);
 
-        BasicGetResult result = null;
         var error = false;
         try
         {
-            result = chanHost
-                .GetChannel()
+            var result = chanHost
+                .Channel
                 .BasicGet(queueName, true);
+
+            return result.Body;
         }
-        catch { error = true; }
+        catch (Exception ex)
+        {
+            OpenTelemetryHelpers.SetSpanAsError(span, ex);
+            error = true;
+        }
         finally
         {
             await ChannelPool
@@ -460,35 +351,32 @@ public class RabbitService : IRabbitService, IDisposable
                 .ConfigureAwait(false);
         }
 
-        return result?.Body;
+        return default;
     }
 
-    /// <summary>
-    /// Simple retrieve message (byte[]) from queue and convert to type T. Default (assumed null) if nothing was available (or on transmission error).
-    /// <para>AutoAcks message.</para>
-    /// </summary>
-    /// <param name="queueName"></param>
     public async Task<T> GetAsync<T>(string queueName)
     {
-        IChannelHost chanHost;
+        using var span = OpenTelemetryHelpers.StartActiveSpan(
+            nameof(GetAsync),
+            SpanKind.Consumer);
 
-        try
-        {
-            chanHost = await ChannelPool
-                .GetChannelAsync()
-                .ConfigureAwait(false);
-        }
-        catch { return default; }
+        var chanHost = await ChannelPool
+            .GetChannelAsync()
+            .ConfigureAwait(false);
 
         BasicGetResult result = null;
         var error = false;
         try
         {
             result = chanHost
-                .GetChannel()
+                .Channel
                 .BasicGet(queueName, true);
         }
-        catch { error = true; }
+        catch (Exception ex)
+        {
+            OpenTelemetryHelpers.SetSpanAsError(span, ex);
+            error = true;
+        }
         finally
         {
             await ChannelPool
@@ -496,7 +384,9 @@ public class RabbitService : IRabbitService, IDisposable
                 .ConfigureAwait(false);
         }
 
-        return result != null ? SerializationProvider.Deserialize<T>(result.Body) : default;
+        return result != null
+            ? SerializationProvider.Deserialize<T>(result.Body)
+            : default;
     }
 
     protected virtual void Dispose(bool disposing)
@@ -509,7 +399,7 @@ public class RabbitService : IRabbitService, IDisposable
             }
 
             Consumers = null;
-            ConsumerPipelineNameToConsumerOptions = null;
+            ConsumerOptions = null;
             _disposedValue = true;
         }
     }

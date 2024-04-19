@@ -1,5 +1,5 @@
-using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
+using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -14,27 +14,26 @@ public interface IChannelHost
 {
     bool Ackable { get; }
     ulong ChannelId { get; }
+    public IModel Channel { get; }
     bool Closed { get; }
     bool FlowControlled { get; }
     bool UsedByConsumer { get; }
 
-    IModel GetChannel();
-
     string StartConsuming(IBasicConsumer internalConsumer, ConsumerOptions options);
-    Task StopConsumingAsync();
+    void StopConsuming();
 
     Task WaitUntilChannelIsReadyAsync(int sleepInterval, CancellationToken token = default);
     Task<bool> BuildRabbitMQChannelAsync(int autoRecoveryDelay = 1000, CancellationToken token = default);
 
     void Close();
-    Task<bool> ChannelHealthyAsync();
-    Task<bool> ConnectionHealthyAsync();
+    bool ChannelHealthy();
+    bool ConnectionHealthy();
 }
 
 public class ChannelHost : IChannelHost, IDisposable
 {
     private readonly ILogger<ChannelHost> _logger;
-    private IModel _channel { get; set; }
+    public IModel Channel { get; private set; }
     private IConnectionHost _connHost { get; set; }
 
     public ulong ChannelId { get; set; }
@@ -45,12 +44,9 @@ public class ChannelHost : IChannelHost, IDisposable
     public bool FlowControlled { get; private set; }
     public bool UsedByConsumer { get; private set; }
 
-    private readonly SemaphoreSlim _hostLock = new SemaphoreSlim(1, 1);
-    private bool _disposedValue;
-
     public ChannelHost(ulong channelId, IConnectionHost connHost, bool ackable)
     {
-        _logger = LogHelper.GetLogger<ChannelHost>();
+        _logger = LogHelpers.GetLogger<ChannelHost>();
 
         ChannelId = channelId;
         _connHost = connHost;
@@ -59,22 +55,11 @@ public class ChannelHost : IChannelHost, IDisposable
         BuildRabbitMQChannelAsync().GetAwaiter().GetResult();
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IModel GetChannel()
-    {
-        _hostLock.Wait();
-
-        try
-        { return _channel; }
-        finally
-        { _hostLock.Release(); }
-    }
-
     private static readonly string _sleepingUntilConnectionHealthy = "ChannelHost [Id: {0}] is sleeping until Connection [Id: {1}] is healthy...";
 
     public virtual async Task WaitUntilChannelIsReadyAsync(int sleepInterval, CancellationToken token = default)
     {
-        var connectionHealthy = await _connHost.HealthyAsync();
+        var connectionHealthy = _connHost.Healthy();
         if (!connectionHealthy)
         {
             _logger.LogInformation(_sleepingUntilConnectionHealthy, ChannelId, _connHost.ConnectionId);
@@ -82,7 +67,7 @@ public class ChannelHost : IChannelHost, IDisposable
             {
                 await Task.Delay(sleepInterval, token).ConfigureAwait(false);
 
-                connectionHealthy = await _connHost.HealthyAsync();
+                connectionHealthy = _connHost.Healthy();
             }
         }
 
@@ -105,29 +90,23 @@ public class ChannelHost : IChannelHost, IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<bool> BuildRabbitMQChannelAsync(int autoRecoveryDelay = 1000, CancellationToken token = default)
     {
-        await _hostLock.WaitAsync(token).ConfigureAwait(false);
-
         try
         {
-            var connectionHealthy = await _connHost
-                .HealthyAsync()
-                .ConfigureAwait(false);
-
-            if (!connectionHealthy)
+            if (!_connHost.Healthy())
             {
                 _logger.LogError(_makeChannelConnectionUnhealthyError, ChannelId, _connHost.ConnectionId);
                 return false;
             }
 
-            if (_channel != null)
+            if (Channel != null)
             {
                 // One last check to see if the channel auto-recovered.
-                var healthy = await ChannelHealthyAsync().ConfigureAwait(false);
+                var healthy = ChannelHealthy();
                 if (!healthy)
                 {
                     await Task.Delay(autoRecoveryDelay, token);
 
-                    healthy = await ChannelHealthyAsync().ConfigureAwait(false);
+                    healthy = ChannelHealthy();
                 }
 
                 if (healthy)
@@ -136,21 +115,21 @@ public class ChannelHost : IChannelHost, IDisposable
                     return true;
                 }
 
-                _channel.FlowControl -= FlowControl;
-                _channel.ModelShutdown -= ChannelClose;
+                Channel.FlowControl -= FlowControl;
+                Channel.ModelShutdown -= ChannelClose;
                 Close();
-                _channel = null;
+                Channel = null;
             }
 
-            _channel = _connHost.Connection.CreateModel();
+            Channel = _connHost.Connection.CreateModel();
 
             if (Ackable)
             {
-                _channel.ConfirmSelect();
+                Channel.ConfirmSelect();
             }
 
-            _channel.FlowControl += FlowControl;
-            _channel.ModelShutdown += ChannelClose;
+            Channel.FlowControl += FlowControl;
+            Channel.ModelShutdown += ChannelClose;
 
             _logger.LogDebug(_makeChannelSuccessful, ChannelId, _connHost.ConnectionId);
 
@@ -159,45 +138,37 @@ public class ChannelHost : IChannelHost, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(_makeChannelFailedError, ex.Message);
-            _channel = null;
+            Channel = null;
             return false;
         }
-        finally
-        { _hostLock.Release(); }
     }
 
     protected virtual void ChannelClose(object sender, ShutdownEventArgs e)
     {
-        _hostLock.Wait();
         _logger.LogDebug(e.ReplyText);
         Closed = true;
-        _hostLock.Release();
     }
 
     protected virtual void FlowControl(object sender, FlowControlEventArgs e)
     {
-        _hostLock.Wait();
-
         if (e.Active)
         { _logger.LogWarning(LogMessages.ChannelHosts.FlowControlled, ChannelId); }
         else
         { _logger.LogInformation(LogMessages.ChannelHosts.FlowControlFinished, ChannelId); }
 
         FlowControlled = e.Active;
-
-        _hostLock.Release();
     }
 
-    public async Task<bool> ChannelHealthyAsync()
+    public bool ChannelHealthy()
     {
-        var connectionHealthy = await _connHost.HealthyAsync().ConfigureAwait(false);
+        var connectionHealthy = _connHost.Healthy();
 
-        return connectionHealthy && (_channel?.IsOpen ?? false);
+        return connectionHealthy && (Channel?.IsOpen ?? false);
     }
 
-    public async Task<bool> ConnectionHealthyAsync()
+    public bool ConnectionHealthy()
     {
-        return await _connHost.HealthyAsync().ConfigureAwait(false);
+        return _connHost.Healthy();
     }
 
     private string _consumerTag = null;
@@ -208,13 +179,13 @@ public class ChannelHost : IChannelHost, IDisposable
         Guard.AgainstNullOrEmpty(options.QueueName, nameof(options.QueueName));
         Guard.AgainstNullOrEmpty(options.ConsumerName, nameof(options.ConsumerName));
 
-        _consumerTag = GetChannel()
+        _consumerTag = Channel
             .BasicConsume(
                 options.QueueName,
-                options.AutoAck ?? false,
+                options.AutoAck,
                 options.ConsumerName,
-                options.NoLocal ?? false,
-                options.Exclusive ?? false,
+                options.NoLocal,
+                options.Exclusive,
                 null,
                 internalConsumer);
 
@@ -225,17 +196,16 @@ public class ChannelHost : IChannelHost, IDisposable
         return _consumerTag;
     }
 
-    public async Task StopConsumingAsync()
+    public void StopConsuming()
     {
         if (string.IsNullOrEmpty(_consumerTag) || !UsedByConsumer) return;
 
         try
         {
-            var healthy = await ChannelHealthyAsync().ConfigureAwait(false);
-            if (healthy)
+            if (ChannelHealthy())
             {
                 _logger.LogInformation(LogMessages.ChannelHosts.ConsumerStopConsumer, ChannelId, _consumerTag);
-                GetChannel().BasicCancel(_consumerTag);
+                Channel.BasicCancel(_consumerTag);
             }
         }
         catch (Exception ex)
@@ -244,7 +214,6 @@ public class ChannelHost : IChannelHost, IDisposable
         }
     }
 
-    private static readonly string _closeChannel = "Closing ChannelHost [Id: {0}]...";
     private const int CloseCode = 200;
     private const string CloseMessage = "HouseofCat.RabbitMQ manual close Channelhost [Id: {0} - CN: {1}] initiated.";
 
@@ -252,24 +221,20 @@ public class ChannelHost : IChannelHost, IDisposable
     {
         try
         {
-            _logger.LogInformation(_closeChannel, ChannelId);
-            _channel.Close(
+            _logger.LogInformation(CloseMessage, ChannelId, Channel.ChannelNumber);
+            Channel.Close(
                 CloseCode,
-                string.Format(CloseMessage, ChannelId, _channel.ChannelNumber));
+                string.Format(CloseMessage, ChannelId, Channel.ChannelNumber));
         }
         catch { /* SWALLOW */ }
     }
+    private bool _disposedValue;
 
     protected virtual void Dispose(bool disposing)
     {
         if (!_disposedValue)
         {
-            if (disposing)
-            {
-                _hostLock.Dispose();
-            }
-
-            _channel = null;
+            Channel = null;
             _connHost = null;
             _disposedValue = true;
         }

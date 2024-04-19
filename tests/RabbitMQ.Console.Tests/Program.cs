@@ -1,29 +1,46 @@
-﻿using ConnectivityTests.Tests;
-using HouseofCat.Utilities;
+﻿using HouseofCat.Utilities.Extensions;
+using HouseofCat.Utilities.Helpers;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using RabbitMQ.ConsoleTests;
 
-var loggerFactory = LogHelper.CreateConsoleLoggerFactory(LogLevel.Information);
-LogHelper.LoggerFactory = loggerFactory;
+var loggerFactory = LogHelpers.CreateConsoleLoggerFactory(LogLevel.Information);
+LogHelpers.LoggerFactory = loggerFactory;
 var logger = loggerFactory.CreateLogger<Program>();
 
-// Basic Tests
-//await BasicGetTests.RunBasicGetAsync(logger, "./RabbitMQ.BasicGetTests.json");
+var builder = WebApplication.CreateBuilder(args);
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(AppContext.BaseDirectory)
+    .AddJsonFile("appsettings.json")
+    .Build();
 
-// Publisher Tests
-//await PublisherTests.RunSlowPublisherTestAsync(logger, "./RabbitMQ.PublisherTests.json");
-//await PublisherTests.RunAutoPublisherStandaloneAsync();
+builder.Services.AddOpenTelemetryExporter(configuration);
 
-// Consumer Tests
-//await ConsumerTests.RunConsumerTestAsync(logger, "./RabbitMQ.ConsumerTests.json");
+using var app = builder.Build();
 
-// PubSub Tests
-//await PubSubTests.RunPubSubTestAsync(logger, "./RabbitMQ.PubSubTests.json");
-//await PubSubTests.RunPubSubCheckForDuplicateTestAsync(logger, "./RabbitMQ.PubSubTests.json");
+logger.LogInformation("Tests complete! Press CTRL+C to gracefully exit....");
 
-// RabbitService Tests
-//await RabbitServiceTests.RunRabbitServicePingPongTestAsync(loggerFactory, "./RabbitMQ.RabbitServiceTests.json");
-await RabbitServiceTests.RunRabbitServiceAltPingPongTestAsync(loggerFactory, "./RabbitMQ.RabbitServiceTests.json");
+app.Lifetime.ApplicationStarted.Register(
+    async () =>
+    {
+        // Basic Tests
+        //await BasicGetTests.RunBasicGetAsync(logger, "./RabbitMQ.BasicGetTests.json");
 
-logger.LogInformation("Tests complete! Press return to exit....");
+        // Publisher Tests
+        //await PublisherTests.RunSlowPublisherTestAsync(logger, "./RabbitMQ.PublisherTests.json");
+        //await PublisherTests.RunAutoPublisherStandaloneAsync();
 
-Console.ReadLine();
+        // Consumer Tests
+        //await ConsumerTests.RunConsumerTestAsync(logger, "./RabbitMQ.ConsumerTests.json");
+
+        // PubSub Tests
+        //await PubSubTests.RunPubSubTestAsync(logger, "./RabbitMQ.PubSubTests.json");
+        //await PubSubTests.RunPubSubCheckForDuplicateTestAsync(logger, "./RabbitMQ.PubSubTests.json");
+
+        // RabbitService Tests
+        await RabbitServiceTests.RunRabbitServicePingPongTestAsync(loggerFactory, "./RabbitMQ.RabbitServiceTests.json");
+        //await RabbitServiceTests.RunRabbitServiceAltPingPongTestAsync(loggerFactory, "./RabbitMQ.RabbitServiceTests.json");
+    });
+
+await app.RunAsync();
