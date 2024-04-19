@@ -23,9 +23,10 @@ public static class RabbitServiceTests
             exchange: Shared.ExchangeName,
             routingKey: Shared.RoutingKey,
             body: dataAsBytes,
-            payloadId: Guid.NewGuid().ToString());
-
-        message.ParentSpanContext = preProcessSpan.Context;
+            payloadId: Guid.NewGuid().ToString())
+        {
+            ParentSpanContext = preProcessSpan.Context
+        };
 
         await rabbitService.Publisher.QueueMessageAsync(message);
         preProcessSpan.End();
@@ -45,7 +46,7 @@ public static class RabbitServiceTests
             }
 
             await rabbitService.DecomcryptAsync(receivedMessage.Message);
-            //await RequeueMessageAsync(rabbitService, receivedMessage);
+            await RequeueMessageAsync(rabbitService, receivedMessage);
 
             receivedMessage.AckMessage();
             consumerSpan.End();
