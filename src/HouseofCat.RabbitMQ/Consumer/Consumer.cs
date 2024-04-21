@@ -114,8 +114,6 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                     { await Task.Delay(Options.PoolOptions.SleepOnErrorInterval); }
                 }
 
-                _logger.LogDebug(Consumers.Started, ConsumerOptions.ConsumerName);
-
                 Started = true;
             }
         }
@@ -126,7 +124,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
     {
         if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
 
-        _logger.LogDebug(Consumers.StopConsumer, ConsumerOptions.ConsumerName);
+        _logger.LogInformation(Consumers.StopConsumer, ConsumerOptions.ConsumerName);
 
         try
         {
@@ -149,7 +147,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 
                 _cts.Cancel();
                 Started = false;
-                _logger.LogDebug(
+                _logger.LogInformation(
                     Consumers.StoppedConsumer,
                     ConsumerOptions.ConsumerName);
             }
@@ -492,7 +490,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
     }
 
     public async IAsyncEnumerable<IReceivedMessage> ReadUntilStopAsync(
-        [EnumeratorCancellation]CancellationToken token = default)
+        [EnumeratorCancellation] CancellationToken token = default)
     {
         if (!await _consumerChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
 

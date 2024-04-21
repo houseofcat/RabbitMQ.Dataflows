@@ -27,8 +27,8 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
     public bool Started { get; private set; }
 
     private readonly ILogger<ConsumerPipeline<TOut>> _logger;
-    private IConsumer<IReceivedMessage> Consumer { get; }
-    private IPipeline<IReceivedMessage, TOut> Pipeline { get; }
+    private IConsumer<PipeReceivedMessage> Consumer { get; }
+    private IPipeline<PipeReceivedMessage, TOut> Pipeline { get; }
     private Task FeedPipelineWithDataTasks { get; set; }
     private TaskCompletionSource<bool> _completionSource;
     private CancellationTokenSource _cancellationTokenSource;
@@ -37,8 +37,8 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
     private readonly SemaphoreSlim _pipeExecLock = new SemaphoreSlim(1, 1);
 
     public ConsumerPipeline(
-        IConsumer<IReceivedMessage> consumer,
-        IPipeline<IReceivedMessage, TOut> pipeline)
+        IConsumer<PipeReceivedMessage> consumer,
+        IPipeline<PipeReceivedMessage, TOut> pipeline)
     {
         _logger = LogHelpers.GetLogger<ConsumerPipeline<TOut>>();
         Pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
@@ -129,7 +129,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
     }
 
     public async Task PipelineStreamEngineAsync(
-        IPipeline<IReceivedMessage, TOut> pipeline,
+        IPipeline<PipeReceivedMessage, TOut> pipeline,
         bool waitForCompletion,
         CancellationToken token = default)
     {
@@ -190,7 +190,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
     }
 
     public async Task PipelineExecutionEngineAsync(
-        IPipeline<IReceivedMessage, TOut> pipeline,
+        IPipeline<PipeReceivedMessage, TOut> pipeline,
         bool waitForCompletion,
         CancellationToken token = default)
     {

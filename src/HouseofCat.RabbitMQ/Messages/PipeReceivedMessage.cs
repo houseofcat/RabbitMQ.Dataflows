@@ -4,43 +4,17 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ;
 
-public interface IReceivedMessage
+public interface IPipeReceivedMessage
 {
-    IMessage Message { get; set; }
-    ReadOnlyMemory<byte> Body { get; set; }
-    IBasicProperties Properties { get; }
-
-    IModel Channel { get; }
-
-    bool Ackable { get; }
-
-    string ObjectType { get; }
-
-    bool Encrypted { get; }
-    string EncryptionType { get; }
-    DateTime EncryptedDateTime { get; }
-
-    bool Compressed { get; }
-    string CompressionType { get; }
-
-    public string TraceParentHeader { get; }
-    public SpanContext? ParentSpanContext { get; set; }
-
-    string ConsumerTag { get; }
-    ulong DeliveryTag { get; }
-
-    bool FailedToDeserialize { get; }
-
-    bool AckMessage();
-
-    bool NackMessage(bool requeue);
-    bool RejectMessage(bool requeue);
+    void Complete();
+    Task<bool> Completion { get; }
 }
 
-public sealed class ReceivedMessage : IReceivedMessage, IDisposable
+public sealed class PipeReceivedMessage : IReceivedMessage, IPipeReceivedMessage, IDisposable
 {
     public IMessage Message { get; set; }
     public ReadOnlyMemory<byte> Body { get; set; }
@@ -67,9 +41,12 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
 
     public bool FailedToDeserialize { get; set; }
 
+    private readonly TaskCompletionSource<bool> _completionSource = new TaskCompletionSource<bool>();
+    public Task<bool> Completion => _completionSource.Task;
+
     private bool _disposedValue;
 
-    public ReceivedMessage(
+    public PipeReceivedMessage(
         IModel channel,
         BasicGetResult result,
         bool ackable)
@@ -83,7 +60,7 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
         ReadHeaders();
     }
 
-    public ReceivedMessage(
+    public PipeReceivedMessage(
         IModel channel,
         BasicDeliverEventArgs args,
         bool ackable)
@@ -196,15 +173,29 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
         return success;
     }
 
+    /// <summary>
+    /// A way to indicate this message is fully finished with.
+    /// </summary>
+    public void Complete()
+    {
+        if (_completionSource.Task.Status < TaskStatus.RanToCompletion)
+        {
+            _completionSource.SetResult(true);
+        }
+    }
+
     private void Dispose(bool disposing)
     {
         if (!_disposedValue)
         {
             if (disposing)
             {
-                if (Channel is not null) { Channel = null; }
-                if (Message is not null) { Message = null; }
+                Complete();
+                _completionSource.Task.Dispose();
             }
+
+            if (Channel != null) { Channel = null; }
+            if (Message != null) { Message = null; }
 
             _disposedValue = true;
         }
