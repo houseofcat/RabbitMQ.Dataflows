@@ -73,14 +73,12 @@ dataflowService.AddFinalization(
     {
         logger.LogInformation("Finalization Step!");
         state.ReceivedMessage.AckMessage();
-        state.ReceivedMessage.Complete();
     });
 
 dataflowService.AddErrorHandling(
     (state) =>
     {
         logger.LogError(state?.EDI?.SourceException, "Error Step!");
-        state?.ReceivedMessage?.Complete();
     });
 
 await dataflowService.StartAsync();

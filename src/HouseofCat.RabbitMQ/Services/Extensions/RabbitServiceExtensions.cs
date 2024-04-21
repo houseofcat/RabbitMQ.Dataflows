@@ -114,19 +114,19 @@ public static class RabbitServiceExtensions
         int maxDoP,
         int batchSize,
         bool? ensureOrdered,
-        Func<int, int, bool?, IPipeline<IReceivedMessage, TOut>> pipelineBuilder)
+        Func<int, int, bool?, IPipeline<PipeReceivedMessage, TOut>> pipelineBuilder)
         where TOut : RabbitWorkState
     {
         var consumer = rabbitService.GetConsumer(consumerName);
         var pipeline = pipelineBuilder.Invoke(maxDoP, batchSize, ensureOrdered);
 
-        return new ConsumerPipeline<TOut>(consumer, pipeline);
+        return new ConsumerPipeline<TOut>((IConsumer<PipeReceivedMessage>)consumer, pipeline);
     }
 
     public static IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
         this IRabbitService rabbitService,
         string consumerName,
-        Func<int, int, bool?, IPipeline<IReceivedMessage, TOut>> pipelineBuilder)
+        Func<int, int, bool?, IPipeline<PipeReceivedMessage, TOut>> pipelineBuilder)
         where TOut : RabbitWorkState
     {
         if (rabbitService.ConsumerOptions.TryGetValue(consumerName, out var options))
@@ -145,12 +145,12 @@ public static class RabbitServiceExtensions
     public static IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
         this IRabbitService rabbitService,
         string consumerName,
-        IPipeline<IReceivedMessage, TOut> pipeline)
+        IPipeline<PipeReceivedMessage, TOut> pipeline)
         where TOut : RabbitWorkState
     {
         var consumer = rabbitService.GetConsumer(consumerName);
 
-        return new ConsumerPipeline<TOut>(consumer, pipeline);
+        return new ConsumerPipeline<TOut>((IConsumer<PipeReceivedMessage>)consumer, pipeline);
     }
 
     public static ConsumerDataflow<TState> BuildConsumerDataflow<TState>(
