@@ -40,7 +40,7 @@ public interface IReceivedMessage
     bool RejectMessage(bool requeue);
 }
 
-public sealed class ReceivedMessage : IReceivedMessage, IDisposable
+public class ReceivedMessage : IReceivedMessage, IDisposable
 {
     public IMessage Message { get; set; }
     public ReadOnlyMemory<byte> Body { get; set; }
