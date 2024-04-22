@@ -11,7 +11,8 @@ Erlang: `v26.2.3`
 
 ![Release](https://img.shields.io/github/v/release/houseofcat/RabbitMQ.Dataflows)
 [![build](https://github.com/houseofcat/RabbitMQ.Dataflows/workflows/build/badge.svg)](https://github.com/houseofcat/RabbitMQ.Dataflows/actions/workflows/build.yml)  
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/2ac2a6f51a8c4efd88135bcb835e3a97)](https://app.codacy.com/gh/houseofcat/RabbitMQ.Dataflows/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)   
+[![Codacy Badge1](https://app.codacy.com/project/badge/Grade/2ac2a6f51a8c4efd88135bcb835e3a97)](https://app.codacy.com/gh/houseofcat/RabbitMQ.Dataflows/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)   
+[![Codacy Badge2](https://app.codacy.com/project/badge/Coverage/2ac2a6f51a8c4efd88135bcb835e3a97)](https://app.codacy.com/gh/houseofcat/RabbitMQ.Dataflows/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
 
 ## Why Make A RabbitMQ Powered Dataflow?  
 
