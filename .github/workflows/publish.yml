@@ -79,15 +79,6 @@ jobs:
           PROJECT_FILE_PATH: src/HouseofCat.Hashing/HouseofCat.Hashing.csproj
           INCLUDE_SYMBOLS: true
 
-    - name: Publish HouseofCat.Metrics
-      uses: alirezanet/publish-nuget@v3.1.0
-      continue-on-error: true
-      with:
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: version.props
-          PROJECT_FILE_PATH: src/HouseofCat.Metrics/HouseofCat.Metrics.csproj
-          INCLUDE_SYMBOLS: true
-
     - name: Publish HouseofCat.RabbitMQ
       uses: alirezanet/publish-nuget@v3.1.0
       continue-on-error: true
