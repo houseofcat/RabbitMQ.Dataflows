@@ -2,6 +2,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using System.IO;
 using System.Runtime.Versioning;
 
 namespace HouseofCat.Data.Database;
@@ -129,7 +130,10 @@ public static class DbConnectionFactory
         if (details.Metadata.OleDbOptions != null)
         {
             if (!string.IsNullOrWhiteSpace(details.Metadata.OleDbOptions.FileName))
-            { csb.FileName = details.Metadata.OleDbOptions.FileName; }
+            {
+                if (!File.Exists(details.Metadata.OleDbOptions.FileName)) throw new FileNotFoundException(details.Metadata.OleDbOptions.FileName);
+                csb.FileName = details.Metadata.OleDbOptions.FileName;
+            }
 
             if (details.Metadata.OleDbOptions.OleDbServices > 0)
             { csb.OleDbServices = details.Metadata.OleDbOptions.OleDbServices; }
@@ -171,7 +175,7 @@ public static class DbConnectionFactory
                     csb.Dsn = (string)value;
                 }
                 else
-                { throw new Exception("Odbc UseDataSourceName option enabled but key 'DSN' was not in the OdbcOptions Properties object."); }
+                { throw new InvalidOperationException("Odbc UseDataSourceName option enabled but key 'DSN' was not in the OdbcOptions Properties object."); }
             }
             else if (details.Port < 1 && !string.IsNullOrWhiteSpace(details.Host))
             { csb["Server"] = details.Host; }
@@ -305,7 +309,7 @@ public static class DbConnectionFactory
     public static Npgsql.NpgsqlConnectionStringBuilder GetNpgsqlConnectionStringBuilder(
         ConnectionDetails details)
     {
-        var csb = new Npgsql.NpgsqlConnectionStringBuilder()
+        var csb = new Npgsql.NpgsqlConnectionStringBuilder
         {
             Database = details.DatabaseName,
         };

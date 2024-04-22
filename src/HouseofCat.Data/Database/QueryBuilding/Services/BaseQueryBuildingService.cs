@@ -148,6 +148,7 @@ public abstract class BaseQueryBuildingService
                         join.Field,
                         join.OnField);
                     break;
+                default: break;
             }
 
         }
