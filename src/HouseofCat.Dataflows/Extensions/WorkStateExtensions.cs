@@ -162,11 +162,6 @@ public static class WorkStateExtensions
                 attributes: attributes);
     }
 
-    public static void AddEvent(this IWorkState state, string name, string description)
-    {
-        state.AddEvent(name, description);
-    }
-
     public static void EndRootSpan(
         this IWorkState state,
         bool includeErrorWhenFaulted = false)

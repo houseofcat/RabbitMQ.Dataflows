@@ -69,7 +69,7 @@ public class ChannelReaderBlockEngine<TIn, TOut>
             if (_postWorkBodyAsync != null)
             {
                 var output = await _workBodyAsync(data).ConfigureAwait(false);
-                if (output != null)
+                if (output is not null)
                 {
                     await _postWorkBodyAsync(output).ConfigureAwait(false);
                 }
