@@ -1,6 +1,7 @@
 ﻿using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
@@ -75,7 +76,7 @@ public class DataflowEngine<TIn, TOut> : IDataBlockEngine<TIn>
             if (_postWorkBodyAsync != null)
             {
                 var output = await _workBodyAsync(data).ConfigureAwait(false);
-                if (output != null)
+                if (!EqualityComparer<TIn>.Default.Equals(data, default))
                 {
                     await _postWorkBodyAsync(output).ConfigureAwait(false);
                 }
