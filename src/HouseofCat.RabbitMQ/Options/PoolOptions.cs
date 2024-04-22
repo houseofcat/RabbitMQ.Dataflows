@@ -118,5 +118,5 @@ public class PoolOptions
     /// channels are created on demand and that means this can slow down internally or at the RabbitMQ
     /// server if you aren't re-using the transient channel you just created.
     /// </summary>
-    public bool OnlyTransientChannels { get; set; } = false;
+    public bool OnlyTransientChannels { get; set; }
 }

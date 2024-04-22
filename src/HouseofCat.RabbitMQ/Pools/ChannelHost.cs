@@ -171,7 +171,7 @@ public class ChannelHost : IChannelHost, IDisposable
         return _connHost.Healthy();
     }
 
-    private string _consumerTag = null;
+    private string _consumerTag;
 
     public string StartConsuming(IBasicConsumer internalConsumer, ConsumerOptions options)
     {
