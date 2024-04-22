@@ -28,11 +28,12 @@ public static class ObjectExtensions
                 + _lengthSize;
         }
 
-        return input switch
+        if (input is string stringy)
         {
-            string stringy => Encoding.Unicode.GetByteCount(stringy),
-            _ => 0,
-        };
+            return Encoding.Unicode.GetByteCount(stringy);
+        }
+
+        throw new InvalidOperationException("Can't perform byte count on this reference type.")
     }
 
     private static readonly Dictionary<Type, int> _primitiveArrayTypeMultiplier = new Dictionary<Type, int>

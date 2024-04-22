@@ -13,9 +13,6 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.8.1" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.8.0" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Time\" />
-  </ItemGroup>
 	<PropertyGroup>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>

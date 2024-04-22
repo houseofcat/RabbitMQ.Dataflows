@@ -8,17 +8,15 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
 {
     private readonly ConsumerDataflow<TState> _workflow;
     private readonly ConsumerOptions _options;
-    private readonly IRabbitService _rabbitService;
 
     public ConsumerDataflowService(
         IRabbitService rabbitService,
         string consumerName)
     {
-        _rabbitService = rabbitService;
-        _options = _rabbitService.Options.GetConsumerOptions(consumerName);
+        _options = rabbitService.Options.GetConsumerOptions(consumerName);
 
         _workflow = new ConsumerDataflow<TState>(
-            _rabbitService,
+            rabbitService,
             _options.WorkflowName,
             _options.ConsumerName,
             _options.WorkflowConsumerCount)

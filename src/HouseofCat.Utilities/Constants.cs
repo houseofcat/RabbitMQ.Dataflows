@@ -20,12 +20,12 @@ public static class Constants
         public const string StackDomainBoundary = "---";
         public const string NewDomainBoundaryTemplate = "=== Sub-stack {0} ===";
 
-        public static readonly string[] NewLineArray = new string[] { $"{Environment.NewLine}" };
-        public static readonly string[] InArray = new string[] { " in " };
-        public static readonly string[] AtArray = new string[] { AtValue };
-        public static readonly string[] ForwardSlashArray = new string[] { "/" };
+        public static readonly string[] NewLineArray = new[] { $"{Environment.NewLine}" };
+        public static readonly string[] InArray = new[] { " in " };
+        public static readonly string[] AtArray = new[] { AtValue };
+        public static readonly string[] ForwardSlashArray = new[] { "/" };
 
         public static readonly string Line = ":line ";
-        public static readonly string[] LineArray = new string[] { Line };
+        public static readonly string[] LineArray = new[] { Line };
     }
 }
