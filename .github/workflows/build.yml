@@ -28,10 +28,11 @@ jobs:
     - name: Test
       run: dotnet test "./tests/UnitTests/UnitTests.csproj" --configuration Release --no-build --verbosity normal
            /p:CollectCoverage=true
+           /p:CoverletOutput='./coverage.cobertura.xml'
            /p:CoverletOutputFormat=cobertura
 
     - name: Upload Coverage Report
       uses: codacy/codacy-coverage-reporter-action@v1
       with:
         project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-        coverage-reports: 'coverage.cobertura.xml'
+        coverage-reports: './coverage.cobertura.xml'
