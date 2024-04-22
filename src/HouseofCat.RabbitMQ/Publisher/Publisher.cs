@@ -31,18 +31,18 @@ public interface IPublisher
     ValueTask QueueMessageAsync(IMessage message);
 
     ChannelReader<IPublishReceipt> GetReceiptBufferReader();
-    Task PublishAsync(IMessage message, bool createReceipt, bool withHeaders = true);
+    Task PublishAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true);
     Task PublishWithConfirmationAsync(IMessage message, bool createReceipt, bool withOptionalHeaders = true);
 
-    Task PublishManyAsBatchAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true);
-    Task PublishManyAsync(IList<IMessage> messages, bool createReceipt, bool withHeaders = true);
+    Task PublishManyAsBatchAsync(IList<IMessage> messages, bool createReceipt, bool withOptionalHeaders = true);
+    Task PublishManyAsync(IList<IMessage> messages, bool createReceipt, bool withOptionalHeaders = true);
 
     Task<bool> PublishAsync(
         string exchangeName,
         string routingKey,
         ReadOnlyMemory<byte> payload,
         bool mandatory = false,
-        IBasicProperties messageProperties = null,
+        IBasicProperties basicProperties = null,
         string messageId = null,
         string contentType = null);
 
@@ -62,7 +62,7 @@ public interface IPublisher
         string routingKey,
         IList<ReadOnlyMemory<byte>> payloads,
         bool mandatory = false,
-        IBasicProperties messageProperties = null,
+        IBasicProperties basicProperties = null,
         string contentType = null);
 
     Task<bool> PublishBatchAsync(
@@ -473,7 +473,7 @@ public class Publisher : IPublisher, IDisposable
         string routingKey,
         IList<ReadOnlyMemory<byte>> payloads,
         bool mandatory = false,
-        IBasicProperties messageProperties = null,
+        IBasicProperties basicProperties = null,
         string contentType = null)
     {
         Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
@@ -483,20 +483,20 @@ public class Publisher : IPublisher, IDisposable
 
         var error = false;
         var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
-        if (messageProperties == null)
+        if (basicProperties == null)
         {
-            messageProperties = channelHost.Channel.CreateBasicProperties();
-            messageProperties.DeliveryMode = 2;
-            messageProperties.MessageId = Guid.NewGuid().ToString();
+            basicProperties = channelHost.Channel.CreateBasicProperties();
+            basicProperties.DeliveryMode = 2;
+            basicProperties.MessageId = Guid.NewGuid().ToString();
 
-            if (!messageProperties.IsHeadersPresent())
+            if (!basicProperties.IsHeadersPresent())
             {
-                messageProperties.Headers = new Dictionary<string, object>();
+                basicProperties.Headers = new Dictionary<string, object>();
             }
         }
 
         // Non-optional Header.
-        SetMandatoryHeaders(messageProperties, contentType);
+        SetMandatoryHeaders(basicProperties, contentType);
 
         try
         {
@@ -506,7 +506,7 @@ public class Publisher : IPublisher, IDisposable
             {
                 using var innerSpan = OpenTelemetryHelpers.StartActiveSpan("IBasicPublishBatch.Add", SpanKind.Producer);
                 EnrichSpanWithTags(span, exchangeName, routingKey);
-                batch.Add(exchangeName, routingKey, mandatory, messageProperties, payloads[i]);
+                batch.Add(exchangeName, routingKey, mandatory, basicProperties, payloads[i]);
             }
 
             batch.Publish();

@@ -18,7 +18,6 @@ public sealed class BouncyAesGcmEncryptionProvider : IEncryptionProvider
 
     private readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
     private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
-    private readonly AesEncryptionOptions _options;
 
     private readonly KeyParameter _keyParameter;
     private readonly int _macBitSize;
@@ -30,10 +29,9 @@ public sealed class BouncyAesGcmEncryptionProvider : IEncryptionProvider
 
         if (!Constants.Aes.ValidKeySizes.Contains(key.Length)) throw new ArgumentException("Keysize is an invalid length.");
 
-        _options = options;
         _keyParameter = new KeyParameter(key.ToArray());
-        _macBitSize = _options?.MacBitSize ?? Constants.Aes.MacBitSize;
-        _nonceSize = _options?.NonceSize ?? Constants.Aes.NonceSize;
+        _macBitSize = options?.MacBitSize ?? Constants.Aes.MacBitSize;
+        _nonceSize = options?.NonceSize ?? Constants.Aes.NonceSize;
 
         switch (key.Length)
         {

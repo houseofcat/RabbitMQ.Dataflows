@@ -39,71 +39,71 @@ public sealed class Topologer : ITopologer
         _channelPool = channelPool;
     }
 
-    public async Task CreateTopologyAsync(TopologyConfig config)
+    public async Task CreateTopologyAsync(TopologyConfig topologyConfig)
     {
-        Guard.AgainstNull(config, nameof(config));
+        Guard.AgainstNull(topologyConfig, nameof(topologyConfig));
 
-        if (config.Exchanges != null)
+        if (topologyConfig.Exchanges != null)
         {
-            for (var i = 0; i < config.Exchanges.Length; i++)
+            for (var i = 0; i < topologyConfig.Exchanges.Length; i++)
             {
                 try
                 {
                     await CreateExchangeAsync(
-                        config.Exchanges[i].Name,
-                        config.Exchanges[i].Type,
-                        config.Exchanges[i].Durable,
-                        config.Exchanges[i].AutoDelete,
-                        config.Exchanges[i].Args).ConfigureAwait(false);
+                        topologyConfig.Exchanges[i].Name,
+                        topologyConfig.Exchanges[i].Type,
+                        topologyConfig.Exchanges[i].Durable,
+                        topologyConfig.Exchanges[i].AutoDelete,
+                        topologyConfig.Exchanges[i].Args).ConfigureAwait(false);
                 }
                 catch { /* SWALLOW */ }
             }
         }
 
-        if (config.Queues != null)
+        if (topologyConfig.Queues != null)
         {
-            for (var i = 0; i < config.Queues.Length; i++)
+            for (var i = 0; i < topologyConfig.Queues.Length; i++)
             {
                 try
                 {
                     await CreateQueueAsync(
-                        config.Queues[i].Name,
-                        config.Queues[i].Durable,
-                        config.Queues[i].Exclusive,
-                        config.Queues[i].AutoDelete,
-                        config.Queues[i].Args).ConfigureAwait(false);
+                        topologyConfig.Queues[i].Name,
+                        topologyConfig.Queues[i].Durable,
+                        topologyConfig.Queues[i].Exclusive,
+                        topologyConfig.Queues[i].AutoDelete,
+                        topologyConfig.Queues[i].Args).ConfigureAwait(false);
                 }
                 catch { /* SWALLOW */ }
             }
         }
 
-        if (config.ExchangeBindings != null)
+        if (topologyConfig.ExchangeBindings != null)
         {
-            for (var i = 0; i < config.ExchangeBindings.Length; i++)
+            for (var i = 0; i < topologyConfig.ExchangeBindings.Length; i++)
             {
                 try
                 {
                     await BindExchangeToExchangeAsync(
-                        config.ExchangeBindings[i].ChildExchange,
-                        config.ExchangeBindings[i].ParentExchange,
-                        config.ExchangeBindings[i].RoutingKey,
-                        config.ExchangeBindings[i].Args).ConfigureAwait(false);
+                        topologyConfig.ExchangeBindings[i].ChildExchange,
+                        topologyConfig.ExchangeBindings[i].ParentExchange,
+                        topologyConfig.ExchangeBindings[i].RoutingKey,
+                        topologyConfig.ExchangeBindings[i].Args).ConfigureAwait(false);
                 }
                 catch { /* SWALLOW */ }
             }
         }
 
-        if (config.QueueBindings != null)
+        if (topologyConfig.QueueBindings != null)
         {
-            for (var i = 0; i < config.QueueBindings.Length; i++)
+            for (var i = 0; i < topologyConfig.QueueBindings.Length; i++)
             {
                 try
                 {
                     await BindQueueToExchangeAsync(
-                        config.QueueBindings[i].QueueName,
-                        config.QueueBindings[i].ExchangeName,
-                        config.QueueBindings[i].RoutingKey,
-                        config.QueueBindings[i].Args).ConfigureAwait(false);
+                        topologyConfig.QueueBindings[i].QueueName,
+                        topologyConfig.QueueBindings[i].ExchangeName,
+                        topologyConfig.QueueBindings[i].RoutingKey,
+                        topologyConfig.QueueBindings[i].Args).ConfigureAwait(false);
                 }
                 catch { /* SWALLOW */ }
             }
