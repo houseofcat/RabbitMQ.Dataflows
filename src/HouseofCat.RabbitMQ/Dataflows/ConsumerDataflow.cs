@@ -596,7 +596,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
     protected virtual List<KeyValuePair<string, string>> GetSpanAttributes(TState state, IReceivedMessage receivedMessage)
     {
-        var attributes = new List<KeyValuePair<string, string>>()
+        var attributes = new List<KeyValuePair<string, string>>
         {
             KeyValuePair.Create(Constants.MessagingConsumerNameKey, _consumerOptions.ConsumerName),
             KeyValuePair.Create(Constants.MessagingOperationKey, Constants.MessagingOperationProcessValue)

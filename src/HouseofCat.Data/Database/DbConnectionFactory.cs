@@ -360,7 +360,7 @@ public static class DbConnectionFactory
     public static MySql.Data.MySqlClient.MySqlConnectionStringBuilder GetMySqlConnectionStringBuilder(
         ConnectionDetails details)
     {
-        var csb = new MySql.Data.MySqlClient.MySqlConnectionStringBuilder()
+        var csb = new MySql.Data.MySqlClient.MySqlConnectionStringBuilder
         {
             Database = details.DatabaseName,
         };

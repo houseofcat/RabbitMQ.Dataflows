@@ -9,7 +9,7 @@ using System.Threading.Tasks.Dataflow;
 
 namespace HouseofCat.Dataflows.Pipelines;
 
-public interface IPipeline<TIn, TOut>
+public interface IPipeline<in TIn, out TOut>
 {
     bool Ready { get; }
     int StepCount { get; }

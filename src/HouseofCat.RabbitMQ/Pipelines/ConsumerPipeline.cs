@@ -9,7 +9,7 @@ using static HouseofCat.RabbitMQ.Pipelines.Constants;
 
 namespace HouseofCat.RabbitMQ.Pipelines;
 
-public interface IConsumerPipeline<TOut> where TOut : RabbitWorkState
+public interface IConsumerPipeline
 {
     string ConsumerPipelineName { get; }
     ConsumerOptions ConsumerOptions { get; }
@@ -20,7 +20,7 @@ public interface IConsumerPipeline<TOut> where TOut : RabbitWorkState
     Task StopAsync(bool immediate = false);
 }
 
-public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where TOut : RabbitWorkState
+public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut : RabbitWorkState
 {
     public string ConsumerPipelineName { get; }
     public ConsumerOptions ConsumerOptions { get; }

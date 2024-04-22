@@ -34,27 +34,7 @@ public class ConnectionPool : IConnectionPool, IDisposable
     private ulong _currentConnectionId;
 
     public RabbitOptions Options { get; }
-
-    public ConnectionPool(RabbitOptions options, HttpClientHandler oauth2ClientHandler = null)
-    {
-        Guard.AgainstNull(options, nameof(options));
-        Options = options;
-
-        _logger = LogHelpers.GetLogger<ConnectionPool>();
-
-        _connections = Channel.CreateBounded<IConnectionHost>(Options.PoolOptions.Connections);
-
-        if (oauth2ClientHandler is not null)
-        {
-            _connectionFactory = BuildConnectionFactory(options, oauth2ClientHandler);
-        }
-        else
-        {
-            _connectionFactory = BuildConnectionFactory();
-        }
-
-        CreateConnectionsAsync().GetAwaiter().GetResult();
-    }
+    private readonly HttpClientHandler _oauth2ClientHandler;
 
     public ConnectionPool(RabbitOptions options)
     {
@@ -66,7 +46,20 @@ public class ConnectionPool : IConnectionPool, IDisposable
         _connections = Channel.CreateBounded<IConnectionHost>(Options.PoolOptions.Connections);
         _connectionFactory = BuildConnectionFactory();
 
+        if (_oauth2ClientHandler is not null)
+        {
+            _connectionFactory = BuildConnectionFactory(options, _oauth2ClientHandler);
+        }
+        else
+        { _connectionFactory = BuildConnectionFactory(); }
+
         CreateConnectionsAsync().GetAwaiter().GetResult();
+    }
+
+    public ConnectionPool(RabbitOptions options, HttpClientHandler oauth2ClientHandler) : this(options)
+    {
+        Guard.AgainstNull(oauth2ClientHandler, nameof(oauth2ClientHandler));
+        _oauth2ClientHandler = oauth2ClientHandler;
     }
 
     protected virtual ConnectionFactory BuildConnectionFactory()
