@@ -3,14 +3,6 @@
 A RabbitMQ library of `.NET` tools to help rapidly develop well performant services or
 to just help manage durable connectivity with the `RabbitMQ.Client`!  
 
-## Why Make A RabbitMQ Powered Dataflow?  
-
-`Dataflows` have configurable concurrency, serialization, monitoring, compression, and
-encryption all as first class citizens. This paradigm allows developers to just focus on
-the important stuff - getting work done
-
-Here are some features ready with RabbitMQ and Dataflows today!
-
 ## Status
 
 Test Server: `Windows 11`  
@@ -21,7 +13,13 @@ Erlang: `v26.2.3`
 [![build](https://github.com/houseofcat/RabbitMQ.Dataflows/workflows/build/badge.svg)](https://github.com/houseofcat/RabbitMQ.Dataflows/actions/workflows/build.yml)  
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/2ac2a6f51a8c4efd88135bcb835e3a97)](https://app.codacy.com/gh/houseofcat/RabbitMQ.Dataflows/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)   
 
+## Why Make A RabbitMQ Powered Dataflow?  
 
+`Dataflows` have configurable concurrency, serialization, monitoring, compression, and
+encryption all as first class citizens. This paradigm allows developers to just focus on
+the important stuff - getting work done
+
+Here are some features ready with RabbitMQ and Dataflows today!
 
 ### Queueing
 * Async Processing, batch processing, consumer cloning and more!    
