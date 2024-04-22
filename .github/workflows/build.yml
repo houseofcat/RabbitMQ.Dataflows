@@ -28,7 +28,6 @@ jobs:
     - name: Test
       run: dotnet test "./tests/UnitTests/UnitTests.csproj" --configuration Release --no-build --verbosity normal
            /p:CollectCoverage=true
-           /p:CoverletOutput=coverage
            /p:CoverletOutputFormat=cobertura
 
     - name: Upload Coverage Report
