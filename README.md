@@ -11,6 +11,18 @@ the important stuff - getting work done
 
 Here are some features ready with RabbitMQ and Dataflows today!
 
+## Status
+
+Test Server: `Windows 11`  
+RabbitMQ Server: `v3.13`  
+Erlang: `v26.2.3`  
+
+![Release](https://img.shields.io/github/v/release/houseofcat/RabbitMQ.Dataflows)
+[![build](https://github.com/houseofcat/RabbitMQ.Dataflows/workflows/build/badge.svg)](https://github.com/houseofcat/RabbitMQ.Dataflows/actions/workflows/build.yml)  
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/2ac2a6f51a8c4efd88135bcb835e3a97)](https://app.codacy.com/gh/houseofcat/RabbitMQ.Dataflows/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)   
+
+
+
 ### Queueing
 * Async Processing, batch processing, consumer cloning and more!    
 * Queue-based Retriability via Ack/Nack.
@@ -26,6 +38,7 @@ Here are some features ready with RabbitMQ and Dataflows today!
 * Allows seamless encryption/decryption steps.  
 * Allows seamless compression/decompression steps.  
 * Async Error Handling with Predicate triggers and an actionable callback.  
+* OpenTelemetry with native Distributed Tracing for Publish/Consumer. 
 
 ### Core Interchangeability
 * Allows you to replace serialization provider with `ISerializationProvider` and have basic 
@@ -66,24 +79,16 @@ what not, all of your code will happily port to whatever other project / flow yo
 working with and so will all your testing making it a win win.  
 
 ## Help & Guides
- * Getting started with a [RabbitMQ.Dataflow.ConnectionPool](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ConnectionPools.md).
- * Getting started with a [RabbitMQ.Dataflow.ChannelPool](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ChannelPools.md).
- * Getting started with a [ChannelPool and IModel.BasicPublish](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicPublish.md).
- * Getting started with a [ChannelPool and IModel.BasicGet](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicGet.md).
- * Getting started with a [ChannelPool and IModel.BasicConsume](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicConsume.md).
- * Getting started with RabbitMQ.Dataflow [Serialization](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/Serialization.md).
+ * Getting started with *RabbitMQ.Dataflows* [ConnectionPool](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ConnectionPools.md).
+ * Getting started with *RabbitMQ.Dataflows* [ChannelPool](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ChannelPools.md).
+ * Getting started with *RabbitMQ.Dataflows* [ChannelPool and BasicPublish](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicPublish.md).
+ * Getting started with *RabbitMQ.Dataflows* [ChannelPool and BasicGet](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicGet.md).
+ * Getting started with *RabbitMQ.Dataflows* [ChannelPool and BasicConsume](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicConsume.md).
+ * Getting started with *RabbitMQ.Dataflows* [Serialization](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/Serialization.md).  
+
+More to come!
 
 You can also find various library examples inside the `tests/UnitTests` or the `tests/RabbitMQ.Console.Test` project.
-
-
-## Status
-
-Test Server: `Windows 11`  
-RabbitMQ Server: `v3.13`  
-Erlang: `v26.2.3`  
-
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9dbb20a30ada48caae4b92a83628f45e)](https://app.codacy.com/gh/houseofcat/RabbitMQ.Dataflows/dashboard)  
-[![build](https://github.com/houseofcat/RabbitMQ.Dataflows/workflows/build/badge.svg)](https://github.com/houseofcat/RabbitMQ.Dataflows/actions/workflows/build.yml)
 
 # Main RabbitMQ Library
 
