@@ -108,7 +108,7 @@ public static class RabbitServiceExtensions
         return rabbitService;
     }
 
-    public static IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
+    public static IConsumerPipeline CreateConsumerPipeline<TOut>(
         this IRabbitService rabbitService,
         string consumerName,
         int maxDoP,
@@ -123,7 +123,7 @@ public static class RabbitServiceExtensions
         return new ConsumerPipeline<TOut>((IConsumer<PipeReceivedMessage>)consumer, pipeline);
     }
 
-    public static IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
+    public static IConsumerPipeline CreateConsumerPipeline<TOut>(
         this IRabbitService rabbitService,
         string consumerName,
         Func<int, int, bool?, IPipeline<PipeReceivedMessage, TOut>> pipelineBuilder)
@@ -142,7 +142,7 @@ public static class RabbitServiceExtensions
         throw new InvalidOperationException($"ConsumerOptions for {consumerName} not found.");
     }
 
-    public static IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
+    public static IConsumerPipeline CreateConsumerPipeline<TOut>(
         this IRabbitService rabbitService,
         string consumerName,
         IPipeline<PipeReceivedMessage, TOut> pipeline)
