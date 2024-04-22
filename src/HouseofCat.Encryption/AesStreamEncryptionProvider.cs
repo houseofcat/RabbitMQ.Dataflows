@@ -29,12 +29,13 @@ public sealed class AesStreamEncryptionProvider : IStreamEncryptionProvider
         _cipherMode = cipherMode;
         _paddingMode = paddingMode;
 
-        switch (_key.Length)
+        Type = _key.Length switch
         {
-            case 16: Type = $"AES{_cipherMode}-128_Padding-{_paddingMode}"; break;
-            case 24: Type = $"AES{_cipherMode}-192_Padding-{_paddingMode}"; break;
-            case 32: Type = $"AES{_cipherMode}-256_Padding-{_paddingMode}"; break;
-        }
+            16 => $"AES{_cipherMode}-128_Padding-{_paddingMode}",
+            24 => $"AES{_cipherMode}-192_Padding-{_paddingMode}",
+            32 => $"AES{_cipherMode}-256_Padding-{_paddingMode}",
+            _ => throw new InvalidOperationException(),
+        };
     }
 
     /// <summary>

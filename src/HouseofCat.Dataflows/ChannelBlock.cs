@@ -9,7 +9,7 @@ using System.Threading.Tasks.Dataflow;
 
 namespace HouseofCat.Dataflows;
 
-public class ChannelBlock<TOut> : ChannelReaderBlock<TOut>, IPropagatorBlock<TOut, TOut>, IReceivableSourceBlock<TOut>
+public class ChannelBlock<TOut> : ChannelReaderBlock<TOut>, IPropagatorBlock<TOut, TOut>, IReceivableSourceBlock<TOut>, IDisposable
 {
     protected readonly Channel<TOut> _channel;
 
@@ -36,6 +36,7 @@ public class ChannelBlock<TOut> : ChannelReaderBlock<TOut>, IPropagatorBlock<TOu
 
     protected CancellationTokenSource _cts;
     protected Task _channelProcessing;
+    private bool disposedValue;
 
     public void StartReadChannel(CancellationToken token = default)
     {
@@ -96,5 +97,24 @@ public class ChannelBlock<TOut> : ChannelReaderBlock<TOut>, IPropagatorBlock<TOu
         { _logger.LogDebug("Consumer task was cancelled. Disregard if this was manually invoked."); }
         catch (Exception ex)
         { _logger.LogError(ex, "Reading consumer buffer threw an exception."); }
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposedValue)
+        {
+            if (disposing)
+            {
+                _cts?.Dispose();
+            }
+
+            disposedValue = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

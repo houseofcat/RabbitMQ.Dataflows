@@ -33,12 +33,13 @@ public sealed class BouncyAesGcmEncryptionProvider : IEncryptionProvider
         _macBitSize = options?.MacBitSize ?? Constants.Aes.MacBitSize;
         _nonceSize = options?.NonceSize ?? Constants.Aes.NonceSize;
 
-        switch (key.Length)
+        Type = key.Length switch
         {
-            case 16: Type = "BC_AESGCM-128"; break;
-            case 24: Type = "BC_AESGCM-192"; break;
-            case 32: Type = "BC_AESGCM-256"; break;
-        }
+            16 => "BC-AESGCM-128",
+            24 => "BC-AESGCM-192",
+            32 => "BC-AESGCM-256",
+            _ => throw new InvalidOperationException(),
+        };
     }
 
     public ReadOnlyMemory<byte> Encrypt(ReadOnlyMemory<byte> unencryptedData)

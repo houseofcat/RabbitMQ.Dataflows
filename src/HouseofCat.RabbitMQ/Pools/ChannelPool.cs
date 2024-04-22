@@ -411,6 +411,7 @@ public class ChannelPool : IChannelPool, IDisposable
                 _ackChannels = null;
                 _flaggedChannels = null;
                 _poolLock.Dispose();
+                _cts?.Dispose();
             }
 
             _disposedValue = true;
