@@ -16,7 +16,7 @@ public interface IConsumerPipeline
     bool Started { get; }
 
     Task AwaitCompletionAsync();
-    Task StartAsync(bool useStream, CancellationToken cancellationToken = default);
+    Task StartAsync(bool useStream, CancellationToken token = default);
     Task StopAsync(bool immediate = false);
 }
 
