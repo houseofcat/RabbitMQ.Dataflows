@@ -12,8 +12,6 @@ namespace HouseofCat.Dataflows;
 public class ChannelBlock<TOut> : ChannelReaderBlock<TOut>, IPropagatorBlock<TOut, TOut>, IReceivableSourceBlock<TOut>
 {
     protected readonly Channel<TOut> _channel;
-    protected CancellationTokenSource _cts;
-    protected Task _channelProcessing;
 
     public ChannelBlock(BoundedChannelOptions options, Func<TOut, TOut> optionalfirstStep = null) : 
         this(Channel.CreateBounded<TOut>(options), new TransformBlock<TOut, TOut>(optionalfirstStep ?? (input => input)))
@@ -29,18 +27,25 @@ public class ChannelBlock<TOut> : ChannelReaderBlock<TOut>, IPropagatorBlock<TOu
 
     public ChannelBlock(Channel<TOut> channel, Func<TOut, TOut> optionalfirstStep = null) : 
         this(channel, new TransformBlock<TOut, TOut>(optionalfirstStep ?? (input => input)))
-    {
-    }
+    { }
 
     public ChannelBlock(Channel<TOut> channel, ITargetBlock<TOut> targetBlock) : base(channel?.Reader, targetBlock)
     {
         _channel = channel;
     }
 
+    protected CancellationTokenSource _cts;
+    protected Task _channelProcessing;
+
     public void StartReadChannel(CancellationToken token = default)
     {
-        _channelProcessing = ReadChannelAsync(
-            token.Equals(default) ? (_cts = new CancellationTokenSource()).Token : token).AsTask();
+        if (!token.Equals(default))
+        {
+            _channelProcessing = ReadChannelAsync(token);
+        }
+
+        _cts = new CancellationTokenSource();
+        _channelProcessing = ReadChannelAsync(_cts.Token);
     }
 
     public async Task StopChannelAsync()

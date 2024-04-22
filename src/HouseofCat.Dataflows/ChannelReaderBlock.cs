@@ -41,7 +41,7 @@ public class ChannelReaderBlock<TOut> : ISourceBlock<TOut>
         }
     }
 
-    public async ValueTask ReadChannelAsync(CancellationToken token = default)
+    public async Task ReadChannelAsync(CancellationToken token = default)
     {
         try
         {
