@@ -23,7 +23,13 @@ jobs:
       run: dotnet restore RabbitMQ.Dataflows.sln
 
     - name: Build
-      run: dotnet build RabbitMQ.Dataflows.sln --configuration Release
+      run: dotnet build RabbitMQ.Dataflows.sln --configuration Release --no-restore
 
     - name: Test
-      run: dotnet test "./tests/UnitTests/UnitTests.csproj"
+      run: dotnet test "./tests/UnitTests/UnitTests.csproj" --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+    - name: Codacy Code Coverage Report
+      uses: codacy/codacy-coverage-reporter-action@v1
+      with:
+        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        coverage-reports: ./coverage

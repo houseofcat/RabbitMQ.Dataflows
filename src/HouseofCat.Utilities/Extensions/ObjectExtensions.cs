@@ -33,7 +33,7 @@ public static class ObjectExtensions
             return Encoding.Unicode.GetByteCount(stringy);
         }
 
-        throw new InvalidOperationException("Can't perform byte count on this reference type.")
+        throw new InvalidOperationException("Can't perform byte count on this reference type.");
     }
 
     private static readonly Dictionary<Type, int> _primitiveArrayTypeMultiplier = new Dictionary<Type, int>
