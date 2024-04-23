@@ -16,7 +16,6 @@ public class RabbitServiceTests
 
     public RabbitServiceTests()
     {
-        var options = new RabbitOptions();
         var hashingProvider = new ArgonHashingProvider();
 
         var hashKey = hashingProvider.GetHashKey("Sega", "Nintendo", 32);
@@ -24,7 +23,6 @@ public class RabbitServiceTests
         _compressionProvider = new GzipProvider();
 
         _rabbitService = new RabbitService(
-            options,
             new JsonProvider(),
             _encryptionProvider,
             _compressionProvider);

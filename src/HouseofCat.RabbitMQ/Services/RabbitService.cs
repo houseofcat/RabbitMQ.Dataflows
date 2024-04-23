@@ -68,6 +68,16 @@ public class RabbitService : IRabbitService, IDisposable
     public string TimeFormat { get; set; } = TimeHelpers.Formats.RFC3339Long;
 
     public RabbitService(
+        ISerializationProvider serializationProvider,
+        IEncryptionProvider encryptionProvider = null,
+        ICompressionProvider compressionProvider = null)
+    {
+        SerializationProvider = serializationProvider;
+        EncryptionProvider = encryptionProvider;
+        CompressionProvider = compressionProvider;
+    }
+
+    public RabbitService(
         string fileNamePath,
         ISerializationProvider serializationProvider,
         IEncryptionProvider encryptionProvider = null,
