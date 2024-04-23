@@ -26,7 +26,7 @@ var rabbitService = await Shared.SetupRabbitServiceAsync(loggerFactory, "RabbitM
 var dataflowService = new ConsumerDataflowService<CustomWorkState>(rabbitService, "TestConsumer");
 
 dataflowService.AddStep(
-    "write_message_to_console",
+    "write_message_to_log",
     (state) =>
     {
         var message = Encoding.UTF8.GetString(state.ReceivedMessage.Body.Span);
@@ -34,7 +34,7 @@ dataflowService.AddStep(
         {
             throw new Exception("Throwing an exception!");
         }
-        Console.WriteLine(message);
+        logger.LogInformation(message);
         return state;
     });
 
