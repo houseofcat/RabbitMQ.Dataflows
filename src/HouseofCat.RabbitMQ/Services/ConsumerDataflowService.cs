@@ -6,26 +6,41 @@ namespace HouseofCat.RabbitMQ.Services;
 
 public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkState, new()
 {
-    private readonly ConsumerDataflow<TState> _workflow;
+    private readonly ConsumerDataflow<TState> _dataflow;
     private readonly ConsumerOptions _options;
 
     public ConsumerDataflowService(
         IRabbitService rabbitService,
-        string consumerName)
+        string consumerName,
+        TaskScheduler taskScheduler = null)
     {
         _options = rabbitService.Options.GetConsumerOptions(consumerName);
 
-        _workflow = new ConsumerDataflow<TState>(
+        var dataflow = new ConsumerDataflow<TState>(
             rabbitService,
-            _options.WorkflowName,
-            _options.ConsumerName,
-            _options.WorkflowConsumerCount)
-            .WithBuildState();
+            _options,
+            taskScheduler)
+            .SetSerializationProvider(rabbitService.SerializationProvider)
+            .SetCompressionProvider(rabbitService.CompressionProvider)
+            .SetEncryptionProvider(rabbitService.EncryptionProvider)
+            .WithBuildState()
+            .WithDecompressionStep()
+            .WithDecryptionStep();
+
+        if (!string.IsNullOrWhiteSpace(_options.TargetQueueName))
+        {
+            dataflow = dataflow
+                .WithEncryption()
+                .WithCompression()
+                .WithSendStep();
+        }
+
+        _dataflow = dataflow;
     }
 
     public void AddStep(string stepName, Func<TState, TState> step)
     {
-        _workflow.AddStep(
+        _dataflow.AddStep(
             step,
             stepName,
             _options.WorkflowMaxDegreesOfParallelism,
@@ -35,7 +50,7 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
 
     public void AddStep(string stepName, Func<TState, Task<TState>> step)
     {
-        _workflow.AddStep(
+        _dataflow.AddStep(
             step,
             stepName,
             _options.WorkflowMaxDegreesOfParallelism,
@@ -45,7 +60,7 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
 
     public void AddFinalization(Action<TState> step)
     {
-        _workflow.WithFinalization(
+        _dataflow.WithFinalization(
             step,
             _options.WorkflowMaxDegreesOfParallelism,
             _options.WorkflowEnsureOrdered,
@@ -54,7 +69,7 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
 
     public void AddFinalization(Func<TState, Task> step)
     {
-        _workflow.WithFinalization(
+        _dataflow.WithFinalization(
             step,
             _options.WorkflowMaxDegreesOfParallelism,
             _options.WorkflowEnsureOrdered,
@@ -63,7 +78,7 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
 
     public void AddErrorHandling(Action<TState> step)
     {
-        _workflow.WithErrorHandling(
+        _dataflow.WithErrorHandling(
             step,
             _options.WorkflowBatchSize,
             _options.WorkflowMaxDegreesOfParallelism,
@@ -72,7 +87,7 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
 
     public void AddErrorHandling(Func<TState, Task> step)
     {
-        _workflow.WithErrorHandling(
+        _dataflow.WithErrorHandling(
             step,
             _options.WorkflowBatchSize,
             _options.WorkflowMaxDegreesOfParallelism,
@@ -81,11 +96,11 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
 
     public async Task StartAsync()
     {
-        await _workflow.StartAsync();
+        await _dataflow.StartAsync();
     }
 
     public async Task StopAsync()
     {
-        await _workflow.StopAsync();
+        await _dataflow.StopAsync();
     }
 }

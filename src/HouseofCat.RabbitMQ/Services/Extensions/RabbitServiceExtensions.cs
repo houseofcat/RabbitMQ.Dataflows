@@ -153,22 +153,33 @@ public static class RabbitServiceExtensions
         return new ConsumerPipeline<TOut>((IConsumer<PipeReceivedMessage>)consumer, pipeline);
     }
 
-    public static ConsumerDataflow<TState> BuildConsumerDataflow<TState>(
+    public static ConsumerDataflow<TState> CreateConsumerDataflow<TState>(
         this IRabbitService rabbitService,
         string consumerName,
         TaskScheduler taskScheduler = null)
         where TState : class, IRabbitWorkState, new()
     {
-        if (rabbitService.ConsumerOptions.TryGetValue(consumerName, out var options))
+        var options = rabbitService.Options.GetConsumerOptions(consumerName);
+
+        var dataflow = new ConsumerDataflow<TState>(
+            rabbitService,
+            options,
+            taskScheduler)
+            .SetSerializationProvider(rabbitService.SerializationProvider)
+            .SetCompressionProvider(rabbitService.CompressionProvider)
+            .SetEncryptionProvider(rabbitService.EncryptionProvider)
+            .WithBuildState()
+            .WithDecompressionStep()
+            .WithDecryptionStep();
+
+        if (!string.IsNullOrWhiteSpace(options.TargetQueueName))
         {
-            return new ConsumerDataflow<TState>(
-                rabbitService,
-                options.WorkflowName,
-                options.ConsumerName,
-                options.WorkflowConsumerCount,
-                taskScheduler);
+            dataflow = dataflow
+                .WithEncryption()
+                .WithCompression()
+                .WithSendStep();
         }
 
-        throw new InvalidOperationException($"ConsumerOptions for {consumerName} not found.");
+        return dataflow;
     }
 }

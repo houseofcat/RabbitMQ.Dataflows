@@ -2,7 +2,7 @@ using System.Threading.Channels;
 
 namespace HouseofCat.RabbitMQ;
 
-public class PublisherOptions
+public sealed class PublisherOptions
 {
     public bool CreatePublishReceipts { get; set; }
     public int MessageQueueBufferSize { get; set; } = 10_000;

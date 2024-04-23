@@ -3,7 +3,7 @@ using System;
 
 namespace HouseofCat.RabbitMQ;
 
-public class PoolOptions
+public sealed class PoolOptions
 {
     /// <summary>
     /// ConnectionFactory (RabbitMQ) Uri connection string. Set to null to use individual properties.

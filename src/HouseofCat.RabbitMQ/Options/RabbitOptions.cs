@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace HouseofCat.RabbitMQ;
 
-public class RabbitOptions
+public sealed class RabbitOptions
 {
     /// <summary>
     /// Class to hold settings for Channel/ConnectionPool options.

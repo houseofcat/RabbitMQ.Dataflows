@@ -18,14 +18,10 @@ namespace HouseofCat.RabbitMQ.Dataflows;
 
 public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : class, IRabbitWorkState, new()
 {
-    public string WorkflowName { get; }
-
     private readonly IRabbitService _rabbitService;
     private readonly ICollection<IConsumer<IReceivedMessage>> _consumers;
     private readonly ConsumerOptions _consumerOptions;
     private readonly TaskScheduler _taskScheduler;
-    private readonly string _consumerName;
-    private readonly int _consumerCount;
 
     // Main Flow - Ingestion
     private readonly List<ConsumerBlock<IReceivedMessage>> _consumerBlocks;
@@ -50,22 +46,24 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     protected ITargetBlock<TState> _errorBuffer;
     protected ActionBlock<TState> _errorAction;
 
+    public string WorkflowName
+    {
+        get
+        {
+            return _consumerOptions?.WorkflowName;
+        }
+    }
+
     public ConsumerDataflow(
         IRabbitService rabbitService,
-        string workflowName,
-        string consumerName,
-        int consumerCount,
+        ConsumerOptions consumerOptions,
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(rabbitService, nameof(rabbitService));
-        Guard.AgainstNullOrEmpty(consumerName, nameof(consumerName));
-
-        WorkflowName = workflowName;
-        _consumerCount = consumerCount;
-        _consumerName = consumerName;
+        Guard.AgainstNull(consumerOptions, nameof(consumerOptions));
 
         _rabbitService = rabbitService;
-        _consumerOptions = rabbitService.Options.GetConsumerOptions(consumerName);
+        _consumerOptions = consumerOptions;
         _serializationProvider = rabbitService.SerializationProvider;
 
         _linkStepOptions = new DataflowLinkOptions { PropagateCompletion = true };
@@ -78,49 +76,6 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 : _consumerOptions.WorkflowMaxDegreesOfParallelism,
             SingleProducerConstrained = true,
             EnsureOrdered = _consumerOptions.WorkflowEnsureOrdered,
-            TaskScheduler = _taskScheduler,
-        };
-
-        _consumerBlocks = new List<ConsumerBlock<IReceivedMessage>>();
-    }
-
-    /// <summary>
-    /// This constructor is used for when you want to supply Consumers manually, or custom Consumers without having to write a custom IRabbitService,
-    /// and want a custom maxDoP and/or ensureOrdered.
-    /// </summary>
-    /// <param name="rabbitService"></param>
-    /// <param name="workflowName"></param>
-    /// <param name="consumers"></param>
-    /// <param name="maxDoP"></param>
-    /// <param name="ensureOrdered"></param>
-    /// <param name="taskScheduler"></param>
-    public ConsumerDataflow(
-        IRabbitService rabbitService,
-        string workflowName,
-        ICollection<IConsumer<IReceivedMessage>> consumers,
-        int maxDoP,
-        bool ensureOrdered,
-        TaskScheduler taskScheduler = null)
-    {
-        Guard.AgainstNull(rabbitService, nameof(rabbitService));
-        Guard.AgainstNullOrEmpty(consumers, nameof(consumers));
-
-        WorkflowName = workflowName;
-        _consumers = consumers;
-
-        _rabbitService = rabbitService;
-        _serializationProvider = rabbitService.SerializationProvider;
-
-        _linkStepOptions = new DataflowLinkOptions { PropagateCompletion = true };
-        _taskScheduler = taskScheduler ?? TaskScheduler.Current;
-
-        _executeStepOptions = new ExecutionDataflowBlockOptions
-        {
-            MaxDegreeOfParallelism = maxDoP < 1
-                ? 1
-                : maxDoP,
-            SingleProducerConstrained = true,
-            EnsureOrdered = ensureOrdered,
             TaskScheduler = _taskScheduler,
         };
 
@@ -462,18 +417,16 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         Guard.AgainstNull(_errorAction, nameof(_errorAction)); // Processing Errors Is Mandatory
 
         _inputBuffer ??= new BufferBlock<IReceivedMessage>();
-
         _readyBuffer ??= new BufferBlock<TState>();
-
         _postProcessingBuffer ??= new BufferBlock<TState>();
 
         if (_consumers == null)
         {
-            for (var i = 0; i < _consumerCount; i++)
+            for (var i = 0; i < _consumerOptions.WorkflowConsumerCount; i++)
             {
                 var consumerBlock = new TConsumerBlock
                 {
-                    Consumer = new Consumer(_rabbitService.ChannelPool, _consumerName)
+                    Consumer = new Consumer(_rabbitService.ChannelPool, _consumerOptions.ConsumerName)
                 };
                 _consumerBlocks.Add(consumerBlock);
                 _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);

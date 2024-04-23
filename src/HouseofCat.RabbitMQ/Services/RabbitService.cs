@@ -75,7 +75,8 @@ public class RabbitService : IRabbitService, IDisposable
         ISerializationProvider serializationProvider,
         IEncryptionProvider encryptionProvider = null,
         ICompressionProvider compressionProvider = null,
-        ILoggerFactory loggerFactory = null, Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
+        ILoggerFactory loggerFactory = null,
+        Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
         : this(
               JsonFileReader
                 .ReadFileAsync<RabbitOptions>(fileNamePath)

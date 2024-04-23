@@ -10,7 +10,7 @@ namespace HouseofCat.RabbitMQ.Dataflows;
 
 public class ConsumerBlock<TOut> : ISourceBlock<TOut>, IDisposable
 {
-    public Task Completion { get; }
+    public Task Completion => _bufferBlock.Completion;
 
     public IConsumer<TOut> Consumer { get; set; }
 
@@ -40,7 +40,6 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>, IDisposable
         _logger = LogHelpers.LoggerFactory.CreateLogger<ConsumerBlock<TOut>>();
         _bufferBlock = bufferBlock;
         _sourceBufferBlock = sourceBufferBlock;
-        Completion = _bufferBlock.Completion;
     }
 
     public async Task StartConsumingAsync()

@@ -3,7 +3,7 @@ using System.Threading.Channels;
 
 namespace HouseofCat.RabbitMQ;
 
-public class ConsumerOptions
+public sealed class ConsumerOptions
 {
     public bool NoLocal { get; set; }
     public bool Exclusive { get; set; }
