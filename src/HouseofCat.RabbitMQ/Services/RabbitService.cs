@@ -229,93 +229,86 @@ public class RabbitService : IRabbitService, IDisposable
         return value;
     }
 
-    public async Task DecomcryptAsync(IMessage message)
-    {
-        if (message is null) return;
-
-        var decrypted = Decrypt(message);
-
-        if (decrypted)
-        {
-            await DecompressAsync(message).ConfigureAwait(false);
-        }
-    }
-
     public async Task ComcryptAsync(IMessage message)
     {
-        if (message is null) return;
+        if (message is null || message.Body.Length == 0) return;
 
         await CompressAsync(message).ConfigureAwait(false);
-
         Encrypt(message);
+    }
+
+    public async Task DecomcryptAsync(IMessage message)
+    {
+        if (message is null || message.Body.Length == 0) return;
+
+        Decrypt(message);
+        await DecompressAsync(message).ConfigureAwait(false);
     }
 
     public bool Encrypt(IMessage message)
     {
-        if (!message.Metadata.Encrypted())
+        if (EncryptionProvider is null || message.Metadata.Encrypted())
         {
-            message.Body = EncryptionProvider.Encrypt(message.Body);
-            message.Metadata.Fields[Constants.HeaderForEncrypted] = true;
-            message.Metadata.Fields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
-            message.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeFormat);
-
-            return true;
+            return false;
         }
 
-        return false;
+        message.Body = EncryptionProvider.Encrypt(message.Body);
+        message.Metadata.Fields[Constants.HeaderForEncrypted] = true;
+        message.Metadata.Fields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
+        message.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeFormat);
+        return true;
     }
 
     public bool Decrypt(IMessage message)
     {
-        if (message.Metadata.Encrypted())
+        if (EncryptionProvider is null || !message.Metadata.Encrypted())
         {
-            message.Body = EncryptionProvider.Decrypt(message.Body);
-            message.Metadata.Fields[Constants.HeaderForEncrypted] = false;
-
-            message.Metadata.Fields.Remove(Constants.HeaderForEncryption);
-            message.Metadata.Fields.Remove(Constants.HeaderForEncryptDate);
-
-            return true;
+            return false;
         }
 
-        return false;
+        message.Body = EncryptionProvider.Decrypt(message.Body);
+        message.Metadata.Fields[Constants.HeaderForEncrypted] = false;
+        message.Metadata.Fields.Remove(Constants.HeaderForEncryption);
+        message.Metadata.Fields.Remove(Constants.HeaderForEncryptDate);
+        return true;
     }
 
     public async Task<bool> CompressAsync(IMessage message)
     {
-        if (message.Metadata.Encrypted())
-        { return false; } // Don't compress after encryption.
-
-        if (!message.Metadata.Compressed())
+        if (CompressionProvider is null
+            || message.Metadata.Encrypted()
+            || message.Metadata.Compressed())
         {
-            message.Body = (await CompressionProvider.CompressAsync(message.Body).ConfigureAwait(false)).ToArray();
-            message.Metadata.Fields[Constants.HeaderForCompressed] = true;
-            message.Metadata.Fields[Constants.HeaderForCompression] = CompressionProvider.Type;
-
-            return true;
+            return false;
         }
 
-        return true;
+        try
+        {
+            message.Body = await CompressionProvider.CompressAsync(message.Body).ConfigureAwait(false);
+            message.Metadata.Fields[Constants.HeaderForCompressed] = true;
+            message.Metadata.Fields[Constants.HeaderForCompression] = CompressionProvider.Type;
+            return true;
+        }
+        catch { return false; }
     }
 
     public async Task<bool> DecompressAsync(IMessage message)
     {
-        if (message.Metadata.Encrypted())
-        { return false; } // Don't decompress before decryption.
-
-        if (message.Metadata.Compressed())
+        if (CompressionProvider is null
+            || message.Metadata.Encrypted()
+            || !message.Metadata.Compressed())
         {
-            try
-            {
-                message.Body = (await CompressionProvider.DecompressAsync(message.Body).ConfigureAwait(false)).ToArray();
-                message.Metadata.Fields[Constants.HeaderForCompressed] = false;
-
-                message.Metadata.Fields.Remove(Constants.HeaderForCompression);
-            }
-            catch { return false; }
+            return false;
         }
 
-        return true;
+        try
+        {
+            message.Body = await CompressionProvider.DecompressAsync(message.Body).ConfigureAwait(false);
+            message.Metadata.Fields[Constants.HeaderForCompressed] = false;
+            message.Metadata.Fields.Remove(Constants.HeaderForCompression);
+            return true;
+        }
+        catch { return false; }
     }
 
     public async Task<ReadOnlyMemory<byte>> GetAsync(string queueName)

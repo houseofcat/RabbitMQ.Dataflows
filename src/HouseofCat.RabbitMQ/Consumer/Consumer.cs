@@ -31,7 +31,7 @@ public interface IConsumer<TFromQueue>
     Task StopConsumerAsync(bool immediate = false);
 
     Task<IEnumerable<TFromQueue>> ReadUntilEmptyAsync(CancellationToken token = default);
-    Task<IAsyncEnumerable<IReceivedMessage>> ReadUntilStopAsync(CancellationToken token = default);
+    ValueTask<IAsyncEnumerable<IReceivedMessage>> ReadUntilStopAsync(CancellationToken token = default);
 }
 
 public class Consumer : IConsumer<IReceivedMessage>, IDisposable
@@ -489,7 +489,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         return list;
     }
 
-    public async Task<IAsyncEnumerable<IReceivedMessage>> ReadUntilStopAsync(CancellationToken token = default)
+    public async ValueTask<IAsyncEnumerable<IReceivedMessage>> ReadUntilStopAsync(CancellationToken token = default)
     {
         if (!await _consumerChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
 

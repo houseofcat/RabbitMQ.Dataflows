@@ -28,7 +28,7 @@
     "TestConsumer": {
       "Enabled": true,
       "ConsumerName": "TestConsumer",
-      "BatchSize": 5,
+      "BatchSize": 10,
       "BehaviorWhenFull": 0,
       "UseTransientChannels": true,
       "AutoAck": false,
@@ -45,9 +45,9 @@
       "BuildQueueExclusive": false,
       "BuildQueueAutoDelete": false,
       "WorkflowName": "TestConsumerWorkflow",
-      "WorkflowMaxDegreesOfParallelism": 1,
+      "WorkflowMaxDegreesOfParallelism": 8,
       "WorkflowConsumerCount": 1,
-      "WorkflowBatchSize": 5,
+      "WorkflowBatchSize": 10,
       "WorkflowEnsureOrdered": false,
       "WorkflowWaitForCompletion": false
     }

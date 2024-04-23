@@ -91,13 +91,13 @@ public sealed class PoolOptions
     /// Number of channels to keep in each of the channel pool. Used in round-robin to perform actions.
     /// <para>Default value is 0.</para>
     /// </summary>
-    public ushort Channels { get; set; } = 1;
+    public ushort Channels { get; set; } = 2;
 
     /// <summary>
     /// Number of ackable channels to keep in each of the channel pool. Used in round-robin to perform actions.
     /// <para>Default value is 10.</para>
     /// </summary>
-    public ushort AckableChannels { get; set; } = 1;
+    public ushort AckableChannels { get; set; } = 2;
 
     /// <summary>
     /// The time to sleep (in ms) when an error occurs on Channel or Connection creation. It's best not to be hyper aggressive with this value.
