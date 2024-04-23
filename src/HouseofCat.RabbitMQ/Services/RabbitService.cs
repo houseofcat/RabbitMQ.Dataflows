@@ -68,7 +68,7 @@ public class RabbitService : IRabbitService, IDisposable
     public ConcurrentDictionary<string, IConsumer<IReceivedMessage>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<IReceivedMessage>>();
     public ConcurrentDictionary<string, ConsumerOptions> ConsumerOptions { get; private set; } = new ConcurrentDictionary<string, ConsumerOptions>();
 
-    public string TimeFormat { get; set; } = TimeHelpers.Formats.CatsAltFormat;
+    public string TimeFormat { get; set; } = TimeHelpers.Formats.RFC3339Long;
 
     public RabbitService(
         string fileNamePath,

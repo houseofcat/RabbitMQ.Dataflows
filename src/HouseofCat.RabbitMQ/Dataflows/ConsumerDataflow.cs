@@ -19,7 +19,6 @@ namespace HouseofCat.RabbitMQ.Dataflows;
 public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : class, IRabbitWorkState, new()
 {
     private readonly IRabbitService _rabbitService;
-    private readonly ICollection<IConsumer<IReceivedMessage>> _consumers;
     private readonly ConsumerOptions _consumerOptions;
     private readonly TaskScheduler _taskScheduler;
 
@@ -420,30 +419,14 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         _readyBuffer ??= new BufferBlock<TState>();
         _postProcessingBuffer ??= new BufferBlock<TState>();
 
-        if (_consumers == null)
+        for (var i = 0; i < _consumerOptions.WorkflowConsumerCount; i++)
         {
-            for (var i = 0; i < _consumerOptions.WorkflowConsumerCount; i++)
+            var consumerBlock = new TConsumerBlock
             {
-                var consumerBlock = new TConsumerBlock
-                {
-                    Consumer = new Consumer(_rabbitService.ChannelPool, _consumerOptions.ConsumerName)
-                };
-                _consumerBlocks.Add(consumerBlock);
-                _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
-            }
-        }
-        else
-        {
-            for (var i = 0; i < _consumers.Count; i++)
-            {
-                var consumerBlock = new TConsumerBlock
-                {
-                    Consumer = _consumers.ElementAt(i)
-                };
-
-                _consumerBlocks.Add(consumerBlock);
-                _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
-            }
+                Consumer = new Consumer(_rabbitService.ChannelPool, _consumerOptions.ConsumerName)
+            };
+            _consumerBlocks.Add(consumerBlock);
+            _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
         }
 
         ((ISourceBlock<IReceivedMessage>)_inputBuffer).LinkTo(_buildStateBlock, overrideOptions ?? _linkStepOptions);
