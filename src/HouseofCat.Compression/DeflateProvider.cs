@@ -4,12 +4,13 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
+using static HouseofCat.Compression.Enums;
 
 namespace HouseofCat.Compression;
 
 public class DeflateProvider : ICompressionProvider
 {
-    public string Type { get; } = "DEFLATE";
+    public string Type { get; } = CompressionType.Deflate.ToString().ToUpper();
     public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
 
     public DeflateProvider() { }
@@ -19,28 +20,28 @@ public class DeflateProvider : ICompressionProvider
         CompressionLevel = compressionLevel;
     }
 
-    public ReadOnlyMemory<byte> Compress(ReadOnlyMemory<byte> inputData)
+    public ReadOnlyMemory<byte> Compress(ReadOnlyMemory<byte> input)
     {
-        Guard.AgainstEmpty(inputData, nameof(inputData));
+        Guard.AgainstEmpty(input, nameof(input));
 
         using var compressedStream = new MemoryStream();
-        using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, false))
+        using (var compressionStream = new DeflateStream(compressedStream, CompressionLevel, false))
         {
-            deflateStream.Write(inputData.Span);
+            compressionStream.Write(input.Span);
         }
 
         return compressedStream.ToArray();
     }
 
-    public async ValueTask<ReadOnlyMemory<byte>> CompressAsync(ReadOnlyMemory<byte> inputData)
+    public async ValueTask<ReadOnlyMemory<byte>> CompressAsync(ReadOnlyMemory<byte> input)
     {
-        Guard.AgainstEmpty(inputData, nameof(inputData));
+        Guard.AgainstEmpty(input, nameof(input));
 
         using var compressedStream = new MemoryStream();
-        using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, false))
+        using (var compressionStream = new DeflateStream(compressedStream, CompressionLevel, false))
         {
-            await deflateStream
-                .WriteAsync(inputData)
+            await compressionStream
+                .WriteAsync(input)
                 .ConfigureAwait(false);
         }
 
@@ -54,18 +55,18 @@ public class DeflateProvider : ICompressionProvider
     /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
     /// <param name="data"></param>
     /// <returns></returns>
-    public MemoryStream Compress(Stream inputStream, bool leaveStreamOpen = false)
+    public MemoryStream Compress(Stream inputStream, bool leaveOpen = false)
     {
         Guard.AgainstNullOrEmpty(inputStream, nameof(inputStream));
 
         if (inputStream.Position == inputStream.Length) { inputStream.Seek(0, SeekOrigin.Begin); }
 
         var compressedStream = new MemoryStream();
-        using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
+        using (var compressionStream = new DeflateStream(compressedStream, CompressionLevel, true))
         {
-            inputStream.CopyTo(deflateStream);
+            inputStream.CopyTo(compressionStream);
         }
-        if (!leaveStreamOpen) { inputStream.Close(); }
+        if (!leaveOpen) { inputStream.Close(); }
 
         compressedStream.Seek(0, SeekOrigin.Begin);
         return compressedStream;
@@ -78,20 +79,20 @@ public class DeflateProvider : ICompressionProvider
     /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
     /// <param name="data"></param>
     /// <returns></returns>
-    public async ValueTask<MemoryStream> CompressAsync(Stream inputStream, bool leaveStreamOpen = false)
+    public async ValueTask<MemoryStream> CompressAsync(Stream inputStream, bool leaveOpen = false)
     {
         Guard.AgainstNullOrEmpty(inputStream, nameof(inputStream));
 
         if (inputStream.Position == inputStream.Length) { inputStream.Seek(0, SeekOrigin.Begin); }
 
         var compressedStream = new MemoryStream();
-        using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
+        using (var compressionStream = new DeflateStream(compressedStream, CompressionLevel, true))
         {
             await inputStream
-                .CopyToAsync(deflateStream)
+                .CopyToAsync(compressionStream)
                 .ConfigureAwait(false);
         }
-        if (!leaveStreamOpen) { inputStream.Close(); }
+        if (!leaveOpen) { inputStream.Close(); }
 
         compressedStream.Seek(0, SeekOrigin.Begin);
         return compressedStream;
@@ -104,14 +105,14 @@ public class DeflateProvider : ICompressionProvider
     /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
     /// <param name="data"></param>
     /// <returns></returns>
-    public MemoryStream CompressToStream(ReadOnlyMemory<byte> inputData)
+    public MemoryStream CompressToStream(ReadOnlyMemory<byte> input)
     {
-        Guard.AgainstEmpty(inputData, nameof(inputData));
+        Guard.AgainstEmpty(input, nameof(input));
 
         var compressedStream = new MemoryStream();
-        using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
+        using (var compressionStream = new DeflateStream(compressedStream, CompressionLevel, true))
         {
-            deflateStream.Write(inputData.Span);
+            compressionStream.Write(input.Span);
         }
 
         compressedStream.Seek(0, SeekOrigin.Begin);
@@ -125,15 +126,15 @@ public class DeflateProvider : ICompressionProvider
     /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
     /// <param name="data"></param>
     /// <returns></returns>
-    public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> compressedData)
+    public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> compressedInput)
     {
-        Guard.AgainstEmpty(compressedData, nameof(compressedData));
+        Guard.AgainstEmpty(compressedInput, nameof(compressedInput));
 
         var compressedStream = new MemoryStream();
-        using (var deflateStream = new DeflateStream(compressedStream, CompressionLevel, true))
+        using (var compressionStream = new DeflateStream(compressedStream, CompressionLevel, true))
         {
-            await deflateStream
-                .WriteAsync(compressedData)
+            await compressionStream
+                .WriteAsync(compressedInput)
                 .ConfigureAwait(false);
         }
 
@@ -141,27 +142,27 @@ public class DeflateProvider : ICompressionProvider
         return compressedStream;
     }
 
-    public ReadOnlyMemory<byte> Decompress(ReadOnlyMemory<byte> compressedData)
+    public ReadOnlyMemory<byte> Decompress(ReadOnlyMemory<byte> compressedInput)
     {
-        Guard.AgainstEmpty(compressedData, nameof(compressedData));
+        Guard.AgainstEmpty(compressedInput, nameof(compressedInput));
 
         using var uncompressedStream = new MemoryStream();
-        using (var deflateStream = new DeflateStream(compressedData.AsStream(), CompressionMode.Decompress, false))
+        using (var compressionStream = new DeflateStream(compressedInput.AsStream(), CompressionMode.Decompress, false))
         {
-            deflateStream.CopyTo(uncompressedStream);
+            compressionStream.CopyTo(uncompressedStream);
         }
 
         return uncompressedStream.ToArray();
     }
 
-    public async ValueTask<ReadOnlyMemory<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
+    public async ValueTask<ReadOnlyMemory<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedInput)
     {
-        Guard.AgainstEmpty(compressedData, nameof(compressedData));
+        Guard.AgainstEmpty(compressedInput, nameof(compressedInput));
 
         using var uncompressedStream = new MemoryStream();
-        using (var deflateStream = new DeflateStream(compressedData.AsStream(), CompressionMode.Decompress, false))
+        using (var compressionStream = new DeflateStream(compressedInput.AsStream(), CompressionMode.Decompress, false))
         {
-            await deflateStream
+            await compressionStream
                 .CopyToAsync(uncompressedStream)
                 .ConfigureAwait(false);
         }
@@ -175,16 +176,16 @@ public class DeflateProvider : ICompressionProvider
     /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
     /// <param name="compressedStream"></param>
     /// <returns></returns>
-    public MemoryStream Decompress(Stream compressedStream, bool leaveStreamOpen = false)
+    public MemoryStream Decompress(Stream compressedStream, bool leaveOpen = false)
     {
         Guard.AgainstNullOrEmpty(compressedStream, nameof(compressedStream));
 
         if (compressedStream.Position == compressedStream.Length) { compressedStream.Seek(0, SeekOrigin.Begin); }
 
         var uncompressedStream = new MemoryStream();
-        using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
+        using (var compressionStream = new DeflateStream(compressedStream, CompressionMode.Decompress, leaveOpen))
         {
-            deflateStream.CopyTo(uncompressedStream);
+            compressionStream.CopyTo(uncompressedStream);
         }
 
         return uncompressedStream;
@@ -195,16 +196,16 @@ public class DeflateProvider : ICompressionProvider
     /// </summary>
     /// <param name="compressedStream"></param>
     /// <returns></returns>
-    public async ValueTask<MemoryStream> DecompressAsync(Stream compressedStream, bool leaveStreamOpen = false)
+    public async ValueTask<MemoryStream> DecompressAsync(Stream compressedStream, bool leaveOpen = false)
     {
         Guard.AgainstNullOrEmpty(compressedStream, nameof(compressedStream));
 
         if (compressedStream.Position == compressedStream.Length) { compressedStream.Seek(0, SeekOrigin.Begin); }
 
         var uncompressedStream = new MemoryStream();
-        using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
+        using (var compressionStream = new DeflateStream(compressedStream, CompressionMode.Decompress, leaveOpen))
         {
-            await deflateStream
+            await compressionStream
                 .CopyToAsync(uncompressedStream)
                 .ConfigureAwait(false);
         }
@@ -215,14 +216,14 @@ public class DeflateProvider : ICompressionProvider
     /// <summary>
     /// Returns a new <c>MemoryStream</c> that has decompressed data inside.
     /// </summary>
-    /// <param name="compressedData"></param>
+    /// <param name="compressedInput"></param>
     /// <returns>A <c>new MemoryStream</c>.</returns>
-    public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData)
+    public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedInput)
     {
         var uncompressedStream = new MemoryStream();
-        using (var deflateStream = new DeflateStream(compressedData.AsStream(), CompressionMode.Decompress, false))
+        using (var compressionStream = new DeflateStream(compressedInput.AsStream(), CompressionMode.Decompress, false))
         {
-            deflateStream.CopyTo(uncompressedStream);
+            compressionStream.CopyTo(uncompressedStream);
         }
 
         return uncompressedStream;
