@@ -44,8 +44,8 @@ public class RabbitServiceTests
         // Assert
         Assert.True(message.Metadata.Encrypted());
         Assert.True(message.Metadata.Compressed());
-        Assert.Equal(message.Metadata.EncryptionType(), _rabbitService.EncryptionProvider.Type);
-        Assert.Equal(message.Metadata.CompressionType(), _rabbitService.CompressionProvider.Type);
+        Assert.Equal(_rabbitService.EncryptionProvider.Type, message.Metadata.EncryptionType());
+        Assert.Equal(_rabbitService.CompressionProvider.Type, message.Metadata.CompressionType());
         Assert.NotEqual(messageAsString, bodyAsString);
     }
 
@@ -88,8 +88,8 @@ public class RabbitServiceTests
         // Assert
         Assert.True(message.Metadata.Encrypted());
         Assert.True(message.Metadata.Compressed());
-        Assert.Equal(message.Metadata.EncryptionType(), _rabbitService.EncryptionProvider.Type);
-        Assert.Equal(message.Metadata.CompressionType(), _rabbitService.CompressionProvider.Type);
+        Assert.Equal(_rabbitService.EncryptionProvider.Type, message.Metadata.EncryptionType());
+        Assert.Equal(_rabbitService.CompressionProvider.Type, message.Metadata.CompressionType());
         Assert.NotEqual(messageAsString, bodyAsString);
 
         // Re-Act
@@ -115,7 +115,7 @@ public class RabbitServiceTests
 
         // Assert
         Assert.True(message.Metadata.Encrypted());
-        Assert.Equal(message.Metadata.EncryptionType(), _rabbitService.EncryptionProvider.Type);
+        Assert.Equal(_rabbitService.EncryptionProvider.Type, message.Metadata.EncryptionType());
         Assert.NotEqual(messageAsString, bodyAsString);
 
         // Re-Act
@@ -140,7 +140,7 @@ public class RabbitServiceTests
 
         // Assert
         Assert.True(message.Metadata.Compressed());
-        Assert.Equal(message.Metadata.CompressionType(), _rabbitService.CompressionProvider.Type);
+        Assert.Equal(_rabbitService.CompressionProvider.Type, message.Metadata.CompressionType());
         Assert.NotEqual(messageAsString, bodyAsString);
 
         // Re-Act
