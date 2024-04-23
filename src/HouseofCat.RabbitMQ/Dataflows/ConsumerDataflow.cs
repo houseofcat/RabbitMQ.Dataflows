@@ -8,7 +8,6 @@ using HouseofCat.Utilities.Errors;
 using OpenTelemetry.Trace;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;

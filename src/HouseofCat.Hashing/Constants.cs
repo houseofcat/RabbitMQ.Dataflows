@@ -13,7 +13,7 @@ public static class Constants
         // Recommend 2 GB for the highest security scenarios.
         // Recommend a minimum of 64 MB in high security scenarios.
         // Recommend a minimum of 2 MB in low security scenarios.
-        public static int MemorySize { get; set; } = 1024*64;
+        public static int MemorySize { get; set; } = 1024 * 64;
 
         // Recommend a minimum of 3 for most security scenarios.
         public static int Iterations { get; set; } = 3;

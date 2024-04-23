@@ -13,7 +13,7 @@ public class ChannelBlock<TOut> : ChannelReaderBlock<TOut>, IPropagatorBlock<TOu
 {
     protected readonly Channel<TOut> _channel;
 
-    public ChannelBlock(BoundedChannelOptions options, Func<TOut, TOut> optionalfirstStep = null) : 
+    public ChannelBlock(BoundedChannelOptions options, Func<TOut, TOut> optionalfirstStep = null) :
         this(Channel.CreateBounded<TOut>(options), new TransformBlock<TOut, TOut>(optionalfirstStep ?? (input => input)))
     {
         Guard.AgainstNull(options, nameof(options));
@@ -25,7 +25,7 @@ public class ChannelBlock<TOut> : ChannelReaderBlock<TOut>, IPropagatorBlock<TOu
         Guard.AgainstNull(options, nameof(options));
     }
 
-    public ChannelBlock(Channel<TOut> channel, Func<TOut, TOut> optionalfirstStep = null) : 
+    public ChannelBlock(Channel<TOut> channel, Func<TOut, TOut> optionalfirstStep = null) :
         this(channel, new TransformBlock<TOut, TOut>(optionalfirstStep ?? (input => input)))
     { }
 

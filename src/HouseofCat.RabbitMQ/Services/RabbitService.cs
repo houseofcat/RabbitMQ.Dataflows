@@ -1,8 +1,5 @@
 using HouseofCat.Compression;
-using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.Encryption;
-using HouseofCat.RabbitMQ.Dataflows;
-using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities;
