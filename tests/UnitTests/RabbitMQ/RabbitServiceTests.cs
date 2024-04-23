@@ -1,4 +1,4 @@
-using HouseofCat.Compression;
+﻿using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ;
@@ -11,6 +11,8 @@ namespace RabbitMQ;
 public class RabbitServiceTests
 {
     private readonly IRabbitService _rabbitService;
+    private readonly IEncryptionProvider _encryptionProvider;
+    private readonly ICompressionProvider _compressionProvider;
 
     public RabbitServiceTests()
     {
@@ -18,43 +20,135 @@ public class RabbitServiceTests
         var hashingProvider = new ArgonHashingProvider();
 
         var hashKey = hashingProvider.GetHashKey("Sega", "Nintendo", 32);
+        _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
+        _compressionProvider = new GzipProvider();
 
         _rabbitService = new RabbitService(
             options,
             new JsonProvider(),
-            new AesGcmEncryptionProvider(hashKey),
-            new GzipProvider());
+            _encryptionProvider,
+            _compressionProvider);
     }
 
     [Fact]
     public async Task ComcryptTestAsync()
     {
-        var message = new Message("", "TestQueue", Encoding.UTF8.GetBytes("Hello World"));
+        // Arrange
+        var messageAsString = "Hello World";
+        var message = new Message("", "TestQueue", Encoding.UTF8.GetBytes(messageAsString));
 
+        // Act
         await _rabbitService.ComcryptAsync(message);
+        var bodyAsString = Encoding.UTF8.GetString(message.Body.Span);
 
+        // Assert
         Assert.True(message.Metadata.Encrypted());
         Assert.True(message.Metadata.Compressed());
+        Assert.Equal(message.Metadata.EncryptionType(), _rabbitService.EncryptionProvider.Type);
+        Assert.Equal(message.Metadata.CompressionType(), _rabbitService.CompressionProvider.Type);
+        Assert.NotEqual(messageAsString, bodyAsString);
+    }
+
+    [Fact]
+    public async Task DecomcryptTestAsync()
+    {
+        // Arrange
+        var compressedData = _compressionProvider.Compress(Encoding.UTF8.GetBytes("Hello World"));
+        var encryptedData = _encryptionProvider.Encrypt(compressedData);
+        var message = new Message("", "TestQueue", encryptedData);
+
+        message.Metadata.Fields[HouseofCat.RabbitMQ.Constants.HeaderForCompressed] = true;
+        message.Metadata.Fields[HouseofCat.RabbitMQ.Constants.HeaderForCompression] = _rabbitService.CompressionProvider.Type;
+        message.Metadata.Fields[HouseofCat.RabbitMQ.Constants.HeaderForEncrypted] = true;
+        message.Metadata.Fields[HouseofCat.RabbitMQ.Constants.HeaderForEncryption] = _rabbitService.EncryptionProvider.Type;
+
+        // Act
+        await _rabbitService.DecomcryptAsync(message);
+        var bodyAsString = Encoding.UTF8.GetString(message.Body.Span);
+
+        // Assert
+        Assert.False(message.Metadata.Encrypted());
+        Assert.False(message.Metadata.Compressed());
+        Assert.False(message.Metadata.Fields.ContainsKey(HouseofCat.RabbitMQ.Constants.HeaderForEncryption));
+        Assert.False(message.Metadata.Fields.ContainsKey(HouseofCat.RabbitMQ.Constants.HeaderForCompression));
+        Assert.Equal("Hello World", bodyAsString);
     }
 
     [Fact]
     public async Task ComcryptDecomcryptTestAsync()
     {
+        // Arrange
         var messageAsString = "Hello World";
         var message = new Message("", "TestQueue", Encoding.UTF8.GetBytes(messageAsString));
 
+        // Act
         await _rabbitService.ComcryptAsync(message);
-
-        Assert.True(message.Metadata.Encrypted());
-        Assert.True(message.Metadata.Compressed());
-
-        await _rabbitService.DecomcryptAsync(message);
-
-        Assert.False(message.Metadata.Encrypted());
-        Assert.False(message.Metadata.Compressed());
-
         var bodyAsString = Encoding.UTF8.GetString(message.Body.Span);
 
+        // Assert
+        Assert.True(message.Metadata.Encrypted());
+        Assert.True(message.Metadata.Compressed());
+        Assert.Equal(message.Metadata.EncryptionType(), _rabbitService.EncryptionProvider.Type);
+        Assert.Equal(message.Metadata.CompressionType(), _rabbitService.CompressionProvider.Type);
+        Assert.NotEqual(messageAsString, bodyAsString);
+
+        // Re-Act
+        await _rabbitService.DecomcryptAsync(message);
+        bodyAsString = Encoding.UTF8.GetString(message.Body.Span);
+
+        // Re-Assert
+        Assert.False(message.Metadata.Encrypted());
+        Assert.False(message.Metadata.Compressed());
+        Assert.Equal(messageAsString, bodyAsString);
+    }
+
+    [Fact]
+    public void EncryptDecryptTest()
+    {
+        // Arrange
+        var messageAsString = "Hello World";
+        var message = new Message("", "TestQueue", Encoding.UTF8.GetBytes(messageAsString));
+
+        // Act
+        _rabbitService.Encrypt(message);
+        var bodyAsString = Encoding.UTF8.GetString(message.Body.Span);
+
+        // Assert
+        Assert.True(message.Metadata.Encrypted());
+        Assert.Equal(message.Metadata.EncryptionType(), _rabbitService.EncryptionProvider.Type);
+        Assert.NotEqual(messageAsString, bodyAsString);
+
+        // Re-Act
+        _rabbitService.Decrypt(message);
+        bodyAsString = Encoding.UTF8.GetString(message.Body.Span);
+
+        // Re-Assert
+        Assert.False(message.Metadata.Encrypted());
+        Assert.Equal(messageAsString, bodyAsString);
+    }
+
+    [Fact]
+    public async Task CompressDecompressTestAsync()
+    {
+        // Arrange
+        var messageAsString = "Hello World";
+        var message = new Message("", "TestQueue", Encoding.UTF8.GetBytes(messageAsString));
+
+        // Act
+        await _rabbitService.CompressAsync(message);
+        var bodyAsString = Encoding.UTF8.GetString(message.Body.Span);
+
+        // Assert
+        Assert.True(message.Metadata.Compressed());
+        Assert.Equal(message.Metadata.CompressionType(), _rabbitService.CompressionProvider.Type);
+        Assert.NotEqual(messageAsString, bodyAsString);
+
+        // Re-Act
+        await _rabbitService.DecompressAsync(message);
+        bodyAsString = Encoding.UTF8.GetString(message.Body.Span);
+
+        // Re-Assert
+        Assert.False(message.Metadata.Compressed());
         Assert.Equal(messageAsString, bodyAsString);
     }
 }
