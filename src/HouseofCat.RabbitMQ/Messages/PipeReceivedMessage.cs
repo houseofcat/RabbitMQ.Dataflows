@@ -8,13 +8,13 @@ namespace HouseofCat.RabbitMQ;
 public interface ITaskComplete
 {
     void Complete();
-    Task<bool> Completion { get; }
+    Task Completion { get; }
 }
 
 public sealed class PipeReceivedMessage : ReceivedMessage, ITaskComplete, IDisposable
 {
-    private readonly TaskCompletionSource<bool> _completionSource = new TaskCompletionSource<bool>();
-    public Task<bool> Completion => _completionSource.Task;
+    private readonly TaskCompletionSource _completionSource = new TaskCompletionSource();
+    public Task Completion => _completionSource.Task;
 
     public PipeReceivedMessage(
         IModel channel,
@@ -35,7 +35,7 @@ public sealed class PipeReceivedMessage : ReceivedMessage, ITaskComplete, IDispo
     {
         if (_completionSource.Task.Status < TaskStatus.RanToCompletion)
         {
-            _completionSource.SetResult(true);
+            _completionSource.SetResult();
         }
     }
 }

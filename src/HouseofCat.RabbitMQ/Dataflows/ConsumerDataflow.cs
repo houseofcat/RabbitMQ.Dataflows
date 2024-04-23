@@ -131,7 +131,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     public ConsumerDataflow<TState> SetCompressionProvider(ICompressionProvider provider)
     {
         Guard.AgainstNull(provider, nameof(provider));
-        _compressProvider = provider;
+        _compressionProvider = provider;
         return this;
     }
 
@@ -158,7 +158,8 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     }
 
     protected virtual ITargetBlock<TState> CreateTargetBlock(
-        int boundedCapacity, TaskScheduler taskScheduler = null) =>
+        int boundedCapacity,
+        TaskScheduler taskScheduler = null) =>
         new BufferBlock<TState>(
             new DataflowBlockOptions
             {
@@ -316,13 +317,13 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
+        Guard.AgainstNull(_compressionProvider, nameof(_compressionProvider));
         if (_decompressBlock == null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
             _decompressBlock = GetByteManipulationTransformBlock(
-                _compressProvider.Decompress,
+                _compressionProvider.Decompress,
                 executionOptions,
                 false,
                 x => x.ReceivedMessage.Compressed,
@@ -353,13 +354,13 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
+        Guard.AgainstNull(_compressionProvider, nameof(_compressionProvider));
         if (_compressBlock == null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
             _compressBlock = GetByteManipulationTransformBlock(
-                _compressProvider.Compress,
+                _compressionProvider.Compress,
                 executionOptions,
                 true,
                 x => !x.ReceivedMessage.Compressed,
@@ -437,7 +438,6 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         LinkPostProcessing(overrideOptions);
 
         ((ISourceBlock<TState>)_errorBuffer).LinkTo(_errorAction, overrideOptions ?? _linkStepOptions);
-        Completion = _currentBlock.Completion;
     }
 
     private void LinkPreProcessing(DataflowLinkOptions overrideOptions = null)
@@ -450,7 +450,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         { LinkWithFaultRoute(_currentBlock, _decompressBlock, x => x.IsFaulted, overrideOptions ?? _linkStepOptions); }
 
         _currentBlock.LinkTo(_readyBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
-        SetCurrentSourceBlock(_readyBuffer); // Not Neeeded
+        SetCurrentSourceBlock(_readyBuffer);
     }
 
     private void LinkSuppliedSteps(DataflowLinkOptions overrideOptions = null)

@@ -7,7 +7,7 @@ namespace HouseofCat.Dataflows;
 
 public class NoLossBroadcastBlock<T> : IPropagatorBlock<T, T>
 {
-    public Task Completion { get; }
+    public Task Completion => _broadcastBlock.Completion;
 
     private readonly BroadcastBlock<T> _broadcastBlock;
     private readonly ITargetBlock<T> _targetBroadcastBlock; // reduces casting hits keeping a casted version cached
@@ -16,7 +16,6 @@ public class NoLossBroadcastBlock<T> : IPropagatorBlock<T, T>
     {
         _broadcastBlock = new BroadcastBlock<T>(cloningFunction);
         _targetBroadcastBlock = _broadcastBlock;
-        Completion = _broadcastBlock.Completion;
     }
 
     public DataflowMessageStatus OfferMessage(DataflowMessageHeader messageHeader, T messageValue, ISourceBlock<T> source, bool consumeToAccept)

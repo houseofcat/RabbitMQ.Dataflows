@@ -88,13 +88,15 @@ logger.LogInformation("Listening for Messages! Press CTRL+C to initiate graceful
 app.Lifetime.ApplicationStopping.Register(
     async () =>
     {
-        logger.LogInformation("ConsumerService stopping...");
+        logger.LogInformation("RabbitService AutoPublish stopping...");
+
+        await rabbitService.Publisher.StopAutoPublishAsync();
+
+        logger.LogInformation("ConsumerDataflowService stopping...");
 
         await dataflowService.StopAsync();
 
-        logger.LogInformation("RabbitMQ AutoPublish stopping...");
-
-        await rabbitService.Publisher.StopAutoPublishAsync();
+        await rabbitService.ShutdownAsync(false);
 
         logger.LogInformation("All stopped! Press return to exit...");
     });

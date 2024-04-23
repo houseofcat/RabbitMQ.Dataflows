@@ -11,7 +11,7 @@ namespace HouseofCat.Dataflows;
 
 public class ChannelReaderBlock<TOut> : ISourceBlock<TOut>
 {
-    public Task Completion { get; }
+    public Task Completion => _targetBlock.Completion;
 
     private readonly ChannelReader<TOut> _channelReader;
     private readonly ISourceBlock<TOut> _sourceFromTargetBlock;
@@ -33,7 +33,6 @@ public class ChannelReaderBlock<TOut> : ISourceBlock<TOut>
         {
             _targetBlock = targetBlock;
             _sourceFromTargetBlock = sourceBlock;
-            Completion = _targetBlock.Completion;
         }
         else
         {

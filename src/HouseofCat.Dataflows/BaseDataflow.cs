@@ -17,10 +17,10 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
 
     protected ISerializationProvider _serializationProvider;
     protected IEncryptionProvider _encryptionProvider;
-    protected ICompressionProvider _compressProvider;
+    protected ICompressionProvider _compressionProvider;
 
     protected ISourceBlock<TState> _currentBlock;
-    public Task Completion { get; protected set; }
+    public Task Completion => _currentBlock.Completion;
 
     protected void SetCurrentSourceBlock(IDataflowBlock block)
     {
