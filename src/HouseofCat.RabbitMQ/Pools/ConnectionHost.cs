@@ -64,7 +64,7 @@ public class ConnectionHost : IConnectionHost, IDisposable
     protected virtual void ConnectionClosed(object sender, ShutdownEventArgs e)
     {
         if (e.ReplyCode == 200)
-        { _logger.LogInformation(e.ReplyText); }
+        { _logger.LogDebug(e.ReplyText); }
         else
         { _logger.LogWarning(e.ReplyText); }
 

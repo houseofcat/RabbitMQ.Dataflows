@@ -146,7 +146,11 @@ public class ChannelHost : IChannelHost, IDisposable
 
     protected virtual void ChannelClose(object sender, ShutdownEventArgs e)
     {
-        _logger.LogInformation(e.ReplyText);
+        if (e.ReplyCode == 200)
+        { _logger.LogDebug(e.ReplyText); }
+        else
+        { _logger.LogWarning(e.ReplyText); }
+
         Closed = true;
     }
 
