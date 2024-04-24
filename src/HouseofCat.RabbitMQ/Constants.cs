@@ -2,15 +2,14 @@ namespace HouseofCat.RabbitMQ;
 
 public static class Constants
 {
-    // Publisher
-    public static string HeaderPrefix { get; set; } = "X-";
-
-    // Consumer
-    public static string HeaderForContentType { get; set; } = "ContentType";
     public const string HeaderValueForContentTypeBinary = "application/octet-stream";
     public const string HeaderValueForContentTypePlainText = "text/plain";
     public const string HeaderValueForContentTypeJson = "application/json";
     public const string HeaderValueForContentTypeMessagePack = "application/msgpack";
+
+    public static string HeaderPrefix { get; set; } = "X-";
+    public static string HeaderForContentType { get; set; } = "ContentType";
+
     public static string HeaderForObjectType { get; set; } = "X-RD-OBJECTTYPE";
     public static string HeaderValueForMessageObjectType { get; set; } = "IMESSAGE";
 
@@ -22,8 +21,6 @@ public static class Constants
     public static string HeaderForCompression { get; set; } = "X-RD-COMPRESSION";
 
     public static string HeaderForTraceParent { get; set; } = "traceparent";
-
-    public const string RangeErrorMessage = "Value for {0} must be between {1} and {2}.";
 
     public static string MessagingSystemKey { get; set; } = "messaging.system";
     public static string MessagingSystemValue { get; set; } = "rabbitmq";
