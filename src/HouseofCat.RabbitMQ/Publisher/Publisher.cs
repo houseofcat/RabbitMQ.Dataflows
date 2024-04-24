@@ -332,24 +332,22 @@ public class Publisher : IPublisher, IDisposable
         }
     }
 
-    // Super simple version to bake in requeueing of all failed to publish messages.
     private async ValueTask ProcessReceiptAsync(IPublishReceipt receipt)
     {
-        if (receipt.IsError && receipt.OriginalMessage != null)
+        if (AutoPublisherStarted
+            && receipt.IsError
+            && receipt.OriginalMessage != null)
         {
-            if (AutoPublisherStarted)
-            {
-                _logger.LogWarning($"Failed publish for message ({receipt.OriginalMessage.MessageId}). Retrying with AutoPublishing...");
+            _logger.LogWarning($"Failed publish for message ({receipt.OriginalMessage.MessageId}). Retrying with AutoPublishing...");
 
-                try
-                { await QueueMessageAsync(receipt.OriginalMessage); }
-                catch (Exception ex) /* No-op */
-                { _logger.LogDebug("Error ({0}) occurred on retry, most likely because retry during shutdown.", ex.Message); }
-            }
-            else
-            {
-                _logger.LogError($"Failed publish for message ({receipt.OriginalMessage.MessageId}). Unable to retry as the original message was not received.");
-            }
+            try
+            { await QueueMessageAsync(receipt.OriginalMessage); }
+            catch (Exception ex) /* No-op */
+            { _logger.LogDebug("Error ({0}) occurred on retry, most likely because retry during shutdown.", ex.Message); }
+        }
+        else if (receipt.IsError)
+        {
+            _logger.LogError($"Failed publish for message ({receipt.OriginalMessage.MessageId}). Unable to retry as the original message was not received.");
         }
     }
 

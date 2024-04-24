@@ -84,6 +84,7 @@ working with and so will all your testing making it a win win.
  * Getting started with *RabbitMQ.Dataflows* [ChannelPool and BasicGet](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicGet.md).
  * Getting started with *RabbitMQ.Dataflows* [ChannelPool and BasicConsume](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicConsume.md).
  * Getting started with *RabbitMQ.Dataflows* [Serialization](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/Serialization.md).  
+ * Getting started with *RabbitMQ.Dataflows* [AutoPublisher](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/AutoPublisher.md).  
 
 More to come!
 
