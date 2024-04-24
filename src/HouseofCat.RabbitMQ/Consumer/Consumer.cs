@@ -9,7 +9,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
@@ -124,13 +123,13 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
     {
         if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
 
-        _logger.LogInformation(Consumers.StopConsumer, ConsumerOptions.ConsumerName);
-
         try
         {
             if (Started)
             {
                 _shutdown = true;
+                _logger.LogInformation(Consumers.StopConsumer, ConsumerOptions.ConsumerName);
+
                 _consumerChannel.Writer.Complete();
 
                 if (immediate)
@@ -512,7 +511,6 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }

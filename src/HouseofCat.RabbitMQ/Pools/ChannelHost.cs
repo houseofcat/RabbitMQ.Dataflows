@@ -215,19 +215,20 @@ public class ChannelHost : IChannelHost, IDisposable
     }
 
     private const int CloseCode = 200;
-    private const string CloseMessage = "HouseofCat.RabbitMQ manual close Channelhost [Id: {0} - CN: {1}] initiated.";
+    private const string CloseMessage = "HouseofCat.RabbitMQ manual close initiated for Channelhost [Id: {0} - [Conn: {1} - Chan: {2}]].";
 
     public void Close()
     {
         try
         {
-            _logger.LogInformation(CloseMessage, ChannelId, Channel.ChannelNumber);
+            _logger.LogInformation(CloseMessage, ChannelId, _connHost.Connection.ClientProvidedName, Channel.ChannelNumber);
             Channel.Close(
                 CloseCode,
                 string.Format(CloseMessage, ChannelId, Channel.ChannelNumber));
         }
         catch { /* SWALLOW */ }
     }
+    
     private bool _disposedValue;
 
     protected virtual void Dispose(bool disposing)
@@ -242,7 +243,6 @@ public class ChannelHost : IChannelHost, IDisposable
 
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }

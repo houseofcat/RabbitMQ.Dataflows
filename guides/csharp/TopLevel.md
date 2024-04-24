@@ -193,6 +193,8 @@ var rabbitService = new RabbitService(
     compressionProvider: null,
     loggerFactory);
 
+await rabbitService.StartAsync();
+
 var consumer = rabbitService.GetConsumer("HoC-Consumer");
 await consumer.StartConsumerAsync();
 ```
@@ -250,6 +252,7 @@ var rabbitService = new RabbitService(
     compressionProvider: null,
     loggerFactory);
 
+await rabbitService.StartAsync();
 var consumer = rabbitService.GetConsumer("HoC-Consumer");
 await consumer.StartConsumerAsync();
 

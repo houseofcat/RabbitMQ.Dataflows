@@ -88,10 +88,7 @@ public class Publisher : IPublisher, IDisposable
     private readonly ISerializationProvider _serializationProvider;
     private readonly IEncryptionProvider _encryptionProvider;
     private readonly ICompressionProvider _compressionProvider;
-    private readonly bool _withHeaders;
-    private readonly bool _compress;
-    private readonly bool _encrypt;
-    private readonly bool _createPublishReceipts;
+
     private readonly TimeSpan _waitForConfirmation;
 
     private Channel<IMessage> _messageQueue;
@@ -130,37 +127,33 @@ public class Publisher : IPublisher, IDisposable
 
         if (Options.PublisherOptions.Encrypt && encryptionProvider == null)
         {
-            _encrypt = false;
+            Options.PublisherOptions.Encrypt = false;
             _logger.LogWarning("Encryption disabled, encryptionProvider provided was null.");
         }
         else if (Options.PublisherOptions.Encrypt)
         {
-            _encrypt = true;
             _encryptionProvider = encryptionProvider;
         }
 
         if (Options.PublisherOptions.Compress && compressionProvider == null)
         {
-            _compress = false;
+            Options.PublisherOptions.Compress = false;
             _logger.LogWarning("Compression disabled, compressionProvider provided was null.");
         }
         else if (Options.PublisherOptions.Compress)
         {
-            _compress = true;
             _compressionProvider = compressionProvider;
         }
 
         _channelPool = channelPool;
         _receiptBuffer = Channel.CreateBounded<IPublishReceipt>(
-            new BoundedChannelOptions(1024)
+            new BoundedChannelOptions(100)
             {
                 SingleWriter = false,
                 SingleReader = false,
                 FullMode = BoundedChannelFullMode.DropOldest, // never block
             });
 
-        _withHeaders = Options.PublisherOptions.WithHeaders;
-        _createPublishReceipts = Options.PublisherOptions.CreatePublishReceipts;
         _waitForConfirmation = TimeSpan.FromMilliseconds(Options.PublisherOptions.WaitForConfirmationTimeoutInMilliseconds);
     }
 
@@ -297,18 +290,18 @@ public class Publisher : IPublisher, IDisposable
                     message.ParentSpanContext = span.Context;
                 }
 
-                if (_compress)
+                if (Options.PublisherOptions.Compress)
                 {
                     message.Body = _compressionProvider.Compress(message.Body).ToArray();
-                    message.Metadata.Fields[Constants.HeaderForCompressed] = _compress;
+                    message.Metadata.Fields[Constants.HeaderForCompressed] = true;
                     message.Metadata.Fields[Constants.HeaderForCompression] = _compressionProvider.Type;
                     span?.AddEvent(_compressEventName);
                 }
 
-                if (_encrypt)
+                if (Options.PublisherOptions.Encrypt)
                 {
                     message.Body = _encryptionProvider.Encrypt(message.Body).ToArray();
-                    message.Metadata.Fields[Constants.HeaderForEncrypted] = _encrypt;
+                    message.Metadata.Fields[Constants.HeaderForEncrypted] = true;
                     message.Metadata.Fields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
                     message.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeHelpers.Formats.RFC3339Long);
                     span?.AddEvent(_encryptEventName);
@@ -316,7 +309,7 @@ public class Publisher : IPublisher, IDisposable
 
                 _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.MessageId, message.Metadata?.PayloadId);
 
-                await PublishAsync(message, _createPublishReceipts, _withHeaders)
+                await PublishAsync(message, Options.PublisherOptions.CreatePublishReceipts, Options.PublisherOptions.WithHeaders)
                     .ConfigureAwait(false);
 
                 span.End();
@@ -945,7 +938,6 @@ public class Publisher : IPublisher, IDisposable
 
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }

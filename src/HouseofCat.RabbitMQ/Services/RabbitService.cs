@@ -12,6 +12,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ.Services;
 
@@ -51,12 +52,11 @@ public interface IRabbitService
 public class RabbitService : IRabbitService, IDisposable
 {
     private readonly SemaphoreSlim _serviceLock = new SemaphoreSlim(1, 1);
-    private bool _disposedValue;
 
     public RabbitOptions Options { get; }
-    public IChannelPool ChannelPool { get; }
-    public IPublisher Publisher { get; }
-    public ITopologer Topologer { get; }
+    public IChannelPool ChannelPool { get; private set; }
+    public IPublisher Publisher { get; private set; }
+    public ITopologer Topologer { get; private set; }
 
     public ISerializationProvider SerializationProvider { get; }
     public IEncryptionProvider EncryptionProvider { get; }
@@ -68,42 +68,35 @@ public class RabbitService : IRabbitService, IDisposable
     public string TimeFormat { get; set; } = TimeHelpers.Formats.RFC3339Long;
 
     public RabbitService(
+        RabbitOptions options,
         ISerializationProvider serializationProvider,
         IEncryptionProvider encryptionProvider = null,
-        ICompressionProvider compressionProvider = null)
+        ICompressionProvider compressionProvider = null,
+        ILoggerFactory loggerFactory = null)
     {
+        Guard.AgainstNull(options, nameof(options));
+        Guard.AgainstNull(serializationProvider, nameof(serializationProvider));
+        LogHelpers.LoggerFactory = loggerFactory;
+
+        Options = options;
         SerializationProvider = serializationProvider;
         EncryptionProvider = encryptionProvider;
         CompressionProvider = compressionProvider;
     }
 
     public RabbitService(
-        RabbitOptions options,
-        ISerializationProvider serializationProvider,
-        IEncryptionProvider encryptionProvider = null,
-        ICompressionProvider compressionProvider = null,
-        ILoggerFactory loggerFactory = null)
-        : this(
-            new ChannelPool(options),
-            serializationProvider,
-            encryptionProvider,
-            compressionProvider,
-            loggerFactory)
-    { }
-
-    public RabbitService(
-        IChannelPool chanPool,
+        IChannelPool channelPool,
         ISerializationProvider serializationProvider,
         IEncryptionProvider encryptionProvider = null,
         ICompressionProvider compressionProvider = null,
         ILoggerFactory loggerFactory = null)
     {
-        Guard.AgainstNull(chanPool, nameof(chanPool));
+        Guard.AgainstNull(channelPool, nameof(channelPool));
         Guard.AgainstNull(serializationProvider, nameof(serializationProvider));
         LogHelpers.LoggerFactory = loggerFactory;
 
-        Options = chanPool.Options;
-        ChannelPool = chanPool;
+        Options = channelPool.Options;
+        ChannelPool = channelPool;
 
         SerializationProvider = serializationProvider;
         EncryptionProvider = encryptionProvider;
@@ -117,15 +110,32 @@ public class RabbitService : IRabbitService, IDisposable
         Topologer = new Topologer(ChannelPool);
     }
 
+    private bool _started;
+
     public async Task StartAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
     {
-        if (await _serviceLock.WaitAsync(0).ConfigureAwait(false)) return;
+        if (!await _serviceLock.WaitAsync(0).ConfigureAwait(false)) return;
 
         try
         {
-            BuildConsumers();
-            await BuildConsumerTopologyAsync();
-            Publisher.StartAutoPublish(processReceiptAsync);
+            if (!_started)
+            {
+                ChannelPool ??= new ChannelPool(Options);
+
+                Publisher ??= new Publisher(ChannelPool, SerializationProvider, EncryptionProvider, CompressionProvider)
+                {
+                    TimeFormat = TimeFormat
+                };
+
+                Topologer ??= new Topologer(ChannelPool);
+
+                BuildConsumers();
+                await BuildConsumerTopologyAsync();
+
+                await Publisher.StartAutoPublishAsync(processReceiptAsync);
+
+                _started = true;
+            }
         }
         finally
         { _serviceLock.Release(); }
@@ -133,20 +143,25 @@ public class RabbitService : IRabbitService, IDisposable
 
     public async ValueTask ShutdownAsync(bool immediately)
     {
-        if (await _serviceLock.WaitAsync(0).ConfigureAwait(false)) return;
+        if (!await _serviceLock.WaitAsync(0).ConfigureAwait(false)) return;
 
         try
         {
-            await Publisher
+            if (_started)
+            {
+                await Publisher
                 .StopAutoPublishAsync(immediately)
                 .ConfigureAwait(false);
 
-            await StopAllConsumers(immediately)
-                .ConfigureAwait(false);
+                await StopAllConsumers(immediately)
+                    .ConfigureAwait(false);
 
-            await ChannelPool
-                .ShutdownAsync()
-                .ConfigureAwait(false);
+                await ChannelPool
+                    .ShutdownAsync()
+                    .ConfigureAwait(false);
+
+                _started = false;
+            }
         }
         finally
         { _serviceLock.Release(); }
@@ -375,6 +390,8 @@ public class RabbitService : IRabbitService, IDisposable
             : default;
     }
 
+    private bool _disposedValue;
+
     protected virtual void Dispose(bool disposing)
     {
         if (!_disposedValue)
@@ -392,7 +409,6 @@ public class RabbitService : IRabbitService, IDisposable
 
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }

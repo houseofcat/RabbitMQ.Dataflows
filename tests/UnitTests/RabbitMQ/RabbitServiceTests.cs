@@ -22,7 +22,9 @@ public class RabbitServiceTests
         _encryptionProvider = new AesGcmEncryptionProvider(hashKey);
         _compressionProvider = new GzipProvider();
 
+        var options = new RabbitOptions();
         _rabbitService = new RabbitService(
+            options,
             new JsonProvider(),
             _encryptionProvider,
             _compressionProvider);

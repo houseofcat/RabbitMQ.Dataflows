@@ -65,8 +65,6 @@ public static class Shared
            gzipProvider,
            loggerFactory);
 
-        await rabbitService.Publisher.StartAutoPublishAsync();
-
         return rabbitService;
     }
 }

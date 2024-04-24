@@ -63,7 +63,11 @@ public class ConnectionHost : IConnectionHost, IDisposable
 
     protected virtual void ConnectionClosed(object sender, ShutdownEventArgs e)
     {
-        _logger.LogWarning(e.ReplyText);
+        if (e.ReplyCode == 200)
+        { _logger.LogInformation(e.ReplyText); }
+        else
+        { _logger.LogWarning(e.ReplyText); }
+
         Closed = true;
     }
 
@@ -80,9 +84,9 @@ public class ConnectionHost : IConnectionHost, IDisposable
     }
 
     private const int CloseCode = 200;
-    private const string CloseMessage = "HouseofCat.RabbitMQ manual close initiated.";
+    private const string CloseMessage = "HouseofCat.RabbitMQ manual close initiated [Conn: {0}].";
 
-    public void Close() => Connection.Close(CloseCode, CloseMessage);
+    public void Close() => Connection.Close(CloseCode, string.Format(CloseMessage, Connection.ClientProvidedName));
 
     /// <summary>
     /// Due to the complexity of the RabbitMQ Dotnet Client there are a few odd scenarios.
@@ -114,7 +118,6 @@ public class ConnectionHost : IConnectionHost, IDisposable
 
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
