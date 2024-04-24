@@ -15,13 +15,10 @@ methods and queueing messages for auto-publishing. The AutoPublishing is only us
 to use the `IMessage` object otherwise you are better off managing how you publish your raw data.
 
 ```csharp
-using HouseofCat.Compression;
-using HouseofCat.Encryption;
 using HouseofCat.RabbitMQ;
-using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
-using Microsoft.Extensions.Logging;
 using System.Text;
+using System.Threading.Channels;
 
 // Step 1: Configure RabbitOptions (or load from file or IConfiguration).
 var rabbitOptions = new RabbitOptions
@@ -64,7 +61,7 @@ try
 
     // Step 4: Create IMessage
     var data = Encoding.UTF8.GetBytes("Hello World, from RabbitMQ!");
-    var message = new Message(Shared.ExchangeName, Shared.RoutingKey, data, Guid.NewGuid().ToString());
+    var message = new Message("TestExchange", "TestRoutingKey", data, Guid.NewGuid().ToString());
 
     // Step 5: Queue Message (async publish).
     await publisher.QueueMessageAsync(message);
@@ -79,27 +76,27 @@ catch (Exception ex)
 ```
 
 This example uses the `IRabbitService` more traditionally. You could imagine that you have injected
-`IRabbitService` to the constructor of your BusinsessLogicClass and you just need to drop a message
+`IRabbitService` to the constructor of your BusinessLogicClass and you just need to drop a message
 into a RabbitMQ queue. The added benefit of using AutoPublisher is to allow you to publish asynchronously
 from your code and not slowing down the current flow. This is a great way to keep your code nimble and
 responsive.
 
 ```csharp
-using HouseofCat.Compression;
+using HouseofCat.Compression.Recyclable;
 using HouseofCat.Encryption;
+using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ;
-using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.RabbitMQ.Services.Extensions;
 using HouseofCat.Serialization;
-using Microsoft.Extensions.Logging;
 using System.Text;
 
 // Step 1: Configure RabbitOptions (or load from file or IConfiguration).
-var rabbitOptions = await RabbitExtensions.GetRabbitOptionsFromJsonFileAsync(configFileNamePath);
+var rabbitOptions = await RabbitExtensions.GetRabbitOptionsFromJsonFileAsync("./rabbitoptions.json");
 
 // Step 2: Setup your Providers (all but ISerializationProvider is optional)
 var jsonProvider = new JsonProvider();
 var hashProvider = new ArgonHashingProvider();
-var aes256Key = hashProvider.GetHashKey(EncryptionPassword, EncryptionSalt, KeySize);
+var aes256Key = hashProvider.GetHashKey("PasswordMcPassword", "SaltySaltSalt", 32);
 var aes256Provider = new AesGcmEncryptionProvider(aes256Key);
 var gzipProvider = new RecyclableGzipProvider();
 
@@ -108,13 +105,14 @@ var rabbitService = await rabbitOptions.BuildRabbitServiceAsync(
     jsonProvider,
     aes256Provider,
     gzipProvider,
-    loggerFactory);
+    null);
 
 // Step 4: Create IMessage and Payload
+var data = Encoding.UTF8.GetBytes("Hello, RabbitMQ!");
 var message = new Message(
-    exchange: Shared.ExchangeName,
-    routingKey: Shared.RoutingKey,
-    body: dataAsBytes,
+    exchange: "TestExchange",
+    routingKey: "TestRoutingKey",
+    body: data,
     payloadId: Guid.NewGuid().ToString());
 
 // Step 5: Queue Message (async publish).
@@ -153,4 +151,18 @@ The method signature for `StartAutoPublish` with the optional `processReceiptAsy
 ```csharp
 void StartAutoPublish(Func<IPublishReceipt, ValueTask> processReceiptAsync = null);
 Task StartAutoPublishAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null);
+```
+
+Other benefits of using AutoPublisher in tandem with an `ICompressionProvider` and `IEncryptionProvider` is that
+when the corresponding options are enabled (`Options.PublisherOptions.Compress` and `Options.PublisherOptions.Encrypt`)
+it will automatically compress and encrypt your `IMessage` internal `Body` while adding all the necessary headers
+to the `IMessage` for decryption and decompression on the other side. This is a great way to keep your data secure
+without having to worry about it in your business logic. When using the `Consumer` class, it will read those same
+headers and automatically decrypt and decompress the `IMessage` for you. That makes them a perfect pair to use
+together.
+
+Additional details can be found in the function:
+
+```csharp
+private async Task ProcessMessagesAsync(ChannelReader<IMessage> channelReader)
 ```

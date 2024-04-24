@@ -18,73 +18,56 @@ Erlang: `v26.2.3`
 
 `Dataflows` have configurable concurrency, serialization, monitoring, compression, and
 encryption all as first class citizens. This paradigm allows developers to just focus on
-the important stuff - getting work done
+the important stuff - getting work done!
 
-Here are some features ready with RabbitMQ and Dataflows today!
+Here are some features ready with `RabbitMQ.Dataflows`.
 
-### Queueing
-* Async Processing, batch processing, consumer cloning and more!    
-* Queue-based Retriability via Ack/Nack.
-* Async Error Handling (simplify functional error handling by allowing it to throw.)
-* A RabbitMQ ConnectionPool and ChannelPool (connection durability) provided by
-`namespace HouseofCat.RabbitMQ.Pools;`.  
+### Workflows
+
+ * Pipelines (v1) are light weight workflow-esque function-as-step executor.
+   * All steps process in the order provided allowing you to still control order of execution.  
+   * Configurable parallelism and concurrency built-in.
+   * No automatic OpenTelemetry.
+   * No automatic exception catching/async error handling (thrown exceptions kill Pipelines).
+ * Dataflows (v2) are the more complex, yet complete, workflow class.
+   * All steps process in the order provided allowing you to still control order of execution.  
+   * Configurable parallelism and concurrency built-in.
+   * Async processing, batch processing, consumer cloning and more!  
+   * Async error handling (simplify functional error handling by allowing functions to throw).
+   * AutoPublish (to the next Queue) functionality built-in.
+   * OpenTelemetry with native distributed tracing for Publish/Consumer. 
 
 ### Built-Ins
-* Supports `ILogger<T>` via LogHelpers. 
-* Configurable concurrency/parallelism, no code changes required.  
+
+* A RabbitMQ ConnectionPool and ChannelPool (connection durability).  
+* Supports `ILogger<T>` via LogHelpers static singleton. 
 * Contracted `IWorkState` simplifies functional generic returns and integration.  
-* Has `Json` (System.Text.Json and Newtonsoft) and `MessagePack` serialization providers.
-* Allows seamless encryption/decryption steps.  
-* Allows seamless compression/decompression steps.  
-* Async Error Handling with Predicate triggers and an actionable callback.  
-* OpenTelemetry with native Distributed Tracing for Publish/Consumer. 
-
-### Core Interchangeability
-* Allows you to replace serialization provider with `ISerializationProvider` and have basic 
-implementations.  
-* Allows you to replace encryption provider with `IEncryptionProvider` and have basic 
-implementations.  
-* Allows you to replace compression provider with `ICompressionProvider` and have basic 
-implementations.   
-
-### Business Logic
-* All steps process in the order provided allowing you to still control order of execution.  
-* All automatically subscribed to Async Error handling by `WorkState.IsFaulted` flag.  
+* Has `ISerializationProvider` support for `System.Text.Json` and `MessagePack`.
+  * Easy to write your own providers. 
+* Has `ICompressionProvider` built-in support for Gzip, Deflate, Brotli, and LZ4.
+* Has `IEncryptionProvider` built-in support for AesGcm and BouncyCastle AesGcm.
+* RecyclableMemoryStream options for `ICompressionProvider and `IEncryptionProvider`.
+* Publishers AutoPublish seamless encryption/decryption steps (adds headers too).  
+* Consumers allow seamless compression/decompression steps (uses headers).  
+* Publisher/Consumers have built-in `OpenTelemetry` support.
 
 ### Testing
+
 * All built-in steps will have integration tests that should remove concerns from end-user 
 developer.   
 * Future case will include much more complex abstract UnitTesting as time allows.  
 * The developer should only need to unit test their functional business code.  
 
-## Implicit Benefits
-
-The benefits of a dataflow pattern extend beyond fancy machine learning and Tensorflows or
-high throughput GCP Dataflow for mass computation. When brought to the service level, it
-helps organize your code into more manageable blocks. You can still write monolithic
-functions, but you would be hamstringing yourself and scarificing concurrency and
-parallelism. By designing code into small functional steps, you always write better,
-cleaner, code reduced with cyclomatic complexity. That very same code is easier to
-UnitTest. The orchestration of the function calls are the order they are added allowing
-you extend the original functionality infinitely. You don't have to write deserialization
-or post-processing encryption/compression as they all baked in. Designing from the ground
-up with concurrency and parallelism, you stay nimble and fast - able to scale up internally,
-before horizontally and vertically, saving costs. All without needing code changed or
-refactored.
-
-Lastly, after everything is said and done, all your business code is re-usable. Should
-you decide to abandon this workflow (:worried:) for a different mechanism, engine, or
-what not, all of your code will happily port to whatever other project / flow you are
-working with and so will all your testing making it a win win.  
-
 ## Help & Guides
+
  * Getting started with *RabbitMQ.Dataflows* [ConnectionPool](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ConnectionPools.md).
  * Getting started with *RabbitMQ.Dataflows* [ChannelPool](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ChannelPools.md).
  * Getting started with *RabbitMQ.Dataflows* [ChannelPool and BasicPublish](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicPublish.md).
  * Getting started with *RabbitMQ.Dataflows* [ChannelPool and BasicGet](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicGet.md).
  * Getting started with *RabbitMQ.Dataflows* [ChannelPool and BasicConsume](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/BasicConsume.md).
  * Getting started with *RabbitMQ.Dataflows* [Serialization](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/Serialization.md).  
- * Getting started with *RabbitMQ.Dataflows* [AutoPublisher](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/AutoPublisher.md).  
+ * Getting started with *RabbitMQ.Dataflows* [Publisher](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/Publisher.md).  
+ * Getting started with *RabbitMQ.Dataflows* [AutoPublisher](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/AutoPublisher.md).   
 
 More to come!
 

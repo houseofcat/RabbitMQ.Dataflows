@@ -360,7 +360,7 @@ public class Publisher : IPublisher, IDisposable
     public async Task<bool> PublishAsync(
         string exchangeName,
         string routingKey,
-        ReadOnlyMemory<byte> payload,
+        ReadOnlyMemory<byte> body,
         bool mandatory = false,
         IBasicProperties basicProperties = null,
         string messageId = null,
@@ -396,7 +396,7 @@ public class Publisher : IPublisher, IDisposable
                     routingKey: routingKey,
                     mandatory: mandatory,
                     basicProperties: basicProperties,
-                    body: payload);
+                    body: body);
         }
         catch (Exception ex)
         {
@@ -418,7 +418,7 @@ public class Publisher : IPublisher, IDisposable
     public async Task<bool> PublishAsync(
         string exchangeName,
         string routingKey,
-        ReadOnlyMemory<byte> payload,
+        ReadOnlyMemory<byte> body,
         IDictionary<string, object> headers = null,
         string messageId = null,
         byte? priority = 0,
@@ -443,7 +443,7 @@ public class Publisher : IPublisher, IDisposable
                     routingKey: routingKey,
                     mandatory: mandatory,
                     basicProperties: BuildProperties(headers, channelHost, messageId, priority, deliveryMode, contentType),
-                    body: payload);
+                    body: body);
         }
         catch (Exception ex)
         {
@@ -469,13 +469,13 @@ public class Publisher : IPublisher, IDisposable
     public async Task<bool> PublishBatchAsync(
         string exchangeName,
         string routingKey,
-        IList<ReadOnlyMemory<byte>> payloads,
+        IList<ReadOnlyMemory<byte>> bodies,
         bool mandatory = false,
         IBasicProperties basicProperties = null,
         string contentType = null)
     {
         Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
-        Guard.AgainstNullOrEmpty(payloads, nameof(payloads));
+        Guard.AgainstNullOrEmpty(bodies, nameof(bodies));
 
         using var span = OpenTelemetryHelpers.StartActiveSpan(nameof(PublishBatchAsync), SpanKind.Producer);
 
@@ -500,11 +500,11 @@ public class Publisher : IPublisher, IDisposable
         {
             var batch = channelHost.Channel.CreateBasicPublishBatch();
 
-            for (var i = 0; i < payloads.Count; i++)
+            for (var i = 0; i < bodies.Count; i++)
             {
                 using var innerSpan = OpenTelemetryHelpers.StartActiveSpan("IBasicPublishBatch.Add", SpanKind.Producer);
                 EnrichSpanWithTags(span, exchangeName, routingKey);
-                batch.Add(exchangeName, routingKey, mandatory, basicProperties, payloads[i]);
+                batch.Add(exchangeName, routingKey, mandatory, basicProperties, bodies[i]);
             }
 
             batch.Publish();
@@ -533,7 +533,7 @@ public class Publisher : IPublisher, IDisposable
     public async Task<bool> PublishBatchAsync(
         string exchangeName,
         string routingKey,
-        IList<ReadOnlyMemory<byte>> payloads,
+        IList<ReadOnlyMemory<byte>> bodies,
         IDictionary<string, object> headers = null,
         byte? priority = 0,
         byte? deliveryMode = 2,
@@ -541,10 +541,10 @@ public class Publisher : IPublisher, IDisposable
         string contentType = null)
     {
         Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
-        Guard.AgainstNullOrEmpty(payloads, nameof(payloads));
+        Guard.AgainstNullOrEmpty(bodies, nameof(bodies));
 
         using var span = OpenTelemetryHelpers.StartActiveSpan(nameof(PublishBatchAsync), SpanKind.Producer);
-        span.SetAttribute(Constants.MessagingBatchProcessValue, payloads.Count);
+        span.SetAttribute(Constants.MessagingBatchProcessValue, bodies.Count);
 
         var error = false;
         var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
@@ -553,13 +553,13 @@ public class Publisher : IPublisher, IDisposable
         {
             var batch = channelHost.Channel.CreateBasicPublishBatch();
 
-            for (var i = 0; i < payloads.Count; i++)
+            for (var i = 0; i < bodies.Count; i++)
             {
                 using var innerSpan = OpenTelemetryHelpers.StartActiveSpan("IBasicPublishBatch.Add", SpanKind.Producer);
                 EnrichSpanWithTags(span, exchangeName, routingKey);
 
                 var properties = BuildProperties(headers, channelHost, null, priority, deliveryMode, contentType);
-                batch.Add(exchangeName, routingKey, mandatory, properties, payloads[i]);
+                batch.Add(exchangeName, routingKey, mandatory, properties, bodies[i]);
             }
 
             batch.Publish();
