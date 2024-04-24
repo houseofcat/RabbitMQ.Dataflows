@@ -120,6 +120,11 @@ public class ChannelPool : IChannelPool, IDisposable
         }
     }
 
+    private static readonly string _channelHasIssues = "ChannelHost [Id: {0}] was detected to have issues. Attempting to repair...";
+    private static readonly string _channelPoolNotInitialized = "ChannelPool is not initialized or is shutdown.";
+    private static readonly string _channelPoolBadOptionChannelError = "Check your PoolOptions, Channels value maybe less than 1.";
+    private static readonly string _channelPoolGetChannelError = "Threading.Channel used for reading RabbitMQ channels has been closed.";
+
     /// <summary>
     /// This pulls a <see cref="IChannelHost"/> out of the <see cref="IChannelPool"/> for usage.
     /// <para>If the <see cref="IChannelHost"/> was previously flagged on error, multi-attempta to recreate it before returning an open channel back to the user.
@@ -131,7 +136,7 @@ public class ChannelPool : IChannelPool, IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<IChannelHost> GetChannelAsync()
     {
-        if (Shutdown) throw new InvalidOperationException(ExceptionMessages.ChannelPoolValidationMessage);
+        if (Shutdown) throw new InvalidOperationException(_channelPoolNotInitialized);
 
         if (Options.PoolOptions.OnlyTransientChannels)
         {
@@ -141,7 +146,7 @@ public class ChannelPool : IChannelPool, IDisposable
 
         if (_channels == null)
         {
-            throw new InvalidOperationException(ExceptionMessages.ChannelPoolBadOptionMaxChannelError);
+            throw new InvalidOperationException(_channelPoolBadOptionChannelError);
         }
 
         if (!await _channels
@@ -149,7 +154,7 @@ public class ChannelPool : IChannelPool, IDisposable
             .WaitToReadAsync()
             .ConfigureAwait(false))
         {
-            throw new InvalidOperationException(ExceptionMessages.ChannelPoolGetChannelError);
+            throw new InvalidOperationException(_channelPoolGetChannelError);
         }
 
         var chanHost = await _channels
@@ -161,7 +166,7 @@ public class ChannelPool : IChannelPool, IDisposable
         var flagged = _flaggedChannels.ContainsKey(chanHost.ChannelId) && _flaggedChannels[chanHost.ChannelId];
         if (flagged || !healthy)
         {
-            _logger.LogWarning(LogMessages.ChannelPools.ChannelHasIssues, chanHost.ChannelId);
+            _logger.LogWarning(_channelHasIssues, chanHost.ChannelId);
 
             try
             { await chanHost.WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval, _cts.Token); }
@@ -185,6 +190,8 @@ public class ChannelPool : IChannelPool, IDisposable
         return chanHost;
     }
 
+    private static readonly string _channelPoolBadOptionAckChannelError = "Check your PoolOptions, AckChannels value maybe less than 1.";
+
     /// <summary>
     /// This pulls an ackable <see cref="IChannelHost"/> out of the <see cref="IChannelPool"/> for usage.
     /// <para>If the <see cref="IChannelHost"/> was previously flagged on error, multi-attempta to recreate it before returning an open channel back to the user.
@@ -196,7 +203,7 @@ public class ChannelPool : IChannelPool, IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<IChannelHost> GetAckChannelAsync()
     {
-        if (Shutdown) throw new InvalidOperationException(ExceptionMessages.ChannelPoolValidationMessage);
+        if (Shutdown) throw new InvalidOperationException(_channelPoolNotInitialized);
 
         if (Options.PoolOptions.OnlyTransientChannels)
         {
@@ -206,7 +213,7 @@ public class ChannelPool : IChannelPool, IDisposable
 
         if (_ackChannels == null)
         {
-            throw new InvalidOperationException(ExceptionMessages.ChannelPoolBadOptionMaxAckChannelError);
+            throw new InvalidOperationException(_channelPoolBadOptionAckChannelError);
         }
 
         if (!await _ackChannels
@@ -214,7 +221,7 @@ public class ChannelPool : IChannelPool, IDisposable
             .WaitToReadAsync()
             .ConfigureAwait(false))
         {
-            throw new InvalidOperationException(ExceptionMessages.ChannelPoolGetChannelError);
+            throw new InvalidOperationException(_channelPoolGetChannelError);
         }
 
         var chanHost = await _ackChannels
@@ -226,7 +233,7 @@ public class ChannelPool : IChannelPool, IDisposable
         var flagged = _flaggedChannels.ContainsKey(chanHost.ChannelId) && _flaggedChannels[chanHost.ChannelId];
         if (flagged || !healthy)
         {
-            _logger.LogWarning(LogMessages.ChannelPools.ChannelHasIssues, chanHost.ChannelId);
+            _logger.LogWarning(_channelHasIssues, chanHost.ChannelId);
 
             await chanHost.WaitUntilChannelIsReadyAsync(Options.PoolOptions.SleepOnErrorInterval, _cts.Token);
         }
@@ -261,6 +268,11 @@ public class ChannelPool : IChannelPool, IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<IChannelHost> GetTransientChannelAsync(bool ackable) => await CreateChannelAsync(GetNextTransientChannelId(), ackable).ConfigureAwait(false);
 
+    private static readonly string _createChannel = "ChannelHost [Id: {0}] create loop is executing an iteration...";
+    private static readonly string _createChannelFailedConnection = "The ChannelHost [Id: {0}] failed because Connection is unhealthy.";
+    private static readonly string _createChannelSuccess = "The ChannelHost [Id: {0}] create loop finished. Channel restored and flags removed.";
+    private static readonly string _createChannelFailedConstruction = "The ChannelHost [Id: {0}] failed because ChannelHost construction threw exception.";
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private async Task<IChannelHost> CreateChannelAsync(ulong channelId, bool ackable)
     {
@@ -268,14 +280,14 @@ public class ChannelPool : IChannelPool, IDisposable
 
         while (true)
         {
-            _logger.LogTrace(LogMessages.ChannelPools.CreateChannel, channelId);
+            _logger.LogTrace(_createChannel, channelId);
 
             // Get ConnectionHost
             try
             { connHost = await _connectionPool.GetConnectionAsync().ConfigureAwait(false); }
             catch
             {
-                _logger.LogTrace(LogMessages.ChannelPools.CreateChannelFailedConnection, channelId);
+                _logger.LogTrace(_createChannelFailedConnection, channelId);
                 await ReturnConnectionWithOptionalSleep(connHost, channelId, Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
                 continue;
             }
@@ -286,17 +298,19 @@ public class ChannelPool : IChannelPool, IDisposable
                 var chanHost = new ChannelHost(channelId, connHost, ackable);
                 await ReturnConnectionWithOptionalSleep(connHost, channelId, 0).ConfigureAwait(false);
                 _flaggedChannels[chanHost.ChannelId] = false;
-                _logger.LogDebug(LogMessages.ChannelPools.CreateChannelSuccess, channelId);
+                _logger.LogDebug(_createChannelSuccess, channelId);
 
                 return chanHost;
             }
             catch
             {
-                _logger.LogTrace(LogMessages.ChannelPools.CreateChannelFailedConstruction, channelId);
+                _logger.LogTrace(_createChannelFailedConstruction, channelId);
                 await ReturnConnectionWithOptionalSleep(connHost, channelId, Options.PoolOptions.SleepOnErrorInterval).ConfigureAwait(false);
             }
         }
     }
+
+    private static readonly string _createChannelSleep = "The ChannelHost [Id: {0}] create loop iteration failed. Sleeping...";
 
     private async Task ReturnConnectionWithOptionalSleep(IConnectionHost connHost, ulong channelId, int sleep)
     {
@@ -305,13 +319,15 @@ public class ChannelPool : IChannelPool, IDisposable
 
         if (sleep > 0)
         {
-            _logger.LogDebug(LogMessages.ChannelPools.CreateChannelSleep, channelId);
+            _logger.LogDebug(_createChannelSleep, channelId);
 
             await Task
                 .Delay(sleep)
                 .ConfigureAwait(false);
         }
     }
+
+    private static readonly string _returningChannel = "The ChannelHost [Id: {0}] was returned to the pool. Flagged? {1}";
 
     /// <summary>
     /// Returns the <see cref="ChannelHost"/> back to the <see cref="ChannelPool"/>.
@@ -324,11 +340,11 @@ public class ChannelPool : IChannelPool, IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async ValueTask ReturnChannelAsync(IChannelHost chanHost, bool flagChannel = false)
     {
-        if (Shutdown) throw new InvalidOperationException(ExceptionMessages.ChannelPoolValidationMessage);
+        if (Shutdown) throw new InvalidOperationException(_channelPoolNotInitialized);
 
         _flaggedChannels[chanHost.ChannelId] = flagChannel;
 
-        _logger.LogDebug(LogMessages.ChannelPools.ReturningChannel, chanHost.ChannelId, flagChannel);
+        _logger.LogDebug(_returningChannel, chanHost.ChannelId, flagChannel);
 
         if (chanHost.Ackable)
         {
@@ -346,9 +362,12 @@ public class ChannelPool : IChannelPool, IDisposable
         }
     }
 
+    private static readonly string _shutdown = "ChannelPool shutdown was called.";
+    private static readonly string _shutdownComplete = "ChannelPool shutdown complete.";
+
     public async Task ShutdownAsync()
     {
-        _logger.LogTrace(LogMessages.ChannelPools.Shutdown);
+        _logger.LogTrace(_shutdown);
 
         await _poolLock
             .WaitAsync()
@@ -369,7 +388,7 @@ public class ChannelPool : IChannelPool, IDisposable
         }
 
         _poolLock.Release();
-        _logger.LogTrace(LogMessages.ChannelPools.ShutdownComplete);
+        _logger.LogTrace(_shutdownComplete);
     }
 
     private async Task CloseChannelsAsync()

@@ -28,6 +28,7 @@ public interface IChannelHost
     void Close();
     bool ChannelHealthy();
     bool ConnectionHealthy();
+    string DisplayId();
 }
 
 public class ChannelHost : IChannelHost, IDisposable
@@ -145,16 +146,19 @@ public class ChannelHost : IChannelHost, IDisposable
 
     protected virtual void ChannelClose(object sender, ShutdownEventArgs e)
     {
-        _logger.LogDebug(e.ReplyText);
+        _logger.LogInformation(e.ReplyText);
         Closed = true;
     }
+
+    private static readonly string _flowControlled = "ChannelHost [Id: {0}] - Flow control event has triggered.";
+    private static readonly string _flowControlFinished = "ChannelHost [Id: {0}] - Flow control event has resolved itself.";
 
     protected virtual void FlowControl(object sender, FlowControlEventArgs e)
     {
         if (e.Active)
-        { _logger.LogWarning(LogMessages.ChannelHosts.FlowControlled, ChannelId); }
+        { _logger.LogWarning(_flowControlled, ChannelId); }
         else
-        { _logger.LogInformation(LogMessages.ChannelHosts.FlowControlFinished, ChannelId); }
+        { _logger.LogInformation(_flowControlFinished, ChannelId); }
 
         FlowControlled = e.Active;
     }
@@ -173,6 +177,8 @@ public class ChannelHost : IChannelHost, IDisposable
 
     private string _consumerTag;
 
+    private static readonly string _consumerStartedConsumer = "ChannelHost [Id: {0}] - Starting consuming. ConsumerTag: [{1}]";
+
     public string StartConsuming(IBasicConsumer internalConsumer, ConsumerOptions options)
     {
         Guard.AgainstNull(options, nameof(options));
@@ -189,12 +195,15 @@ public class ChannelHost : IChannelHost, IDisposable
                 null,
                 internalConsumer);
 
-        _logger.LogDebug(LogMessages.ChannelHosts.ConsumerStartedConsumer, ChannelId, _consumerTag);
+        _logger.LogDebug(_consumerStartedConsumer, ChannelId, _consumerTag);
 
         UsedByConsumer = true;
 
         return _consumerTag;
     }
+
+    private static readonly string _consumerStopConsumer = "ChannelHost [Id: {0}] - Stopping consuming using ConsumerTag: [{1}]";
+    private static readonly string _consumerStopConsumerError = "ChannelHost [Id: {0}] - Error stopping consuming using ConsumerTag: [{1}]";
 
     public void StopConsuming()
     {
@@ -204,31 +213,35 @@ public class ChannelHost : IChannelHost, IDisposable
         {
             if (ChannelHealthy())
             {
-                _logger.LogInformation(LogMessages.ChannelHosts.ConsumerStopConsumer, ChannelId, _consumerTag);
+                _logger.LogInformation(_consumerStopConsumer, ChannelId, _consumerTag);
                 Channel.BasicCancel(_consumerTag);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, LogMessages.ChannelHosts.ConsumerStopConsumerError, ChannelId, _consumerTag);
+            _logger.LogError(ex, _consumerStopConsumerError, ChannelId, _consumerTag);
         }
     }
 
+    public string DisplayId()
+    {
+        return $"{_connHost.Connection.ClientProvidedName}:{Channel.ChannelNumber}";
+    }
+
     private const int CloseCode = 200;
-    private const string CloseMessage = "HouseofCat.RabbitMQ manual close initiated for Channelhost [Id: {0} - [Conn: {1} - Chan: {2}]].";
+    private static readonly string _closeMessage = "HouseofCat.RabbitMQ manual close initiated for ChannelHost [Id: {0}] - [{1}].";
 
     public void Close()
     {
         try
         {
-            _logger.LogInformation(CloseMessage, ChannelId, _connHost.Connection.ClientProvidedName, Channel.ChannelNumber);
             Channel.Close(
                 CloseCode,
-                string.Format(CloseMessage, ChannelId, Channel.ChannelNumber));
+                string.Format(_closeMessage, ChannelId, DisplayId()));
         }
         catch { /* SWALLOW */ }
     }
-    
+
     private bool _disposedValue;
 
     protected virtual void Dispose(bool disposing)

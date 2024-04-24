@@ -53,7 +53,7 @@ public class ConnectionPool : IConnectionPool, IDisposable
         else
         { _connectionFactory = BuildConnectionFactory(); }
 
-        CreateConnectionsAsync().GetAwaiter().GetResult();
+        CreatePoolConnectionsAsync().GetAwaiter().GetResult();
     }
 
     public ConnectionPool(RabbitOptions options, HttpClientHandler oauth2ClientHandler) : this(options)
@@ -143,30 +143,42 @@ public class ConnectionPool : IConnectionPool, IDisposable
     protected virtual IConnectionHost CreateConnectionHost(ulong connectionId, IConnection connection) =>
         new ConnectionHost(connectionId, connection);
 
-    private async Task CreateConnectionsAsync()
+    private static readonly string _createConnections = "ConnectionPool creating connections...";
+    private static readonly string _createConnectionException = "Connection [{0}] failed to be created.";
+    private static readonly string _createConnectionsComplete = "ConnectionPool initialized.";
+
+    private async Task CreatePoolConnectionsAsync()
     {
-        _logger.LogTrace(LogMessages.ConnectionPools.CreateConnections);
+        if (!await _poolLock.WaitAsync(0).ConfigureAwait(false)) return;
 
-        for (var i = 0; i < Options.PoolOptions.Connections; i++)
+        try
         {
-            var serviceName = string.IsNullOrEmpty(Options.PoolOptions.ServiceName)
-                ? $"HoC.RabbitMQ:{i}"
-                : $"{Options.PoolOptions.ServiceName}:{i}";
-            try
-            {
-                await _connections
-                    .Writer
-                    .WriteAsync(CreateConnectionHost(_currentConnectionId++, CreateConnection(serviceName)));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, LogMessages.ConnectionPools.CreateConnectionException, serviceName);
-                throw; // Non Optional Throw
-            }
-        }
+            _logger.LogTrace(_createConnections);
 
-        _logger.LogTrace(LogMessages.ConnectionPools.CreateConnectionsComplete);
+            for (var i = 0; i < Options.PoolOptions.Connections; i++)
+            {
+                var serviceName = string.IsNullOrEmpty(Options.PoolOptions.ServiceName)
+                    ? $"HoC.RabbitMQ:{i}"
+                    : $"{Options.PoolOptions.ServiceName}:{i}";
+                try
+                {
+                    await _connections
+                        .Writer
+                        .WriteAsync(CreateConnectionHost(_currentConnectionId++, CreateConnection(serviceName)));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, _createConnectionException, serviceName);
+                    throw; // Non Optional Throw
+                }
+            }
+
+            _logger.LogTrace(_createConnectionsComplete);
+        }
+        finally { _poolLock.Release(); }
     }
+
+    private static readonly string _getConnectionErrorMessage = "Threading.Channel buffer used for reading RabbitMQ connections has been closed.";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async ValueTask<IConnectionHost> GetConnectionAsync()
@@ -176,7 +188,7 @@ public class ConnectionPool : IConnectionPool, IDisposable
             .WaitToReadAsync()
             .ConfigureAwait(false))
         {
-            throw new InvalidOperationException(ExceptionMessages.GetConnectionErrorMessage);
+            throw new InvalidOperationException(_getConnectionErrorMessage);
         }
 
         while (true)
@@ -205,7 +217,7 @@ public class ConnectionPool : IConnectionPool, IDisposable
                 .WaitToWriteAsync()
                 .ConfigureAwait(false))
         {
-            throw new InvalidOperationException(ExceptionMessages.GetConnectionErrorMessage);
+            throw new InvalidOperationException(_getConnectionErrorMessage);
         }
 
         await _connections
@@ -213,27 +225,29 @@ public class ConnectionPool : IConnectionPool, IDisposable
             .WriteAsync(connHost);
     }
 
+    private static readonly string _shutdown = "ConnectionPool shutdown was called.";
+    private static readonly string _shutdownComplete = "ConnectionPool shutdown complete.";
+
     public async Task ShutdownAsync()
     {
-        _logger.LogTrace(LogMessages.ConnectionPools.Shutdown);
+        if (!await _poolLock.WaitAsync(0).ConfigureAwait(false)) return;
 
-        await _poolLock
-            .WaitAsync()
-            .ConfigureAwait(false);
-
-        _connections.Writer.Complete();
-
-        await _connections.Reader.WaitToReadAsync().ConfigureAwait(false);
-        while (_connections.Reader.TryRead(out IConnectionHost connHost))
+        try
         {
-            try
-            { connHost.Close(); }
-            catch { /* SWALLOW */ }
+            _logger.LogTrace(_shutdown);
+            _connections.Writer.Complete();
+            await _connections.Reader.WaitToReadAsync().ConfigureAwait(false);
+
+            while (_connections.Reader.TryRead(out IConnectionHost connHost))
+            {
+                try
+                { connHost.Close(); }
+                catch { /* SWALLOW */ }
+            }
+
+            _logger.LogTrace(_shutdownComplete);
         }
-
-        _poolLock.Release();
-
-        _logger.LogTrace(LogMessages.ConnectionPools.ShutdownComplete);
+        finally { _poolLock.Release(); }
     }
 
     protected virtual void Dispose(bool disposing)

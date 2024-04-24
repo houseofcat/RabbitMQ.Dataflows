@@ -2,7 +2,6 @@ using HouseofCat.Compression;
 using HouseofCat.Encryption;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
-using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
@@ -12,7 +11,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ.Services;
 
@@ -232,10 +230,12 @@ public class RabbitService : IRabbitService, IDisposable
         }
     }
 
+    private static readonly string _noConsumerOptionsMessage = "Consumer {0} options not found in Options.ConsumerOptions.";
+
     public IConsumer<IReceivedMessage> GetConsumer(string consumerName)
     {
         if (!Consumers.TryGetValue(consumerName, out IConsumer<IReceivedMessage> value))
-        { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerOptionsMessage, consumerName)); }
+        { throw new ArgumentException(string.Format(_noConsumerOptionsMessage, consumerName)); }
         return value;
     }
 

@@ -232,19 +232,24 @@ public class Publisher : IPublisher, IDisposable
         { _pubLock.Release(); }
     }
 
+    private static readonly string _autoPublisherNotStartedError = "AutoPublisher has not been started.";
+    private static readonly string _messageQueued = "AutoPublisher queued message [MessageId:{0} InternalId:{1}].";
+
     public void QueueMessage(IMessage message)
     {
-        if (!AutoPublisherStarted) throw new InvalidOperationException(ExceptionMessages.AutoPublisherNotStartedError);
+        if (!AutoPublisherStarted) throw new InvalidOperationException(_autoPublisherNotStartedError);
         Guard.AgainstNull(message, nameof(message));
 
-        _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, message.Metadata?.PayloadId);
+        _logger.LogDebug(_messageQueued, message.MessageId, message.Metadata?.PayloadId);
 
         _messageQueue.Writer.TryWrite(message);
     }
 
+    private static readonly string _queueChannelError = "Can't queue a message to a closed Threading.Channel.";
+
     public async ValueTask QueueMessageAsync(IMessage message)
     {
-        if (!AutoPublisherStarted) throw new InvalidOperationException(ExceptionMessages.AutoPublisherNotStartedError);
+        if (!AutoPublisherStarted) throw new InvalidOperationException(_autoPublisherNotStartedError);
         Guard.AgainstNull(message, nameof(message));
 
         if (!await _messageQueue
@@ -252,10 +257,10 @@ public class Publisher : IPublisher, IDisposable
              .WaitToWriteAsync()
              .ConfigureAwait(false))
         {
-            throw new InvalidOperationException(ExceptionMessages.QueueChannelError);
+            throw new InvalidOperationException(_queueChannelError);
         }
 
-        _logger.LogDebug(LogMessages.AutoPublishers.MessageQueued, message.MessageId, message.Metadata?.PayloadId);
+        _logger.LogDebug(_messageQueued, message.MessageId, message.Metadata?.PayloadId);
 
         await _messageQueue
             .Writer
@@ -266,6 +271,7 @@ public class Publisher : IPublisher, IDisposable
     private static readonly string _defaultAutoPublisherSpanName = "messaging.rabbitmq.autopublisher process";
     private static readonly string _compressEventName = "compressed";
     private static readonly string _encryptEventName = "encrypted";
+    private static readonly string _messagePublished = "AutoPublisher published message [MessageId:{0} InternalId:{1}]. Listen for receipt to indicate success...";
 
     private async Task ProcessMessagesAsync(ChannelReader<IMessage> channelReader)
     {
@@ -307,7 +313,7 @@ public class Publisher : IPublisher, IDisposable
                     span?.AddEvent(_encryptEventName);
                 }
 
-                _logger.LogDebug(LogMessages.AutoPublishers.MessagePublished, message.MessageId, message.Metadata?.PayloadId);
+                _logger.LogDebug(_messagePublished, message.MessageId, message.Metadata?.PayloadId);
 
                 await PublishAsync(message, Options.PublisherOptions.CreatePublishReceipts, Options.PublisherOptions.WithHeaders)
                     .ConfigureAwait(false);
@@ -351,7 +357,8 @@ public class Publisher : IPublisher, IDisposable
 
     #region Publishing
 
-    // A basic implementation of publish but using the ChannelPool. If message properties is null, one is created and all messages are set to persistent.
+    private static readonly string _publishFailed = "Publish to route [{0}] failed, flagging channel host. Error: {1}";
+
     public async Task<bool> PublishAsync(
         string exchangeName,
         string routingKey,
@@ -396,7 +403,7 @@ public class Publisher : IPublisher, IDisposable
         catch (Exception ex)
         {
             OpenTelemetryHelpers.SetSpanAsError(span, ex);
-            _logger.LogDebug(LogMessages.Publishers.PublishFailed, $"{exchangeName}->{routingKey}", ex.Message);
+            _logger.LogDebug(_publishFailed, $"{exchangeName}->{routingKey}", ex.Message);
             error = true;
         }
         finally
@@ -444,7 +451,7 @@ public class Publisher : IPublisher, IDisposable
         {
             OpenTelemetryHelpers.SetSpanAsError(span, ex);
             _logger.LogDebug(
-                LogMessages.Publishers.PublishFailed,
+                _publishFailed,
                 $"{exchangeName}->{routingKey}",
                 ex.Message);
 
@@ -508,7 +515,7 @@ public class Publisher : IPublisher, IDisposable
         {
             OpenTelemetryHelpers.SetSpanAsError(span, ex);
             _logger.LogDebug(
-                LogMessages.Publishers.PublishFailed,
+                _publishFailed,
                 $"{exchangeName}->{routingKey}",
                 ex.Message);
 
@@ -564,7 +571,7 @@ public class Publisher : IPublisher, IDisposable
             OpenTelemetryHelpers.SetSpanAsError(span, ex);
 
             _logger.LogDebug(
-                LogMessages.Publishers.PublishFailed,
+                _publishFailed,
                 $"{exchangeName}->{routingKey}",
                 ex.Message);
 
@@ -581,6 +588,7 @@ public class Publisher : IPublisher, IDisposable
     }
 
     private static readonly string _defaultPublishSpanName = "messaging.rabbitmq.publisher publish";
+    private static readonly string _publishMessageFailed = "Publish to route [{0}] failed [MessageId: {1}] flagging channel host. Error: {2}";
 
     /// <summary>
     /// Acquires a channel from the channel pool, then publishes message based on the message parameters.
@@ -620,7 +628,7 @@ public class Publisher : IPublisher, IDisposable
         {
             OpenTelemetryHelpers.SetSpanAsError(span, ex);
             _logger.LogDebug(
-                LogMessages.Publishers.PublishMessageFailed,
+                _publishMessageFailed,
                 $"{message.Exchange}->{message.RoutingKey}",
                 message.MessageId,
                 ex.Message);
@@ -683,7 +691,7 @@ public class Publisher : IPublisher, IDisposable
         {
             OpenTelemetryHelpers.SetSpanAsError(span, ex);
             _logger.LogDebug(
-                LogMessages.Publishers.PublishMessageFailed,
+                _publishMessageFailed,
                 $"{message.Exchange}->{message.RoutingKey}",
                 message.MessageId,
                 ex.Message);
@@ -747,7 +755,7 @@ public class Publisher : IPublisher, IDisposable
             {
                 OpenTelemetryHelpers.SetSpanAsError(span, ex);
                 _logger.LogDebug(
-                    LogMessages.Publishers.PublishMessageFailed,
+                    _publishMessageFailed,
                     $"{messages[i].Exchange}->{messages[i].RoutingKey}",
                     messages[i].MessageId,
                     ex.Message);
@@ -764,6 +772,8 @@ public class Publisher : IPublisher, IDisposable
         span.End();
         await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false);
     }
+
+    private static readonly string _publishBatchFailed = "Batch publish failed, flagging channel host. Error: {0}";
 
     /// <summary>
     /// Use this method when a group of messages who have the same properties (deliverymode, messagetype, priority).
@@ -818,7 +828,7 @@ public class Publisher : IPublisher, IDisposable
         {
             OpenTelemetryHelpers.SetSpanAsError(span, ex);
             _logger.LogDebug(
-                LogMessages.Publishers.PublishBatchFailed,
+                _publishBatchFailed,
                 ex.Message);
 
             error = true;
@@ -830,6 +840,8 @@ public class Publisher : IPublisher, IDisposable
         }
     }
 
+    private static readonly string _channelReadErrorMessage = "Can't use reader on a closed Threading.Channel.";
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private async ValueTask CreateReceiptAsync(IMessage message, bool error)
     {
@@ -838,7 +850,7 @@ public class Publisher : IPublisher, IDisposable
             .WaitToWriteAsync()
             .ConfigureAwait(false))
         {
-            throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
+            throw new InvalidOperationException(_channelReadErrorMessage);
         }
 
         await _receiptBuffer

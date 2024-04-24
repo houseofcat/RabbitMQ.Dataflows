@@ -20,12 +20,14 @@ public sealed class RabbitOptions
     /// </summary>
     public IDictionary<string, ConsumerOptions> ConsumerOptions { get; set; } = new Dictionary<string, ConsumerOptions>();
 
+    private static readonly string _noConsumerOptionsMessage = "Consumer {0} not found in Consumers dictionary.";
+
     public ConsumerOptions GetConsumerOptions(string consumerName)
     {
         if (ConsumerOptions.TryGetValue(consumerName, out ConsumerOptions value))
         {
             return value;
         }
-        throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerOptionsMessage, consumerName));
+        throw new ArgumentException(string.Format(_noConsumerOptionsMessage, consumerName));
     }
 }
