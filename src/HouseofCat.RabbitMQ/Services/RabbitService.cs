@@ -78,37 +78,17 @@ public class RabbitService : IRabbitService, IDisposable
     }
 
     public RabbitService(
-        string fileNamePath,
-        ISerializationProvider serializationProvider,
-        IEncryptionProvider encryptionProvider = null,
-        ICompressionProvider compressionProvider = null,
-        ILoggerFactory loggerFactory = null,
-        Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
-        : this(
-              JsonFileReader
-                .ReadFileAsync<RabbitOptions>(fileNamePath)
-                .GetAwaiter()
-                .GetResult(),
-              serializationProvider,
-              encryptionProvider,
-              compressionProvider,
-              loggerFactory,
-              processReceiptAsync)
-    { }
-
-    public RabbitService(
         RabbitOptions options,
         ISerializationProvider serializationProvider,
         IEncryptionProvider encryptionProvider = null,
         ICompressionProvider compressionProvider = null,
-        ILoggerFactory loggerFactory = null,
-        Func<IPublishReceipt, ValueTask> processReceiptAsync = null) : this(
+        ILoggerFactory loggerFactory = null)
+        : this(
             new ChannelPool(options),
             serializationProvider,
             encryptionProvider,
             compressionProvider,
-            loggerFactory,
-            processReceiptAsync)
+            loggerFactory)
     { }
 
     public RabbitService(
@@ -116,8 +96,7 @@ public class RabbitService : IRabbitService, IDisposable
         ISerializationProvider serializationProvider,
         IEncryptionProvider encryptionProvider = null,
         ICompressionProvider compressionProvider = null,
-        ILoggerFactory loggerFactory = null,
-        Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
+        ILoggerFactory loggerFactory = null)
     {
         Guard.AgainstNull(chanPool, nameof(chanPool));
         Guard.AgainstNull(serializationProvider, nameof(serializationProvider));
@@ -136,14 +115,20 @@ public class RabbitService : IRabbitService, IDisposable
         };
 
         Topologer = new Topologer(ChannelPool);
+    }
 
-        BuildConsumers();
+    public async Task StartAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
+    {
+        if (await _serviceLock.WaitAsync(0).ConfigureAwait(false)) return;
 
-        Publisher.StartAutoPublish(processReceiptAsync);
-
-        BuildConsumerTopologyAsync()
-            .GetAwaiter()
-            .GetResult();
+        try
+        {
+            BuildConsumers();
+            await BuildConsumerTopologyAsync();
+            Publisher.StartAutoPublish(processReceiptAsync);
+        }
+        finally
+        { _serviceLock.Release(); }
     }
 
     public async ValueTask ShutdownAsync(bool immediately)

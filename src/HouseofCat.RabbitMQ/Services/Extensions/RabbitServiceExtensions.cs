@@ -103,7 +103,7 @@ public static class RabbitServiceExtensions
             compressionProvider,
             loggerFactory);
 
-        await rabbitService.Publisher.StartAutoPublishAsync();
+        await rabbitService.StartAsync();
 
         return rabbitService;
     }
