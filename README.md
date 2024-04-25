@@ -46,7 +46,7 @@ Here are some features ready with `RabbitMQ.Dataflows`.
   * Easy to write your own providers. 
 * Has `ICompressionProvider` built-in support for Gzip, Deflate, Brotli, and LZ4.
 * Has `IEncryptionProvider` built-in support for AesGcm and BouncyCastle AesGcm.
-* RecyclableMemoryStream options for `ICompressionProvider and `IEncryptionProvider`.
+* RecyclableMemoryStream options for `ICompressionProvider` and `IEncryptionProvider`.
 * Publishers AutoPublish seamless encryption/decryption steps (adds headers too).  
 * Consumers allow seamless compression/decompression steps (uses headers).  
 * Publisher/Consumers have built-in `OpenTelemetry` support.
@@ -68,6 +68,7 @@ developer.
  * Getting started with *RabbitMQ.Dataflows* [Serialization](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/Serialization.md).  
  * Getting started with *RabbitMQ.Dataflows* [Publisher](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/Publisher.md).  
  * Getting started with *RabbitMQ.Dataflows* [AutoPublisher](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/AutoPublisher.md).   
+ * Getting started with *RabbitMQ.Dataflows* [Consumer](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/Consumer.md).  
 
 More to come!
 
