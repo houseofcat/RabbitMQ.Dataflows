@@ -216,10 +216,10 @@ These examples are obviously trivial and single threaded for the most part. This
 Dataflow allow you to level things up. The `ConsumerPipeline` and `ConsumerDataflow` are designed to allow
 to scale to the number of cores on your machine or to the number of threads you want to use.
 
-Once you AckMessage (or NackMessage) the message is removed from Consumer capacity and a new (very next)
-message will be consumed to fill it's place. The BatchSize of the Consumer indicates how many of these
-messages you can have pending. For long operations without parallelization, I would recommend a small
-batchsize and many consumers. For short operations with parallelization, I would recommend a large
-batchsize and one or more identical consumers. ConsumerDataflows allow you clone Consumers and consume in
-parallel. This is a very high performance scenario. It's best to start conservative and adjust one setting
-at a time for performance tuning.
+Once you AckMessage (or NackMessage) the message is removed and the very next message in queue will be consumed
+to fill it's place. The BatchSize of the Consumer indicates how many of these messages you can have pending.
+For long operations without parallelization, I would recommend a small `BatchSize` and many consumers. For
+short operations with parallelization, I would recommend a large `BatchSize` and one or more identical
+consumers. `ConsumerDataflows` allow you clone Consumers and consume and process in parallel. This is a very
+high performance scenario. It's best to start conservative and adjust one setting at a time for performance
+tuning.
