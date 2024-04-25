@@ -183,7 +183,8 @@ await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
 }
 ```
 
-If you needed to decompress and decrypt the IMessage manually you could do the following.
+If you needed to decompress and decrypt the IMessage manually if the Producer/Publisher can't use RabbitMQ
+headers etc. you could do the following.
 ```csharp
 await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
 {
@@ -195,7 +196,8 @@ await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
 }
 ```
 
-If you needed to decompress and decrypt the raw data manually you could do the following.
+If you needed to decompress and decrypt the raw data manually because the Producer/Publisher isn't
+using IMessage type, you can do the following.
 ```csharp
 await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
 {
