@@ -124,17 +124,16 @@ raw data or `IMessage` object. The Consumer will automatically deserialize, deco
 provided its given the right RabbitMQ headers that indicate ContentType, Compression, and Encryption.
 
 This is what the `IMessage` inside the queue looks like. The `Metadata` should help indicate the state of the
-inner body. This means the `IMessage` acts as envelope to your data. You won't need to worry about doing this
-yourself.
+inner body. This means the `IMessage` acts as envelope to your data. You won't need to worry about setting any
+of these values yourself when using the `IMessage` object.
 
-
-The RabbitMQ headers created by our internal Publisher will look like this. You can modify some of them by
-changing the Keys/Values in the `Constants` class.
+The RabbitMQ headers added when using `IMessage` in our internal Publisher will look like this. You can modify
+some of them by changing the Keys/Values in the `Constants` class.
 
 ![Imessage Header](misc/imessage_header.png)
 
 The `IMessage` object will look like this.
-```csharp
+```json
 {
     "MessageId": "6522c080-3d63-484c-995c-5e57a2a9ef47",
     "Body": "UnQ2PCYH0m6duw5mtxv+0wf9s049xQGG0a2FEFsmFm6k77rhd2E0QcEKKxSuea1ok3RuEDkPCCqbDRzaDqLrG/6VeX2+xXE=",
@@ -151,13 +150,16 @@ The `IMessage` object will look like this.
 }
 ```
 
-As you can see, the internal `Body` was your data or class type, serialized, compressed, and encrypted. A
+As you can see, the internal `Body` was your original data, serialized, compressed, and encrypted. A
 consumer with the corresponding `ISerializationProvider`, `ICompressionProvider`, and `IEncryptionProvider`
-will automatically decrypt, decompress, and deserialize your data back into your `Body` data, leaving you
-to deserialize the inner `Body` back into your object/data.
+will automatically decrypt, decompress, and deserialize your data back into your `Body`, leaving you to
+deserialize the inner `Body` back into your original object/data. This will only occur though if the
+headers are in place. If you published manually without `IMessage` wrapped object, you simply have to
+perform these steps yourself. If you serialize, compress, and encrypt, then perform those steps in reverse;
+decrypt, decompress, and deserialize.
 
 If it was a raw string you could the following.
-```
+```csharp
 using System.Text;
 
 await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
@@ -168,7 +170,7 @@ await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
 ```
 
 If it was a JsonSerialized data (internally) you could do the following.
-```
+```csharp
 using System.Text;
 
 await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
@@ -181,6 +183,41 @@ await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
 }
 ```
 
+If you needed to decompress and decrypt the IMessage manually you could do the following.
+```csharp
+await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
+{
+    await rabbitService.DecomcryptAsync(receivedMessage.Message);
+
+    // Do something with the receivedMessage.Message.
+
+    receivedMessage.AckMessage();
+}
+```
+
+If you needed to decompress and decrypt the raw data manually you could do the following.
+```csharp
+await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
+{
+    var decryptedData = aes256Provider.Decrypt(receivedMessage.Message.Body);
+    var decompresseData = gzipProvider.Decompress(decryptedData);
+    var myClass = jsonProvider.Deserialize<MyClass>(decompresseData);
+
+
+    // Do something with the myClass.
+
+    receivedMessage.AckMessage();
+}
+```
+
 These examples are obviously trivial and single threaded for the most part. This is where the Pipeline and
 Dataflow allow you to level things up. The `ConsumerPipeline` and `ConsumerDataflow` are designed to allow
 to scale to the number of cores on your machine or to the number of threads you want to use.
+
+Once you AckMessage (or NackMessage) the message is removed from Consumer capacity and a new (very next)
+message will be consumed to fill it's place. The BatchSize of the Consumer indicates how many of these
+messages you can have pending. For long operations without parallelization, I would recommend a small
+batchsize and many consumers. For short operations with parallelization, I would recommend a large
+batchsize and one or more identical consumers. ConsumerDataflows allow you clone Consumers and consume in
+parallel. This is a very high performance scenario. It's best to start conservative and adjust one setting
+at a time for performance tuning.
