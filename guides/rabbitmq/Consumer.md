@@ -132,7 +132,33 @@ some of them by changing the Keys/Values in the `Constants` class.
 
 ![Imessage Header](misc/imessage_header.png)
 
-The `IMessage` object will look like this.
+```plaintext
+HEADERS
+ContentType:	    application/json
+X-RD-COMPRESSED:	true
+X-RD-COMPRESSION:	GZIP
+X-RD-ENCRYPTDATE:	2024-04-25T09:01:28.312541-05:00
+X-RD-ENCRYPTED:	    true
+X-RD-ENCRYPTION:	AESGCM-256
+X-RD-OBJECTTYPE:	IMESSAGE
+traceparent:	    00-048a23188c9504032947740f318fa082-3759010fe26173a9-01
+
+PROPERTIES
+message_id:	    6522c080-3d63-484c-995c-5e57a2a9ef47
+priority:	    0
+delivery_mode:	2
+content_type:	application/json
+```
+
+OpenTelemetry `traceparent` is provided for distributed tracing visibility.
+
+Consumer will parse and and store this on `IReceivedMessage` as the following properties.
+```csharp
+public string TraceParentHeader { get; private set; }
+public SpanContext? ParentSpanContext { get; set; }
+```
+
+When using `IMessage` object, it will look like this in your queue.
 ```json
 {
     "MessageId": "6522c080-3d63-484c-995c-5e57a2a9ef47",

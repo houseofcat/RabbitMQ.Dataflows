@@ -3,7 +3,6 @@ using HouseofCat.Utilities.Helpers;
 using OpenTelemetry.Trace;
 using RabbitMQ.Client;
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace HouseofCat.RabbitMQ;
