@@ -4,14 +4,6 @@ namespace HouseofCat.Utilities;
 
 public static class Constants
 {
-    public static class Guards
-    {
-        public readonly static string CantBeNull = "{0} can't be null or empty.";
-        public readonly static string BothCantBeNull = "Both {0} and {1} can't be null or empty.";
-        public readonly static string CantBeTrue = "{0} can't be true for this method.";
-        public readonly static string CantBeFalse = "{0} can't be true for this method.";
-    }
-
     public static class Stacky
     {
         public const string AtValue = "   at ";
