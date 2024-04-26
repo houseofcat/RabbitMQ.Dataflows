@@ -4,7 +4,6 @@ using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ.Dataflows;
-using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

@@ -40,7 +40,7 @@ public interface IPublisher
     Task<bool> PublishAsync(
         string exchangeName,
         string routingKey,
-        ReadOnlyMemory<byte> payload,
+        ReadOnlyMemory<byte> body,
         bool mandatory = false,
         IBasicProperties basicProperties = null,
         string messageId = null,
@@ -49,7 +49,7 @@ public interface IPublisher
     Task<bool> PublishAsync(
         string exchangeName,
         string routingKey,
-        ReadOnlyMemory<byte> payload,
+        ReadOnlyMemory<byte> body,
         IDictionary<string, object> headers = null,
         string messageId = null,
         byte? priority = 0,
@@ -60,7 +60,7 @@ public interface IPublisher
     Task<bool> PublishBatchAsync(
         string exchangeName,
         string routingKey,
-        IList<ReadOnlyMemory<byte>> payloads,
+        IList<ReadOnlyMemory<byte>> bodies,
         bool mandatory = false,
         IBasicProperties basicProperties = null,
         string contentType = null);
@@ -68,7 +68,7 @@ public interface IPublisher
     Task<bool> PublishBatchAsync(
         string exchangeName,
         string routingKey,
-        IList<ReadOnlyMemory<byte>> payloads,
+        IList<ReadOnlyMemory<byte>> bodies,
         IDictionary<string, object> headers = null,
         byte? priority = 0,
         byte? deliveryMode = 2,

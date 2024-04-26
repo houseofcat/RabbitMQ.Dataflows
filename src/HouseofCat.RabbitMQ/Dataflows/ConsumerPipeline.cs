@@ -1,13 +1,11 @@
 ﻿using HouseofCat.Dataflows.Pipelines;
-using HouseofCat.RabbitMQ.Dataflows;
 using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using static HouseofCat.RabbitMQ.Pipelines.Constants;
 
-namespace HouseofCat.RabbitMQ.Pipelines;
+namespace HouseofCat.RabbitMQ.Dataflows;
 
 public interface IConsumerPipeline
 {
@@ -128,6 +126,12 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
         finally { _cpLock.Release(); }
     }
 
+    private static readonly string _consumerPipelineQueueing = "Consumer ({0}) pipeline engine queueing unit of work (receivedMessage:DT:{1}).";
+    private static readonly string _consumerPipelineWaiting = "Consumer ({0}) pipeline engine waiting on completion of unit of work (receivedMessage:DT:{1})...";
+    private static readonly string _consumerPipelineWaitingDone = "Consumer ({0}) pipeline engine waiting on completed unit of work (receivedMessage:DT:{1}).";
+    private static readonly string _consumerPipelineActionCancelled = "Consumer ({0}) pipeline engine actions were cancelled.";
+    private static readonly string _consumerPipelineError = "Consumer ({0}) pipeline engine encountered an error. Error: {1}";
+
     public async Task PipelineStreamEngineAsync(
         IPipeline<PipeReceivedMessage, TOut> pipeline,
         bool waitForCompletion,
@@ -144,7 +148,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
                 if (receivedMessage == null) { continue; }
 
                 _logger.LogDebug(
-                    ConsumerPipelines.ConsumerPipelineQueueing,
+                    _consumerPipelineQueueing,
                     ConsumerOptions.ConsumerName,
                     receivedMessage.DeliveryTag);
 
@@ -155,7 +159,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
                 if (waitForCompletion)
                 {
                     _logger.LogTrace(
-                        ConsumerPipelines.ConsumerPipelineWaiting,
+                        _consumerPipelineWaiting,
                         ConsumerOptions.ConsumerName,
                         receivedMessage.DeliveryTag);
 
@@ -164,7 +168,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
                         .ConfigureAwait(false);
 
                     _logger.LogTrace(
-                        ConsumerPipelines.ConsumerPipelineWaitingDone,
+                        _consumerPipelineWaitingDone,
                         ConsumerOptions.ConsumerName,
                         receivedMessage.DeliveryTag);
                 }
@@ -176,13 +180,13 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
         catch (OperationCanceledException)
         {
             _logger.LogWarning(
-                ConsumerPipelines.ConsumerPipelineActionCancelled,
+                _consumerPipelineActionCancelled,
                 ConsumerOptions.ConsumerName);
         }
         catch (Exception ex)
         {
             _logger.LogError(
-                ConsumerPipelines.ConsumerPipelineError,
+                _consumerPipelineError,
                 ConsumerOptions.ConsumerName,
                 ex.Message);
         }
@@ -207,7 +211,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
                     if (receivedMessage == null) { continue; }
 
                     _logger.LogDebug(
-                        ConsumerPipelines.ConsumerPipelineQueueing,
+                        _consumerPipelineQueueing,
                         ConsumerOptions.ConsumerName,
                         receivedMessage.DeliveryTag);
 
@@ -218,7 +222,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
                     if (waitForCompletion)
                     {
                         _logger.LogTrace(
-                            ConsumerPipelines.ConsumerPipelineWaiting,
+                            _consumerPipelineWaiting,
                             ConsumerOptions.ConsumerName,
                             receivedMessage.DeliveryTag);
 
@@ -227,7 +231,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
                             .ConfigureAwait(false);
 
                         _logger.LogTrace(
-                            ConsumerPipelines.ConsumerPipelineWaitingDone,
+                            _consumerPipelineWaitingDone,
                             ConsumerOptions.ConsumerName,
                             receivedMessage.DeliveryTag);
                     }
@@ -240,13 +244,13 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
         catch (OperationCanceledException)
         {
             _logger.LogInformation(
-                ConsumerPipelines.ConsumerPipelineActionCancelled,
+                _consumerPipelineActionCancelled,
                 ConsumerOptions.ConsumerName);
         }
         catch (Exception ex)
         {
             _logger.LogError(
-                ConsumerPipelines.ConsumerPipelineError,
+                _consumerPipelineError,
                 ConsumerOptions.ConsumerName,
                 ex.Message);
         }
