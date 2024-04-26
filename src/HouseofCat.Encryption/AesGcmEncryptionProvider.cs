@@ -85,7 +85,7 @@ public sealed class AesGcmEncryptionProvider : IEncryptionProvider
         var encryptedBytes = _pool.Rent(length);
         var tag = _pool.Rent(AesGcm.TagByteSizes.MaxSize); // MaxSize = 16
         var nonce = _pool.Rent(AesGcm.NonceByteSizes.MaxSize); // MaxSize = 12
-        _rng.GetBytes(nonce, 0, AesGcm.NonceByteSizes.MaxSize);
+        _rng.GetNonZeroBytes(nonce);
 
         aes.Encrypt(
             nonce.AsSpan().Slice(0, AesGcm.NonceByteSizes.MaxSize),
@@ -133,7 +133,7 @@ public sealed class AesGcmEncryptionProvider : IEncryptionProvider
         var encryptedBytes = _pool.Rent(length);
         var tag = _pool.Rent(AesGcm.TagByteSizes.MaxSize); // MaxSize = 16
         var nonce = _pool.Rent(AesGcm.NonceByteSizes.MaxSize); // MaxSize = 12
-        _rng.GetBytes(nonce, 0, AesGcm.NonceByteSizes.MaxSize);
+        _rng.GetNonZeroBytes(nonce);
 
         aes.Encrypt(
             nonce.AsSpan().Slice(0, AesGcm.NonceByteSizes.MaxSize),
@@ -178,7 +178,7 @@ public sealed class AesGcmEncryptionProvider : IEncryptionProvider
         var encryptedBytes = _pool.Rent(unencryptedData.Length);
         var tag = _pool.Rent(AesGcm.TagByteSizes.MaxSize); // MaxSize = 16
         var nonce = _pool.Rent(AesGcm.NonceByteSizes.MaxSize); // MaxSize = 12
-        _rng.GetBytes(nonce, 0, AesGcm.NonceByteSizes.MaxSize);
+        _rng.GetNonZeroBytes(nonce);
 
         aes.Encrypt(
             nonce.AsSpan().Slice(0, AesGcm.NonceByteSizes.MaxSize),

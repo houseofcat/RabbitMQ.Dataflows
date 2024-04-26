@@ -17,20 +17,21 @@ public static class Data
     /// <param name="maxLength"></param>
     public static async Task<string> RandomStringAsync(int minLength, int maxLength)
     {
-        return await Task.Run(() =>
-        {
-            char[] chars = new char[maxLength];
-            int setLength = AllowedChars.Length;
-
-            int length = Rand.Next(minLength, maxLength + 1);
-
-            for (var i = 0; i < length; ++i)
+        return await Task.Run(
+            () =>
             {
-                chars[i] = AllowedChars[Rand.Next(setLength)];
-            }
+                var chars = new char[maxLength];
+                var setLength = AllowedChars.Length;
+                var length = Rand.Next(minLength, maxLength + 1);
 
-            return new string(chars, 0, length);
-        }).ConfigureAwait(false);
+                for (var i = 0; i < length; ++i)
+                {
+                    chars[i] = AllowedChars[Rand.Next(setLength)];
+                }
+
+                return new string(chars, 0, length);
+            })
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -40,10 +41,9 @@ public static class Data
     /// <param name="maxLength"></param>
     public static string RandomString(int minLength, int maxLength)
     {
-        char[] chars = new char[maxLength];
-        int setLength = AllowedChars.Length;
-
-        int length = Rand.Next(minLength, maxLength + 1);
+        var chars = new char[maxLength];
+        var setLength = AllowedChars.Length;
+        var length = Rand.Next(minLength, maxLength + 1);
 
         for (var i = 0; i < length; ++i)
         {
