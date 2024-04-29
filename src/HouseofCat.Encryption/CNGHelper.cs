@@ -45,7 +45,7 @@ public static class CNGHelper
                     | CngExportPolicies.AllowPlaintextArchiving
             };
 
-            if (provider != null)
+            if (provider is not null)
             {
                 cngKeyCreationParameters.Provider = provider;
             }

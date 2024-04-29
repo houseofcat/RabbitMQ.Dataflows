@@ -52,7 +52,7 @@ public class DataflowEngine<TIn, TOut> : IDataBlockEngine<TIn>
             EnsureOrdered = ensureOrdered
         };
 
-        if (taskScheduler != null)
+        if (taskScheduler is not null)
         { executeOptions.TaskScheduler = taskScheduler ?? TaskScheduler.Current; }
 
         _workBlock = new ActionBlock<TIn>(
@@ -68,12 +68,12 @@ public class DataflowEngine<TIn, TOut> : IDataBlockEngine<TIn>
     {
         try
         {
-            if (_preWorkBodyAsync != null)
+            if (_preWorkBodyAsync is not null)
             {
                 data = await _preWorkBodyAsync(data).ConfigureAwait(false);
             }
 
-            if (_postWorkBodyAsync != null)
+            if (_postWorkBodyAsync is not null)
             {
                 var output = await _workBodyAsync(data).ConfigureAwait(false);
                 if (!EqualityComparer<TIn>.Default.Equals(data, default))

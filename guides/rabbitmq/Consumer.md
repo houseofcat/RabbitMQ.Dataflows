@@ -54,8 +54,8 @@ and to leverage a `RabbitService` to pre-build the `Consumer` classes.
       "Exclusive": false,
       "QueueName": "TestQueue",
       "QueueArguments": null,
-      "TargetQueueName": "TestTargetQueue",
-      "TargetQueueArgs": null,
+      "SendQueueName": "TestTargetQueue",
+      "SendQueueArgs": null,
       "ErrorQueueName": "TestQueue.Error",
       "ErrorQueueArgs": null,
       "BuildQueues": true,
@@ -67,7 +67,9 @@ and to leverage a `RabbitService` to pre-build the `Consumer` classes.
       "WorkflowConsumerCount": 1,
       "WorkflowBatchSize": 5,
       "WorkflowEnsureOrdered": false,
-      "WorkflowWaitForCompletion": false
+      "WorkflowWaitForCompletion": false,
+      "WorkflowSendCompressed": false,
+      "WorkflowSendEncrypted": false
     }
   }
 ```

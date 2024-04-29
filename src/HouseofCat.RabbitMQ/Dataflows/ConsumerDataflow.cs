@@ -99,6 +99,8 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             await consumerBlock.StopConsumingAsync(immediate).ConfigureAwait(false);
             consumerBlock.Complete();
         }
+
+        await _rabbitService.ShutdownAsync(false);
     }
 
     /// <summary>
@@ -348,7 +350,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return this;
     }
 
-    public ConsumerDataflow<TState> WithCompression(
+    public ConsumerDataflow<TState> WithSendCompressedStep(
         int? maxDoP = null,
         bool? ensureOrdered = null,
         int? boundedCapacity = null,
@@ -369,7 +371,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return this;
     }
 
-    public ConsumerDataflow<TState> WithEncryption(
+    public ConsumerDataflow<TState> WithSendEncryptedStep(
         int? maxDoP = null,
         bool? ensureOrdered = null,
         int? boundedCapacity = null,
@@ -443,10 +445,10 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     private void LinkPreProcessing(DataflowLinkOptions overrideOptions = null)
     {
         // Link Deserialize to DecryptBlock with predicate if its not null.
-        if (_decryptBlock != null)
+        if (_decryptBlock is not null)
         { LinkWithFaultRoute(_currentBlock, _decryptBlock, x => x.IsFaulted, overrideOptions ?? _linkStepOptions); }
 
-        if (_decompressBlock != null)
+        if (_decompressBlock is not null)
         { LinkWithFaultRoute(_currentBlock, _decompressBlock, x => x.IsFaulted, overrideOptions ?? _linkStepOptions); }
 
         _currentBlock.LinkTo(_readyBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
@@ -467,7 +469,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             }
 
             // Link the last user step to PostProcessingBuffer/CreateSendMessage.
-            if (_createSendMessage != null)
+            if (_createSendMessage is not null)
             {
                 LinkWithFaultRoute(_suppliedTransforms[^1], _createSendMessage, x => x.IsFaulted, overrideOptions ?? _linkStepOptions);
                 _createSendMessage.LinkTo(_postProcessingBuffer, overrideOptions ?? _linkStepOptions);
@@ -483,13 +485,13 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
     private void LinkPostProcessing(DataflowLinkOptions overrideOptions = null)
     {
-        if (_compressBlock != null)
+        if (_compressBlock is not null)
         { LinkWithFaultRoute(_currentBlock, _compressBlock, x => x.IsFaulted, overrideOptions); }
 
-        if (_encryptBlock != null)
+        if (_encryptBlock is not null)
         { LinkWithFaultRoute(_currentBlock, _encryptBlock, x => x.IsFaulted, overrideOptions); }
 
-        if (_sendMessageBlock != null)
+        if (_sendMessageBlock is not null)
         { LinkWithFaultRoute(_currentBlock, _sendMessageBlock, x => x.IsFaulted, overrideOptions); }
 
         _currentBlock.LinkTo(_finalization, overrideOptions ?? _linkStepOptions); // Last Action

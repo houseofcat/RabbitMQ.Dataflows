@@ -4,6 +4,7 @@ using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ.Dataflows;
+using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,12 +13,14 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
-namespace HouseofCat.RabbitMQ.Services.Extensions;
+namespace HouseofCat.RabbitMQ.Extensions;
 
 public static class RabbitServiceExtensions
 {
     /// <summary>
-    /// Sets up RabbitService with JsonProvider, GzipProvider (recyclable), and Aes256 (GCM) encryption/decryption.
+    /// Sets up RabbitService with JsonProvider, GzipProvider (recyclable), and optional Aes256 (GCM) encryption/decryption.
+    /// <para>Because this uses the configured LoggerFactory for internal logging, it is recommended calling this after you've setup your Logging configuration.</para>
+    /// <para>Default RabbitOptions config key is "RabbitOptions".</para>
     /// </summary>
     /// <param name="services"></param>
     /// <param name="config"></param>
@@ -25,12 +28,12 @@ public static class RabbitServiceExtensions
     /// <param name="encryptionPassword"></param>
     /// <param name="encryptionSalt"></param>
     /// <returns></returns>
-    public static async Task SetupRabbitServiceAsync(
+    public static async Task AddRabbitServiceAsync(
         this IServiceCollection services,
         IConfiguration config,
-        string configSectionKey,
-        string encryptionPassword,
-        string encryptionSalt)
+        string encryptionPassword = null,
+        string encryptionSalt = null,
+        string configSectionKey = "RabbitOptions")
     {
         using var scope = services.BuildServiceProvider().CreateScope();
 
@@ -40,15 +43,19 @@ public static class RabbitServiceExtensions
         var jsonProvider = new JsonProvider();
 
         var hashProvider = new ArgonHashingProvider();
-        var aes256Key = hashProvider.GetHashKey(encryptionPassword, encryptionSalt, 32);
-        var aes256Provider = new AesGcmEncryptionProvider(aes256Key);
+
+        IEncryptionProvider encryptionProvider = null;
+        if (!string.IsNullOrEmpty(encryptionPassword) && !string.IsNullOrEmpty(encryptionSalt))
+        {
+            var aes256Key = hashProvider.GetHashKey(encryptionPassword, encryptionSalt, 32);
+            encryptionProvider = new AesGcmEncryptionProvider(aes256Key);
+        }
 
         var gzipProvider = new RecyclableGzipProvider();
 
-        var rabbitService = await BuildRabbitServiceAsync(
-            options,
+        var rabbitService = await options.BuildRabbitServiceAsync(
             jsonProvider,
-            aes256Provider,
+            encryptionProvider,
             gzipProvider,
             loggerFactory);
 
@@ -56,7 +63,9 @@ public static class RabbitServiceExtensions
     }
 
     /// <summary>
-    /// Setup RabbitService with provided providers. Automatically loads the configured LoggerFactory from IServiceCollection.
+    /// Setup RabbitService with supplied providers.
+    /// <para>Because this uses the configured LoggerFactory for internal logging, it is recommended calling this after you've setup your Logging configuration.</para>
+    /// <para>Default RabbitOptions config key is "RabbitOptions".</para>
     /// </summary>
     /// <param name="services"></param>
     /// <param name="config"></param>
@@ -65,21 +74,20 @@ public static class RabbitServiceExtensions
     /// <param name="encryptionProvider"></param>
     /// <param name="compressionProvider"></param>
     /// <returns></returns>
-    public static async Task SetupRabbitServiceAsync(
+    public static async Task AddRabbitServiceAsync(
         this IServiceCollection services,
         IConfiguration config,
-        string configSectionKey,
         ISerializationProvider serializationProvider,
         IEncryptionProvider encryptionProvider = null,
-        ICompressionProvider compressionProvider = null)
+        ICompressionProvider compressionProvider = null,
+        string configSectionKey = "RabbitOptions")
     {
         using var scope = services.BuildServiceProvider().CreateScope();
 
         var loggerFactory = scope.ServiceProvider.GetService<ILoggerFactory>();
         var options = config.GetRabbitOptions(configSectionKey);
 
-        var rabbitService = await BuildRabbitServiceAsync(
-            options,
+        var rabbitService = await options.BuildRabbitServiceAsync(
             serializationProvider,
             encryptionProvider,
             compressionProvider,
@@ -171,12 +179,18 @@ public static class RabbitServiceExtensions
             .WithDecompressionStep()
             .WithDecryptionStep();
 
-        if (!string.IsNullOrWhiteSpace(options.TargetQueueName))
+        if (!string.IsNullOrWhiteSpace(options.SendQueueName))
         {
-            dataflow = dataflow
-                .WithEncryption()
-                .WithCompression()
-                .WithSendStep();
+            if (rabbitService.CompressionProvider is not null && options.WorkflowSendCompressed)
+            {
+                dataflow = dataflow.WithSendCompressedStep();
+            }
+            if (rabbitService.EncryptionProvider is not null && options.WorkflowSendEncrypted)
+            {
+                dataflow = dataflow.WithSendEncryptedStep();
+            }
+
+            dataflow = dataflow.WithSendStep();
         }
 
         return dataflow;

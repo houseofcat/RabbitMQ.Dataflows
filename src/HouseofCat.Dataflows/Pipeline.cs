@@ -230,7 +230,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>, IDisposable
         if (Ready) throw new InvalidOperationException(_alreadyFinalized);
         if (Steps.Count == 0) throw new InvalidOperationException(_cantFinalize);
 
-        if (finalizeStep != null)
+        if (finalizeStep is not null)
         {
             var pipelineStep = new PipelineStep
             {
@@ -280,7 +280,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>, IDisposable
         if (Ready) throw new InvalidOperationException(_alreadyFinalized);
         if (Steps.Count == 0) throw new InvalidOperationException(_cantFinalize);
 
-        if (finalizeStep != null)
+        if (finalizeStep is not null)
         {
             var pipelineStep = new PipelineStep
             {
@@ -410,7 +410,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>, IDisposable
             catch { return; }
 
             var ex = GetAnyPipelineStepsFault();
-            if (ex != null)
+            if (ex is not null)
             { _logger.LogCritical(ex, _faulted, _pipelineName); }
             else  // No Steps are Faulted... Hooray!
             { _logger.LogInformation(_healthy, _pipelineName); }

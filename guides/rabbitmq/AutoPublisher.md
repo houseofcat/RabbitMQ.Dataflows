@@ -130,7 +130,7 @@ private async ValueTask ProcessReceiptAsync(IPublishReceipt receipt)
 {
     if (AutoPublisherStarted
         && receipt.IsError
-        && receipt.OriginalMessage != null)
+        && receipt.OriginalMessage is not null)
     {
         _logger.LogWarning($"Failed publish for message ({receipt.OriginalMessage.MessageId}). Retrying with AutoPublishing...");
 

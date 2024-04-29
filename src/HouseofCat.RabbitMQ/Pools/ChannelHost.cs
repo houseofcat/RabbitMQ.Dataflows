@@ -99,7 +99,7 @@ public class ChannelHost : IChannelHost, IDisposable
                 return false;
             }
 
-            if (Channel != null)
+            if (Channel is not null)
             {
                 // One last check to see if the channel auto-recovered.
                 var healthy = ChannelHealthy();

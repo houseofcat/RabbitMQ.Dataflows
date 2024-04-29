@@ -116,24 +116,22 @@ public class RabbitService : IRabbitService, IDisposable
 
         try
         {
-            if (!_started)
+            if (_started) return;
+
+            ChannelPool ??= new ChannelPool(Options);
+
+            Publisher ??= new Publisher(ChannelPool, SerializationProvider, EncryptionProvider, CompressionProvider)
             {
-                ChannelPool ??= new ChannelPool(Options);
+                TimeFormat = TimeFormat
+            };
 
-                Publisher ??= new Publisher(ChannelPool, SerializationProvider, EncryptionProvider, CompressionProvider)
-                {
-                    TimeFormat = TimeFormat
-                };
+            Topologer ??= new Topologer(ChannelPool);
 
-                Topologer ??= new Topologer(ChannelPool);
+            BuildConsumers();
+            await BuildConsumerTopologyAsync();
+            await Publisher.StartAutoPublishAsync(processReceiptAsync);
 
-                BuildConsumers();
-                await BuildConsumerTopologyAsync();
-
-                await Publisher.StartAutoPublishAsync(processReceiptAsync);
-
-                _started = true;
-            }
+            _started = true;
         }
         finally
         { _serviceLock.Release(); }
@@ -145,21 +143,20 @@ public class RabbitService : IRabbitService, IDisposable
 
         try
         {
-            if (_started)
-            {
-                await Publisher
+            if (!_started) return;
+
+            await Publisher
                 .StopAutoPublishAsync(immediately)
                 .ConfigureAwait(false);
 
-                await StopAllConsumers(immediately)
-                    .ConfigureAwait(false);
+            await StopAllConsumers(immediately)
+                .ConfigureAwait(false);
 
-                await ChannelPool
-                    .ShutdownAsync()
-                    .ConfigureAwait(false);
+            await ChannelPool
+                .ShutdownAsync()
+                .ConfigureAwait(false);
 
-                _started = false;
-            }
+            _started = false;
         }
         finally
         { _serviceLock.Release(); }
@@ -204,15 +201,15 @@ public class RabbitService : IRabbitService, IDisposable
                     .ConfigureAwait(false);
             }
 
-            if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.TargetQueueName))
+            if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.SendQueueName))
             {
                 await Topologer
                     .CreateQueueAsync(
-                        consumer.Value.ConsumerOptions.TargetQueueName,
+                        consumer.Value.ConsumerOptions.SendQueueName,
                         consumer.Value.ConsumerOptions.BuildQueueDurable,
                         consumer.Value.ConsumerOptions.BuildQueueExclusive,
                         consumer.Value.ConsumerOptions.BuildQueueAutoDelete,
-                        consumer.Value.ConsumerOptions.TargetQueueArgs)
+                        consumer.Value.ConsumerOptions.SendQueueArgs)
                     .ConfigureAwait(false);
             }
 
@@ -385,7 +382,7 @@ public class RabbitService : IRabbitService, IDisposable
                 .ConfigureAwait(false);
         }
 
-        return result != null
+        return result is not null
             ? SerializationProvider.Deserialize<T>(result.Body)
             : default;
     }

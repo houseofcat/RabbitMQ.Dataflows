@@ -47,7 +47,7 @@ public class ChannelReaderBlock<TOut> : ISourceBlock<TOut>
             while (await _channelReader.WaitToReadAsync(token).ConfigureAwait(false))
             {
                 var message = await _channelReader.ReadAsync(token).ConfigureAwait(false);
-                if (message != null)
+                if (message is not null)
                 {
                     await _targetBlock.SendAsync(message, token).ConfigureAwait(false);
                 }

@@ -154,8 +154,8 @@ Let me copy in a basic HoC config with our consumer settings in it. This file ne
       "Exclusive": false,
       "QueueName": "TestQueue",
       "QueueArguments": null,
-      "TargetQueueName": "TestTargetQueue",
-      "TargetQueueArgs": null,
+      "SendQueueName": "TestTargetQueue",
+      "SendQueueArgs": null,
       "ErrorQueueName": "TestQueue.Error",
       "ErrorQueueArgs": null,
       "BuildQueues": true,
@@ -167,7 +167,9 @@ Let me copy in a basic HoC config with our consumer settings in it. This file ne
       "WorkflowConsumerCount": 1,
       "WorkflowBatchSize": 5,
       "WorkflowEnsureOrdered": false,
-      "WorkflowWaitForCompletion": false
+      "WorkflowWaitForCompletion": false,
+      "WorkflowSendCompressed": false,
+      "WorkflowSendEncrypted": false
     }
   }
 }

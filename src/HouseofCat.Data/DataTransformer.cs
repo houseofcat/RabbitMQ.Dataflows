@@ -59,15 +59,15 @@ public class DataTransformer
     /// <returns></returns>
     public Task<TOut> DeserializeAsync<TOut>(ReadOnlyMemory<byte> data)
     {
-        if (_encryptionProvider != null && _compressionProvider != null)
+        if (_encryptionProvider is not null && _compressionProvider is not null)
         {
             return DecryptDecompressDeserializeAsync<TOut>(data);
         }
-        else if (_encryptionProvider != null)
+        else if (_encryptionProvider is not null)
         {
             return DecryptDeserializeAsync<TOut>(data);
         }
-        else if (_compressionProvider != null)
+        else if (_compressionProvider is not null)
         {
             return DecompressDeserializeAsync<TOut>(data);
         }
@@ -84,15 +84,15 @@ public class DataTransformer
     /// <returns></returns>
     public TOut Deserialize<TOut>(ReadOnlyMemory<byte> data)
     {
-        if (_encryptionProvider != null && _compressionProvider != null)
+        if (_encryptionProvider is not null && _compressionProvider is not null)
         {
             return DecryptDecompressDeserialize<TOut>(data);
         }
-        else if (_encryptionProvider != null)
+        else if (_encryptionProvider is not null)
         {
             return DecryptDeserialize<TOut>(data);
         }
-        else if (_compressionProvider != null)
+        else if (_compressionProvider is not null)
         {
             return DecompressDeserialize<TOut>(data);
         }
@@ -160,15 +160,15 @@ public class DataTransformer
 
     public ReadOnlyMemory<byte> Serialize<TIn>(TIn input)
     {
-        if (_encryptionProvider != null && _compressionProvider != null)
+        if (_encryptionProvider is not null && _compressionProvider is not null)
         {
             return SerializeCompressEncrypt(input);
         }
-        else if (_encryptionProvider != null)
+        else if (_encryptionProvider is not null)
         {
             return SerializeEncrypt(input);
         }
-        else if (_compressionProvider != null)
+        else if (_compressionProvider is not null)
         {
             return SerializeEncrypt(input);
         }
@@ -178,15 +178,15 @@ public class DataTransformer
 
     public async Task<ReadOnlyMemory<byte>> SerializeAsync<TIn>(TIn input)
     {
-        if (_encryptionProvider != null && _compressionProvider != null)
+        if (_encryptionProvider is not null && _compressionProvider is not null)
         {
             return await SerializeCompressEncryptAsync(input).ConfigureAwait(false);
         }
-        else if (_encryptionProvider != null)
+        else if (_encryptionProvider is not null)
         {
             return await SerializeEncryptAsync(input).ConfigureAwait(false);
         }
-        else if (_compressionProvider != null)
+        else if (_compressionProvider is not null)
         {
             return await SerializeEncryptAsync(input).ConfigureAwait(false);
         }

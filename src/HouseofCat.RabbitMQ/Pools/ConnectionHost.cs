@@ -41,7 +41,7 @@ public class ConnectionHost : IConnectionHost, IDisposable
 
     public void AssignConnection(IConnection connection)
     {
-        if (Connection != null)
+        if (Connection is not null)
         {
             Connection.ConnectionBlocked -= ConnectionBlocked;
             Connection.ConnectionUnblocked -= ConnectionUnblocked;

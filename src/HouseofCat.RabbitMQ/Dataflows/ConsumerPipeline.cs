@@ -54,44 +54,43 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
 
         try
         {
-            if (!Started)
+            if (Started) return;
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            _completionSource = new TaskCompletionSource<bool>();
+
+            await Consumer
+                .StartConsumerAsync()
+                .ConfigureAwait(false);
+
+            if (Consumer.Started)
             {
-                _cancellationTokenSource = new CancellationTokenSource();
-                _completionSource = new TaskCompletionSource<bool>();
-
-                await Consumer
-                    .StartConsumerAsync()
-                    .ConfigureAwait(false);
-
-                if (Consumer.Started)
+                if (useStream)
                 {
-                    if (useStream)
-                    {
-                        FeedPipelineWithDataTasks = Task.Run(
-                            () =>
-                                PipelineStreamEngineAsync(
-                                    Pipeline,
-                                    ConsumerOptions.WorkflowWaitForCompletion,
-                                    token.Equals(default)
-                                        ? _cancellationTokenSource.Token
-                                        : token),
-                                CancellationToken.None);
-                    }
-                    else
-                    {
-                        FeedPipelineWithDataTasks = Task.Run(
-                            () =>
-                                PipelineExecutionEngineAsync(
-                                    Pipeline,
-                                    ConsumerOptions.WorkflowWaitForCompletion,
-                                    token.Equals(default)
-                                        ? _cancellationTokenSource.Token
-                                        : token),
-                                CancellationToken.None);
-                    }
-
-                    Started = true;
+                    FeedPipelineWithDataTasks = Task.Run(
+                        () =>
+                            PipelineStreamEngineAsync(
+                                Pipeline,
+                                ConsumerOptions.WorkflowWaitForCompletion,
+                                token.Equals(default)
+                                    ? _cancellationTokenSource.Token
+                                    : token),
+                            CancellationToken.None);
                 }
+                else
+                {
+                    FeedPipelineWithDataTasks = Task.Run(
+                        () =>
+                            PipelineExecutionEngineAsync(
+                                Pipeline,
+                                ConsumerOptions.WorkflowWaitForCompletion,
+                                token.Equals(default)
+                                    ? _cancellationTokenSource.Token
+                                    : token),
+                            CancellationToken.None);
+                }
+
+                Started = true;
             }
         }
         catch { /* SWALLOW */ }
@@ -105,22 +104,21 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
 
         try
         {
-            if (Started)
+            if (!Started) return;
+
+            _cancellationTokenSource.Cancel();
+
+            await Consumer
+                .StopConsumerAsync(immediate)
+                .ConfigureAwait(false);
+
+            if (FeedPipelineWithDataTasks is not null)
             {
-                _cancellationTokenSource.Cancel();
-
-                await Consumer
-                    .StopConsumerAsync(immediate)
-                    .ConfigureAwait(false);
-
-                if (FeedPipelineWithDataTasks != null)
-                {
-                    await FeedPipelineWithDataTasks.ConfigureAwait(false);
-                    FeedPipelineWithDataTasks = null;
-                }
-                Started = false;
-                _completionSource.SetResult(true);
+                await FeedPipelineWithDataTasks.ConfigureAwait(false);
+                FeedPipelineWithDataTasks = null;
             }
+            Started = false;
+            _completionSource.SetResult(true);
         }
         catch { /* SWALLOW */ }
         finally { _cpLock.Release(); }

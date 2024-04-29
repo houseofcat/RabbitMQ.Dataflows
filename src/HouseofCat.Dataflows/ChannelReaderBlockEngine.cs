@@ -49,7 +49,7 @@ public class ChannelReaderBlockEngine<TIn, TOut>
 
         _postWorkBodyAsync = postWorkBodyAsync;
 
-        if (taskScheduler != null)
+        if (taskScheduler is not null)
         {
             _executeOptions.TaskScheduler = taskScheduler;
         }
@@ -66,7 +66,7 @@ public class ChannelReaderBlockEngine<TIn, TOut>
     {
         try
         {
-            if (_postWorkBodyAsync != null)
+            if (_postWorkBodyAsync is not null)
             {
                 var output = await _workBodyAsync(data).ConfigureAwait(false);
                 if (output is not null)

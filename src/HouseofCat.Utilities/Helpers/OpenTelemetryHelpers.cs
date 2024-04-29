@@ -129,7 +129,7 @@ public static class OpenTelemetryHelpers
         if (parentContext == default)
         {
             var currentSpan = Tracer.CurrentSpan;
-            if (currentSpan != null)
+            if (currentSpan is not null)
             {
                 parentContext = currentSpan.Context;
             }

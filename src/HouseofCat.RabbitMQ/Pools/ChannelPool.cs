@@ -314,7 +314,7 @@ public class ChannelPool : IChannelPool, IDisposable
 
     private async Task ReturnConnectionWithOptionalSleep(IConnectionHost connHost, ulong channelId, int sleep)
     {
-        if (connHost != null)
+        if (connHost is not null)
         { await _connectionPool.ReturnConnectionAsync(connHost); } // Return Connection (or lose them.)
 
         if (sleep > 0)

@@ -75,7 +75,7 @@ public class ConnectionPool : IConnectionPool, IDisposable
             DispatchConsumersAsync = Options.PoolOptions.EnableDispatchConsumersAsync,
         };
 
-        if (Options.PoolOptions.Uri != null)
+        if (Options.PoolOptions.Uri is not null)
         {
             cf.Uri = Options.PoolOptions.Uri;
         }

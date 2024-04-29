@@ -81,7 +81,7 @@ public static class MessageExtensions
             basicProperties.Headers = new Dictionary<string, object>();
         }
 
-        if (withOptionalHeaders && metadata != null)
+        if (withOptionalHeaders && metadata is not null)
         {
             foreach (var kvp in metadata?.Fields)
             {

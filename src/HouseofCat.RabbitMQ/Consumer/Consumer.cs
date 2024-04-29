@@ -91,31 +91,31 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 
     public async Task StartConsumerAsync()
     {
+        if (!ConsumerOptions.Enabled) return;
         if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
 
         try
         {
-            if (!Started && ConsumerOptions.Enabled)
-            {
-                await SetChannelHostAsync().ConfigureAwait(false);
-                _shutdown = false;
-                _consumerChannel = Channel.CreateBounded<IReceivedMessage>(
-                    new BoundedChannelOptions(ConsumerOptions.BatchSize)
-                    {
-                        FullMode = ConsumerOptions.BehaviorWhenFull.Value
-                    });
+            if (Started) return;
 
-                var success = false;
-                while (!success)
+            await SetChannelHostAsync().ConfigureAwait(false);
+            _shutdown = false;
+            _consumerChannel = Channel.CreateBounded<IReceivedMessage>(
+                new BoundedChannelOptions(ConsumerOptions.BatchSize)
                 {
-                    _logger.LogTrace(_startingConsumerLoop, ConsumerOptions.ConsumerName);
-                    success = await StartConsumingAsync().ConfigureAwait(false);
-                    if (!success)
-                    { await Task.Delay(Options.PoolOptions.SleepOnErrorInterval); }
-                }
+                    FullMode = ConsumerOptions.BehaviorWhenFull.Value
+                });
 
-                Started = true;
+            var success = false;
+            while (!success)
+            {
+                _logger.LogTrace(_startingConsumerLoop, ConsumerOptions.ConsumerName);
+                success = await StartConsumingAsync().ConfigureAwait(false);
+                if (!success)
+                { await Task.Delay(Options.PoolOptions.SleepOnErrorInterval); }
             }
+
+            Started = true;
         }
         finally { _conLock.Release(); }
     }
@@ -129,31 +129,30 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 
         try
         {
-            if (Started)
+            if (!Started) return;
+
+            _shutdown = true;
+            _logger.LogInformation(_stopConsumer, ConsumerOptions.ConsumerName);
+
+            _consumerChannel.Writer.Complete();
+
+            if (immediate)
             {
-                _shutdown = true;
-                _logger.LogInformation(_stopConsumer, ConsumerOptions.ConsumerName);
-
-                _consumerChannel.Writer.Complete();
-
-                if (immediate)
-                {
-                    _chanHost.Close();
-                }
-                else
-                {
-                    await _consumerChannel
-                        .Reader
-                        .Completion
-                        .ConfigureAwait(false);
-                }
-
-                _cts.Cancel();
-                Started = false;
-                _logger.LogInformation(
-                    _stoppedConsumer,
-                    ConsumerOptions.ConsumerName);
+                _chanHost.Close();
             }
+            else
+            {
+                await _consumerChannel
+                    .Reader
+                    .Completion
+                    .ConfigureAwait(false);
+            }
+
+            _cts.Cancel();
+            Started = false;
+            _logger.LogInformation(
+                _stoppedConsumer,
+                ConsumerOptions.ConsumerName);
         }
         finally { _conLock.Release(); }
     }
@@ -188,7 +187,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 
         if (Options.PoolOptions.EnableDispatchConsumersAsync)
         {
-            if (_asyncConsumer != null) // Cleanup operation, this prevents an EventHandler leak.
+            if (_asyncConsumer is not null) // Cleanup operation, this prevents an EventHandler leak.
             {
                 _asyncConsumer.Received -= ReceiveHandlerAsync;
                 _asyncConsumer.Shutdown -= ConsumerShutdownAsync;
@@ -207,7 +206,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         }
         else
         {
-            if (_consumer != null) // Cleanup operation, this prevents an EventHandler leak.
+            if (_consumer is not null) // Cleanup operation, this prevents an EventHandler leak.
             {
                 _consumer.Received -= ReceiveHandler;
                 _consumer.Shutdown -= ConsumerShutdown;

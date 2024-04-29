@@ -27,12 +27,18 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
             .WithDecompressionStep()
             .WithDecryptionStep();
 
-        if (!string.IsNullOrWhiteSpace(_options.TargetQueueName))
+        if (!string.IsNullOrWhiteSpace(_options.SendQueueName))
         {
-            dataflow = dataflow
-                .WithEncryption()
-                .WithCompression()
-                .WithSendStep();
+            if (rabbitService.CompressionProvider is not null && _options.WorkflowSendCompressed)
+            {
+                dataflow = dataflow.WithSendCompressedStep();
+            }
+            if (rabbitService.EncryptionProvider is not null && _options.WorkflowSendEncrypted)
+            {
+                dataflow = dataflow.WithSendEncryptedStep();
+            }
+
+            dataflow = dataflow.WithSendStep();
         }
 
         _dataflow = dataflow;

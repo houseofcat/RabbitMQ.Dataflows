@@ -43,7 +43,7 @@ public sealed class Topologer : ITopologer
     {
         Guard.AgainstNull(topologyConfig, nameof(topologyConfig));
 
-        if (topologyConfig.Exchanges != null)
+        if (topologyConfig.Exchanges is not null)
         {
             for (var i = 0; i < topologyConfig.Exchanges.Length; i++)
             {
@@ -60,7 +60,7 @@ public sealed class Topologer : ITopologer
             }
         }
 
-        if (topologyConfig.Queues != null)
+        if (topologyConfig.Queues is not null)
         {
             for (var i = 0; i < topologyConfig.Queues.Length; i++)
             {
@@ -77,7 +77,7 @@ public sealed class Topologer : ITopologer
             }
         }
 
-        if (topologyConfig.ExchangeBindings != null)
+        if (topologyConfig.ExchangeBindings is not null)
         {
             for (var i = 0; i < topologyConfig.ExchangeBindings.Length; i++)
             {
@@ -93,7 +93,7 @@ public sealed class Topologer : ITopologer
             }
         }
 
-        if (topologyConfig.QueueBindings != null)
+        if (topologyConfig.QueueBindings is not null)
         {
             for (var i = 0; i < topologyConfig.QueueBindings.Length; i++)
             {
