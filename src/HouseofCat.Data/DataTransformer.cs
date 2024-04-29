@@ -6,6 +6,7 @@ using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace HouseofCat.Data;
@@ -57,6 +58,7 @@ public class DataTransformer
     /// <typeparam name="TOut"></typeparam>
     /// <param name="data"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Task<TOut> DeserializeAsync<TOut>(ReadOnlyMemory<byte> data)
     {
         if (_encryptionProvider is not null && _compressionProvider is not null)
@@ -82,6 +84,7 @@ public class DataTransformer
     /// <typeparam name="TOut"></typeparam>
     /// <param name="data"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TOut Deserialize<TOut>(ReadOnlyMemory<byte> data)
     {
         if (_encryptionProvider is not null && _compressionProvider is not null)
@@ -100,6 +103,7 @@ public class DataTransformer
         return _serializationProvider.Deserialize<TOut>(data);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TOut DecryptDecompressDeserialize<TOut>(ReadOnlyMemory<byte> data)
     {
         var decryptedData = _encryptionProvider.Decrypt(data);
@@ -108,6 +112,7 @@ public class DataTransformer
         return _serializationProvider.Deserialize<TOut>(decompressedData);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<TOut> DecryptDecompressDeserializeAsync<TOut>(ReadOnlyMemory<byte> data)
     {
         var memoryStream = _encryptionProvider.DecryptToStream(data);
@@ -124,6 +129,7 @@ public class DataTransformer
             .ConfigureAwait(false);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TOut DecryptDeserialize<TOut>(ReadOnlyMemory<byte> data)
     {
         var decryptedData = _encryptionProvider.Decrypt(data);
@@ -131,6 +137,7 @@ public class DataTransformer
         return _serializationProvider.Deserialize<TOut>(decryptedData);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<TOut> DecryptDeserializeAsync<TOut>(ReadOnlyMemory<byte> data)
     {
         var memoryStream = _encryptionProvider.DecryptToStream(data);
@@ -141,6 +148,7 @@ public class DataTransformer
             .ConfigureAwait(false);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TOut DecompressDeserialize<TOut>(ReadOnlyMemory<byte> data)
     {
         var decompressedData = _compressionProvider.Decompress(data);
@@ -148,6 +156,7 @@ public class DataTransformer
         return _serializationProvider.Deserialize<TOut>(decompressedData);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<TOut> DecompressDeserializeAsync<TOut>(ReadOnlyMemory<byte> data)
     {
         var memoryStream = _compressionProvider.DecompressToStream(data);
@@ -158,6 +167,7 @@ public class DataTransformer
             .ConfigureAwait(false);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlyMemory<byte> Serialize<TIn>(TIn input)
     {
         if (_encryptionProvider is not null && _compressionProvider is not null)
@@ -176,6 +186,7 @@ public class DataTransformer
         return _serializationProvider.Serialize(input);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<ReadOnlyMemory<byte>> SerializeAsync<TIn>(TIn input)
     {
         if (_encryptionProvider is not null && _compressionProvider is not null)
@@ -194,6 +205,7 @@ public class DataTransformer
         return _serializationProvider.Serialize(input);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<ReadOnlyMemory<byte>> SerializeCompressEncryptAsync<TIn>(TIn input)
     {
         var memoryStream = new MemoryStream();
@@ -218,6 +230,7 @@ public class DataTransformer
         return encryptionStream.ToArray();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlyMemory<byte> SerializeCompressEncrypt<TIn>(TIn input)
     {
         return _encryptionProvider
@@ -226,6 +239,7 @@ public class DataTransformer
             .Serialize(input)));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<ReadOnlyMemory<byte>> SerializeEncryptAsync<TIn>(TIn input)
     {
         using var memoryStream = new MemoryStream();
@@ -244,6 +258,7 @@ public class DataTransformer
         return compressionStream.ToArray();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlyMemory<byte> SerializeEncrypt<TIn>(TIn input)
     {
         return _encryptionProvider
@@ -251,6 +266,7 @@ public class DataTransformer
             .Serialize(input));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<ReadOnlyMemory<byte>> SerializeCompressAsync<TIn>(TIn input)
     {
         using var memoryStream = new MemoryStream();
@@ -267,10 +283,9 @@ public class DataTransformer
         return compressionStream.ToArray();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlyMemory<byte> SerializeCompress<TIn>(TIn input)
     {
-        return _compressionProvider
-            .Compress(_serializationProvider
-            .Serialize(input));
+        return _compressionProvider.Compress(_serializationProvider.Serialize(input));
     }
 }
