@@ -39,4 +39,19 @@ public sealed class ConsumerOptions
 
     public bool WorkflowSendCompressed { get; set; }
     public bool WorkflowSendEncrypted { get; set; }
+
+    private static readonly string _dlqKey = "x-dead-letter-routing-key";
+    private static readonly string _dleKey = "x-dead-letter-exchange";
+
+    public bool RejectOnError()
+    {
+        if (QueueArgs is not null
+            && (QueueArgs.ContainsKey(_dlqKey)
+            || QueueArgs.ContainsKey(_dleKey)))
+        {
+            return true;
+        }
+
+        return false;
+    }
 }

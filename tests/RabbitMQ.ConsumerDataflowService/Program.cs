@@ -68,13 +68,43 @@ dataflowService.AddFinalization(
         if (logMessage)
         { logger.LogInformation("Finalization Step!"); }
 
-        state.ReceivedMessage.AckMessage();
+        state.ReceivedMessage?.AckMessage();
     });
 
 dataflowService.AddErrorHandling(
-    (state) =>
+    async (state) =>
     {
         logger.LogError(state?.EDI?.SourceException, "Error Step!");
+
+        // First, check if DLQ is configured in QueueArgs.
+        if (dataflowService.Options.RejectOnError())
+        {
+            state.ReceivedMessage?.RejectMessage(requeue: false);
+        }
+        // Second, check if ErrorQueue is set in Options.
+        else if (!string.IsNullOrEmpty(dataflowService.Options.ErrorQueueName))
+        {
+            // If type is currently an IMessage, republish with new RoutingKey.
+            if (state.ReceivedMessage.Message is not null)
+            {
+                state.ReceivedMessage.Message.RoutingKey = dataflowService.Options.ErrorQueueName;
+                await rabbitService.Publisher.QueueMessageAsync(state.ReceivedMessage.Message);
+            }
+            else
+            {
+                await rabbitService.Publisher.PublishAsync(
+                    "",
+                    dataflowService.Options.ErrorQueueName,
+                    state.ReceivedMessage.Body,
+                    false,
+                    basicProperties: state.ReceivedMessage.Properties);
+            }
+        }
+        // Lastly, decide if you want to Nack with requeue, or anything else.
+        else
+        {
+            state.ReceivedMessage?.NackMessage(requeue: true);
+        }
     });
 
 await dataflowService.StartAsync();

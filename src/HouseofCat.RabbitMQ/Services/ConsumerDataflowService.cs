@@ -7,7 +7,7 @@ namespace HouseofCat.RabbitMQ.Services;
 public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkState, new()
 {
     public ConsumerDataflow<TState> Dataflow { get; }
-    private readonly ConsumerOptions _options;
+    public ConsumerOptions Options { get; }
 
     /// <summary>
     /// This a basic implementation service class for convenience. It serves as a simple opinionated wrapper
@@ -21,11 +21,11 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
         string consumerName,
         TaskScheduler taskScheduler = null)
     {
-        _options = rabbitService.Options.GetConsumerOptions(consumerName);
+        Options = rabbitService.Options.GetConsumerOptions(consumerName);
 
         var dataflow = new ConsumerDataflow<TState>(
             rabbitService,
-            _options,
+            Options,
             taskScheduler)
             .SetSerializationProvider(rabbitService.SerializationProvider)
             .SetCompressionProvider(rabbitService.CompressionProvider)
@@ -34,13 +34,13 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
             .WithDecompressionStep()
             .WithDecryptionStep();
 
-        if (!string.IsNullOrWhiteSpace(_options.SendQueueName))
+        if (!string.IsNullOrWhiteSpace(Options.SendQueueName))
         {
-            if (rabbitService.CompressionProvider is not null && _options.WorkflowSendCompressed)
+            if (rabbitService.CompressionProvider is not null && Options.WorkflowSendCompressed)
             {
                 dataflow = dataflow.WithSendCompressedStep();
             }
-            if (rabbitService.EncryptionProvider is not null && _options.WorkflowSendEncrypted)
+            if (rabbitService.EncryptionProvider is not null && Options.WorkflowSendEncrypted)
             {
                 dataflow = dataflow.WithSendEncryptedStep();
             }
@@ -56,9 +56,9 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
         Dataflow.AddStep(
             step,
             stepName,
-            _options.WorkflowMaxDegreesOfParallelism,
-            _options.WorkflowEnsureOrdered,
-            _options.WorkflowBatchSize);
+            Options.WorkflowMaxDegreesOfParallelism,
+            Options.WorkflowEnsureOrdered,
+            Options.WorkflowBatchSize);
     }
 
     public void AddStep(string stepName, Func<TState, Task<TState>> step)
@@ -66,45 +66,45 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
         Dataflow.AddStep(
             step,
             stepName,
-            _options.WorkflowMaxDegreesOfParallelism,
-            _options.WorkflowEnsureOrdered,
-            _options.WorkflowBatchSize);
+            Options.WorkflowMaxDegreesOfParallelism,
+            Options.WorkflowEnsureOrdered,
+            Options.WorkflowBatchSize);
     }
 
     public void AddFinalization(Action<TState> step)
     {
         Dataflow.WithFinalization(
             step,
-            _options.WorkflowMaxDegreesOfParallelism,
-            _options.WorkflowEnsureOrdered,
-            _options.WorkflowBatchSize);
+            Options.WorkflowMaxDegreesOfParallelism,
+            Options.WorkflowEnsureOrdered,
+            Options.WorkflowBatchSize);
     }
 
     public void AddFinalization(Func<TState, Task> step)
     {
         Dataflow.WithFinalization(
             step,
-            _options.WorkflowMaxDegreesOfParallelism,
-            _options.WorkflowEnsureOrdered,
-            _options.WorkflowBatchSize);
+            Options.WorkflowMaxDegreesOfParallelism,
+            Options.WorkflowEnsureOrdered,
+            Options.WorkflowBatchSize);
     }
 
     public void AddErrorHandling(Action<TState> step)
     {
         Dataflow.WithErrorHandling(
             step,
-            _options.WorkflowBatchSize,
-            _options.WorkflowMaxDegreesOfParallelism,
-            _options.WorkflowEnsureOrdered);
+            Options.WorkflowBatchSize,
+            Options.WorkflowMaxDegreesOfParallelism,
+            Options.WorkflowEnsureOrdered);
     }
 
     public void AddErrorHandling(Func<TState, Task> step)
     {
         Dataflow.WithErrorHandling(
             step,
-            _options.WorkflowBatchSize,
-            _options.WorkflowMaxDegreesOfParallelism,
-            _options.WorkflowEnsureOrdered);
+            Options.WorkflowBatchSize,
+            Options.WorkflowMaxDegreesOfParallelism,
+            Options.WorkflowEnsureOrdered);
     }
 
     public async Task StartAsync()
