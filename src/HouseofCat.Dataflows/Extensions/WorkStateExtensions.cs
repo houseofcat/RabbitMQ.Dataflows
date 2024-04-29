@@ -155,7 +155,7 @@ public static class WorkStateExtensions
                 attributes: attributes);
     }
 
-    public static void EndRootSpan(
+    public static void EndStateSpan(
         this IWorkState state,
         bool includeErrorWhenFaulted = false)
     {

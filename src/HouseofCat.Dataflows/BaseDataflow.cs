@@ -131,7 +131,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
             }
 
             childSpan.End();
-            state.EndRootSpan(true);
+            state.EndStateSpan(true);
         }
 
         return new ActionBlock<TState>(WrapAction, options);
@@ -156,7 +156,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
             }
 
             childSpan.End();
-            state.EndRootSpan(true);
+            state.EndStateSpan(true);
         }
 
         return new ActionBlock<TState>(WrapAction, options);
@@ -181,7 +181,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
             }
 
             childSpan.End();
-            state.EndRootSpan(true);
+            state.EndStateSpan(true);
         }
 
         return new ActionBlock<TState>(WrapActionAsync, options);

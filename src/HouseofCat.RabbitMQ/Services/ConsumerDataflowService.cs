@@ -112,8 +112,16 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
         await Dataflow.StartAsync();
     }
 
-    public async Task StopAsync()
+    /// <summary>
+    /// Provides mechanism to stop the Dataflow gracefully and optionally shutdown RabbitService.
+    /// </summary>
+    /// <param name="immediate"></param>
+    /// <param name="shutdownService"></param>
+    /// <returns></returns>
+    public async Task StopAsync(
+        bool immediate = false,
+        bool shutdownService = false)
     {
-        await Dataflow.StopAsync();
+        await Dataflow.StopAsync(immediate, shutdownService);
     }
 }

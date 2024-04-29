@@ -129,15 +129,11 @@ app.Lifetime.ApplicationStarted.Register(
 app.Lifetime.ApplicationStopping.Register(
     async () =>
     {
-        logger.LogInformation("RabbitService AutoPublish stopping...");
-
-        await rabbitService.Publisher.StopAutoPublishAsync();
-
         logger.LogInformation("ConsumerDataflowService stopping...");
 
-        await dataflowService.StopAsync();
-
-        await rabbitService.ShutdownAsync(false);
+        await dataflowService.StopAsync(
+            immediate: false,
+            shutdownService: true);
 
         logger.LogInformation("All stopped! Press return to exit...");
     });
