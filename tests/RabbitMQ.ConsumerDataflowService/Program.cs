@@ -25,6 +25,26 @@ using var app = builder.Build();
 
 var rabbitService = await Shared.SetupRabbitServiceAsync(loggerFactory, "RabbitMQ.ConsumerDataflows.json");
 var dataflowService = new ConsumerDataflowService<CustomWorkState>(rabbitService, "TestConsumer");
+dataflowService.Dataflow.WithCreateSendMessage(
+    async (state) =>
+    {
+        var message = new Message
+        {
+            Exchange = "",
+            RoutingKey = state.ReceivedMessage.Message.RoutingKey,
+            Body = Encoding.UTF8.GetBytes("New Secret Message"),
+            Metadata = new Metadata
+            {
+                PayloadId = Guid.NewGuid().ToString(),
+            },
+            ParentSpanContext = state.WorkflowSpan?.Context,
+        };
+
+        await rabbitService.ComcryptAsync(message);
+
+        state.SendMessage = message;
+        return state;
+    });
 
 dataflowService.AddStep(
     "write_message_to_log",
@@ -39,28 +59,6 @@ dataflowService.AddStep(
         if (logMessage)
         { logger.LogInformation(message); }
 
-        return state;
-    });
-
-dataflowService.AddStep(
-    "create_new_secret_message",
-    async (state) =>
-    {
-        var message = new Message
-        {
-            Exchange = "",
-            RoutingKey = "TestQueue",
-            Body = Encoding.UTF8.GetBytes("Secret Message"),
-            Metadata = new Metadata
-            {
-                PayloadId = Guid.NewGuid().ToString(),
-            },
-            ParentSpanContext = state.WorkflowSpan?.Context,
-        };
-
-        await rabbitService.ComcryptAsync(message);
-
-        state.SendMessage = message;
         return state;
     });
 

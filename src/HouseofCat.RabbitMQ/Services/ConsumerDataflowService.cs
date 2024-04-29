@@ -6,9 +6,16 @@ namespace HouseofCat.RabbitMQ.Services;
 
 public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkState, new()
 {
-    private readonly ConsumerDataflow<TState> _dataflow;
+    public ConsumerDataflow<TState> Dataflow { get; }
     private readonly ConsumerOptions _options;
 
+    /// <summary>
+    /// This a basic implementation service class for convenience. It serves as a simple opinionated wrapper
+    /// of ConsumerDataflow with accessors to a few methods and provides streamlined auto-configuration.
+    /// </summary>
+    /// <param name="rabbitService"></param>
+    /// <param name="consumerName"></param>
+    /// <param name="taskScheduler"></param>
     public ConsumerDataflowService(
         IRabbitService rabbitService,
         string consumerName,
@@ -41,12 +48,12 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
             dataflow = dataflow.WithSendStep();
         }
 
-        _dataflow = dataflow;
+        Dataflow = dataflow;
     }
 
     public void AddStep(string stepName, Func<TState, TState> step)
     {
-        _dataflow.AddStep(
+        Dataflow.AddStep(
             step,
             stepName,
             _options.WorkflowMaxDegreesOfParallelism,
@@ -56,7 +63,7 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
 
     public void AddStep(string stepName, Func<TState, Task<TState>> step)
     {
-        _dataflow.AddStep(
+        Dataflow.AddStep(
             step,
             stepName,
             _options.WorkflowMaxDegreesOfParallelism,
@@ -66,7 +73,7 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
 
     public void AddFinalization(Action<TState> step)
     {
-        _dataflow.WithFinalization(
+        Dataflow.WithFinalization(
             step,
             _options.WorkflowMaxDegreesOfParallelism,
             _options.WorkflowEnsureOrdered,
@@ -75,7 +82,7 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
 
     public void AddFinalization(Func<TState, Task> step)
     {
-        _dataflow.WithFinalization(
+        Dataflow.WithFinalization(
             step,
             _options.WorkflowMaxDegreesOfParallelism,
             _options.WorkflowEnsureOrdered,
@@ -84,7 +91,7 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
 
     public void AddErrorHandling(Action<TState> step)
     {
-        _dataflow.WithErrorHandling(
+        Dataflow.WithErrorHandling(
             step,
             _options.WorkflowBatchSize,
             _options.WorkflowMaxDegreesOfParallelism,
@@ -93,7 +100,7 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
 
     public void AddErrorHandling(Func<TState, Task> step)
     {
-        _dataflow.WithErrorHandling(
+        Dataflow.WithErrorHandling(
             step,
             _options.WorkflowBatchSize,
             _options.WorkflowMaxDegreesOfParallelism,
@@ -102,11 +109,11 @@ public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkSt
 
     public async Task StartAsync()
     {
-        await _dataflow.StartAsync();
+        await Dataflow.StartAsync();
     }
 
     public async Task StopAsync()
     {
-        await _dataflow.StopAsync();
+        await Dataflow.StopAsync();
     }
 }

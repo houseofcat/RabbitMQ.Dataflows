@@ -92,7 +92,9 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         }
     }
 
-    public async Task StopAsync(bool immediate = false)
+    public async Task StopAsync(
+        bool immediate = false,
+        bool shutdownService = false)
     {
         foreach (var consumerBlock in _consumerBlocks)
         {
@@ -100,7 +102,10 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             consumerBlock.Complete();
         }
 
-        await _rabbitService.ShutdownAsync(false);
+        if (shutdownService)
+        {
+            await _rabbitService.ShutdownAsync(immediate);
+        }
     }
 
     /// <summary>
@@ -345,7 +350,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         if (_createSendMessage is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("create_send_message"));
+            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("create send message"));
         }
         return this;
     }
@@ -366,7 +371,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 executionOptions,
                 true,
                 x => !x.ReceivedMessage.Compressed,
-                GetSpanName("compress"));
+                GetSpanName("compress send message"));
         }
         return this;
     }
@@ -387,7 +392,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 executionOptions,
                 true,
                 x => !x.ReceivedMessage.Encrypted,
-                GetSpanName("encrypt"));
+                GetSpanName("encrypt send message"));
         }
         return this;
     }
@@ -401,7 +406,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         if (_sendMessageBlock is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _sendMessageBlock = GetWrappedPublishTransformBlock(_rabbitService, executionOptions);
+            _sendMessageBlock = GetWrappedSendTransformBlock(_rabbitService, executionOptions);
         }
         return this;
     }
@@ -664,14 +669,14 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return new TransformBlock<TState, TState>(WrapActionAsync, options);
     }
 
-    private string PublishStepIdentifier => $"{WorkflowName}_Publish";
-    public TransformBlock<TState, TState> GetWrappedPublishTransformBlock(
+    private string SendStepIdentifier => $"{WorkflowName} send";
+    public TransformBlock<TState, TState> GetWrappedSendTransformBlock(
         IRabbitService service,
         ExecutionDataflowBlockOptions options)
     {
         async Task<TState> WrapPublishAsync(TState state)
         {
-            using var childSpan = state.CreateActiveChildSpan(PublishStepIdentifier, state.WorkflowSpan.Context, SpanKind.Producer);
+            using var childSpan = state.CreateActiveChildSpan(SendStepIdentifier, state.WorkflowSpan.Context, SpanKind.Producer);
             try
             {
                 await service.Publisher.PublishAsync(state.SendMessage, true, true).ConfigureAwait(false);
