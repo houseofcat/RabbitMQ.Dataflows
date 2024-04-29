@@ -31,7 +31,7 @@ dataflowService.Dataflow.WithCreateSendMessage(
         var message = new Message
         {
             Exchange = "",
-            RoutingKey = state.ReceivedMessage.Message.RoutingKey,
+            RoutingKey = state.ReceivedMessage?.Message?.RoutingKey ?? "TestQueue",
             Body = Encoding.UTF8.GetBytes("New Secret Message"),
             Metadata = new Metadata
             {

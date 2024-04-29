@@ -152,7 +152,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     #region Step Adders
 
     protected static readonly string _defaultSpanNameFormat = "{0}.{1}";
-    protected static readonly string _defaultStepSpanNameFormat = "{0}.{1}.{2}";
+    protected static readonly string _defaultStepSpanNameFormat = "{0}.step_{1}.{2}";
 
     protected string GetSpanName(string stepName)
     {
