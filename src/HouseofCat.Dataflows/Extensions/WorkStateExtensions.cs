@@ -61,8 +61,6 @@ public static class WorkStateExtensions
     {
         if (state is null) return;
 
-        state.Data[DefaultWorkflowNameKey] = workflowName;
-
         var attributes = new SpanAttributes();
         attributes.Add(DefaultWorkflowNameKey, workflowName);
 
@@ -107,8 +105,6 @@ public static class WorkStateExtensions
         SpanKind spanKind = SpanKind.Internal,
         IEnumerable<KeyValuePair<string, string>> suppliedAttributes = null)
     {
-        if (state?.Data is null) return null;
-
         var attributes = new SpanAttributes();
         if (suppliedAttributes is not null)
         {
@@ -139,19 +135,14 @@ public static class WorkStateExtensions
     public static TelemetrySpan CreateActiveChildSpan(
         this IWorkState state,
         string spanName,
-        SpanContext spanContext,
         SpanKind spanKind = SpanKind.Internal,
         SpanAttributes attributes = null)
     {
-        if (state?.Data is null) return null;
-
-        state.Data.TryGetValue(DefaultWorkflowNameKey, out var workflowName);
-
         return OpenTelemetryHelpers
             .StartActiveSpan(
                 spanName,
                 spanKind,
-                spanContext,
+                state.WorkflowSpan.Context,
                 attributes: attributes);
     }
 
