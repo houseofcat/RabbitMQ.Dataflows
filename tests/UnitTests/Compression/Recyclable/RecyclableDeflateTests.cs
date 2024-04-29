@@ -1,6 +1,5 @@
 using HouseofCat.Compression;
 using HouseofCat.Compression.Recyclable;
-using Xunit.Abstractions;
 
 namespace Compression.Recyclable;
 

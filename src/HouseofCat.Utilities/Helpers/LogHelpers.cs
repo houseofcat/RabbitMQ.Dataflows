@@ -12,7 +12,7 @@ public static class LogHelpers
     {
         get
         {
-            if (_factory == null)
+            if (_factory is null)
             {
                 lock (_syncObj)
                 {

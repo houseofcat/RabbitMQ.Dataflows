@@ -443,7 +443,7 @@ public static class FileEnumerators
             catch (UnauthorizedAccessException) { /* SWALLOW */ }
             catch (DirectoryNotFoundException) { /* SWALLOW */ }
 
-            foreach (var dir in subDirs) { directories.Enqueue(dir); };
+            foreach (var dir in subDirs) { directories.Enqueue(dir); }
         }).ConfigureAwait(false);
     }
 
@@ -461,7 +461,7 @@ public static class FileEnumerators
             catch (DirectoryNotFoundException) { /* SWALLOW */ }
 
             var dirs = new ConcurrentQueue<string>();
-            foreach (var dir in subDirs) { dirs.Enqueue(dir); };
+            foreach (var dir in subDirs) { dirs.Enqueue(dir); }
 
             directoryQueue.Enqueue(dirs);
         }).ConfigureAwait(false);
@@ -520,7 +520,7 @@ public static class FileEnumerators
 
             try
             {
-                foreach (var file in files) { fileNames.Add(file); };
+                foreach (var file in files) { fileNames.Add(file); }
             }
             catch (AggregateException ae)
             {

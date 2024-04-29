@@ -1,28 +1,27 @@
+using HouseofCat.Utilities.Errors;
+using HouseofCat.Utilities.Helpers;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using HouseofCat.Utilities.Errors;
-using HouseofCat.Utilities.Helpers;
-using Microsoft.Extensions.Logging;
 
 namespace HouseofCat.Dataflows;
 
 public class ChannelReaderBlock<TOut> : ISourceBlock<TOut>
 {
-    public Task Completion { get; }
+    public Task Completion => _targetBlock.Completion;
 
     private readonly ChannelReader<TOut> _channelReader;
     private readonly ISourceBlock<TOut> _sourceFromTargetBlock;
 
     protected readonly ITargetBlock<TOut> _targetBlock;
     protected readonly ILogger<ChannelReaderBlock<TOut>> _logger;
-    
+
     public ChannelReaderBlock(ChannelReader<TOut> channelReader, ExecutionDataflowBlockOptions executeOptions) :
         this(channelReader, new TransformBlock<TOut, TOut>(input => input, executeOptions))
-    {
-    }
+    { }
 
     protected ChannelReaderBlock(ChannelReader<TOut> channelReader, ITargetBlock<TOut> targetBlock)
     {
@@ -34,7 +33,6 @@ public class ChannelReaderBlock<TOut> : ISourceBlock<TOut>
         {
             _targetBlock = targetBlock;
             _sourceFromTargetBlock = sourceBlock;
-            Completion = _targetBlock.Completion;
         }
         else
         {
@@ -42,18 +40,18 @@ public class ChannelReaderBlock<TOut> : ISourceBlock<TOut>
         }
     }
 
-    public async ValueTask ReadChannelAsync(CancellationToken token = default)
+    public async Task ReadChannelAsync(CancellationToken token = default)
     {
         try
         {
             while (await _channelReader.WaitToReadAsync(token).ConfigureAwait(false))
             {
                 var message = await _channelReader.ReadAsync(token).ConfigureAwait(false);
-                if (message != null)
+                if (message is not null)
                 {
                     await _targetBlock.SendAsync(message, token).ConfigureAwait(false);
                 }
-                
+
                 if (token.IsCancellationRequested) return;
             }
         }

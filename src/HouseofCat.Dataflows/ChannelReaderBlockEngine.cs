@@ -1,10 +1,10 @@
+using HouseofCat.Utilities.Helpers;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using HouseofCat.Utilities.Helpers;
-using Microsoft.Extensions.Logging;
 
 namespace HouseofCat.Dataflows;
 
@@ -17,14 +17,14 @@ public class ChannelReaderBlockEngine<TIn, TOut>
     private readonly ChannelReaderBlock<TIn> _channelReaderBlock;
     private readonly Func<TIn, Task<TOut>> _workBodyAsync;
     private readonly Func<TOut, Task> _postWorkBodyAsync;
-    
+
     public ChannelReaderBlockEngine(
         ChannelReader<TIn> channelReader,
         Func<TIn, Task<TOut>> workBodyAsync,
         int? maxDegreeOfParallelism,
         bool? ensureOrdered,
         Func<TOut, Task> postWorkBodyAsync = null,
-        TaskScheduler taskScheduler = null) : 
+        TaskScheduler taskScheduler = null) :
         this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, taskScheduler, postWorkBodyAsync)
     {
         _channelReaderBlock = new ChannelReaderBlock<TIn>(channelReader, _executeOptions);
@@ -48,8 +48,8 @@ public class ChannelReaderBlockEngine<TIn, TOut>
         };
 
         _postWorkBodyAsync = postWorkBodyAsync;
-        
-        if (taskScheduler != null)
+
+        if (taskScheduler is not null)
         {
             _executeOptions.TaskScheduler = taskScheduler;
         }
@@ -66,10 +66,10 @@ public class ChannelReaderBlockEngine<TIn, TOut>
     {
         try
         {
-            if (_postWorkBodyAsync != null)
+            if (_postWorkBodyAsync is not null)
             {
                 var output = await _workBodyAsync(data).ConfigureAwait(false);
-                if (output != null)
+                if (output is not null)
                 {
                     await _postWorkBodyAsync(output).ConfigureAwait(false);
                 }
@@ -84,5 +84,5 @@ public class ChannelReaderBlockEngine<TIn, TOut>
             _logger.LogError(ex, _error);
         }
     }
-}    
+}
 

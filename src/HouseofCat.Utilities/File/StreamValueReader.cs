@@ -14,7 +14,7 @@ public static class Streaming
         using var streamReader = System.IO.File.OpenText(fileNamePath);
         string currentLine;
 
-        while ((currentLine = await streamReader.ReadLineAsync().ConfigureAwait(false)) != null)
+        while ((currentLine = await streamReader.ReadLineAsync().ConfigureAwait(false)) is not null)
         {
             if (!string.IsNullOrWhiteSpace(currentLine))
             {

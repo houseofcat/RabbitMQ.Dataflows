@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build & Test
+    name: Build, Test, Report
     runs-on: windows-latest
 
     steps:
@@ -23,7 +23,16 @@ jobs:
       run: dotnet restore RabbitMQ.Dataflows.sln
 
     - name: Build
-      run: dotnet build RabbitMQ.Dataflows.sln --configuration Release
+      run: dotnet build RabbitMQ.Dataflows.sln --configuration Release --no-restore
 
     - name: Test
-      run: dotnet test "./tests/UnitTests/UnitTests.csproj"
+      run: dotnet test "./tests/UnitTests/UnitTests.csproj" --configuration Release --no-build --verbosity normal
+           /p:CollectCoverage=true
+           /p:CoverletOutput='../../coverage.cobertura.xml'
+           /p:CoverletOutputFormat=cobertura
+
+    - name: Upload Coverage Report
+      uses: codacy/codacy-coverage-reporter-action@v1
+      with:
+        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        coverage-reports: 'coverage.cobertura.xml'

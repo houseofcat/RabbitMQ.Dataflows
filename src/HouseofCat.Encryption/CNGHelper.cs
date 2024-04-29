@@ -45,7 +45,7 @@ public static class CNGHelper
                     | CngExportPolicies.AllowPlaintextArchiving
             };
 
-            if (provider != null)
+            if (provider is not null)
             {
                 cngKeyCreationParameters.Provider = provider;
             }
@@ -108,14 +108,6 @@ public static class CNGHelper
         };
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="rsaKeyName"></param>
-    /// <param name="parameters"></param>
-    /// <param name="keySize"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
     [SupportedOSPlatform("windows")]
     public static RSACng GetOrCreateRSACng(string rsaKeyName, CngKeyCreationParameters parameters, int keySize = 4096)
     {

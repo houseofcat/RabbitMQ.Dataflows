@@ -8,7 +8,6 @@ using HouseofCat.Utilities.Errors;
 using OpenTelemetry.Trace;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -18,14 +17,9 @@ namespace HouseofCat.RabbitMQ.Dataflows;
 
 public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : class, IRabbitWorkState, new()
 {
-    public string WorkflowName { get; }
-
     private readonly IRabbitService _rabbitService;
-    private readonly ICollection<IConsumer<IReceivedMessage>> _consumers;
     private readonly ConsumerOptions _consumerOptions;
     private readonly TaskScheduler _taskScheduler;
-    private readonly string _consumerName;
-    private readonly int _consumerCount;
 
     // Main Flow - Ingestion
     private readonly List<ConsumerBlock<IReceivedMessage>> _consumerBlocks;
@@ -50,22 +44,24 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     protected ITargetBlock<TState> _errorBuffer;
     protected ActionBlock<TState> _errorAction;
 
+    public string WorkflowName
+    {
+        get
+        {
+            return _consumerOptions?.WorkflowName;
+        }
+    }
+
     public ConsumerDataflow(
         IRabbitService rabbitService,
-        string workflowName,
-        string consumerName,
-        int consumerCount,
+        ConsumerOptions consumerOptions,
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(rabbitService, nameof(rabbitService));
-        Guard.AgainstNullOrEmpty(consumerName, nameof(consumerName));
-
-        WorkflowName = workflowName;
-        _consumerCount = consumerCount;
-        _consumerName = consumerName;
+        Guard.AgainstNull(consumerOptions, nameof(consumerOptions));
 
         _rabbitService = rabbitService;
-        _consumerOptions = rabbitService.Options.GetConsumerOptions(consumerName);
+        _consumerOptions = consumerOptions;
         _serializationProvider = rabbitService.SerializationProvider;
 
         _linkStepOptions = new DataflowLinkOptions { PropagateCompletion = true };
@@ -84,49 +80,6 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         _consumerBlocks = new List<ConsumerBlock<IReceivedMessage>>();
     }
 
-    /// <summary>
-    /// This constructor is used for when you want to supply Consumers manually, or custom Consumers without having to write a custom IRabbitService,
-    /// and want a custom maxDoP and/or ensureOrdered.
-    /// </summary>
-    /// <param name="rabbitService"></param>
-    /// <param name="workflowName"></param>
-    /// <param name="consumers"></param>
-    /// <param name="maxDoP"></param>
-    /// <param name="ensureOrdered"></param>
-    /// <param name="taskScheduler"></param>
-    public ConsumerDataflow(
-        IRabbitService rabbitService,
-        string workflowName,
-        ICollection<IConsumer<IReceivedMessage>> consumers,
-        int maxDoP,
-        bool ensureOrdered,
-        TaskScheduler taskScheduler = null)
-    {
-        Guard.AgainstNull(rabbitService, nameof(rabbitService));
-        Guard.AgainstNullOrEmpty(consumers, nameof(consumers));
-
-        WorkflowName = workflowName;
-        _consumers = consumers;
-
-        _rabbitService = rabbitService;
-        _serializationProvider = rabbitService.SerializationProvider;
-
-        _linkStepOptions = new DataflowLinkOptions { PropagateCompletion = true };
-        _taskScheduler = taskScheduler ?? TaskScheduler.Current;
-
-        _executeStepOptions = new ExecutionDataflowBlockOptions
-        {
-            MaxDegreeOfParallelism = maxDoP < 1
-                ? 1
-                : maxDoP,
-            SingleProducerConstrained = true,
-            EnsureOrdered = ensureOrdered,
-            TaskScheduler = _taskScheduler,
-        };
-
-        _consumerBlocks = new List<ConsumerBlock<IReceivedMessage>>();
-    }
-
     public virtual Task StartAsync() => StartAsync<ConsumerBlock<IReceivedMessage>>();
 
     protected async Task StartAsync<TConsumerBlock>() where TConsumerBlock : ConsumerBlock<IReceivedMessage>, new()
@@ -139,12 +92,19 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         }
     }
 
-    public async Task StopAsync(bool immediate = false)
+    public async Task StopAsync(
+        bool immediate = false,
+        bool shutdownService = false)
     {
         foreach (var consumerBlock in _consumerBlocks)
         {
             await consumerBlock.StopConsumingAsync(immediate).ConfigureAwait(false);
             consumerBlock.Complete();
+        }
+
+        if (shutdownService)
+        {
+            await _rabbitService.ShutdownAsync(immediate);
         }
     }
 
@@ -178,7 +138,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     public ConsumerDataflow<TState> SetCompressionProvider(ICompressionProvider provider)
     {
         Guard.AgainstNull(provider, nameof(provider));
-        _compressProvider = provider;
+        _compressionProvider = provider;
         return this;
     }
 
@@ -192,7 +152,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     #region Step Adders
 
     protected static readonly string _defaultSpanNameFormat = "{0}.{1}";
-    protected static readonly string _defaultStepSpanNameFormat = "{0}.{1}.{2}";
+    protected static readonly string _defaultStepSpanNameFormat = "{0}.step_{1}.{2}";
 
     protected string GetSpanName(string stepName)
     {
@@ -205,7 +165,8 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     }
 
     protected virtual ITargetBlock<TState> CreateTargetBlock(
-        int boundedCapacity, TaskScheduler taskScheduler = null) =>
+        int boundedCapacity,
+        TaskScheduler taskScheduler = null) =>
         new BufferBlock<TState>(
             new DataflowBlockOptions
             {
@@ -221,7 +182,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(action, nameof(action));
-        if (_errorBuffer == null)
+        if (_errorBuffer is null)
         {
             _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
@@ -238,7 +199,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(action, nameof(action));
-        if (_errorBuffer == null)
+        if (_errorBuffer is null)
         {
             _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
@@ -298,7 +259,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(action, nameof(action));
-        if (_finalization == null)
+        if (_finalization is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
             _finalization = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("finalization"));
@@ -314,7 +275,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(action, nameof(action));
-        if (_finalization == null)
+        if (_finalization is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
             _finalization = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("finalization"));
@@ -328,7 +289,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        if (_buildStateBlock == null)
+        if (_buildStateBlock is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
             _buildStateBlock = GetBuildStateBlock(executionOptions);
@@ -343,7 +304,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
-        if (_decryptBlock == null)
+        if (_decryptBlock is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
@@ -363,13 +324,13 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
-        if (_decompressBlock == null)
+        Guard.AgainstNull(_compressionProvider, nameof(_compressionProvider));
+        if (_decompressBlock is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
             _decompressBlock = GetByteManipulationTransformBlock(
-                _compressProvider.Decompress,
+                _compressionProvider.Decompress,
                 executionOptions,
                 false,
                 x => x.ReceivedMessage.Compressed,
@@ -386,43 +347,43 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        if (_createSendMessage == null)
+        if (_createSendMessage is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("create_send_message"));
+            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("create send message"));
         }
         return this;
     }
 
-    public ConsumerDataflow<TState> WithCompression(
+    public ConsumerDataflow<TState> WithSendCompressedStep(
         int? maxDoP = null,
         bool? ensureOrdered = null,
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        Guard.AgainstNull(_compressProvider, nameof(_compressProvider));
-        if (_compressBlock == null)
+        Guard.AgainstNull(_compressionProvider, nameof(_compressionProvider));
+        if (_compressBlock is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
             _compressBlock = GetByteManipulationTransformBlock(
-                _compressProvider.Compress,
+                _compressionProvider.Compress,
                 executionOptions,
                 true,
                 x => !x.ReceivedMessage.Compressed,
-                GetSpanName("compress"));
+                GetSpanName("compress send message"));
         }
         return this;
     }
 
-    public ConsumerDataflow<TState> WithEncryption(
+    public ConsumerDataflow<TState> WithSendEncryptedStep(
         int? maxDoP = null,
         bool? ensureOrdered = null,
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
-        if (_encryptBlock == null)
+        if (_encryptBlock is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
@@ -431,7 +392,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 executionOptions,
                 true,
                 x => !x.ReceivedMessage.Encrypted,
-                GetSpanName("encrypt"));
+                GetSpanName("encrypt send message"));
         }
         return this;
     }
@@ -442,10 +403,10 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        if (_sendMessageBlock == null)
+        if (_sendMessageBlock is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _sendMessageBlock = GetWrappedPublishTransformBlock(_rabbitService, executionOptions);
+            _sendMessageBlock = GetWrappedSendTransformBlock(_rabbitService, executionOptions);
         }
         return this;
     }
@@ -462,39 +423,21 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         Guard.AgainstNull(_errorAction, nameof(_errorAction)); // Processing Errors Is Mandatory
 
         _inputBuffer ??= new BufferBlock<IReceivedMessage>();
-
         _readyBuffer ??= new BufferBlock<TState>();
-
         _postProcessingBuffer ??= new BufferBlock<TState>();
 
-        if (_consumers == null)
+        for (var i = 0; i < _consumerOptions.WorkflowConsumerCount; i++)
         {
-            for (var i = 0; i < _consumerCount; i++)
+            var consumerBlock = new TConsumerBlock
             {
-                var consumerBlock = new TConsumerBlock
-                {
-                    Consumer = new Consumer(_rabbitService.ChannelPool, _consumerName)
-                };
-                _consumerBlocks.Add(consumerBlock);
-                _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
-            }
-        }
-        else
-        {
-            for (var i = 0; i < _consumers.Count; i++)
-            {
-                var consumerBlock = new TConsumerBlock
-                {
-                    Consumer = _consumers.ElementAt(i)
-                };
-
-                _consumerBlocks.Add(consumerBlock);
-                _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
-            }
+                Consumer = new Consumer(_rabbitService.ChannelPool, _consumerOptions.ConsumerName)
+            };
+            _consumerBlocks.Add(consumerBlock);
+            _consumerBlocks[i].LinkTo(_inputBuffer, overrideOptions ?? _linkStepOptions);
         }
 
         ((ISourceBlock<IReceivedMessage>)_inputBuffer).LinkTo(_buildStateBlock, overrideOptions ?? _linkStepOptions);
-        _buildStateBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x == null);
+        _buildStateBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x is null);
         SetCurrentSourceBlock(_buildStateBlock);
 
         LinkPreProcessing(overrideOptions);
@@ -502,20 +445,19 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         LinkPostProcessing(overrideOptions);
 
         ((ISourceBlock<TState>)_errorBuffer).LinkTo(_errorAction, overrideOptions ?? _linkStepOptions);
-        Completion = _currentBlock.Completion;
     }
 
     private void LinkPreProcessing(DataflowLinkOptions overrideOptions = null)
     {
         // Link Deserialize to DecryptBlock with predicate if its not null.
-        if (_decryptBlock != null)
+        if (_decryptBlock is not null)
         { LinkWithFaultRoute(_currentBlock, _decryptBlock, x => x.IsFaulted, overrideOptions ?? _linkStepOptions); }
 
-        if (_decompressBlock != null)
+        if (_decompressBlock is not null)
         { LinkWithFaultRoute(_currentBlock, _decompressBlock, x => x.IsFaulted, overrideOptions ?? _linkStepOptions); }
 
         _currentBlock.LinkTo(_readyBuffer, overrideOptions ?? _linkStepOptions, x => !x.IsFaulted);
-        SetCurrentSourceBlock(_readyBuffer); // Not Neeeded
+        SetCurrentSourceBlock(_readyBuffer);
     }
 
     private void LinkSuppliedSteps(DataflowLinkOptions overrideOptions = null)
@@ -532,7 +474,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             }
 
             // Link the last user step to PostProcessingBuffer/CreateSendMessage.
-            if (_createSendMessage != null)
+            if (_createSendMessage is not null)
             {
                 LinkWithFaultRoute(_suppliedTransforms[^1], _createSendMessage, x => x.IsFaulted, overrideOptions ?? _linkStepOptions);
                 _createSendMessage.LinkTo(_postProcessingBuffer, overrideOptions ?? _linkStepOptions);
@@ -548,13 +490,13 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
     private void LinkPostProcessing(DataflowLinkOptions overrideOptions = null)
     {
-        if (_compressBlock != null)
+        if (_compressBlock is not null)
         { LinkWithFaultRoute(_currentBlock, _compressBlock, x => x.IsFaulted, overrideOptions); }
 
-        if (_encryptBlock != null)
+        if (_encryptBlock is not null)
         { LinkWithFaultRoute(_currentBlock, _encryptBlock, x => x.IsFaulted, overrideOptions); }
 
-        if (_sendMessageBlock != null)
+        if (_sendMessageBlock is not null)
         { LinkWithFaultRoute(_currentBlock, _sendMessageBlock, x => x.IsFaulted, overrideOptions); }
 
         _currentBlock.LinkTo(_finalization, overrideOptions ?? _linkStepOptions); // Last Action
@@ -596,7 +538,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
     protected virtual List<KeyValuePair<string, string>> GetSpanAttributes(TState state, IReceivedMessage receivedMessage)
     {
-        var attributes = new List<KeyValuePair<string, string>>()
+        var attributes = new List<KeyValuePair<string, string>>
         {
             KeyValuePair.Create(Constants.MessagingConsumerNameKey, _consumerOptions.ConsumerName),
             KeyValuePair.Create(Constants.MessagingOperationKey, Constants.MessagingOperationProcessValue)
@@ -655,7 +597,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 {
                     if (state.ReceivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType)
                     {
-                        if (state.ReceivedMessage.Message == null)
+                        if (state.ReceivedMessage.Message is null)
                         { state.ReceivedMessage.Message = _serializationProvider.Deserialize<Message>(state.ReceivedMessage.Body); }
 
                         state.ReceivedMessage.Message.Body = action(state.ReceivedMessage.Message.Body);
@@ -703,7 +645,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 {
                     if (state.ReceivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType)
                     {
-                        if (state.ReceivedMessage.Message == null)
+                        if (state.ReceivedMessage.Message is null)
                         { state.ReceivedMessage.Message = _serializationProvider.Deserialize<Message>(state.ReceivedMessage.Body); }
 
                         state.ReceivedMessage.Message.Body = await action(state.ReceivedMessage.Message.Body).ConfigureAwait(false);
@@ -727,14 +669,14 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return new TransformBlock<TState, TState>(WrapActionAsync, options);
     }
 
-    private string PublishStepIdentifier => $"{WorkflowName}_Publish";
-    public TransformBlock<TState, TState> GetWrappedPublishTransformBlock(
+    private string SendStepIdentifier => $"{WorkflowName} send";
+    public TransformBlock<TState, TState> GetWrappedSendTransformBlock(
         IRabbitService service,
         ExecutionDataflowBlockOptions options)
     {
         async Task<TState> WrapPublishAsync(TState state)
         {
-            using var childSpan = state.CreateActiveChildSpan(PublishStepIdentifier, state.WorkflowSpan.Context, SpanKind.Producer);
+            using var childSpan = state.CreateActiveChildSpan(SendStepIdentifier, state.WorkflowSpan.Context, SpanKind.Producer);
             try
             {
                 await service.Publisher.PublishAsync(state.SendMessage, true, true).ConfigureAwait(false);

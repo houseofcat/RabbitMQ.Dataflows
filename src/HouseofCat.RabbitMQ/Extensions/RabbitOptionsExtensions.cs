@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ;
 
-public static class RabbitExtensions
+public static class RabbitOptionsExtensions
 {
-    public static RabbitOptions GetRabbitOptions(this IConfiguration configuration, string configSectionKey = "RabbitOptions")
+    public static RabbitOptions GetRabbitOptions(
+        this IConfiguration configuration,
+        string configSectionKey = "RabbitOptions")
     {
         var options = new RabbitOptions();
         configuration.GetSection(configSectionKey).Bind(options);

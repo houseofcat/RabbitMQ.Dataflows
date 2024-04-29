@@ -8,9 +8,9 @@ using System.Threading.Tasks.Dataflow;
 
 namespace HouseofCat.RabbitMQ.Dataflows;
 
-public class ConsumerBlock<TOut> : ISourceBlock<TOut>
+public class ConsumerBlock<TOut> : ISourceBlock<TOut>, IDisposable
 {
-    public Task Completion { get; }
+    public Task Completion => _bufferBlock.Completion;
 
     public IConsumer<TOut> Consumer { get; set; }
 
@@ -21,6 +21,7 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
 
     private CancellationTokenSource _cts;
     private Task _bufferProcessor;
+    private bool disposedValue;
 
     public ConsumerBlock() : this(new BufferBlock<TOut>())
     { }
@@ -39,7 +40,6 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
         _logger = LogHelpers.LoggerFactory.CreateLogger<ConsumerBlock<TOut>>();
         _bufferBlock = bufferBlock;
         _sourceBufferBlock = sourceBufferBlock;
-        Completion = _bufferBlock.Completion;
     }
 
     public async Task StartConsumingAsync()
@@ -95,7 +95,7 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
     protected virtual async Task PushToBufferBlockAsync(CancellationToken token = default)
     {
         try
-        { 
+        {
             var consumerBuffer = Consumer.GetConsumerBuffer();
             while (await consumerBuffer.WaitToReadAsync(token).ConfigureAwait(false))
             {
@@ -125,5 +125,24 @@ public class ConsumerBlock<TOut> : ISourceBlock<TOut>
         { _logger.LogDebug("Consumer task was cancelled. Disregard if this was manually invoked."); }
         catch (Exception ex)
         { _logger.LogError(ex, "Reading consumer buffer threw an exception."); }
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposedValue)
+        {
+            if (disposing)
+            {
+                _cts?.Dispose();
+            }
+
+            disposedValue = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

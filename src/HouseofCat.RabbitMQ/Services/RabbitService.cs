@@ -1,11 +1,7 @@
 using HouseofCat.Compression;
-using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.Encryption;
-using HouseofCat.RabbitMQ.Dataflows;
-using HouseofCat.RabbitMQ.Pipelines;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Serialization;
-using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
 using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
@@ -54,12 +50,11 @@ public interface IRabbitService
 public class RabbitService : IRabbitService, IDisposable
 {
     private readonly SemaphoreSlim _serviceLock = new SemaphoreSlim(1, 1);
-    private bool _disposedValue;
 
     public RabbitOptions Options { get; }
-    public IChannelPool ChannelPool { get; }
-    public IPublisher Publisher { get; }
-    public ITopologer Topologer { get; }
+    public IChannelPool ChannelPool { get; private set; }
+    public IPublisher Publisher { get; private set; }
+    public ITopologer Topologer { get; private set; }
 
     public ISerializationProvider SerializationProvider { get; }
     public IEncryptionProvider EncryptionProvider { get; }
@@ -68,55 +63,38 @@ public class RabbitService : IRabbitService, IDisposable
     public ConcurrentDictionary<string, IConsumer<IReceivedMessage>> Consumers { get; private set; } = new ConcurrentDictionary<string, IConsumer<IReceivedMessage>>();
     public ConcurrentDictionary<string, ConsumerOptions> ConsumerOptions { get; private set; } = new ConcurrentDictionary<string, ConsumerOptions>();
 
-    public string TimeFormat { get; set; } = TimeHelpers.Formats.CatsAltFormat;
-
-    public RabbitService(
-        string fileNamePath,
-        ISerializationProvider serializationProvider,
-        IEncryptionProvider encryptionProvider = null,
-        ICompressionProvider compressionProvider = null,
-        ILoggerFactory loggerFactory = null, Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
-        : this(
-              JsonFileReader
-                .ReadFileAsync<RabbitOptions>(fileNamePath)
-                .GetAwaiter()
-                .GetResult(),
-              serializationProvider,
-              encryptionProvider,
-              compressionProvider,
-              loggerFactory,
-              processReceiptAsync)
-    { }
+    public string TimeFormat { get; set; } = TimeHelpers.Formats.RFC3339Long;
 
     public RabbitService(
         RabbitOptions options,
         ISerializationProvider serializationProvider,
         IEncryptionProvider encryptionProvider = null,
         ICompressionProvider compressionProvider = null,
-        ILoggerFactory loggerFactory = null,
-        Func<IPublishReceipt, ValueTask> processReceiptAsync = null) : this(
-            new ChannelPool(options),
-            serializationProvider,
-            encryptionProvider,
-            compressionProvider,
-            loggerFactory,
-            processReceiptAsync)
-    { }
-
-    public RabbitService(
-        IChannelPool chanPool,
-        ISerializationProvider serializationProvider,
-        IEncryptionProvider encryptionProvider = null,
-        ICompressionProvider compressionProvider = null,
-        ILoggerFactory loggerFactory = null,
-        Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
+        ILoggerFactory loggerFactory = null)
     {
-        Guard.AgainstNull(chanPool, nameof(chanPool));
+        Guard.AgainstNull(options, nameof(options));
         Guard.AgainstNull(serializationProvider, nameof(serializationProvider));
         LogHelpers.LoggerFactory = loggerFactory;
 
-        Options = chanPool.Options;
-        ChannelPool = chanPool;
+        Options = options;
+        SerializationProvider = serializationProvider;
+        EncryptionProvider = encryptionProvider;
+        CompressionProvider = compressionProvider;
+    }
+
+    public RabbitService(
+        IChannelPool channelPool,
+        ISerializationProvider serializationProvider,
+        IEncryptionProvider encryptionProvider = null,
+        ICompressionProvider compressionProvider = null,
+        ILoggerFactory loggerFactory = null)
+    {
+        Guard.AgainstNull(channelPool, nameof(channelPool));
+        Guard.AgainstNull(serializationProvider, nameof(serializationProvider));
+        LogHelpers.LoggerFactory = loggerFactory;
+
+        Options = channelPool.Options;
+        ChannelPool = channelPool;
 
         SerializationProvider = serializationProvider;
         EncryptionProvider = encryptionProvider;
@@ -128,22 +106,45 @@ public class RabbitService : IRabbitService, IDisposable
         };
 
         Topologer = new Topologer(ChannelPool);
+    }
 
-        BuildConsumers();
+    private bool _started;
 
-        Publisher.StartAutoPublish(processReceiptAsync);
+    public async Task StartAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
+    {
+        if (!await _serviceLock.WaitAsync(0).ConfigureAwait(false)) return;
 
-        BuildConsumerTopologyAsync()
-            .GetAwaiter()
-            .GetResult();
+        try
+        {
+            if (_started) return;
+
+            ChannelPool ??= new ChannelPool(Options);
+
+            Publisher ??= new Publisher(ChannelPool, SerializationProvider, EncryptionProvider, CompressionProvider)
+            {
+                TimeFormat = TimeFormat
+            };
+
+            Topologer ??= new Topologer(ChannelPool);
+
+            BuildConsumers();
+            await BuildConsumerTopologyAsync();
+            await Publisher.StartAutoPublishAsync(processReceiptAsync);
+
+            _started = true;
+        }
+        finally
+        { _serviceLock.Release(); }
     }
 
     public async ValueTask ShutdownAsync(bool immediately)
     {
-        if (await _serviceLock.WaitAsync(0).ConfigureAwait(false)) return;
+        if (!await _serviceLock.WaitAsync(0).ConfigureAwait(false)) return;
 
         try
         {
+            if (!_started) return;
+
             await Publisher
                 .StopAutoPublishAsync(immediately)
                 .ConfigureAwait(false);
@@ -154,6 +155,8 @@ public class RabbitService : IRabbitService, IDisposable
             await ChannelPool
                 .ShutdownAsync()
                 .ConfigureAwait(false);
+
+            _started = false;
         }
         finally
         { _serviceLock.Release(); }
@@ -198,15 +201,15 @@ public class RabbitService : IRabbitService, IDisposable
                     .ConfigureAwait(false);
             }
 
-            if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.TargetQueueName))
+            if (!string.IsNullOrWhiteSpace(consumer.Value.ConsumerOptions.SendQueueName))
             {
                 await Topologer
                     .CreateQueueAsync(
-                        consumer.Value.ConsumerOptions.TargetQueueName,
+                        consumer.Value.ConsumerOptions.SendQueueName,
                         consumer.Value.ConsumerOptions.BuildQueueDurable,
                         consumer.Value.ConsumerOptions.BuildQueueExclusive,
                         consumer.Value.ConsumerOptions.BuildQueueAutoDelete,
-                        consumer.Value.ConsumerOptions.TargetQueueArgs)
+                        consumer.Value.ConsumerOptions.SendQueueArgs)
                     .ConfigureAwait(false);
             }
 
@@ -224,100 +227,95 @@ public class RabbitService : IRabbitService, IDisposable
         }
     }
 
+    private static readonly string _noConsumerOptionsMessage = "Consumer {0} options not found in Options.ConsumerOptions.";
+
     public IConsumer<IReceivedMessage> GetConsumer(string consumerName)
     {
         if (!Consumers.TryGetValue(consumerName, out IConsumer<IReceivedMessage> value))
-        { throw new ArgumentException(string.Format(ExceptionMessages.NoConsumerOptionsMessage, consumerName)); }
+        { throw new ArgumentException(string.Format(_noConsumerOptionsMessage, consumerName)); }
         return value;
-    }
-
-    public async Task DecomcryptAsync(IMessage message)
-    {
-        if (message is null) return;
-
-        var decrypted = Decrypt(message);
-
-        if (decrypted)
-        {
-            await DecompressAsync(message).ConfigureAwait(false);
-        }
     }
 
     public async Task ComcryptAsync(IMessage message)
     {
-        if (message is null) return;
+        if (message is null || message.Body.Length == 0) return;
 
         await CompressAsync(message).ConfigureAwait(false);
-
         Encrypt(message);
+    }
+
+    public async Task DecomcryptAsync(IMessage message)
+    {
+        if (message is null || message.Body.Length == 0) return;
+
+        Decrypt(message);
+        await DecompressAsync(message).ConfigureAwait(false);
     }
 
     public bool Encrypt(IMessage message)
     {
-        if (!message.Metadata.Encrypted())
+        if (EncryptionProvider is null || message.Metadata.Encrypted())
         {
-            message.Body = EncryptionProvider.Encrypt(message.Body);
-            message.Metadata.Fields[Constants.HeaderForEncrypted] = true;
-            message.Metadata.Fields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
-            message.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeFormat);
-
-            return true;
+            return false;
         }
 
-        return false;
+        message.Body = EncryptionProvider.Encrypt(message.Body);
+        message.Metadata.Fields[Constants.HeaderForEncrypted] = true;
+        message.Metadata.Fields[Constants.HeaderForEncryption] = EncryptionProvider.Type;
+        message.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeFormat);
+        return true;
     }
 
     public bool Decrypt(IMessage message)
     {
-        if (message.Metadata.Encrypted())
+        if (EncryptionProvider is null || !message.Metadata.Encrypted())
         {
-            message.Body = EncryptionProvider.Decrypt(message.Body);
-            message.Metadata.Fields[Constants.HeaderForEncrypted] = false;
-
-            message.Metadata.Fields.Remove(Constants.HeaderForEncryption);
-            message.Metadata.Fields.Remove(Constants.HeaderForEncryptDate);
-
-            return true;
+            return false;
         }
 
-        return false;
+        message.Body = EncryptionProvider.Decrypt(message.Body);
+        message.Metadata.Fields[Constants.HeaderForEncrypted] = false;
+        message.Metadata.Fields.Remove(Constants.HeaderForEncryption);
+        message.Metadata.Fields.Remove(Constants.HeaderForEncryptDate);
+        return true;
     }
 
     public async Task<bool> CompressAsync(IMessage message)
     {
-        if (message.Metadata.Encrypted())
-        { return false; } // Don't compress after encryption.
-
-        if (!message.Metadata.Compressed())
+        if (CompressionProvider is null
+            || message.Metadata.Encrypted()
+            || message.Metadata.Compressed())
         {
-            message.Body = (await CompressionProvider.CompressAsync(message.Body).ConfigureAwait(false)).ToArray();
-            message.Metadata.Fields[Constants.HeaderForCompressed] = true;
-            message.Metadata.Fields[Constants.HeaderForCompression] = CompressionProvider.Type;
-
-            return true;
+            return false;
         }
 
-        return true;
+        try
+        {
+            message.Body = await CompressionProvider.CompressAsync(message.Body).ConfigureAwait(false);
+            message.Metadata.Fields[Constants.HeaderForCompressed] = true;
+            message.Metadata.Fields[Constants.HeaderForCompression] = CompressionProvider.Type;
+            return true;
+        }
+        catch { return false; }
     }
 
     public async Task<bool> DecompressAsync(IMessage message)
     {
-        if (message.Metadata.Encrypted())
-        { return false; } // Don't decompress before decryption.
-
-        if (message.Metadata.Compressed())
+        if (CompressionProvider is null
+            || message.Metadata.Encrypted()
+            || !message.Metadata.Compressed())
         {
-            try
-            {
-                message.Body = (await CompressionProvider.DecompressAsync(message.Body).ConfigureAwait(false)).ToArray();
-                message.Metadata.Fields[Constants.HeaderForCompressed] = false;
-
-                message.Metadata.Fields.Remove(Constants.HeaderForCompression);
-            }
-            catch { return false; }
+            return false;
         }
 
-        return true;
+        try
+        {
+            message.Body = await CompressionProvider.DecompressAsync(message.Body).ConfigureAwait(false);
+            message.Metadata.Fields[Constants.HeaderForCompressed] = false;
+            message.Metadata.Fields.Remove(Constants.HeaderForCompression);
+            return true;
+        }
+        catch { return false; }
     }
 
     public async Task<ReadOnlyMemory<byte>> GetAsync(string queueName)
@@ -384,10 +382,12 @@ public class RabbitService : IRabbitService, IDisposable
                 .ConfigureAwait(false);
         }
 
-        return result != null
+        return result is not null
             ? SerializationProvider.Deserialize<T>(result.Body)
             : default;
     }
+
+    private bool _disposedValue;
 
     protected virtual void Dispose(bool disposing)
     {
@@ -406,7 +406,6 @@ public class RabbitService : IRabbitService, IDisposable
 
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }

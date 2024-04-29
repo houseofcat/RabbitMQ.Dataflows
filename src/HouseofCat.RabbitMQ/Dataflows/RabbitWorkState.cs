@@ -26,8 +26,8 @@ public abstract class RabbitWorkState : IRabbitWorkState
     public virtual IDictionary<string, object> Data { get; set; }
 
     public virtual IDictionary<string, bool> StepSuccess { get; set; }
-
     public virtual string StepIdentifier { get; set; }
+
     public bool IsFaulted { get; set; }
     public ExceptionDispatchInfo EDI { get; set; }
 

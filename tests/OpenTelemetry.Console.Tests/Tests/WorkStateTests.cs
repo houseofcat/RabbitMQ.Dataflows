@@ -22,7 +22,7 @@ public static class WorkStateTests
         var workstate = new CustomWorkState();
 
         workstate.StartWorkflowSpan(workflowName, spanKind: SpanKind.Internal);
-        workstate.EndRootSpan();
+        workstate.EndStateSpan();
 
         logger.LogInformation($"Finished {nameof(RunRootSpanTest)}.");
     }
@@ -38,7 +38,7 @@ public static class WorkStateTests
         {
             span.SetStatus(Status.Ok);
         }
-        workstate.EndRootSpan();
+        workstate.EndStateSpan();
 
         logger.LogInformation($"Finished {nameof(RunRootSpanWithChildSpanTest)}.");
     }
@@ -56,7 +56,7 @@ public static class WorkStateTests
             workstate.SetCurrentSpanAsError("Span had an error!");
         }
 
-        workstate.EndRootSpan();
+        workstate.EndStateSpan();
 
         logger.LogInformation($"Finished {nameof(RunRootSpanWithChildSpanTest)}.");
     }
@@ -83,7 +83,7 @@ public static class WorkStateTests
             }
         }
 
-        workstate.EndRootSpan();
+        workstate.EndStateSpan();
 
         logger.LogInformation($"Finished {nameof(RunRootSpanWithChildSpanTest)}.");
     }

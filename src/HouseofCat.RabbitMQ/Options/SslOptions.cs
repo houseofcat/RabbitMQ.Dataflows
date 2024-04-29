@@ -3,7 +3,7 @@ using System.Security.Authentication;
 
 namespace HouseofCat.RabbitMQ;
 
-public class SslOptions
+public sealed class SslOptions
 {
     /// <summary>
     /// RabbitMQ option to enable SSL.

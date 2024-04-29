@@ -2,7 +2,7 @@
 
 namespace HouseofCat.Dataflows;
 
-public interface IDataBlockEngine<TIn>
+public interface IDataBlockEngine<in TIn>
 {
     ValueTask EnqueueWorkAsync(TIn data);
 }

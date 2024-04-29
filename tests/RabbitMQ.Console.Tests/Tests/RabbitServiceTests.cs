@@ -32,7 +32,7 @@ public static class RabbitServiceTests
         preProcessSpan.End();
 
         // Ping pong the same message.
-        await foreach (var receivedMessage in consumer.ReadUntilStopAsync())
+        await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
         {
             using var consumerSpan = OpenTelemetryHelpers.StartActiveSpan(
                 "messaging.rabbitmq.consumer process",
@@ -86,7 +86,7 @@ public static class RabbitServiceTests
         rabbitService.Publisher.QueueMessage(message);
 
         // Ping pong the same message.
-        await foreach (var receivedMessage in consumer.ReadUntilStopAsync())
+        await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
         {
             if (receivedMessage?.Message is null)
             {

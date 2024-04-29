@@ -40,10 +40,7 @@ public static class WorkStateExtensions
         }
     }
 
-    public static string DefaultSpanNameFormat { get; set; } = "{0}";
-    public static string DefaultChildSpanNameFormat { get; set; } = "{0}.{1}";
     public static string DefaultWorkflowNameKey { get; set; } = "hoc.workflow.name";
-
     public static string DefaultWorkflowStepIdKey { get; set; } = "hoc.workflow.step.id";
 
     /// <summary>
@@ -66,8 +63,6 @@ public static class WorkStateExtensions
 
         state.Data[DefaultWorkflowNameKey] = workflowName;
 
-        var spanName = string.Format(DefaultSpanNameFormat, workflowName);
-
         var attributes = new SpanAttributes();
         attributes.Add(DefaultWorkflowNameKey, workflowName);
 
@@ -83,7 +78,7 @@ public static class WorkStateExtensions
         {
             state.WorkflowSpan = OpenTelemetryHelpers
                 .StartActiveSpan(
-                    spanName,
+                    workflowName,
                     spanKind: spanKind,
                     parentSpanContext.Value,
                     attributes: attributes);
@@ -92,7 +87,7 @@ public static class WorkStateExtensions
         {
             state.WorkflowSpan = OpenTelemetryHelpers
                 .StartRootSpan(
-                    spanName,
+                    workflowName,
                     spanKind,
                     attributes: attributes);
         }
@@ -152,22 +147,15 @@ public static class WorkStateExtensions
 
         state.Data.TryGetValue(DefaultWorkflowNameKey, out var workflowName);
 
-        var childSpanName = string.Format(DefaultChildSpanNameFormat, workflowName, spanName);
-
         return OpenTelemetryHelpers
             .StartActiveSpan(
-                childSpanName,
+                spanName,
                 spanKind,
                 spanContext,
                 attributes: attributes);
     }
 
-    public static void AddEvent(this IWorkState state, string name, string description)
-    {
-        state.AddEvent(name, description);
-    }
-
-    public static void EndRootSpan(
+    public static void EndStateSpan(
         this IWorkState state,
         bool includeErrorWhenFaulted = false)
     {

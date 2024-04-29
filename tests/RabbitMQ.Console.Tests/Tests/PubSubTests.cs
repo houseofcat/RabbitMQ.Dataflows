@@ -66,7 +66,7 @@ public static class PubSubTests
         {
             await consumer.StartConsumerAsync();
 
-            await foreach (var receivedMessage in consumer.ReadUntilStopAsync())
+            await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
             {
                 try
                 {
@@ -154,7 +154,7 @@ public static class PubSubTests
         {
             await consumer.StartConsumerAsync();
 
-            await foreach (var receivedMessage in consumer.ReadUntilStopAsync())
+            await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
             {
                 var message = JsonSerializer.Deserialize<Message>(receivedMessage.Body.Span);
                 var number = Encoding.UTF8.GetString(message.Body.Span);

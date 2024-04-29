@@ -4,7 +4,7 @@ using HouseofCat.Dataflows.Pipelines;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ.Dataflows;
-using HouseofCat.RabbitMQ.Pipelines;
+using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,12 +13,14 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
-namespace HouseofCat.RabbitMQ.Services.Extensions;
+namespace HouseofCat.RabbitMQ.Extensions;
 
 public static class RabbitServiceExtensions
 {
     /// <summary>
-    /// Sets up RabbitService with JsonProvider, GzipProvider (recyclable), and Aes256 (GCM) encryption/decryption.
+    /// Sets up RabbitService with JsonProvider, GzipProvider (recyclable), and optional Aes256 (GCM) encryption/decryption.
+    /// <para>Because this uses the configured LoggerFactory for internal logging, it is recommended calling this after you've setup your Logging configuration.</para>
+    /// <para>Default RabbitOptions config key is "RabbitOptions".</para>
     /// </summary>
     /// <param name="services"></param>
     /// <param name="config"></param>
@@ -26,12 +28,12 @@ public static class RabbitServiceExtensions
     /// <param name="encryptionPassword"></param>
     /// <param name="encryptionSalt"></param>
     /// <returns></returns>
-    public static async Task SetupRabbitServiceAsync(
+    public static async Task AddRabbitServiceAsync(
         this IServiceCollection services,
         IConfiguration config,
-        string configSectionKey,
-        string encryptionPassword,
-        string encryptionSalt)
+        string encryptionPassword = null,
+        string encryptionSalt = null,
+        string configSectionKey = "RabbitOptions")
     {
         using var scope = services.BuildServiceProvider().CreateScope();
 
@@ -41,15 +43,19 @@ public static class RabbitServiceExtensions
         var jsonProvider = new JsonProvider();
 
         var hashProvider = new ArgonHashingProvider();
-        var aes256Key = hashProvider.GetHashKey(encryptionPassword, encryptionSalt, 32);
-        var aes256Provider = new AesGcmEncryptionProvider(aes256Key);
+
+        IEncryptionProvider encryptionProvider = null;
+        if (!string.IsNullOrEmpty(encryptionPassword) && !string.IsNullOrEmpty(encryptionSalt))
+        {
+            var aes256Key = hashProvider.GetHashKey(encryptionPassword, encryptionSalt, 32);
+            encryptionProvider = new AesGcmEncryptionProvider(aes256Key);
+        }
 
         var gzipProvider = new RecyclableGzipProvider();
 
-        var rabbitService = await BuildRabbitServiceAsync(
-            options,
+        var rabbitService = await options.BuildRabbitServiceAsync(
             jsonProvider,
-            aes256Provider,
+            encryptionProvider,
             gzipProvider,
             loggerFactory);
 
@@ -57,7 +63,9 @@ public static class RabbitServiceExtensions
     }
 
     /// <summary>
-    /// Setup RabbitService with provided providers. Automatically loads the configured LoggerFactory from IServiceCollection.
+    /// Setup RabbitService with supplied providers.
+    /// <para>Because this uses the configured LoggerFactory for internal logging, it is recommended calling this after you've setup your Logging configuration.</para>
+    /// <para>Default RabbitOptions config key is "RabbitOptions".</para>
     /// </summary>
     /// <param name="services"></param>
     /// <param name="config"></param>
@@ -66,21 +74,20 @@ public static class RabbitServiceExtensions
     /// <param name="encryptionProvider"></param>
     /// <param name="compressionProvider"></param>
     /// <returns></returns>
-    public static async Task SetupRabbitServiceAsync(
+    public static async Task AddRabbitServiceAsync(
         this IServiceCollection services,
         IConfiguration config,
-        string configSectionKey,
         ISerializationProvider serializationProvider,
         IEncryptionProvider encryptionProvider = null,
-        ICompressionProvider compressionProvider = null)
+        ICompressionProvider compressionProvider = null,
+        string configSectionKey = "RabbitOptions")
     {
         using var scope = services.BuildServiceProvider().CreateScope();
 
         var loggerFactory = scope.ServiceProvider.GetService<ILoggerFactory>();
         var options = config.GetRabbitOptions(configSectionKey);
 
-        var rabbitService = await BuildRabbitServiceAsync(
-            options,
+        var rabbitService = await options.BuildRabbitServiceAsync(
             serializationProvider,
             encryptionProvider,
             compressionProvider,
@@ -103,30 +110,30 @@ public static class RabbitServiceExtensions
             compressionProvider,
             loggerFactory);
 
-        await rabbitService.Publisher.StartAutoPublishAsync();
+        await rabbitService.StartAsync();
 
         return rabbitService;
     }
 
-    public static IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
+    public static IConsumerPipeline CreateConsumerPipeline<TOut>(
         this IRabbitService rabbitService,
         string consumerName,
         int maxDoP,
         int batchSize,
         bool? ensureOrdered,
-        Func<int, int, bool?, IPipeline<IReceivedMessage, TOut>> pipelineBuilder)
+        Func<int, int, bool?, IPipeline<PipeReceivedMessage, TOut>> pipelineBuilder)
         where TOut : RabbitWorkState
     {
         var consumer = rabbitService.GetConsumer(consumerName);
         var pipeline = pipelineBuilder.Invoke(maxDoP, batchSize, ensureOrdered);
 
-        return new ConsumerPipeline<TOut>(consumer, pipeline);
+        return new ConsumerPipeline<TOut>((IConsumer<PipeReceivedMessage>)consumer, pipeline);
     }
 
-    public static IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
+    public static IConsumerPipeline CreateConsumerPipeline<TOut>(
         this IRabbitService rabbitService,
         string consumerName,
-        Func<int, int, bool?, IPipeline<IReceivedMessage, TOut>> pipelineBuilder)
+        Func<int, int, bool?, IPipeline<PipeReceivedMessage, TOut>> pipelineBuilder)
         where TOut : RabbitWorkState
     {
         if (rabbitService.ConsumerOptions.TryGetValue(consumerName, out var options))
@@ -142,33 +149,50 @@ public static class RabbitServiceExtensions
         throw new InvalidOperationException($"ConsumerOptions for {consumerName} not found.");
     }
 
-    public static IConsumerPipeline<TOut> CreateConsumerPipeline<TOut>(
+    public static IConsumerPipeline CreateConsumerPipeline<TOut>(
         this IRabbitService rabbitService,
         string consumerName,
-        IPipeline<IReceivedMessage, TOut> pipeline)
+        IPipeline<PipeReceivedMessage, TOut> pipeline)
         where TOut : RabbitWorkState
     {
         var consumer = rabbitService.GetConsumer(consumerName);
 
-        return new ConsumerPipeline<TOut>(consumer, pipeline);
+        return new ConsumerPipeline<TOut>((IConsumer<PipeReceivedMessage>)consumer, pipeline);
     }
 
-    public static ConsumerDataflow<TState> BuildConsumerDataflow<TState>(
+    public static ConsumerDataflow<TState> CreateConsumerDataflow<TState>(
         this IRabbitService rabbitService,
         string consumerName,
         TaskScheduler taskScheduler = null)
         where TState : class, IRabbitWorkState, new()
     {
-        if (rabbitService.ConsumerOptions.TryGetValue(consumerName, out var options))
+        var options = rabbitService.Options.GetConsumerOptions(consumerName);
+
+        var dataflow = new ConsumerDataflow<TState>(
+            rabbitService,
+            options,
+            taskScheduler)
+            .SetSerializationProvider(rabbitService.SerializationProvider)
+            .SetCompressionProvider(rabbitService.CompressionProvider)
+            .SetEncryptionProvider(rabbitService.EncryptionProvider)
+            .WithBuildState()
+            .WithDecompressionStep()
+            .WithDecryptionStep();
+
+        if (!string.IsNullOrWhiteSpace(options.SendQueueName))
         {
-            return new ConsumerDataflow<TState>(
-                rabbitService,
-                options.WorkflowName,
-                options.ConsumerName,
-                options.WorkflowConsumerCount,
-                taskScheduler);
+            if (rabbitService.CompressionProvider is not null && options.WorkflowSendCompressed)
+            {
+                dataflow = dataflow.WithSendCompressedStep();
+            }
+            if (rabbitService.EncryptionProvider is not null && options.WorkflowSendEncrypted)
+            {
+                dataflow = dataflow.WithSendEncryptedStep();
+            }
+
+            dataflow = dataflow.WithSendStep();
         }
 
-        throw new InvalidOperationException($"ConsumerOptions for {consumerName} not found.");
+        return dataflow;
     }
 }

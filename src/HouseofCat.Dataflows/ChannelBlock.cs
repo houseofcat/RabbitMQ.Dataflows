@@ -9,13 +9,11 @@ using System.Threading.Tasks.Dataflow;
 
 namespace HouseofCat.Dataflows;
 
-public class ChannelBlock<TOut> : ChannelReaderBlock<TOut>, IPropagatorBlock<TOut, TOut>, IReceivableSourceBlock<TOut>
+public class ChannelBlock<TOut> : ChannelReaderBlock<TOut>, IPropagatorBlock<TOut, TOut>, IReceivableSourceBlock<TOut>, IDisposable
 {
     protected readonly Channel<TOut> _channel;
-    protected CancellationTokenSource _cts;
-    protected Task _channelProcessing;
 
-    public ChannelBlock(BoundedChannelOptions options, Func<TOut, TOut> optionalfirstStep = null) : 
+    public ChannelBlock(BoundedChannelOptions options, Func<TOut, TOut> optionalfirstStep = null) :
         this(Channel.CreateBounded<TOut>(options), new TransformBlock<TOut, TOut>(optionalfirstStep ?? (input => input)))
     {
         Guard.AgainstNull(options, nameof(options));
@@ -27,20 +25,28 @@ public class ChannelBlock<TOut> : ChannelReaderBlock<TOut>, IPropagatorBlock<TOu
         Guard.AgainstNull(options, nameof(options));
     }
 
-    public ChannelBlock(Channel<TOut> channel, Func<TOut, TOut> optionalfirstStep = null) : 
+    public ChannelBlock(Channel<TOut> channel, Func<TOut, TOut> optionalfirstStep = null) :
         this(channel, new TransformBlock<TOut, TOut>(optionalfirstStep ?? (input => input)))
-    {
-    }
+    { }
 
     public ChannelBlock(Channel<TOut> channel, ITargetBlock<TOut> targetBlock) : base(channel?.Reader, targetBlock)
     {
         _channel = channel;
     }
 
+    protected CancellationTokenSource _cts;
+    protected Task _channelProcessing;
+    private bool disposedValue;
+
     public void StartReadChannel(CancellationToken token = default)
     {
-        _channelProcessing = ReadChannelAsync(
-            token.Equals(default) ? (_cts = new CancellationTokenSource()).Token : token).AsTask();
+        if (!token.Equals(default))
+        {
+            _channelProcessing = ReadChannelAsync(token);
+        }
+
+        _cts = new CancellationTokenSource();
+        _channelProcessing = ReadChannelAsync(_cts.Token);
     }
 
     public async Task StopChannelAsync()
@@ -91,5 +97,24 @@ public class ChannelBlock<TOut> : ChannelReaderBlock<TOut>, IPropagatorBlock<TOu
         { _logger.LogDebug("Consumer task was cancelled. Disregard if this was manually invoked."); }
         catch (Exception ex)
         { _logger.LogError(ex, "Reading consumer buffer threw an exception."); }
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposedValue)
+        {
+            if (disposing)
+            {
+                _cts?.Dispose();
+            }
+
+            disposedValue = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

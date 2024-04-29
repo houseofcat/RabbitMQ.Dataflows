@@ -3,7 +3,7 @@ using System;
 
 namespace HouseofCat.RabbitMQ;
 
-public class PoolOptions
+public sealed class PoolOptions
 {
     /// <summary>
     /// ConnectionFactory (RabbitMQ) Uri connection string. Set to null to use individual properties.
@@ -91,13 +91,13 @@ public class PoolOptions
     /// Number of channels to keep in each of the channel pool. Used in round-robin to perform actions.
     /// <para>Default value is 0.</para>
     /// </summary>
-    public ushort Channels { get; set; } = 1;
+    public ushort Channels { get; set; } = 2;
 
     /// <summary>
     /// Number of ackable channels to keep in each of the channel pool. Used in round-robin to perform actions.
     /// <para>Default value is 10.</para>
     /// </summary>
-    public ushort AckableChannels { get; set; } = 1;
+    public ushort AckableChannels { get; set; } = 2;
 
     /// <summary>
     /// The time to sleep (in ms) when an error occurs on Channel or Connection creation. It's best not to be hyper aggressive with this value.
@@ -118,5 +118,5 @@ public class PoolOptions
     /// channels are created on demand and that means this can slow down internally or at the RabbitMQ
     /// server if you aren't re-using the transient channel you just created.
     /// </summary>
-    public bool OnlyTransientChannels { get; set; } = false;
+    public bool OnlyTransientChannels { get; set; }
 }

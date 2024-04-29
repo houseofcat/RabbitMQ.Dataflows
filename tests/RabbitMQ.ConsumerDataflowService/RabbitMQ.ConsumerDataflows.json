@@ -28,7 +28,7 @@
     "TestConsumer": {
       "Enabled": true,
       "ConsumerName": "TestConsumer",
-      "BatchSize": 5,
+      "BatchSize": 50,
       "BehaviorWhenFull": 0,
       "UseTransientChannels": true,
       "AutoAck": false,
@@ -36,8 +36,8 @@
       "Exclusive": false,
       "QueueName": "TestQueue",
       "QueueArguments": null,
-      "TargetQueueName": "TestTargetQueue",
-      "TargetQueueArgs": null,
+      "SendQueueName": "TestTargetQueue",
+      "SendQueueArgs": null,
       "ErrorQueueName": "TestQueue.Error",
       "ErrorQueueArgs": null,
       "BuildQueues": true,
@@ -45,11 +45,13 @@
       "BuildQueueExclusive": false,
       "BuildQueueAutoDelete": false,
       "WorkflowName": "test_workflow",
-      "WorkflowMaxDegreesOfParallelism": 1,
+      "WorkflowMaxDegreesOfParallelism": 14,
       "WorkflowConsumerCount": 1,
-      "WorkflowBatchSize": 5,
+      "WorkflowBatchSize": 50,
       "WorkflowEnsureOrdered": false,
-      "WorkflowWaitForCompletion": false
+      "WorkflowWaitForCompletion": false,
+      "WorkflowSendCompressed": false,
+      "WorkflowSendEncrypted": false
     }
   }
 }
