@@ -583,7 +583,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     {
         TState WrapAction(TState state)
         {
-            using var childSpan = state.CreateActiveChildSpan(spanName, state.WorkflowSpan.Context, SpanKind.Internal);
+            using var childSpan = state.CreateActiveChildSpan(spanName, SpanKind.Internal);
             try
             {
                 if (outbound)
@@ -630,7 +630,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     {
         async Task<TState> WrapActionAsync(TState state)
         {
-            using var childSpan = state.CreateActiveChildSpan(spanName, state.WorkflowSpan.Context, SpanKind.Internal);
+            using var childSpan = state.CreateActiveChildSpan(spanName, SpanKind.Internal);
             try
             {
 
@@ -676,7 +676,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     {
         async Task<TState> WrapPublishAsync(TState state)
         {
-            using var childSpan = state.CreateActiveChildSpan(SendStepIdentifier, state.WorkflowSpan.Context, SpanKind.Producer);
+            using var childSpan = state.CreateActiveChildSpan(SendStepIdentifier, SpanKind.Producer);
             try
             {
                 await service.Publisher.PublishAsync(state.SendMessage, true, true).ConfigureAwait(false);

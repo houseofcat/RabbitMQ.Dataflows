@@ -5,6 +5,7 @@ using HouseofCat.Utilities;
 using HouseofCat.Utilities.Errors;
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace HouseofCat.Data;
@@ -35,6 +36,7 @@ public class RecyclableTransformer
     /// <typeparam name="TIn"></typeparam>
     /// <param name="input"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlyMemory<byte> Transform<TIn>(TIn input)
     {
         using var serializedStream = RecyclableManager.GetStream(nameof(RecyclableTransformer));
@@ -52,6 +54,7 @@ public class RecyclableTransformer
     /// <typeparam name="TIn"></typeparam>
     /// <param name="input"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<ReadOnlyMemory<byte>> TransformAsync<TIn>(TIn input)
     {
         using var serializedStream = RecyclableManager.GetStream(nameof(RecyclableTransformer));
@@ -70,6 +73,7 @@ public class RecyclableTransformer
         return encryptedStream.ToArray();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public MemoryStream TransformToStream<TIn>(TIn input)
     {
         using var serializedStream = RecyclableManager.GetStream(nameof(RecyclableTransformer));
@@ -80,6 +84,7 @@ public class RecyclableTransformer
         return _encryptionProvider.Encrypt(compressedStream, false);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<MemoryStream> TransformToStreamAsync<TIn>(TIn input)
     {
         using var serializedStream = RecyclableManager.GetStream(nameof(RecyclableTransformer));
@@ -96,6 +101,7 @@ public class RecyclableTransformer
             .ConfigureAwait(false);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TOut Restore<TOut>(ReadOnlyMemory<byte> data)
     {
         using var decryptStream = _encryptionProvider.DecryptToStream(data);
@@ -103,6 +109,7 @@ public class RecyclableTransformer
         return _serializationProvider.Deserialize<TOut>(decompressStream);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TOut Restore<TOut>(MemoryStream data)
     {
         using var decryptedStream = _encryptionProvider.Decrypt(data, false);
@@ -110,6 +117,7 @@ public class RecyclableTransformer
         return _serializationProvider.Deserialize<TOut>(decompressedStream);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<TOut> RestoreAsync<TOut>(ReadOnlyMemory<byte> data)
     {
         using var decryptedStream = _encryptionProvider.DecryptToStream(data);

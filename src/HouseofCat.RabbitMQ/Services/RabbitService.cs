@@ -44,6 +44,7 @@ public interface IRabbitService
     Task<T> GetAsync<T>(string queueName);
     IConsumer<IReceivedMessage> GetConsumer(string consumerName);
 
+    Task StartAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null);
     ValueTask ShutdownAsync(bool immediately);
 }
 
