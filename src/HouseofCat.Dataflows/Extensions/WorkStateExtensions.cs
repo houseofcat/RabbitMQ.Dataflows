@@ -63,7 +63,6 @@ public static class WorkStateExtensions
 
         state.Data[DefaultWorkflowNameKey] = workflowName;
 
-
         var attributes = new SpanAttributes();
         attributes.Add(DefaultWorkflowNameKey, workflowName);
 
