@@ -146,7 +146,7 @@ public class MaintenanceService : IMaintenanceService
             while (true)
             {
                 result = channelHost.Channel.BasicGet(originQueueName, true);
-                if (result == null) { break; }
+                if (result is null) { break; }
 
                 if (result?.Body is not null)
                 {
@@ -187,7 +187,7 @@ public class MaintenanceService : IMaintenanceService
             try
             {
                 result = channelHost.Channel.BasicGet(originQueueName, true);
-                if (result == null) { break; }
+                if (result is null) { break; }
             }
             catch { error = true; }
             finally

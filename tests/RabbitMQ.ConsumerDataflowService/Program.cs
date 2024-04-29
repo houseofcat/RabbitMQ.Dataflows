@@ -11,6 +11,7 @@ using System.Text;
 var loggerFactory = LogHelpers.CreateConsoleLoggerFactory(LogLevel.Information);
 LogHelpers.LoggerFactory = loggerFactory;
 var logger = loggerFactory.CreateLogger<Program>();
+var logMessage = false;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = new ConfigurationBuilder()
@@ -34,7 +35,10 @@ dataflowService.AddStep(
         {
             throw new Exception("Throwing an exception!");
         }
-        logger.LogInformation(message);
+
+        if (logMessage)
+        { logger.LogInformation(message); }
+
         return state;
     });
 
@@ -45,7 +49,7 @@ dataflowService.AddStep(
         var message = new Message
         {
             Exchange = "",
-            RoutingKey = "TestTargetQueue",
+            RoutingKey = "TestQueue",
             Body = Encoding.UTF8.GetBytes("Secret Message"),
             Metadata = new Metadata
             {
@@ -60,18 +64,12 @@ dataflowService.AddStep(
         return state;
     });
 
-dataflowService.AddStep(
-    "queue_new_message",
-    async (state) =>
-    {
-        await rabbitService.Publisher.QueueMessageAsync(state.SendMessage);
-        return state;
-    });
-
 dataflowService.AddFinalization(
     (state) =>
     {
-        logger.LogInformation("Finalization Step!");
+        if (logMessage)
+        { logger.LogInformation("Finalization Step!"); }
+
         state.ReceivedMessage.AckMessage();
     });
 
@@ -83,7 +81,11 @@ dataflowService.AddErrorHandling(
 
 await dataflowService.StartAsync();
 
-logger.LogInformation("Listening for Messages! Press CTRL+C to initiate graceful shutdown and stop consumer...");
+app.Lifetime.ApplicationStarted.Register(
+    () =>
+    {
+        logger.LogInformation("Listening for Messages! Press CTRL+C to initiate graceful shutdown and stop consumer...");
+    });
 
 app.Lifetime.ApplicationStopping.Register(
     async () =>

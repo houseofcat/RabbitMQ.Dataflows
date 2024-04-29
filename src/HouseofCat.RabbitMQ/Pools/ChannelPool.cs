@@ -144,7 +144,7 @@ public class ChannelPool : IChannelPool, IDisposable
                 .ConfigureAwait(false);
         }
 
-        if (_channels == null)
+        if (_channels is null)
         {
             throw new InvalidOperationException(_channelPoolBadOptionChannelError);
         }
@@ -211,7 +211,7 @@ public class ChannelPool : IChannelPool, IDisposable
                 .ConfigureAwait(false);
         }
 
-        if (_ackChannels == null)
+        if (_ackChannels is null)
         {
             throw new InvalidOperationException(_channelPoolBadOptionAckChannelError);
         }

@@ -32,7 +32,6 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
     private CancellationTokenSource _cancellationTokenSource;
     private bool _disposedValue;
     private readonly SemaphoreSlim _cpLock = new SemaphoreSlim(1, 1);
-    private readonly SemaphoreSlim _pipeExecLock = new SemaphoreSlim(1, 1);
 
     public ConsumerPipeline(
         IConsumer<PipeReceivedMessage> consumer,
@@ -135,15 +134,11 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
         bool waitForCompletion,
         CancellationToken token = default)
     {
-        await _pipeExecLock
-            .WaitAsync(2000, token)
-            .ConfigureAwait(false);
-
         try
         {
             await foreach (var receivedMessage in Consumer.GetConsumerBuffer().ReadAllAsync(token))
             {
-                if (receivedMessage == null) { continue; }
+                if (receivedMessage is null) { continue; }
 
                 _logger.LogDebug(
                     _consumerPipelineQueueing,
@@ -188,7 +183,6 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
                 ConsumerOptions.ConsumerName,
                 ex.Message);
         }
-        finally { _pipeExecLock.Release(); }
     }
 
     public async Task PipelineExecutionEngineAsync(
@@ -196,17 +190,13 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
         bool waitForCompletion,
         CancellationToken token = default)
     {
-        await _pipeExecLock
-            .WaitAsync(2000, token)
-            .ConfigureAwait(false);
-
         try
         {
             while (await Consumer.GetConsumerBuffer().WaitToReadAsync(token).ConfigureAwait(false))
             {
                 while (Consumer.GetConsumerBuffer().TryRead(out var receivedMessage))
                 {
-                    if (receivedMessage == null) { continue; }
+                    if (receivedMessage is null) { continue; }
 
                     _logger.LogDebug(
                         _consumerPipelineQueueing,
@@ -252,7 +242,6 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
                 ConsumerOptions.ConsumerName,
                 ex.Message);
         }
-        finally { _pipeExecLock.Release(); }
     }
 
     public async Task AwaitCompletionAsync()
@@ -267,7 +256,6 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
             if (disposing)
             {
                 _cpLock.Dispose();
-                _pipeExecLock.Dispose();
                 _cancellationTokenSource?.Dispose();
             }
 

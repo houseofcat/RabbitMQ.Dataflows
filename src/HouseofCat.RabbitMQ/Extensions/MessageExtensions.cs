@@ -140,7 +140,7 @@ public static class MessageExtensions
 
     public static void EnrichSpanWithTags(this IMessage message, TelemetrySpan span)
     {
-        if (message == null || span == null || !span.IsRecording) return;
+        if (message is null || span is null || !span.IsRecording) return;
 
         span.SetAttribute(Constants.MessagingSystemKey, Constants.MessagingSystemValue);
 

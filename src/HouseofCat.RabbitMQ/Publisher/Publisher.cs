@@ -125,7 +125,7 @@ public class Publisher : IPublisher, IDisposable
         _logger = LogHelpers.GetLogger<Publisher>();
         _serializationProvider = serializationProvider;
 
-        if (Options.PublisherOptions.Encrypt && encryptionProvider == null)
+        if (Options.PublisherOptions.Encrypt && encryptionProvider is null)
         {
             Options.PublisherOptions.Encrypt = false;
             _logger.LogWarning("Encryption disabled, encryptionProvider provided was null.");
@@ -135,7 +135,7 @@ public class Publisher : IPublisher, IDisposable
             _encryptionProvider = encryptionProvider;
         }
 
-        if (Options.PublisherOptions.Compress && compressionProvider == null)
+        if (Options.PublisherOptions.Compress && compressionProvider is null)
         {
             Options.PublisherOptions.Compress = false;
             _logger.LogWarning("Compression disabled, compressionProvider provided was null.");
@@ -280,7 +280,7 @@ public class Publisher : IPublisher, IDisposable
         {
             while (channelReader.TryRead(out var message))
             {
-                if (message == null)
+                if (message is null)
                 { continue; }
 
                 using var span = OpenTelemetryHelpers.StartActiveSpan(
@@ -373,7 +373,7 @@ public class Publisher : IPublisher, IDisposable
 
         var error = false;
         var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
-        if (basicProperties == null)
+        if (basicProperties is null)
         {
             basicProperties = channelHost.Channel.CreateBasicProperties();
             basicProperties.DeliveryMode = 2;
@@ -481,7 +481,7 @@ public class Publisher : IPublisher, IDisposable
 
         var error = false;
         var channelHost = await _channelPool.GetChannelAsync().ConfigureAwait(false);
-        if (basicProperties == null)
+        if (basicProperties is null)
         {
             basicProperties = channelHost.Channel.CreateBasicProperties();
             basicProperties.DeliveryMode = 2;
@@ -917,7 +917,7 @@ public class Publisher : IPublisher, IDisposable
         string routingKey,
         string messageId = null)
     {
-        if (span == null || !span.IsRecording) return;
+        if (span is null || !span.IsRecording) return;
 
         span.SetAttribute(Constants.MessagingSystemKey, Constants.MessagingSystemValue);
 

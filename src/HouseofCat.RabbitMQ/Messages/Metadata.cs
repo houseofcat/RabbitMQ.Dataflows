@@ -21,7 +21,7 @@ public sealed class Metadata : IMetadata
 
     public bool Encrypted()
     {
-        if (Fields == null) return false;
+        if (Fields is null) return false;
 
         if (Fields.TryGetValue(Constants.HeaderForEncrypted, out var value))
         {
@@ -33,7 +33,7 @@ public sealed class Metadata : IMetadata
 
     public string EncryptionType()
     {
-        if (Fields == null) return null;
+        if (Fields is null) return null;
 
         if (Fields.TryGetValue(Constants.HeaderForEncryption, out var value))
         {
@@ -45,7 +45,7 @@ public sealed class Metadata : IMetadata
 
     public string EncryptedDate()
     {
-        if (Fields == null) return null;
+        if (Fields is null) return null;
 
         if (Fields.TryGetValue(Constants.HeaderForEncryptDate, out var value))
         {
@@ -57,7 +57,7 @@ public sealed class Metadata : IMetadata
 
     public DateTime? EncryptedDateTime()
     {
-        if (Fields == null) return null;
+        if (Fields is null) return null;
 
         if (Fields.TryGetValue(Constants.HeaderForEncryptDate, out var value)
             && DateTime.TryParse((string)value, out var dateTime))
@@ -70,7 +70,7 @@ public sealed class Metadata : IMetadata
 
     public bool Compressed()
     {
-        if (Fields == null) return false;
+        if (Fields is null) return false;
 
         if (Fields.TryGetValue(Constants.HeaderForCompressed, out var value))
         {
@@ -82,7 +82,7 @@ public sealed class Metadata : IMetadata
 
     public string CompressionType()
     {
-        if (Fields == null) return null;
+        if (Fields is null) return null;
 
         if (Fields.TryGetValue(Constants.HeaderForCompression, out var value))
         {

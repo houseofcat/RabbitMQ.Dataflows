@@ -14,7 +14,7 @@ public partial class GeometryPointTypeHandler : SqlMapper.TypeHandler<GeometryPo
 
     public override GeometryPoint Parse(object value)
     {
-        if (value == null) return null;
+        if (value is null) return null;
 
         if (!_regex.IsMatch(value.ToString()))
         { throw new ArgumentException("Value is not a Geometry Point"); }

@@ -12,7 +12,7 @@ public static class ObjectExtensions
 
     public static long GetByteCount(this object input)
     {
-        if (input == null) return 0;
+        if (input is null) return 0;
         var type = input.GetType();
 
         if (_primitiveTypeSizes.TryGetValue(type, out int sizeValue))

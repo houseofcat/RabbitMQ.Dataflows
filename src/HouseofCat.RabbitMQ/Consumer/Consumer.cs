@@ -358,7 +358,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 
     protected void EnrichSpanWithTags(TelemetrySpan span, IReceivedMessage receivedMessage)
     {
-        if (span == null || !span.IsRecording) return;
+        if (span is null || !span.IsRecording) return;
 
         span.SetAttribute(Constants.MessagingSystemKey, Constants.MessagingSystemValue);
 
@@ -498,7 +498,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         await _consumerChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false);
         while (_consumerChannel.Reader.TryRead(out var message))
         {
-            if (message == null) { break; }
+            if (message is null) { break; }
             list.Add(message);
         }
 

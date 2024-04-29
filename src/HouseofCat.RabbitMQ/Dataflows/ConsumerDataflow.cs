@@ -177,7 +177,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(action, nameof(action));
-        if (_errorBuffer == null)
+        if (_errorBuffer is null)
         {
             _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
@@ -194,7 +194,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(action, nameof(action));
-        if (_errorBuffer == null)
+        if (_errorBuffer is null)
         {
             _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
@@ -254,7 +254,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(action, nameof(action));
-        if (_finalization == null)
+        if (_finalization is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
             _finalization = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("finalization"));
@@ -270,7 +270,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(action, nameof(action));
-        if (_finalization == null)
+        if (_finalization is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
             _finalization = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("finalization"));
@@ -284,7 +284,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        if (_buildStateBlock == null)
+        if (_buildStateBlock is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
             _buildStateBlock = GetBuildStateBlock(executionOptions);
@@ -299,7 +299,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
-        if (_decryptBlock == null)
+        if (_decryptBlock is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
@@ -320,7 +320,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(_compressionProvider, nameof(_compressionProvider));
-        if (_decompressBlock == null)
+        if (_decompressBlock is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
@@ -342,7 +342,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        if (_createSendMessage == null)
+        if (_createSendMessage is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
             _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("create_send_message"));
@@ -357,7 +357,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(_compressionProvider, nameof(_compressionProvider));
-        if (_compressBlock == null)
+        if (_compressBlock is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
@@ -378,7 +378,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
-        if (_encryptBlock == null)
+        if (_encryptBlock is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
@@ -398,7 +398,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        if (_sendMessageBlock == null)
+        if (_sendMessageBlock is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
             _sendMessageBlock = GetWrappedPublishTransformBlock(_rabbitService, executionOptions);
@@ -432,7 +432,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         }
 
         ((ISourceBlock<IReceivedMessage>)_inputBuffer).LinkTo(_buildStateBlock, overrideOptions ?? _linkStepOptions);
-        _buildStateBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x == null);
+        _buildStateBlock.LinkTo(_errorBuffer, overrideOptions ?? _linkStepOptions, x => x is null);
         SetCurrentSourceBlock(_buildStateBlock);
 
         LinkPreProcessing(overrideOptions);
@@ -592,7 +592,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 {
                     if (state.ReceivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType)
                     {
-                        if (state.ReceivedMessage.Message == null)
+                        if (state.ReceivedMessage.Message is null)
                         { state.ReceivedMessage.Message = _serializationProvider.Deserialize<Message>(state.ReceivedMessage.Body); }
 
                         state.ReceivedMessage.Message.Body = action(state.ReceivedMessage.Message.Body);
@@ -640,7 +640,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
                 {
                     if (state.ReceivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType)
                     {
-                        if (state.ReceivedMessage.Message == null)
+                        if (state.ReceivedMessage.Message is null)
                         { state.ReceivedMessage.Message = _serializationProvider.Deserialize<Message>(state.ReceivedMessage.Body); }
 
                         state.ReceivedMessage.Message.Body = await action(state.ReceivedMessage.Message.Body).ConfigureAwait(false);
