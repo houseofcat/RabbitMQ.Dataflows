@@ -25,6 +25,8 @@ using var app = builder.Build();
 
 var rabbitService = await Shared.SetupRabbitServiceAsync(loggerFactory, "RabbitMQ.ConsumerDataflows.json");
 var dataflowService = new ConsumerDataflowService<CustomWorkState>(rabbitService, "TestConsumer");
+
+// Manually modify the internal Dataflow.
 dataflowService.Dataflow.WithCreateSendMessage(
     async (state) =>
     {
@@ -46,6 +48,7 @@ dataflowService.Dataflow.WithCreateSendMessage(
         return state;
     });
 
+// Add custom step to Dataflow using Service helper methods.
 dataflowService.AddStep(
     "write_message_to_log",
     (state) =>
@@ -62,6 +65,7 @@ dataflowService.AddStep(
         return state;
     });
 
+// Add finalization step to Dataflow using Service helper method.
 dataflowService.AddFinalization(
     (state) =>
     {
@@ -71,17 +75,20 @@ dataflowService.AddFinalization(
         state.ReceivedMessage?.AckMessage();
     });
 
+// Add error handling to Dataflow using Service helper method.
 dataflowService.AddErrorHandling(
     async (state) =>
     {
         logger.LogError(state?.EDI?.SourceException, "Error Step!");
 
         // First, check if DLQ is configured in QueueArgs.
+        // Second, check if ErrorQueue is set in Options.
+        // Lastly, decide if you want to Nack with requeue, or anything else.
+
         if (dataflowService.Options.RejectOnError())
         {
             state.ReceivedMessage?.RejectMessage(requeue: false);
         }
-        // Second, check if ErrorQueue is set in Options.
         else if (!string.IsNullOrEmpty(dataflowService.Options.ErrorQueueName))
         {
             // If type is currently an IMessage, republish with new RoutingKey.
@@ -93,14 +100,18 @@ dataflowService.AddErrorHandling(
             else
             {
                 await rabbitService.Publisher.PublishAsync(
-                    "",
-                    dataflowService.Options.ErrorQueueName,
-                    state.ReceivedMessage.Body,
-                    false,
-                    basicProperties: state.ReceivedMessage.Properties);
+                    exchangeName: "",
+                    routingKey: dataflowService.Options.ErrorQueueName,
+                    body: state.ReceivedMessage.Body,
+                    headers: state.ReceivedMessage.Properties.Headers,
+                    messageId: Guid.NewGuid().ToString(),
+                    deliveryMode: 2,
+                    mandatory: false);
             }
+
+            // Don't forget to Ack the original message when sending it to a different Queue.
+            state.ReceivedMessage?.AckMessage();
         }
-        // Lastly, decide if you want to Nack with requeue, or anything else.
         else
         {
             state.ReceivedMessage?.NackMessage(requeue: true);

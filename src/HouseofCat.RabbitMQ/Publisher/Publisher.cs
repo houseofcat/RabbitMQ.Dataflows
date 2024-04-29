@@ -378,11 +378,11 @@ public class Publisher : IPublisher, IDisposable
             basicProperties = channelHost.Channel.CreateBasicProperties();
             basicProperties.DeliveryMode = 2;
             basicProperties.MessageId = messageId ?? Guid.NewGuid().ToString();
+        }
 
-            if (!basicProperties.IsHeadersPresent())
-            {
-                basicProperties.Headers = new Dictionary<string, object>();
-            }
+        if (!basicProperties.IsHeadersPresent())
+        {
+            basicProperties.Headers = new Dictionary<string, object>();
         }
 
         SetMandatoryHeaders(basicProperties, contentType);
@@ -486,11 +486,11 @@ public class Publisher : IPublisher, IDisposable
             basicProperties = channelHost.Channel.CreateBasicProperties();
             basicProperties.DeliveryMode = 2;
             basicProperties.MessageId = Guid.NewGuid().ToString();
+        }
 
-            if (!basicProperties.IsHeadersPresent())
-            {
-                basicProperties.Headers = new Dictionary<string, object>();
-            }
+        if (!basicProperties.IsHeadersPresent())
+        {
+            basicProperties.Headers = new Dictionary<string, object>();
         }
 
         // Non-optional Header.
