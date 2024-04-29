@@ -4,7 +4,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace HouseofCat.RabbitMQ;
 
@@ -36,14 +35,12 @@ public interface IReceivedMessage
     bool FailedToDeserialize { get; }
 
     bool AckMessage();
-    void Complete();
-    Task<bool> Completion { get; }
 
     bool NackMessage(bool requeue);
     bool RejectMessage(bool requeue);
 }
 
-public sealed class ReceivedMessage : IReceivedMessage, IDisposable
+public class ReceivedMessage : IReceivedMessage, IDisposable
 {
     public IMessage Message { get; set; }
     public ReadOnlyMemory<byte> Body { get; set; }
@@ -69,9 +66,6 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
     public ulong DeliveryTag { get; }
 
     public bool FailedToDeserialize { get; set; }
-
-    private readonly TaskCompletionSource<bool> _completionSource = new TaskCompletionSource<bool>();
-    public Task<bool> Completion => _completionSource.Task;
 
     private bool _disposedValue;
 
@@ -202,29 +196,15 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
         return success;
     }
 
-    /// <summary>
-    /// A way to indicate this message is fully finished with.
-    /// </summary>
-    public void Complete()
-    {
-        if (_completionSource.Task.Status < TaskStatus.RanToCompletion)
-        {
-            _completionSource.SetResult(true);
-        }
-    }
-
     private void Dispose(bool disposing)
     {
         if (!_disposedValue)
         {
             if (disposing)
             {
-                Complete();
-                _completionSource.Task.Dispose();
+                if (Channel is not null) { Channel = null; }
+                if (Message is not null) { Message = null; }
             }
-
-            if (Channel != null) { Channel = null; }
-            if (Message != null) { Message = null; }
 
             _disposedValue = true;
         }
@@ -232,7 +212,6 @@ public sealed class ReceivedMessage : IReceivedMessage, IDisposable
 
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }

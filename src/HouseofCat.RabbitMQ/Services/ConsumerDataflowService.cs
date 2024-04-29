@@ -6,88 +6,122 @@ namespace HouseofCat.RabbitMQ.Services;
 
 public class ConsumerDataflowService<TState> where TState : class, IRabbitWorkState, new()
 {
-    private readonly ConsumerDataflow<TState> _workflow;
-    private readonly ConsumerOptions _options;
-    private readonly IRabbitService _rabbitService;
+    public ConsumerDataflow<TState> Dataflow { get; }
+    public ConsumerOptions Options { get; }
 
+    /// <summary>
+    /// This a basic implementation service class for convenience. It serves as a simple opinionated wrapper
+    /// of ConsumerDataflow with accessors to a few methods and provides streamlined auto-configuration.
+    /// </summary>
+    /// <param name="rabbitService"></param>
+    /// <param name="consumerName"></param>
+    /// <param name="taskScheduler"></param>
     public ConsumerDataflowService(
         IRabbitService rabbitService,
-        string consumerName)
+        string consumerName,
+        TaskScheduler taskScheduler = null)
     {
-        _rabbitService = rabbitService;
-        _options = _rabbitService.Options.GetConsumerOptions(consumerName);
+        Options = rabbitService.Options.GetConsumerOptions(consumerName);
 
-        _workflow = new ConsumerDataflow<TState>(
-            _rabbitService,
-            _options.WorkflowName,
-            _options.ConsumerName,
-            _options.WorkflowConsumerCount)
-            .WithBuildState();
+        var dataflow = new ConsumerDataflow<TState>(
+            rabbitService,
+            Options,
+            taskScheduler)
+            .SetSerializationProvider(rabbitService.SerializationProvider)
+            .SetCompressionProvider(rabbitService.CompressionProvider)
+            .SetEncryptionProvider(rabbitService.EncryptionProvider)
+            .WithBuildState()
+            .WithDecompressionStep()
+            .WithDecryptionStep();
+
+        if (!string.IsNullOrWhiteSpace(Options.SendQueueName))
+        {
+            if (rabbitService.CompressionProvider is not null && Options.WorkflowSendCompressed)
+            {
+                dataflow = dataflow.WithSendCompressedStep();
+            }
+            if (rabbitService.EncryptionProvider is not null && Options.WorkflowSendEncrypted)
+            {
+                dataflow = dataflow.WithSendEncryptedStep();
+            }
+
+            dataflow = dataflow.WithSendStep();
+        }
+
+        Dataflow = dataflow;
     }
 
     public void AddStep(string stepName, Func<TState, TState> step)
     {
-        _workflow.AddStep(
+        Dataflow.AddStep(
             step,
             stepName,
-            _options.WorkflowMaxDegreesOfParallelism,
-            _options.WorkflowEnsureOrdered,
-            _options.WorkflowBatchSize);
+            Options.WorkflowMaxDegreesOfParallelism,
+            Options.WorkflowEnsureOrdered,
+            Options.WorkflowBatchSize);
     }
 
     public void AddStep(string stepName, Func<TState, Task<TState>> step)
     {
-        _workflow.AddStep(
+        Dataflow.AddStep(
             step,
             stepName,
-            _options.WorkflowMaxDegreesOfParallelism,
-            _options.WorkflowEnsureOrdered,
-            _options.WorkflowBatchSize);
+            Options.WorkflowMaxDegreesOfParallelism,
+            Options.WorkflowEnsureOrdered,
+            Options.WorkflowBatchSize);
     }
 
     public void AddFinalization(Action<TState> step)
     {
-        _workflow.WithFinalization(
+        Dataflow.WithFinalization(
             step,
-            _options.WorkflowMaxDegreesOfParallelism,
-            _options.WorkflowEnsureOrdered,
-            _options.WorkflowBatchSize);
+            Options.WorkflowMaxDegreesOfParallelism,
+            Options.WorkflowEnsureOrdered,
+            Options.WorkflowBatchSize);
     }
 
     public void AddFinalization(Func<TState, Task> step)
     {
-        _workflow.WithFinalization(
+        Dataflow.WithFinalization(
             step,
-            _options.WorkflowMaxDegreesOfParallelism,
-            _options.WorkflowEnsureOrdered,
-            _options.WorkflowBatchSize);
+            Options.WorkflowMaxDegreesOfParallelism,
+            Options.WorkflowEnsureOrdered,
+            Options.WorkflowBatchSize);
     }
 
     public void AddErrorHandling(Action<TState> step)
     {
-        _workflow.WithErrorHandling(
+        Dataflow.WithErrorHandling(
             step,
-            _options.WorkflowBatchSize,
-            _options.WorkflowMaxDegreesOfParallelism,
-            _options.WorkflowEnsureOrdered);
+            Options.WorkflowBatchSize,
+            Options.WorkflowMaxDegreesOfParallelism,
+            Options.WorkflowEnsureOrdered);
     }
 
     public void AddErrorHandling(Func<TState, Task> step)
     {
-        _workflow.WithErrorHandling(
+        Dataflow.WithErrorHandling(
             step,
-            _options.WorkflowBatchSize,
-            _options.WorkflowMaxDegreesOfParallelism,
-            _options.WorkflowEnsureOrdered);
+            Options.WorkflowBatchSize,
+            Options.WorkflowMaxDegreesOfParallelism,
+            Options.WorkflowEnsureOrdered);
     }
 
     public async Task StartAsync()
     {
-        await _workflow.StartAsync();
+        await Dataflow.StartAsync();
     }
 
-    public async Task StopAsync()
+    /// <summary>
+    /// Provides mechanism to stop the Dataflow gracefully and optionally shutdown RabbitService.
+    /// </summary>
+    /// <param name="immediate"></param>
+    /// <param name="shutdownService"></param>
+    /// <returns></returns>
+    public async Task StopAsync(
+        bool immediate = false,
+        bool shutdownService = false)
     {
-        await _workflow.StopAsync();
+        await Dataflow.StopAsync(immediate, shutdownService);
     }
 }

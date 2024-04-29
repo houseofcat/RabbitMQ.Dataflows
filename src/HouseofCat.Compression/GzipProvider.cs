@@ -1,15 +1,16 @@
-﻿using HouseofCat.Utilities.Errors;
-using CommunityToolkit.HighPerformance;
+﻿using CommunityToolkit.HighPerformance;
+using HouseofCat.Utilities.Errors;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
+using static HouseofCat.Compression.Enums;
 
 namespace HouseofCat.Compression;
 
 public class GzipProvider : ICompressionProvider
 {
-    public string Type { get; } = "GZIP";
+    public string Type { get; } = CompressionType.Gzip.ToString().ToUpper();
     public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Optimal;
 
     public GzipProvider() { }
@@ -19,28 +20,28 @@ public class GzipProvider : ICompressionProvider
         CompressionLevel = compressionLevel;
     }
 
-    public ReadOnlyMemory<byte> Compress(ReadOnlyMemory<byte> inputData)
+    public ReadOnlyMemory<byte> Compress(ReadOnlyMemory<byte> input)
     {
-        Guard.AgainstEmpty(inputData, nameof(inputData));
+        Guard.AgainstEmpty(input, nameof(input));
 
         using var compressedStream = new MemoryStream();
-        using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, false))
+        using (var compressionStream = new GZipStream(compressedStream, CompressionLevel, false))
         {
-            gzipStream.Write(inputData.Span);
+            compressionStream.Write(input.Span);
         }
 
         return compressedStream.ToArray();
     }
 
-    public async ValueTask<ReadOnlyMemory<byte>> CompressAsync(ReadOnlyMemory<byte> inputData)
+    public async ValueTask<ReadOnlyMemory<byte>> CompressAsync(ReadOnlyMemory<byte> input)
     {
-        Guard.AgainstEmpty(inputData, nameof(inputData));
+        Guard.AgainstEmpty(input, nameof(input));
 
         using var compressedStream = new MemoryStream();
-        using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, false))
+        using (var compressionStream = new GZipStream(compressedStream, CompressionLevel, false))
         {
-            await gzipStream
-                .WriteAsync(inputData)
+            await compressionStream
+                .WriteAsync(input)
                 .ConfigureAwait(false);
         }
 
@@ -54,18 +55,18 @@ public class GzipProvider : ICompressionProvider
     /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
     /// <param name="data"></param>
     /// <returns></returns>
-    public MemoryStream Compress(Stream inputStream, bool leaveStreamOpen = false)
+    public MemoryStream Compress(Stream inputStream, bool leaveOpen = false)
     {
         Guard.AgainstNullOrEmpty(inputStream, nameof(inputStream));
 
         if (inputStream.Position == inputStream.Length) { inputStream.Seek(0, SeekOrigin.Begin); }
 
         var compressedStream = new MemoryStream();
-        using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
+        using (var compressionStream = new GZipStream(compressedStream, CompressionLevel, true))
         {
-            inputStream.CopyTo(gzipStream);
+            inputStream.CopyTo(compressionStream);
         }
-        if (!leaveStreamOpen) { inputStream.Close(); }
+        if (!leaveOpen) { inputStream.Close(); }
 
         compressedStream.Seek(0, SeekOrigin.Begin);
         return compressedStream;
@@ -78,20 +79,20 @@ public class GzipProvider : ICompressionProvider
     /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
     /// <param name="data"></param>
     /// <returns></returns>
-    public async ValueTask<MemoryStream> CompressAsync(Stream inputStream, bool leaveStreamOpen = false)
+    public async ValueTask<MemoryStream> CompressAsync(Stream inputStream, bool leaveOpen = false)
     {
         Guard.AgainstNullOrEmpty(inputStream, nameof(inputStream));
 
         if (inputStream.Position == inputStream.Length) { inputStream.Seek(0, SeekOrigin.Begin); }
 
         var compressedStream = new MemoryStream();
-        using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
+        using (var compressionStream = new GZipStream(compressedStream, CompressionLevel, true))
         {
             await inputStream
-                .CopyToAsync(gzipStream)
+                .CopyToAsync(compressionStream)
                 .ConfigureAwait(false);
         }
-        if (!leaveStreamOpen) { inputStream.Close(); }
+        if (!leaveOpen) { inputStream.Close(); }
 
         compressedStream.Seek(0, SeekOrigin.Begin);
         return compressedStream;
@@ -104,14 +105,14 @@ public class GzipProvider : ICompressionProvider
     /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
     /// <param name="data"></param>
     /// <returns></returns>
-    public MemoryStream CompressToStream(ReadOnlyMemory<byte> inputData)
+    public MemoryStream CompressToStream(ReadOnlyMemory<byte> input)
     {
-        Guard.AgainstEmpty(inputData, nameof(inputData));
+        Guard.AgainstEmpty(input, nameof(input));
 
         var compressedStream = new MemoryStream();
-        using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
+        using (var compressionStream = new GZipStream(compressedStream, CompressionLevel, true))
         {
-            gzipStream.Write(inputData.Span);
+            compressionStream.Write(input.Span);
         }
 
         compressedStream.Seek(0, SeekOrigin.Begin);
@@ -125,15 +126,15 @@ public class GzipProvider : ICompressionProvider
     /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
     /// <param name="data"></param>
     /// <returns></returns>
-    public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> compressedData)
+    public async ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> compressedInput)
     {
-        Guard.AgainstEmpty(compressedData, nameof(compressedData));
+        Guard.AgainstEmpty(compressedInput, nameof(compressedInput));
 
         var compressedStream = new MemoryStream();
-        using (var gzipStream = new GZipStream(compressedStream, CompressionLevel, true))
+        using (var compressionStream = new GZipStream(compressedStream, CompressionLevel, true))
         {
-            await gzipStream
-                .WriteAsync(compressedData)
+            await compressionStream
+                .WriteAsync(compressedInput)
                 .ConfigureAwait(false);
         }
 
@@ -141,27 +142,27 @@ public class GzipProvider : ICompressionProvider
         return compressedStream;
     }
 
-    public ReadOnlyMemory<byte> Decompress(ReadOnlyMemory<byte> compressedData)
+    public ReadOnlyMemory<byte> Decompress(ReadOnlyMemory<byte> compressedInput)
     {
-        Guard.AgainstEmpty(compressedData, nameof(compressedData));
+        Guard.AgainstEmpty(compressedInput, nameof(compressedInput));
 
-        using var uncompressedStream = new MemoryStream(CompressionHelpers.GetGzipUncompressedLength(compressedData));
-        using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
+        using var uncompressedStream = new MemoryStream(CompressionHelpers.GetGzipUncompressedLength(compressedInput));
+        using (var compressionStream = new GZipStream(compressedInput.AsStream(), CompressionMode.Decompress, false))
         {
-            gzipStream.CopyTo(uncompressedStream);
+            compressionStream.CopyTo(uncompressedStream);
         }
 
         return uncompressedStream.ToArray();
     }
 
-    public async ValueTask<ReadOnlyMemory<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData)
+    public async ValueTask<ReadOnlyMemory<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedInput)
     {
-        Guard.AgainstEmpty(compressedData, nameof(compressedData));
+        Guard.AgainstEmpty(compressedInput, nameof(compressedInput));
 
-        using var uncompressedStream = new MemoryStream(CompressionHelpers.GetGzipUncompressedLength(compressedData));
-        using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
+        using var uncompressedStream = new MemoryStream(CompressionHelpers.GetGzipUncompressedLength(compressedInput));
+        using (var compressionStream = new GZipStream(compressedInput.AsStream(), CompressionMode.Decompress, false))
         {
-            await gzipStream
+            await compressionStream
                 .CopyToAsync(uncompressedStream)
                 .ConfigureAwait(false);
         }
@@ -175,17 +176,19 @@ public class GzipProvider : ICompressionProvider
     /// <remarks>The new stream's position is set to the beginning of the stream when returned.</remarks>
     /// <param name="compressedStream"></param>
     /// <returns></returns>
-    public MemoryStream Decompress(Stream compressedStream, bool leaveStreamOpen = false)
+    public MemoryStream Decompress(Stream compressedStream, bool leaveOpen = false)
     {
         Guard.AgainstNullOrEmpty(compressedStream, nameof(compressedStream));
 
         if (compressedStream.Position == compressedStream.Length) { compressedStream.Seek(0, SeekOrigin.Begin); }
 
         var uncompressedStream = new MemoryStream(CompressionHelpers.GetGzipUncompressedLength(compressedStream));
-        using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
+        using (var compressionStream = new GZipStream(compressedStream, CompressionMode.Decompress, leaveOpen))
         {
-            gzipStream.CopyTo(uncompressedStream);
+            compressionStream.CopyTo(uncompressedStream);
         }
+
+        if (uncompressedStream.Position == uncompressedStream.Length) { uncompressedStream.Seek(0, SeekOrigin.Begin); }
 
         return uncompressedStream;
     }
@@ -195,19 +198,21 @@ public class GzipProvider : ICompressionProvider
     /// </summary>
     /// <param name="compressedStream"></param>
     /// <returns></returns>
-    public async ValueTask<MemoryStream> DecompressAsync(Stream compressedStream, bool leaveStreamOpen = false)
+    public async ValueTask<MemoryStream> DecompressAsync(Stream compressedStream, bool leaveOpen = false)
     {
         Guard.AgainstNullOrEmpty(compressedStream, nameof(compressedStream));
 
         if (compressedStream.Position == compressedStream.Length) { compressedStream.Seek(0, SeekOrigin.Begin); }
 
         var uncompressedStream = new MemoryStream(CompressionHelpers.GetGzipUncompressedLength(compressedStream));
-        using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, leaveStreamOpen))
+        using (var compressionStream = new GZipStream(compressedStream, CompressionMode.Decompress, leaveOpen))
         {
-            await gzipStream
+            await compressionStream
                 .CopyToAsync(uncompressedStream)
                 .ConfigureAwait(false);
         }
+
+        if (uncompressedStream.Position == uncompressedStream.Length) { uncompressedStream.Seek(0, SeekOrigin.Begin); }
 
         return uncompressedStream;
     }
@@ -215,15 +220,17 @@ public class GzipProvider : ICompressionProvider
     /// <summary>
     /// Returns a new <c>MemoryStream</c> that has decompressed data inside.
     /// </summary>
-    /// <param name="compressedData"></param>
+    /// <param name="compressedInput"></param>
     /// <returns>A <c>new MemoryStream</c>.</returns>
-    public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData)
+    public MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedInput)
     {
-        var uncompressedStream = new MemoryStream(CompressionHelpers.GetGzipUncompressedLength(compressedData));
-        using (var gzipStream = new GZipStream(compressedData.AsStream(), CompressionMode.Decompress, false))
+        var uncompressedStream = new MemoryStream(CompressionHelpers.GetGzipUncompressedLength(compressedInput));
+        using (var compressionStream = new GZipStream(compressedInput.AsStream(), CompressionMode.Decompress, false))
         {
-            gzipStream.CopyTo(uncompressedStream);
+            compressionStream.CopyTo(uncompressedStream);
         }
+
+        if (uncompressedStream.Position == uncompressedStream.Length) { uncompressedStream.Seek(0, SeekOrigin.Begin); }
 
         return uncompressedStream;
     }

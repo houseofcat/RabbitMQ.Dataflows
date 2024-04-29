@@ -9,12 +9,10 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using static HouseofCat.RabbitMQ.LogMessages;
 
 namespace HouseofCat.RabbitMQ;
 
@@ -31,7 +29,7 @@ public interface IConsumer<TFromQueue>
     Task StopConsumerAsync(bool immediate = false);
 
     Task<IEnumerable<TFromQueue>> ReadUntilEmptyAsync(CancellationToken token = default);
-    IAsyncEnumerable<IReceivedMessage> ReadUntilStopAsync(CancellationToken token = default);
+    ValueTask<IAsyncEnumerable<IReceivedMessage>> ReadUntilStopAsync(CancellationToken token = default);
 }
 
 public class Consumer : IConsumer<IReceivedMessage>, IDisposable
@@ -89,85 +87,90 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         _defaultOptions.Converters.Add(new FlexibleObjectJsonConverter());
     }
 
+    private static readonly string _startingConsumerLoop = "Consumer [{0}] startup loop executing...";
+
     public async Task StartConsumerAsync()
     {
+        if (!ConsumerOptions.Enabled) return;
         if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
 
         try
         {
-            if (!Started && ConsumerOptions.Enabled)
-            {
-                await SetChannelHostAsync().ConfigureAwait(false);
-                _shutdown = false;
-                _consumerChannel = Channel.CreateBounded<IReceivedMessage>(
-                    new BoundedChannelOptions(ConsumerOptions.BatchSize)
-                    {
-                        FullMode = ConsumerOptions.BehaviorWhenFull.Value
-                    });
+            if (Started) return;
 
-                var success = false;
-                while (!success)
+            await SetChannelHostAsync().ConfigureAwait(false);
+            _shutdown = false;
+            _consumerChannel = Channel.CreateBounded<IReceivedMessage>(
+                new BoundedChannelOptions(ConsumerOptions.BatchSize)
                 {
-                    _logger.LogTrace(Consumers.StartingConsumerLoop, ConsumerOptions.ConsumerName);
-                    success = await StartConsumingAsync().ConfigureAwait(false);
-                    if (!success)
-                    { await Task.Delay(Options.PoolOptions.SleepOnErrorInterval); }
-                }
+                    FullMode = ConsumerOptions.BehaviorWhenFull.Value
+                });
 
-                _logger.LogDebug(Consumers.Started, ConsumerOptions.ConsumerName);
-
-                Started = true;
+            var success = false;
+            while (!success)
+            {
+                _logger.LogTrace(_startingConsumerLoop, ConsumerOptions.ConsumerName);
+                success = await StartConsumingAsync().ConfigureAwait(false);
+                if (!success)
+                { await Task.Delay(Options.PoolOptions.SleepOnErrorInterval); }
             }
+
+            Started = true;
         }
         finally { _conLock.Release(); }
     }
+
+    private static readonly string _stopConsumer = "Consumer [{0}] stop consuming called...";
+    private static readonly string _stoppedConsumer = "Consumer [{0}] stopped consuming.";
 
     public async Task StopConsumerAsync(bool immediate = false)
     {
         if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
 
-        _logger.LogDebug(Consumers.StopConsumer, ConsumerOptions.ConsumerName);
-
         try
         {
-            if (Started)
+            if (!Started) return;
+
+            _shutdown = true;
+            _logger.LogInformation(_stopConsumer, ConsumerOptions.ConsumerName);
+
+            _consumerChannel.Writer.Complete();
+
+            if (immediate)
             {
-                _shutdown = true;
-                _consumerChannel.Writer.Complete();
-
-                if (immediate)
-                {
-                    _chanHost.Close();
-                }
-                else
-                {
-                    await _consumerChannel
-                        .Reader
-                        .Completion
-                        .ConfigureAwait(false);
-                }
-
-                _cts.Cancel();
-                Started = false;
-                _logger.LogDebug(
-                    Consumers.StoppedConsumer,
-                    ConsumerOptions.ConsumerName);
+                _chanHost.Close();
             }
+            else
+            {
+                await _consumerChannel
+                    .Reader
+                    .Completion
+                    .ConfigureAwait(false);
+            }
+
+            _cts.Cancel();
+            Started = false;
+            _logger.LogInformation(
+                _stoppedConsumer,
+                ConsumerOptions.ConsumerName);
         }
         finally { _conLock.Release(); }
     }
 
     protected AsyncEventingBasicConsumer _asyncConsumer;
     protected EventingBasicConsumer _consumer;
-
     protected CancellationTokenSource _cts;
+
+    private static readonly string _startingConsumer = "Consumer [{0}] starting...";
+    private static readonly string _startingConsumerError = "Exception creating internal RabbitMQ consumer. Retrying...";
+    private static readonly string _startedConsumer = "Consumer [{0}] started.";
 
     protected async Task<bool> StartConsumingAsync()
     {
         if (_shutdown) return false;
 
         _logger.LogInformation(
-            Consumers.StartingConsumer,
+            _startingConsumer,
             ConsumerOptions.ConsumerName);
 
         if (!_chanHost.ChannelHealthy())
@@ -184,7 +187,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 
         if (Options.PoolOptions.EnableDispatchConsumersAsync)
         {
-            if (_asyncConsumer != null) // Cleanup operation, this prevents an EventHandler leak.
+            if (_asyncConsumer is not null) // Cleanup operation, this prevents an EventHandler leak.
             {
                 _asyncConsumer.Received -= ReceiveHandlerAsync;
                 _asyncConsumer.Shutdown -= ConsumerShutdownAsync;
@@ -197,13 +200,13 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, Consumers.StartingConsumerError);
+                _logger.LogError(ex, _startingConsumerError);
                 return false;
             }
         }
         else
         {
-            if (_consumer != null) // Cleanup operation, this prevents an EventHandler leak.
+            if (_consumer is not null) // Cleanup operation, this prevents an EventHandler leak.
             {
                 _consumer.Received -= ReceiveHandler;
                 _consumer.Shutdown -= ConsumerShutdown;
@@ -216,29 +219,33 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, Consumers.StartingConsumerError);
+                _logger.LogError(ex, _startingConsumerError);
                 return false;
             }
         }
 
         _cts = new CancellationTokenSource();
         _logger.LogInformation(
-            Consumers.StartedConsumer,
+            _startedConsumer,
             ConsumerOptions.ConsumerName);
 
         return true;
     }
 
+    private static readonly string _gettingTransientChannelHost = "Consumer [{0}] getting a transient channel.";
+    private static readonly string _channelEstablished = "Consumer [{0}] channel host [{1}] assigned.";
+
+
     protected virtual async Task SetChannelHostAsync()
     {
-        _logger.LogTrace(Consumers.GettingTransientChannelHost, ConsumerOptions.ConsumerName);
+        _logger.LogTrace(_gettingTransientChannelHost, ConsumerOptions.ConsumerName);
 
         _chanHost = await ChannelPool
             .GetTransientChannelAsync(!ConsumerOptions.AutoAck)
             .ConfigureAwait(false);
 
         _logger.LogDebug(
-            Consumers.ChannelEstablished,
+            _channelEstablished,
             ConsumerOptions.ConsumerName,
             _chanHost?.ChannelId.ToString() ?? "ChannelHost: null");
     }
@@ -256,10 +263,12 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         return consumer;
     }
 
+    private static readonly string _consumerMessageReceived = "Consumer [{0}] message received (DT:{1}]. Adding to buffer...";
+
     protected virtual async void ReceiveHandler(object _, BasicDeliverEventArgs bdea)
     {
         _logger.LogDebug(
-            Consumers.ConsumerMessageReceived,
+            _consumerMessageReceived,
             ConsumerOptions.ConsumerName,
             bdea.DeliveryTag);
 
@@ -300,12 +309,14 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
     protected virtual async Task ReceiveHandlerAsync(object _, BasicDeliverEventArgs bdea)
     {
         _logger.LogDebug(
-            Consumers.ConsumerAsyncMessageReceived,
+            _consumerMessageReceived,
             ConsumerOptions.ConsumerName,
             bdea.DeliveryTag);
 
         await HandleMessageAsync(bdea).ConfigureAwait(false);
     }
+
+    private static readonly string _consumerMessageWriteToBufferError = "Consumer [{0}] was unable to write to channel buffer. Error: {1}";
 
     private static readonly string _consumerSpanNameFormat = "messaging.rabbitmq.consumer receive";
 
@@ -338,7 +349,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(
-                Consumers.ConsumerMessageWriteToBufferError,
+                _consumerMessageWriteToBufferError,
                 ConsumerOptions.ConsumerName,
                 ex.Message);
             return false;
@@ -347,7 +358,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 
     protected void EnrichSpanWithTags(TelemetrySpan span, IReceivedMessage receivedMessage)
     {
-        if (span == null || !span.IsRecording) return;
+        if (span is null || !span.IsRecording) return;
 
         span.SetAttribute(Constants.MessagingSystemKey, Constants.MessagingSystemValue);
 
@@ -417,6 +428,8 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         }
     }
 
+    private static readonly string _consumerShutdownEvent = "Consumer [{0}] recoverable shutdown event has occurred on Channel [Id: {1}]. Reason: {2}. Attempting to restart consuming...";
+
     protected async Task ConsumerShutdownAsync(object sender, ShutdownEventArgs e)
     {
         if (!await _conLock.WaitAsync(0).ConfigureAwait(false)) return;
@@ -426,7 +439,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
             if (!_shutdown)
             {
                 _logger.LogInformation(
-                    Consumers.ConsumerShutdownEvent,
+                    _consumerShutdownEvent,
                     ConsumerOptions.ConsumerName,
                     _chanHost.ChannelId,
                     e.ReplyText);
@@ -441,7 +454,8 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         { _conLock.Release(); }
     }
 
-    protected static readonly string _consumerShutdownExceptionMessage = "Consumer's ChannelHost {0} had an unhandled exception during recovery.";
+    private static readonly string _consumerShutdownExceptionMessage = "Consumer's ChannelHost {0} had an unhandled exception during recovery.";
+    private static readonly string _consumerShutdownEventFinished = "Consumer [{0}] shutdown event has finished on Channel [Id: {1}].";
 
     protected virtual async Task HandleRecoverableShutdownAsync(ShutdownEventArgs e)
     {
@@ -459,7 +473,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         }
 
         _logger.LogInformation(
-            Consumers.ConsumerShutdownEventFinished,
+            _consumerShutdownEventFinished,
             ConsumerOptions.ConsumerName,
             _chanHost.ChannelId);
     }
@@ -468,7 +482,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 
     public async ValueTask<IReceivedMessage> ReadAsync()
     {
-        if (!await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
+        if (!await _consumerChannel.Reader.WaitToReadAsync().ConfigureAwait(false)) throw new InvalidOperationException();
 
         return await _consumerChannel
             .Reader
@@ -478,28 +492,24 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 
     public async Task<IEnumerable<IReceivedMessage>> ReadUntilEmptyAsync(CancellationToken token = default)
     {
-        if (!await _consumerChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
+        if (!await _consumerChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false)) throw new InvalidOperationException();
 
         var list = new List<IReceivedMessage>();
         await _consumerChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false);
         while (_consumerChannel.Reader.TryRead(out var message))
         {
-            if (message == null) { break; }
+            if (message is null) { break; }
             list.Add(message);
         }
 
         return list;
     }
 
-    public async IAsyncEnumerable<IReceivedMessage> ReadUntilStopAsync(
-        [EnumeratorCancellation]CancellationToken token = default)
+    public async ValueTask<IAsyncEnumerable<IReceivedMessage>> ReadUntilStopAsync(CancellationToken token = default)
     {
-        if (!await _consumerChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false)) throw new InvalidOperationException(ExceptionMessages.ChannelReadErrorMessage);
+        if (!await _consumerChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false)) throw new InvalidOperationException();
 
-        await foreach (var receivedMessage in _consumerChannel.Reader.ReadAllAsync(token))
-        {
-            yield return receivedMessage;
-        }
+        return _consumerChannel.Reader.ReadAllAsync(token);
     }
 
     protected virtual void Dispose(bool disposing)
@@ -518,7 +528,6 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
 
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }

@@ -2,9 +2,9 @@
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ;
+using HouseofCat.RabbitMQ.Extensions;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.RabbitMQ.Services;
-using HouseofCat.RabbitMQ.Services.Extensions;
 using HouseofCat.Serialization;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -20,7 +20,7 @@ public static class Shared
 
     public static async Task<IChannelPool> SetupTestsAsync(ILogger logger, string configFileNamePath)
     {
-        var rabbitOptions = await RabbitExtensions.GetRabbitOptionsFromJsonFileAsync(configFileNamePath);
+        var rabbitOptions = await RabbitOptionsExtensions.GetRabbitOptionsFromJsonFileAsync(configFileNamePath);
         var channelPool = new ChannelPool(rabbitOptions);
 
         var channelHost = await channelPool.GetTransientChannelAsync(true);
@@ -50,7 +50,7 @@ public static class Shared
 
     public static async Task<IRabbitService> SetupRabbitServiceAsync(ILoggerFactory loggerFactory, string configFileNamePath)
     {
-        var rabbitOptions = await RabbitExtensions.GetRabbitOptionsFromJsonFileAsync(configFileNamePath);
+        var rabbitOptions = await RabbitOptionsExtensions.GetRabbitOptionsFromJsonFileAsync(configFileNamePath);
         var jsonProvider = new JsonProvider();
 
         var hashProvider = new ArgonHashingProvider();
@@ -64,8 +64,6 @@ public static class Shared
            aes256Provider,
            gzipProvider,
            loggerFactory);
-
-        await rabbitService.Publisher.StartAutoPublishAsync();
 
         return rabbitService;
     }

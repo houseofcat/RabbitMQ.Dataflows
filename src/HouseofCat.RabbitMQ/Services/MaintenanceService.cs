@@ -64,7 +64,7 @@ public class MaintenanceService : IMaintenanceService
         {
             var result = channelHost.Channel.BasicGet(originQueueName, true);
 
-            if (result?.Body != null)
+            if (result?.Body is not null)
             {
                 channelHost.Channel.BasicPublish(string.Empty, targetQueueName, false, properties, result.Body);
             }
@@ -107,7 +107,7 @@ public class MaintenanceService : IMaintenanceService
                 .ReturnChannelAsync(channelHost, error);
         }
 
-        if (!error && result?.Body != null)
+        if (!error && result?.Body is not null)
         {
             try
             {
@@ -146,9 +146,9 @@ public class MaintenanceService : IMaintenanceService
             while (true)
             {
                 result = channelHost.Channel.BasicGet(originQueueName, true);
-                if (result == null) { break; }
+                if (result is null) { break; }
 
-                if (result?.Body != null)
+                if (result?.Body is not null)
                 {
                     channelHost.Channel.BasicPublish(string.Empty, targetQueueName, false, properties, result.Body);
                 }
@@ -187,7 +187,7 @@ public class MaintenanceService : IMaintenanceService
             try
             {
                 result = channelHost.Channel.BasicGet(originQueueName, true);
-                if (result == null) { break; }
+                if (result is null) { break; }
             }
             catch { error = true; }
             finally
@@ -196,7 +196,7 @@ public class MaintenanceService : IMaintenanceService
                     .ReturnChannelAsync(channelHost, error);
             }
 
-            if (!error && result?.Body != null)
+            if (!error && result?.Body is not null)
             {
                 try
                 {

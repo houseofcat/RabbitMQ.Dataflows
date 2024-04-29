@@ -3,7 +3,6 @@ using HouseofCat.Utilities.Helpers;
 using OpenTelemetry.Trace;
 using RabbitMQ.Client;
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace HouseofCat.RabbitMQ;
@@ -57,7 +56,6 @@ public sealed class Message : IMessage
     public string RoutingKey { get; set; }
 
     [JsonIgnore]
-    [Range(1, 2, ErrorMessage = Constants.RangeErrorMessage)]
     public byte DeliveryMode { get; set; } = 2;
 
     [JsonIgnore]
@@ -65,7 +63,6 @@ public sealed class Message : IMessage
 
     // The max-queue priority though is 10, so > 10 is treated as 10.
     [JsonIgnore]
-    [Range(0, 10, ErrorMessage = Constants.RangeErrorMessage)]
     public byte PriorityLevel { get; set; }
 
     [JsonIgnore]

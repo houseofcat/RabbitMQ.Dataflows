@@ -8,20 +8,20 @@ public interface ICompressionProvider
 {
     string Type { get; }
 
-    ReadOnlyMemory<byte> Compress(ReadOnlyMemory<byte> inputData);
-    MemoryStream Compress(Stream inputStream, bool leaveStreamOpen = false);
+    ReadOnlyMemory<byte> Compress(ReadOnlyMemory<byte> input);
+    MemoryStream Compress(Stream inputStream, bool leaveOpen = false);
 
-    ValueTask<ReadOnlyMemory<byte>> CompressAsync(ReadOnlyMemory<byte> inputData);
-    ValueTask<MemoryStream> CompressAsync(Stream inputStream, bool leaveStreamOpen = false);
+    ValueTask<ReadOnlyMemory<byte>> CompressAsync(ReadOnlyMemory<byte> input);
+    ValueTask<MemoryStream> CompressAsync(Stream inputStream, bool leaveOpen = false);
 
-    MemoryStream CompressToStream(ReadOnlyMemory<byte> inputData);
-    ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> inputData);
+    MemoryStream CompressToStream(ReadOnlyMemory<byte> input);
+    ValueTask<MemoryStream> CompressToStreamAsync(ReadOnlyMemory<byte> input);
 
-    ReadOnlyMemory<byte> Decompress(ReadOnlyMemory<byte> compressedData);
-    MemoryStream Decompress(Stream compressedStream, bool leaveStreamOpen = false);
+    ReadOnlyMemory<byte> Decompress(ReadOnlyMemory<byte> compressedInput);
+    MemoryStream Decompress(Stream compressedStream, bool leaveOpen = false);
 
-    ValueTask<ReadOnlyMemory<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedData);
-    ValueTask<MemoryStream> DecompressAsync(Stream compressedStream, bool leaveStreamOpen = false);
+    ValueTask<ReadOnlyMemory<byte>> DecompressAsync(ReadOnlyMemory<byte> compressedInput);
+    ValueTask<MemoryStream> DecompressAsync(Stream compressedStream, bool leaveOpen = false);
 
-    MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedData);
+    MemoryStream DecompressToStream(ReadOnlyMemory<byte> compressedInput);
 }

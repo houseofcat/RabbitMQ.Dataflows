@@ -31,5 +31,5 @@ public class Statement
     public int? Offset { get; set; }
     public bool? Distinct { get; set; }
 
-    public Statement UnionStatement { get; set; } = null;
+    public Statement UnionStatement { get; set; }
 }

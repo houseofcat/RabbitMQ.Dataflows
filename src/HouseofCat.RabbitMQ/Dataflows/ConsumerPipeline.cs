@@ -1,44 +1,41 @@
 ﻿using HouseofCat.Dataflows.Pipelines;
-using HouseofCat.RabbitMQ.Dataflows;
 using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using static HouseofCat.RabbitMQ.Pipelines.Constants;
 
-namespace HouseofCat.RabbitMQ.Pipelines;
+namespace HouseofCat.RabbitMQ.Dataflows;
 
-public interface IConsumerPipeline<TOut> where TOut : RabbitWorkState
+public interface IConsumerPipeline
 {
     string ConsumerPipelineName { get; }
     ConsumerOptions ConsumerOptions { get; }
     bool Started { get; }
 
     Task AwaitCompletionAsync();
-    Task StartAsync(bool useStream, CancellationToken cancellationToken = default);
+    Task StartAsync(bool useStream, CancellationToken token = default);
     Task StopAsync(bool immediate = false);
 }
 
-public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where TOut : RabbitWorkState
+public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut : RabbitWorkState
 {
     public string ConsumerPipelineName { get; }
     public ConsumerOptions ConsumerOptions { get; }
     public bool Started { get; private set; }
 
     private readonly ILogger<ConsumerPipeline<TOut>> _logger;
-    private IConsumer<IReceivedMessage> Consumer { get; }
-    private IPipeline<IReceivedMessage, TOut> Pipeline { get; }
+    private IConsumer<PipeReceivedMessage> Consumer { get; }
+    private IPipeline<PipeReceivedMessage, TOut> Pipeline { get; }
     private Task FeedPipelineWithDataTasks { get; set; }
     private TaskCompletionSource<bool> _completionSource;
     private CancellationTokenSource _cancellationTokenSource;
     private bool _disposedValue;
     private readonly SemaphoreSlim _cpLock = new SemaphoreSlim(1, 1);
-    private readonly SemaphoreSlim _pipeExecLock = new SemaphoreSlim(1, 1);
 
     public ConsumerPipeline(
-        IConsumer<IReceivedMessage> consumer,
-        IPipeline<IReceivedMessage, TOut> pipeline)
+        IConsumer<PipeReceivedMessage> consumer,
+        IPipeline<PipeReceivedMessage, TOut> pipeline)
     {
         _logger = LogHelpers.GetLogger<ConsumerPipeline<TOut>>();
         Pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
@@ -56,44 +53,43 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
 
         try
         {
-            if (!Started)
+            if (Started) return;
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            _completionSource = new TaskCompletionSource<bool>();
+
+            await Consumer
+                .StartConsumerAsync()
+                .ConfigureAwait(false);
+
+            if (Consumer.Started)
             {
-                _cancellationTokenSource = new CancellationTokenSource();
-                _completionSource = new TaskCompletionSource<bool>();
-
-                await Consumer
-                    .StartConsumerAsync()
-                    .ConfigureAwait(false);
-
-                if (Consumer.Started)
+                if (useStream)
                 {
-                    if (useStream)
-                    {
-                        FeedPipelineWithDataTasks = Task.Run(
-                            () =>
-                                PipelineStreamEngineAsync(
-                                    Pipeline,
-                                    ConsumerOptions.WorkflowWaitForCompletion,
-                                    token.Equals(default)
-                                        ? _cancellationTokenSource.Token
-                                        : token),
-                                CancellationToken.None);
-                    }
-                    else
-                    {
-                        FeedPipelineWithDataTasks = Task.Run(
-                            () =>
-                                PipelineExecutionEngineAsync(
-                                    Pipeline,
-                                    ConsumerOptions.WorkflowWaitForCompletion,
-                                    token.Equals(default)
-                                        ? _cancellationTokenSource.Token
-                                        : token),
-                                CancellationToken.None);
-                    }
-
-                    Started = true;
+                    FeedPipelineWithDataTasks = Task.Run(
+                        () =>
+                            PipelineStreamEngineAsync(
+                                Pipeline,
+                                ConsumerOptions.WorkflowWaitForCompletion,
+                                token.Equals(default)
+                                    ? _cancellationTokenSource.Token
+                                    : token),
+                            CancellationToken.None);
                 }
+                else
+                {
+                    FeedPipelineWithDataTasks = Task.Run(
+                        () =>
+                            PipelineExecutionEngineAsync(
+                                Pipeline,
+                                ConsumerOptions.WorkflowWaitForCompletion,
+                                token.Equals(default)
+                                    ? _cancellationTokenSource.Token
+                                    : token),
+                            CancellationToken.None);
+                }
+
+                Started = true;
             }
         }
         catch { /* SWALLOW */ }
@@ -107,44 +103,45 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
 
         try
         {
-            if (Started)
+            if (!Started) return;
+
+            _cancellationTokenSource.Cancel();
+
+            await Consumer
+                .StopConsumerAsync(immediate)
+                .ConfigureAwait(false);
+
+            if (FeedPipelineWithDataTasks is not null)
             {
-                _cancellationTokenSource.Cancel();
-
-                await Consumer
-                    .StopConsumerAsync(immediate)
-                    .ConfigureAwait(false);
-
-                if (FeedPipelineWithDataTasks != null)
-                {
-                    await FeedPipelineWithDataTasks.ConfigureAwait(false);
-                    FeedPipelineWithDataTasks = null;
-                }
-                Started = false;
-                _completionSource.SetResult(true);
+                await FeedPipelineWithDataTasks.ConfigureAwait(false);
+                FeedPipelineWithDataTasks = null;
             }
+            Started = false;
+            _completionSource.SetResult(true);
         }
         catch { /* SWALLOW */ }
         finally { _cpLock.Release(); }
     }
 
+    private static readonly string _consumerPipelineQueueing = "Consumer ({0}) pipeline engine queueing unit of work (receivedMessage:DT:{1}).";
+    private static readonly string _consumerPipelineWaiting = "Consumer ({0}) pipeline engine waiting on completion of unit of work (receivedMessage:DT:{1})...";
+    private static readonly string _consumerPipelineWaitingDone = "Consumer ({0}) pipeline engine waiting on completed unit of work (receivedMessage:DT:{1}).";
+    private static readonly string _consumerPipelineActionCancelled = "Consumer ({0}) pipeline engine actions were cancelled.";
+    private static readonly string _consumerPipelineError = "Consumer ({0}) pipeline engine encountered an error. Error: {1}";
+
     public async Task PipelineStreamEngineAsync(
-        IPipeline<IReceivedMessage, TOut> pipeline,
+        IPipeline<PipeReceivedMessage, TOut> pipeline,
         bool waitForCompletion,
         CancellationToken token = default)
     {
-        await _pipeExecLock
-            .WaitAsync(2000, token)
-            .ConfigureAwait(false);
-
         try
         {
             await foreach (var receivedMessage in Consumer.GetConsumerBuffer().ReadAllAsync(token))
             {
-                if (receivedMessage == null) { continue; }
+                if (receivedMessage is null) { continue; }
 
                 _logger.LogDebug(
-                    ConsumerPipelines.ConsumerPipelineQueueing,
+                    _consumerPipelineQueueing,
                     ConsumerOptions.ConsumerName,
                     receivedMessage.DeliveryTag);
 
@@ -155,7 +152,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
                 if (waitForCompletion)
                 {
                     _logger.LogTrace(
-                        ConsumerPipelines.ConsumerPipelineWaiting,
+                        _consumerPipelineWaiting,
                         ConsumerOptions.ConsumerName,
                         receivedMessage.DeliveryTag);
 
@@ -164,7 +161,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
                         .ConfigureAwait(false);
 
                     _logger.LogTrace(
-                        ConsumerPipelines.ConsumerPipelineWaitingDone,
+                        _consumerPipelineWaitingDone,
                         ConsumerOptions.ConsumerName,
                         receivedMessage.DeliveryTag);
                 }
@@ -176,38 +173,33 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
         catch (OperationCanceledException)
         {
             _logger.LogWarning(
-                ConsumerPipelines.ConsumerPipelineActionCancelled,
+                _consumerPipelineActionCancelled,
                 ConsumerOptions.ConsumerName);
         }
         catch (Exception ex)
         {
             _logger.LogError(
-                ConsumerPipelines.ConsumerPipelineError,
+                _consumerPipelineError,
                 ConsumerOptions.ConsumerName,
                 ex.Message);
         }
-        finally { _pipeExecLock.Release(); }
     }
 
     public async Task PipelineExecutionEngineAsync(
-        IPipeline<IReceivedMessage, TOut> pipeline,
+        IPipeline<PipeReceivedMessage, TOut> pipeline,
         bool waitForCompletion,
         CancellationToken token = default)
     {
-        await _pipeExecLock
-            .WaitAsync(2000, token)
-            .ConfigureAwait(false);
-
         try
         {
             while (await Consumer.GetConsumerBuffer().WaitToReadAsync(token).ConfigureAwait(false))
             {
                 while (Consumer.GetConsumerBuffer().TryRead(out var receivedMessage))
                 {
-                    if (receivedMessage == null) { continue; }
+                    if (receivedMessage is null) { continue; }
 
                     _logger.LogDebug(
-                        ConsumerPipelines.ConsumerPipelineQueueing,
+                        _consumerPipelineQueueing,
                         ConsumerOptions.ConsumerName,
                         receivedMessage.DeliveryTag);
 
@@ -218,7 +210,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
                     if (waitForCompletion)
                     {
                         _logger.LogTrace(
-                            ConsumerPipelines.ConsumerPipelineWaiting,
+                            _consumerPipelineWaiting,
                             ConsumerOptions.ConsumerName,
                             receivedMessage.DeliveryTag);
 
@@ -227,7 +219,7 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
                             .ConfigureAwait(false);
 
                         _logger.LogTrace(
-                            ConsumerPipelines.ConsumerPipelineWaitingDone,
+                            _consumerPipelineWaitingDone,
                             ConsumerOptions.ConsumerName,
                             receivedMessage.DeliveryTag);
                     }
@@ -240,17 +232,16 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
         catch (OperationCanceledException)
         {
             _logger.LogInformation(
-                ConsumerPipelines.ConsumerPipelineActionCancelled,
+                _consumerPipelineActionCancelled,
                 ConsumerOptions.ConsumerName);
         }
         catch (Exception ex)
         {
             _logger.LogError(
-                ConsumerPipelines.ConsumerPipelineError,
+                _consumerPipelineError,
                 ConsumerOptions.ConsumerName,
                 ex.Message);
         }
-        finally { _pipeExecLock.Release(); }
     }
 
     public async Task AwaitCompletionAsync()
@@ -265,7 +256,6 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
             if (disposing)
             {
                 _cpLock.Dispose();
-                _pipeExecLock.Dispose();
                 _cancellationTokenSource?.Dispose();
             }
 
@@ -275,7 +265,6 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline<TOut>, IDisposable where
 
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }

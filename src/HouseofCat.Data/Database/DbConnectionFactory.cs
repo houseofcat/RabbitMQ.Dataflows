@@ -2,6 +2,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using System.IO;
 using System.Runtime.Versioning;
 
 namespace HouseofCat.Data.Database;
@@ -126,10 +127,13 @@ public static class DbConnectionFactory
             DataSource = details.Host,
         };
 
-        if (details.Metadata.OleDbOptions != null)
+        if (details.Metadata.OleDbOptions is not null)
         {
             if (!string.IsNullOrWhiteSpace(details.Metadata.OleDbOptions.FileName))
-            { csb.FileName = details.Metadata.OleDbOptions.FileName; }
+            {
+                if (!File.Exists(details.Metadata.OleDbOptions.FileName)) throw new FileNotFoundException(details.Metadata.OleDbOptions.FileName);
+                csb.FileName = details.Metadata.OleDbOptions.FileName;
+            }
 
             if (details.Metadata.OleDbOptions.OleDbServices > 0)
             { csb.OleDbServices = details.Metadata.OleDbOptions.OleDbServices; }
@@ -162,7 +166,7 @@ public static class DbConnectionFactory
         if (!string.IsNullOrWhiteSpace(details.Metadata.OdbcOptions.Driver))
         { csb.Driver = details.Metadata.OdbcOptions.Driver; }
 
-        if (details.Metadata.OdbcOptions != null)
+        if (details.Metadata.OdbcOptions is not null)
         {
             if (details.Metadata.OdbcOptions.UseDataSourceName)
             {
@@ -171,7 +175,7 @@ public static class DbConnectionFactory
                     csb.Dsn = (string)value;
                 }
                 else
-                { throw new Exception("Odbc UseDataSourceName option enabled but key 'DSN' was not in the OdbcOptions Properties object."); }
+                { throw new InvalidOperationException("Odbc UseDataSourceName option enabled but key 'DSN' was not in the OdbcOptions Properties object."); }
             }
             else if (details.Port < 1 && !string.IsNullOrWhiteSpace(details.Host))
             { csb["Server"] = details.Host; }
@@ -215,7 +219,7 @@ public static class DbConnectionFactory
         else
         { csb.DataSource = $"{details.Host},{details.Port}"; }
 
-        if (details.Metadata.SqlServerOptions != null)
+        if (details.Metadata.SqlServerOptions is not null)
         {
             // These are all the same. Use built-in Window Authentication.
             // Trusted_Connection=true
@@ -270,7 +274,7 @@ public static class DbConnectionFactory
         else
         { csb.DataSource = $"{details.Host},{details.Port}"; }
 
-        if (details.Metadata.SqlServerOptions != null)
+        if (details.Metadata.SqlServerOptions is not null)
         {
             // These are all the same. Use built-in Window Authentication.
             // Trusted_Connection=true
@@ -305,7 +309,7 @@ public static class DbConnectionFactory
     public static Npgsql.NpgsqlConnectionStringBuilder GetNpgsqlConnectionStringBuilder(
         ConnectionDetails details)
     {
-        var csb = new Npgsql.NpgsqlConnectionStringBuilder()
+        var csb = new Npgsql.NpgsqlConnectionStringBuilder
         {
             Database = details.DatabaseName,
         };
@@ -325,7 +329,7 @@ public static class DbConnectionFactory
             csb.Port = details.Port;
         }
 
-        if (details.Metadata.NpgsqlOptions != null)
+        if (details.Metadata.NpgsqlOptions is not null)
         {
             if (Enum.TryParse<Npgsql.SslMode>(
                 details.Metadata.NpgsqlOptions.SslMode,
@@ -356,7 +360,7 @@ public static class DbConnectionFactory
     public static MySql.Data.MySqlClient.MySqlConnectionStringBuilder GetMySqlConnectionStringBuilder(
         ConnectionDetails details)
     {
-        var csb = new MySql.Data.MySqlClient.MySqlConnectionStringBuilder()
+        var csb = new MySql.Data.MySqlClient.MySqlConnectionStringBuilder
         {
             Database = details.DatabaseName,
         };
@@ -378,7 +382,7 @@ public static class DbConnectionFactory
             csb.Port = (uint)details.Port;
         }
 
-        if (details.Metadata.MySqlOptions != null)
+        if (details.Metadata.MySqlOptions is not null)
         {
             // These are all the same. Use built-in Window Authentication.
             // Trusted_Connection=true
@@ -445,7 +449,7 @@ public static class DbConnectionFactory
         else
         { csb.DataSource = $"{details.Host}:{details.Port}/{details.DatabaseName}"; }
 
-        if (details.Metadata.OracleOptions != null)
+        if (details.Metadata.OracleOptions is not null)
         {
             // Use built-in Window Authentication.
             // Integrated Security=SSPI  // when TORCL
@@ -477,7 +481,7 @@ public static class DbConnectionFactory
 
         csb.DataSource = details.Host;
 
-        if (details.Metadata.SQLiteOptions != null)
+        if (details.Metadata.SQLiteOptions is not null)
         {
             csb.Version = details.Metadata.SQLiteOptions.Version;
 

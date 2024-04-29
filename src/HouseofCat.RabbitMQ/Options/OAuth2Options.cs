@@ -1,6 +1,6 @@
 namespace HouseofCat.RabbitMQ;
 
-public class OAuth2Options
+public sealed class OAuth2Options
 {
     public string TokenEndpointUrl { get; set; }
     public string ClientId { get; set; }

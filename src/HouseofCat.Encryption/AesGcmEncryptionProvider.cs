@@ -1,6 +1,6 @@
-﻿using HouseofCat.Utilities.Extensions;
+﻿using CommunityToolkit.HighPerformance;
 using HouseofCat.Utilities.Errors;
-using CommunityToolkit.HighPerformance;
+using HouseofCat.Utilities.Extensions;
 using System;
 using System.Buffers;
 using System.IO;
@@ -26,12 +26,13 @@ public sealed class AesGcmEncryptionProvider : IEncryptionProvider
         if (!Constants.Aes.ValidKeySizes.Contains(key.Length)) throw new ArgumentException("Keysize is an invalid length.");
         _key = key;
 
-        switch (_key.Length)
+        Type = _key.Length switch
         {
-            case 16: Type = "AESGCM-128"; break;
-            case 24: Type = "AESGCM-192"; break;
-            case 32: Type = "AESGCM-256"; break;
-        }
+            16 => "AESGCM-128",
+            24 => "AESGCM-192",
+            32 => "AESGCM-256",
+            _ => throw new InvalidOperationException(),
+        };
     }
 
     public ReadOnlyMemory<byte> Encrypt(ReadOnlyMemory<byte> unencryptedData)
@@ -84,7 +85,7 @@ public sealed class AesGcmEncryptionProvider : IEncryptionProvider
         var encryptedBytes = _pool.Rent(length);
         var tag = _pool.Rent(AesGcm.TagByteSizes.MaxSize); // MaxSize = 16
         var nonce = _pool.Rent(AesGcm.NonceByteSizes.MaxSize); // MaxSize = 12
-        _rng.GetBytes(nonce, 0, AesGcm.NonceByteSizes.MaxSize);
+        _rng.GetNonZeroBytes(nonce);
 
         aes.Encrypt(
             nonce.AsSpan().Slice(0, AesGcm.NonceByteSizes.MaxSize),
@@ -132,7 +133,7 @@ public sealed class AesGcmEncryptionProvider : IEncryptionProvider
         var encryptedBytes = _pool.Rent(length);
         var tag = _pool.Rent(AesGcm.TagByteSizes.MaxSize); // MaxSize = 16
         var nonce = _pool.Rent(AesGcm.NonceByteSizes.MaxSize); // MaxSize = 12
-        _rng.GetBytes(nonce, 0, AesGcm.NonceByteSizes.MaxSize);
+        _rng.GetNonZeroBytes(nonce);
 
         aes.Encrypt(
             nonce.AsSpan().Slice(0, AesGcm.NonceByteSizes.MaxSize),
@@ -177,7 +178,7 @@ public sealed class AesGcmEncryptionProvider : IEncryptionProvider
         var encryptedBytes = _pool.Rent(unencryptedData.Length);
         var tag = _pool.Rent(AesGcm.TagByteSizes.MaxSize); // MaxSize = 16
         var nonce = _pool.Rent(AesGcm.NonceByteSizes.MaxSize); // MaxSize = 12
-        _rng.GetBytes(nonce, 0, AesGcm.NonceByteSizes.MaxSize);
+        _rng.GetNonZeroBytes(nonce);
 
         aes.Encrypt(
             nonce.AsSpan().Slice(0, AesGcm.NonceByteSizes.MaxSize),

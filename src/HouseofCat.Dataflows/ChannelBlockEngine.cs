@@ -18,14 +18,13 @@ public class ChannelBlockEngine<TIn, TOut> : ChannelReaderBlockEngine<TIn, TOut>
         TaskScheduler taskScheduler = null,
         CancellationToken token = default) :
         this(workBodyAsync, maxDegreeOfParallelism, ensureOrdered, null, boundedCapacity, taskScheduler, token)
-    {
-    }
+    { }
 
     public ChannelBlockEngine(
         Func<TIn, Task<TOut>> workBodyAsync,
         int maxDegreeOfParallelism,
         bool ensureOrdered,
-        Func<TOut, Task> postWorkBodyAsync = null,
+        Func<TOut, Task> postWorkBodyAsync,
         int boundedCapacity = 1000,
         TaskScheduler taskScheduler = null,
         CancellationToken token = default) :

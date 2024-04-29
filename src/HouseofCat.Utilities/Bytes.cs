@@ -4,23 +4,21 @@ namespace HouseofCat.Utilities;
 
 public static class Bytes
 {
-    public readonly static byte[] Utf8JsonStartsWith = new byte[] { (byte)'{' };
-    public readonly static byte[] Utf8JsonEndsWith = new byte[] { (byte)'}' };
+    private readonly static byte[] _utf8JsonStartsWith = "{"u8.ToArray();
+    private readonly static byte[] _utf8JsonEndsWith = "}"u8.ToArray();
 
-    public readonly static byte[] Utf8JsonArrayStartsWith = new byte[] { (byte)'[' };
-    public readonly static byte[] Utf8JsonArrayEndsWith = new byte[] { (byte)']' };
+    private readonly static byte[] _utf8JsonArrayStartsWith = "["u8.ToArray();
+    private readonly static byte[] _utf8JsonArrayEndsWith = "]"u8.ToArray();
 
     public static bool IsJson(ReadOnlySpan<byte> data)
     {
-        return
-        // Json
-        data.StartsWith(Utf8JsonStartsWith) && data.EndsWith(Utf8JsonEndsWith);
+        return data.StartsWith(_utf8JsonStartsWith)
+            && data.EndsWith(_utf8JsonEndsWith);
     }
 
     public static bool IsJsonArray(ReadOnlySpan<byte> data)
     {
-        return
-        // JsonArray
-        data.StartsWith(Utf8JsonArrayStartsWith) && data.StartsWith(Utf8JsonArrayEndsWith);
+        return data.StartsWith(_utf8JsonArrayStartsWith)
+            && data.StartsWith(_utf8JsonArrayEndsWith);
     }
 }

@@ -22,7 +22,7 @@ public static class AppHelpers
 
     public static string GetFlexibleSemVersion(AssemblyName assemblyName)
     {
-        if (assemblyName == null)
+        if (assemblyName is null)
         {
             return null;
         }

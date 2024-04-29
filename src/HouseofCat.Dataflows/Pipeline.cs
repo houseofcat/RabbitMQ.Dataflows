@@ -9,7 +9,7 @@ using System.Threading.Tasks.Dataflow;
 
 namespace HouseofCat.Dataflows.Pipelines;
 
-public interface IPipeline<TIn, TOut>
+public interface IPipeline<in TIn, out TOut>
 {
     bool Ready { get; }
     int StepCount { get; }
@@ -30,7 +30,7 @@ public interface IPipeline<TIn, TOut>
 // Great lesson/template found here.
 // https://michaelscodingspot.com/pipeline-implementations-csharp-3/
 
-public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
+public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>, IDisposable
 {
     private readonly ILogger<Pipeline<TIn, TOut>> _logger;
     private readonly ExecutionDataflowBlockOptions _executeStepOptions;
@@ -89,6 +89,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
     private readonly static string _faulted = "Pipeline ({0}) has faulted. Replace/rebuild Pipeline or restart Application...";
     private readonly static string _awaitsCompletion = "Pipeline ({0}) awaits completion.";
     private readonly static string Queued = "Pipeline ({0}) queued item for execution.";
+    private bool disposedValue;
 
     public void AddAsyncStep<TLocalIn, TLocalOut>(
         Func<TLocalIn, Task<TLocalOut>> stepFunc,
@@ -229,7 +230,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
         if (Ready) throw new InvalidOperationException(_alreadyFinalized);
         if (Steps.Count == 0) throw new InvalidOperationException(_cantFinalize);
 
-        if (finalizeStep != null)
+        if (finalizeStep is not null)
         {
             var pipelineStep = new PipelineStep
             {
@@ -279,7 +280,7 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
         if (Ready) throw new InvalidOperationException(_alreadyFinalized);
         if (Steps.Count == 0) throw new InvalidOperationException(_cantFinalize);
 
-        if (finalizeStep != null)
+        if (finalizeStep is not null)
         {
             var pipelineStep = new PipelineStep
             {
@@ -409,10 +410,29 @@ public class Pipeline<TIn, TOut> : IPipeline<TIn, TOut>
             catch { return; }
 
             var ex = GetAnyPipelineStepsFault();
-            if (ex != null)
+            if (ex is not null)
             { _logger.LogCritical(ex, _faulted, _pipelineName); }
             else  // No Steps are Faulted... Hooray!
             { _logger.LogInformation(_healthy, _pipelineName); }
         }
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposedValue)
+        {
+            if (disposing)
+            {
+                _cts.Dispose();
+            }
+
+            disposedValue = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

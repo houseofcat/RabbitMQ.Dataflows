@@ -3,7 +3,7 @@ using System.Threading.Channels;
 
 namespace HouseofCat.RabbitMQ;
 
-public class ConsumerOptions
+public sealed class ConsumerOptions
 {
     public bool NoLocal { get; set; }
     public bool Exclusive { get; set; }
@@ -19,8 +19,8 @@ public class ConsumerOptions
     public string QueueName { get; set; }
     public IDictionary<string, object> QueueArgs { get; set; }
 
-    public string TargetQueueName { get; set; }
-    public IDictionary<string, object> TargetQueueArgs { get; set; }
+    public string SendQueueName { get; set; }
+    public IDictionary<string, object> SendQueueArgs { get; set; }
 
     public string ErrorQueueName { get; set; }
     public IDictionary<string, object> ErrorQueueArgs { get; set; }
@@ -36,4 +36,22 @@ public class ConsumerOptions
     public int WorkflowBatchSize { get; set; } = 5;
     public bool WorkflowEnsureOrdered { get; set; } = true;
     public bool WorkflowWaitForCompletion { get; set; }
+
+    public bool WorkflowSendCompressed { get; set; }
+    public bool WorkflowSendEncrypted { get; set; }
+
+    private static readonly string _dlqKey = "x-dead-letter-routing-key";
+    private static readonly string _dleKey = "x-dead-letter-exchange";
+
+    public bool RejectOnError()
+    {
+        if (QueueArgs is not null
+            && (QueueArgs.ContainsKey(_dlqKey)
+            || QueueArgs.ContainsKey(_dleKey)))
+        {
+            return true;
+        }
+
+        return false;
+    }
 }

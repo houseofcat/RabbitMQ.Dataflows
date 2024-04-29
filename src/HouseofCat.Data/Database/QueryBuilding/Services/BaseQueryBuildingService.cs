@@ -70,7 +70,7 @@ public abstract class BaseQueryBuildingService
             default: break;
         }
 
-        if (statement.UnionStatement != null)
+        if (statement.UnionStatement is not null)
         {
             query.Union(BuildQueryFromStatement(statement.UnionStatement, casing));
         }
@@ -92,7 +92,7 @@ public abstract class BaseQueryBuildingService
 
     protected virtual void SetSelect(Query query, Statement statement, Case casing)
     {
-        if (statement.Fields != null)
+        if (statement.Fields is not null)
         {
             foreach (var field in statement.Fields)
             {
@@ -148,6 +148,7 @@ public abstract class BaseQueryBuildingService
                         join.Field,
                         join.OnField);
                     break;
+                default: break;
             }
 
         }

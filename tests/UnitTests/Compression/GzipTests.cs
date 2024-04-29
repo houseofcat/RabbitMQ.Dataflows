@@ -1,20 +1,17 @@
 using HouseofCat.Compression;
 using System.Runtime.CompilerServices;
-using Xunit.Abstractions;
 
 namespace Compression;
 
 public class GzipTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly ICompressionProvider _provider;
 
     private static readonly byte[] _data = new byte[5000];
     private static byte[] _compressedData;
 
-    public GzipTests(ITestOutputHelper output)
+    public GzipTests()
     {
-        _output = output;
         Enumerable.Repeat<byte>(0xFF, 1000).ToArray().CopyTo(_data, 0);
         Enumerable.Repeat<byte>(0xAA, 1000).ToArray().CopyTo(_data, 1000);
         Enumerable.Repeat<byte>(0x1A, 1000).ToArray().CopyTo(_data, 2000);

@@ -19,7 +19,7 @@ public class HashingTests
         var hashKey = await _provider
             .GetHashKeyAsync(_passphrase, _salt, 32);
 
-        Assert.True(hashKey.Length == 32);
+        Assert.Equal(32, hashKey.Length);
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public class HashingTests
         var hashKey = await _provider
             .GetHashKeyAsync(_passphrase, _salt, 24);
 
-        Assert.True(hashKey.Length == 24);
+        Assert.Equal(24, hashKey.Length);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class HashingTests
         var hashKey = await _provider
             .GetHashKeyAsync(_passphrase, _salt, 16);
 
-        Assert.True(hashKey.Length == 16);
+        Assert.Equal(16, hashKey.Length);
     }
 
     [Fact]
@@ -50,14 +50,14 @@ public class HashingTests
     public async Task Argon2ID_Hash_NullSalt()
     {
         var hashKey = await _provider.GetHashKeyAsync(_passphrase, salt: null, 16);
-        Assert.True(hashKey.Length == 16);
+        Assert.Equal(16, hashKey.Length);
     }
 
     [Fact]
     public async Task Argon2ID_Hash_EmptyStringSalt()
     {
         var hashKey = await _provider.GetHashKeyAsync(_passphrase, salt: string.Empty, 16);
-        Assert.True(hashKey.Length == 16);
+        Assert.Equal(16, hashKey.Length);
     }
 
     [Fact]

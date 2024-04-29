@@ -8,18 +8,18 @@ namespace HouseofCat.Database.Dapper;
 
 public partial class GeometryPointTypeHandler : SqlMapper.TypeHandler<GeometryPoint>
 {
-    [GeneratedRegex(@"^(POINT \()(.+)(\))", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"^(POINT \()(.+)(\))", RegexOptions.IgnoreCase)]
     private static partial Regex PointRegex();
     private static readonly Regex _regex = PointRegex();
 
     public override GeometryPoint Parse(object value)
     {
-        if (value == null) return null;
+        if (value is null) return null;
 
         if (!_regex.IsMatch(value.ToString()))
         { throw new ArgumentException("Value is not a Geometry Point"); }
 
-        var geometryPoints = value.ToString().Split('(', ')')[1];
+        var geometryPoints = value.ToString().Split('(', ')', StringSplitOptions.RemoveEmptyEntries)[1];
         var geometryValues = geometryPoints.Split(' ');
 
         var x = ConvertToDouble(geometryValues[0]);
