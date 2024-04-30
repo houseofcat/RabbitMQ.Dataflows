@@ -209,7 +209,7 @@ var rabbitService = await rabbitOptions.BuildRabbitServiceAsync(
 // Step 4: Get our ConsumerOptions
 var consumerOptions = rabbitOptions.GetConsumerOptions("TestConsumer");
 
-// Step 5: Create a TState class that inherits/implements RabbitWorkState/IRabbitWorkState
+// Step 5: Create a ConsumerDataflow using CustomWorkState (the class that inherits/implements RabbitWorkState/IRabbitWorkState).
 var dataflow = new ConsumerDataflow<CustomWorkState>(
     rabbitService,
     consumerOptions,
