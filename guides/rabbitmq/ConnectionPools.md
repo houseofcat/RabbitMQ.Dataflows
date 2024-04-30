@@ -3,8 +3,8 @@
 
 Primary purpose of the `IConnectionPool` is to manage RabbitMQ `Connections` that
 are each wrapped inside a class called `IConnectionHost`. This is just to track the
-`Connection` and it's various states. This is primarily achieved by by subscribing
-to the EventHandlers. You would want to use these yourself in your own integration
+`Connection` and it's various states. This is primarily achieved by subscribing to
+the EventHandlers. You would want to use these yourself in your own integration
 very similarly to the `IConnectionHost`.
 
 ```plaintext  
@@ -13,7 +13,7 @@ ConnectionPool .ctor -> ConnectionFactory -> Create RabbitMQ Connections
 ```
 
 The ConnectionPool is pretty bare bones. The reason for that is, that RabbitMQ does
-most of it's heavy lifting with a RabbitMQ channel. This is called a `Model`. We
+most of it's heavy lifting with a RabbitMQ channel. This is called a `IModel`. We
 will cover that in the ChannelPool guide. For now, we need a connection to build a
 channel.
 
