@@ -373,7 +373,7 @@ dataflow.WithCreateSendMessage(
         };
 
         // You can manually compress and encrypt the message here. If your
-        // RabbitOptions.PublishOptions are set to Encrypt/Comrpess, then
+        // RabbitOptions.PublishOptions are set to Encrypt/Compress, then
         // it will be done automatically there too. You want to be careful
         // and not double compress/encrypt the message.
         // await rabbitService.ComcryptAsync(message);
@@ -590,7 +590,7 @@ dataflow.WithCreateSendMessage(
         };
 
         // You can manually compress and encrypt the message here. If your
-        // RabbitOptions.PublishOptions are set to Encrypt/Comrpess, then
+        // RabbitOptions.PublishOptions are set to Encrypt/Compress, then
         // it will be done automatically there too. You want to be careful
         // and not double compress/encrypt the message.
         // await rabbitService.ComcryptAsync(message);
