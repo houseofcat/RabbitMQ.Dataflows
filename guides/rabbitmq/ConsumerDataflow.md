@@ -524,6 +524,14 @@ dataflow.WithFinalization(
     });
 ```
 
+### ConsumerDataflow - Start
+Now that everything is wired up and configured, just start the Dataflow! This will kick start the Consumer
+internally and start processing all the messages in your queque and executing your methods.
+
+```csharp
+await dataflow.StartAsync();
+```
+
 ## ConsumerDataflow - Full Example All Together
 ```csharp
 using HouseofCat.Compression.Recyclable;
@@ -662,13 +670,7 @@ dataflow.WithFinalization(
 
         state.ReceivedMessage?.AckMessage();
     });
-```
 
-### ConsumerDataflow - Start
-Now that everything is wired up and configured, just start the Dataflow! This will kick start the Consumer
-internally and start processing all the messages in your queque and executing your methods.
-
-```csharp
 await dataflow.StartAsync();
 ```
 
