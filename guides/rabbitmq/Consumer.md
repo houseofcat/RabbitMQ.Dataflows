@@ -81,11 +81,11 @@ using HouseofCat.Compression.Recyclable;
 using HouseofCat.Encryption;
 using HouseofCat.Hashing;
 using HouseofCat.RabbitMQ;
-using HouseofCat.RabbitMQ.Services.Extensions;
+using HouseofCat.RabbitMQ.Extensions;
 using HouseofCat.Serialization;
 
 // Step 1: Load RabbitOptions from a file.
-var rabbitOptions = await RabbitExtensions.GetRabbitOptionsFromJsonFileAsync("./SampleRabbitOptions.json");
+var rabbitOptions = await RabbitOptionsExtensions.GetRabbitOptionsFromJsonFileAsync("./SampleRabbitOptions.json");
 
 // Step 2: Setup your Providers (all but ISerializationProvider is optional)
 var jsonProvider = new JsonProvider();

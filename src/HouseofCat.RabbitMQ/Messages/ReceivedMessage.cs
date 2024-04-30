@@ -67,8 +67,6 @@ public class ReceivedMessage : IReceivedMessage, IDisposable
 
     public bool FailedToDeserialize { get; set; }
 
-    private bool _disposedValue;
-
     public ReceivedMessage(
         IModel channel,
         BasicGetResult result,
@@ -195,6 +193,8 @@ public class ReceivedMessage : IReceivedMessage, IDisposable
 
         return success;
     }
+
+    private bool _disposedValue;
 
     private void Dispose(bool disposing)
     {
