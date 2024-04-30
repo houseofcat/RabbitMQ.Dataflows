@@ -68,7 +68,7 @@ I will use a helper method to load the `RabbitOptions` from the file.
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities;
 
-var rabbitOptions = JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
+var rabbitOptions = await JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
 var pool = new ConnectionPool(rabbitOptions);
 ```
 
@@ -76,6 +76,13 @@ Per the config above you will see that we should have `2` connections. Here's ho
 you get one!
 
 ```csharp
+using HouseofCat.RabbitMQ;
+using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Utilities;
+
+var rabbitOptions = await JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
+var pool = new ConnectionPool(rabbitOptions);
+
 var connectionHost = await pool.GetConnectionAsync();
 
 // Create a Channel for communication using a RabbitMQ Connection.
@@ -87,7 +94,8 @@ await pool.ReturnConnectionAsync(connectionHost);
 
 If you prefer to use the `ConnectionPool` directly just to create Connections on demand
 you can do this manually.
-`CreateConnection`:
+
+CreateConnection example:
 
 ```csharp
 var connectionHost = pool.CreateConnection();

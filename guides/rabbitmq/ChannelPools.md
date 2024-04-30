@@ -56,19 +56,22 @@ I will use this as a file named `SampleRabbitOptions.json`:
 I will use a helper method to load the `RabbitOptions` from the file.
 
 ```csharp
+using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities;
 
-var rabbitOptions = JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
+var rabbitOptions = await JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
 var connectionPool = new ConnectionPool(rabbitOptions);
 var channelPool = new ChannelPool(connectionPool);
 ```
 
 Or if you want it to autocreate the `ConnectionPool` internally for you:
 ```csharp
+using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.RabbitMQ;
 using HouseofCat.Utilities;
 
-var rabbitOptions = JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
+var rabbitOptions = await JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
 var channelPool = new ChannelPool(rabbitOptions);
 ```
 
@@ -78,8 +81,7 @@ channels inside of `ChannelHost` objects. Here's how you get one!
 ```csharp
 var channelHost = await channelPool.GetChannelAsync();
 
-// Get access to the RabbitMQ Channel. 
-var channel = channelHost.GetChannel();
+// ChannelHost.Channel is the RabbitMQ Channel.
 ```
 
 If we wanted an ackable channel for a consumer we would change the config to
@@ -93,10 +95,7 @@ this so we can have `5` regular channels and `5` ackable channels:
 
 Here's how you get an ackable channel:
 ```csharp
-var channelHost = await channelPool.GetAckableChannelAsync();
-
-// Get access to the RabbitMQ Channel. 
-var channel = channelHost.GetChannel();
+var channelHost = await channelPool.GetAckChannelAsync();
 ```
 
 Regardless of the quantity of each type of channel you can always get a transient channel
@@ -105,9 +104,6 @@ create channels at runtime.
 
 ```csharp
 var channelHost = await channelPool.GetTransientChannelAsync(ackable: true);
-
-// Get access to the RabbitMQ Channel. 
-var channel = channelHost.GetChannel();
 ```
 
 ***Note: You may wonder why you pool channels and not just create them on demand. This
