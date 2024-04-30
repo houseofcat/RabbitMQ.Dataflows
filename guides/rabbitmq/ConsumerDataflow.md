@@ -358,7 +358,7 @@ outbound message and assign it to the State.
 
 ```csharp
 dataflow.WithCreateSendMessage(
-    async (state) =>
+    (state) =>
     {
         var message = new Message
         {
@@ -718,7 +718,7 @@ var dataflowService = new ConsumerDataflowService<CustomWorkState>(rabbitService
 
 // Manually modify the internal Dataflow.
 dataflowService.Dataflow.WithCreateSendMessage(
-    async (state) =>
+    (state) =>
     {
         var message = new Message
         {

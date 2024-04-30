@@ -28,7 +28,7 @@ var dataflowService = new ConsumerDataflowService<CustomWorkState>(rabbitService
 
 // Manually modify the internal Dataflow.
 dataflowService.Dataflow.WithCreateSendMessage(
-    async (state) =>
+    (state) =>
     {
         var message = new Message
         {
@@ -41,8 +41,6 @@ dataflowService.Dataflow.WithCreateSendMessage(
             },
             ParentSpanContext = state.WorkflowSpan?.Context,
         };
-
-        await rabbitService.ComcryptAsync(message);
 
         state.SendMessage = message;
         return state;

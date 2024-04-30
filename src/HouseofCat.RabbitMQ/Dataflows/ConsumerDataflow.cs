@@ -355,6 +355,21 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return this;
     }
 
+    public ConsumerDataflow<TState> WithCreateSendMessage(
+        Func<TState, TState> createMessage,
+        int? maxDoP = null,
+        bool? ensureOrdered = null,
+        int? boundedCapacity = null,
+        TaskScheduler taskScheduler = null)
+    {
+        if (_createSendMessage is null)
+        {
+            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("create send message"));
+        }
+        return this;
+    }
+
     public ConsumerDataflow<TState> WithSendCompressedStep(
         int? maxDoP = null,
         bool? ensureOrdered = null,
