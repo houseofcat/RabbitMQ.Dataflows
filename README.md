@@ -69,6 +69,7 @@ developer.
  * Getting started with *RabbitMQ.Dataflows* [Publisher](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/Publisher.md).  
  * Getting started with *RabbitMQ.Dataflows* [AutoPublisher](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/AutoPublisher.md).   
  * Getting started with *RabbitMQ.Dataflows* [Consumer](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/Consumer.md).  
+ * ***Getting started with RabbitMQ.Dataflows [ConsumerDataflow](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ConsumerDataflow.md)***.  
 
 More to come!
 

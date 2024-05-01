@@ -61,13 +61,12 @@ public static class Shared
         string configFileNamePath)
     {
         var rabbitOptions = await RabbitOptionsExtensions.GetRabbitOptionsFromJsonFileAsync(configFileNamePath);
-        var jsonProvider = new JsonProvider();
-
         var hashProvider = new ArgonHashingProvider();
         var aes256Key = hashProvider.GetHashKey(EncryptionPassword, EncryptionSalt, KeySize);
-        var aes256Provider = new AesGcmEncryptionProvider(aes256Key);
 
+        var aes256Provider = new AesGcmEncryptionProvider(aes256Key);
         var gzipProvider = new RecyclableGzipProvider();
+        var jsonProvider = new JsonProvider();
 
         var rabbitService = await rabbitOptions.BuildRabbitServiceAsync(
            jsonProvider,

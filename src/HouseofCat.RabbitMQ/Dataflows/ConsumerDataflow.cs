@@ -5,6 +5,8 @@ using HouseofCat.Encryption;
 using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Serialization;
 using HouseofCat.Utilities.Errors;
+using HouseofCat.Utilities.Helpers;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using System;
 using System.Collections.Generic;
@@ -15,7 +17,45 @@ using static HouseofCat.Dataflows.Extensions.WorkStateExtensions;
 
 namespace HouseofCat.RabbitMQ.Dataflows;
 
-public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : class, IRabbitWorkState, new()
+public interface IConsumerDataflow<TState> where TState : class, IRabbitWorkState, new()
+{
+    string WorkflowName { get; }
+
+    TState BuildState(IReceivedMessage receivedMessage);
+
+    ConsumerDataflow<TState> SetCompressionProvider(ICompressionProvider provider);
+    ConsumerDataflow<TState> SetEncryptionProvider(IEncryptionProvider provider);
+    ConsumerDataflow<TState> SetSerializationProvider(ISerializationProvider provider);
+    ConsumerDataflow<TState> UnsetSerializationProvider();
+
+    ConsumerDataflow<TState> WithBuildState(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
+    ConsumerDataflow<TState> WithDecompressionStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
+    ConsumerDataflow<TState> WithDecryptionStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
+    ConsumerDataflow<TState> AddStep(Func<TState, Task<TState>> suppliedStep, string stepName, int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
+    ConsumerDataflow<TState> AddStep(Func<TState, TState> suppliedStep, string stepName, int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
+
+    ConsumerDataflow<TState> WithDefaultErrorHandling(int boundedCapacity = 100, int? maxDoP = null, bool? ensureOrdered = null, TaskScheduler taskScheduler = null);
+    ConsumerDataflow<TState> WithErrorHandling(Action<TState> action, int boundedCapacity, int? maxDoP = null, bool? ensureOrdered = null, TaskScheduler taskScheduler = null);
+    ConsumerDataflow<TState> WithErrorHandling(Func<TState, Task> action, int boundedCapacity, int? maxDoP = null, bool? ensureOrdered = null, TaskScheduler taskScheduler = null);
+
+    ConsumerDataflow<TState> WithDefaultFinalization(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
+    ConsumerDataflow<TState> WithFinalization(Action<TState> action, int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
+    ConsumerDataflow<TState> WithFinalization(Func<TState, Task> action, int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
+
+    ConsumerDataflow<TState> WithPostProcessingBuffer(int boundedCapacity, TaskScheduler taskScheduler = null);
+    ConsumerDataflow<TState> WithReadyToProcessBuffer(int boundedCapacity, TaskScheduler taskScheduler = null);
+
+    ConsumerDataflow<TState> WithCreateSendMessage(Func<TState, Task<TState>> createMessage, int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
+    ConsumerDataflow<TState> WithCreateSendMessage(Func<TState, TState> createMessage, int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
+    ConsumerDataflow<TState> WithSendCompressedStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
+    ConsumerDataflow<TState> WithSendEncryptedStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
+    ConsumerDataflow<TState> WithSendStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
+
+    Task StartAsync();
+    Task StopAsync(bool immediate = false, bool shutdownService = false);
+}
+
+public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<TState> where TState : class, IRabbitWorkState, new()
 {
     private readonly IRabbitService _rabbitService;
     private readonly ConsumerOptions _consumerOptions;
@@ -208,6 +248,62 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return this;
     }
 
+    public ConsumerDataflow<TState> WithDefaultErrorHandling(
+        int boundedCapacity = 100,
+        int? maxDoP = null,
+        bool? ensureOrdered = null,
+        TaskScheduler taskScheduler = null)
+    {
+        if (_errorBuffer is null)
+        {
+            _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
+            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+            _errorAction = GetLastWrappedActionBlock(DefaultErrorHandlerAsync, executionOptions, GetSpanName("error_handler"));
+        }
+        return this;
+    }
+
+    private async Task DefaultErrorHandlerAsync(TState state)
+    {
+        var logger = LogHelpers.GetLogger<ConsumerDataflow<TState>>();
+        logger.LogError(state?.EDI?.SourceException, "Error Handler: {0}", state?.EDI?.SourceException?.Message);
+        // First, check if DLQ is configured in QueueArgs.
+        // Second, check if ErrorQueue is set in Options.
+        // Lastly, decide if you want to Nack with requeue, or anything else.
+
+        if (_consumerOptions.RejectOnError())
+        {
+            state.ReceivedMessage?.RejectMessage(requeue: false);
+        }
+        else if (!string.IsNullOrEmpty(_consumerOptions.ErrorQueueName))
+        {
+            // If type is currently an IMessage, republish with new RoutingKey.
+            if (state.ReceivedMessage.Message is not null)
+            {
+                state.ReceivedMessage.Message.RoutingKey = _consumerOptions.ErrorQueueName;
+                await _rabbitService.Publisher.QueueMessageAsync(state.ReceivedMessage.Message);
+            }
+            else
+            {
+                await _rabbitService.Publisher.PublishAsync(
+                    exchangeName: "",
+                    routingKey: _consumerOptions.ErrorQueueName,
+                    body: state.ReceivedMessage.Body,
+                    headers: state.ReceivedMessage.Properties.Headers,
+                    messageId: Guid.NewGuid().ToString(),
+                    deliveryMode: 2,
+                    mandatory: false);
+            }
+
+            // Don't forget to Ack the original message when sending it to a different Queue.
+            state.ReceivedMessage?.AckMessage();
+        }
+        else
+        {
+            state.ReceivedMessage?.NackMessage(requeue: true);
+        }
+    }
+
     public ConsumerDataflow<TState> WithReadyToProcessBuffer(int boundedCapacity, TaskScheduler taskScheduler = null)
     {
         _readyBuffer ??= CreateTargetBlock(boundedCapacity, taskScheduler);
@@ -283,6 +379,30 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return this;
     }
 
+    public ConsumerDataflow<TState> WithDefaultFinalization(
+        int? maxDoP = null,
+        bool? ensureOrdered = null,
+        int? boundedCapacity = null,
+        TaskScheduler taskScheduler = null)
+    {
+        if (_finalization is null)
+        {
+            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+            _finalization = GetLastWrappedActionBlock(DefaultFinalization, executionOptions, GetSpanName("finalization"));
+        }
+        return this;
+    }
+
+    protected static readonly string _defaultFinalizationMessage = "Message [{0}] finished processing. Acking message.";
+
+    protected void DefaultFinalization(TState state)
+    {
+        var logger = LogHelpers.GetLogger<ConsumerDataflow<TState>>();
+        logger.LogInformation(_defaultFinalizationMessage, state?.ReceivedMessage?.Message?.MessageId);
+
+        state.ReceivedMessage?.AckMessage();
+    }
+
     public ConsumerDataflow<TState> WithBuildState(
         int? maxDoP = null,
         bool? ensureOrdered = null,
@@ -342,6 +462,21 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
 
     public ConsumerDataflow<TState> WithCreateSendMessage(
         Func<TState, Task<TState>> createMessage,
+        int? maxDoP = null,
+        bool? ensureOrdered = null,
+        int? boundedCapacity = null,
+        TaskScheduler taskScheduler = null)
+    {
+        if (_createSendMessage is null)
+        {
+            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("create send message"));
+        }
+        return this;
+    }
+
+    public ConsumerDataflow<TState> WithCreateSendMessage(
+        Func<TState, TState> createMessage,
         int? maxDoP = null,
         bool? ensureOrdered = null,
         int? boundedCapacity = null,
@@ -560,7 +695,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return attributes;
     }
 
-    public TransformBlock<IReceivedMessage, TState> GetBuildStateBlock(
+    protected TransformBlock<IReceivedMessage, TState> GetBuildStateBlock(
         ExecutionDataflowBlockOptions options)
     {
         TState BuildStateWrap(IReceivedMessage data)
@@ -574,7 +709,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return new TransformBlock<IReceivedMessage, TState>(BuildStateWrap, options);
     }
 
-    public TransformBlock<TState, TState> GetByteManipulationTransformBlock(
+    protected TransformBlock<TState, TState> GetByteManipulationTransformBlock(
         Func<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>> action,
         ExecutionDataflowBlockOptions options,
         bool outbound,
@@ -621,7 +756,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
         return new TransformBlock<TState, TState>(WrapAction, options);
     }
 
-    public TransformBlock<TState, TState> GetByteManipulationTransformBlock(
+    protected TransformBlock<TState, TState> GetByteManipulationTransformBlock(
         Func<ReadOnlyMemory<byte>, Task<byte[]>> action,
         ExecutionDataflowBlockOptions options,
         bool outbound,
@@ -670,8 +805,9 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
     }
 
     private string SendStepIdentifier => $"{WorkflowName} send";
-    public TransformBlock<TState, TState> GetWrappedSendTransformBlock(
-        IRabbitService service,
+    private static readonly string _shutdownInProgress = "Shutdown in progress.";
+    protected TransformBlock<TState, TState> GetWrappedSendTransformBlock(
+        IRabbitService rabbitService,
         ExecutionDataflowBlockOptions options)
     {
         async Task<TState> WrapPublishAsync(TState state)
@@ -679,8 +815,14 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState> where TState : clas
             using var childSpan = state.CreateActiveChildSpan(SendStepIdentifier, SpanKind.Producer);
             try
             {
-                await service.Publisher.PublishAsync(state.SendMessage, true, true).ConfigureAwait(false);
+                await rabbitService.Publisher.QueueMessageAsync(state.SendMessage).ConfigureAwait(false);
                 state.SendMessageSent = true;
+            }
+            // Shutdown is likely in progress, so we can't publish this message.
+            catch (InvalidOperationException ex) when (ex.Message.StartsWith("AutoPublisher"))
+            {
+                state.IsFaulted = true; // Dev's should nack the message with requeue true.
+                childSpan?.SetStatus(Status.Error.WithDescription(_shutdownInProgress));
             }
             catch (Exception ex)
             {

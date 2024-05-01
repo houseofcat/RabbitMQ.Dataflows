@@ -27,10 +27,11 @@ I will use this as a file named `SampleRabbitOptions.json`
 I will use a helper method to load the `RabbitOptions` from the file.
 
 ```csharp
+using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities;
 
-var rabbitOptions = JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
+var rabbitOptions = await JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
 var channelPool = new ChannelPool(rabbitOptions);
 ```
 
@@ -40,45 +41,47 @@ channels inside of `ChannelHost` objects. Here's how you get one!
 ### Get Channel
 ```csharp
 var channelHost = await channelPool.GetChannelAsync();
-
-// Get access to the internal RabbitMQ Channel. 
-var channel = channelHost.GetChannel();
 ```
 
 ### BasicGet With ChannelPool
 ```csharp
+using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities;
 using RabbitMQ.Client;
 
-var rabbitOptions = JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
+var rabbitOptions = await JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
 var channelPool = new ChannelPool(rabbitOptions);
 
-var channelHost = await channelPool.GetAckableChannelAsync();
-var channel = channelHost.GetChannel();
+var channelHost = await channelPool.GetAckChannelAsync();
 
 var error = false;
 
+BasicGetResult result = null;
 try
 {
-	BasicGetResult result = channel.BasicGet("YourQueueName", autoAck: false);
+    result = channelHost.Channel.BasicGet("YourQueueName", autoAck: false);
 
-	// Do something with the `result.Body` ...
+    // Do something with the `result.Body` ...
     // var message = Encoding.UTF8.GetString(result.Body.Span);
     // Console.WriteLine(message);
 
-	// Then ack or reject (nack) the message.
-	channel.BasicAck(result.DeliveryTag, multiple: false);
+    // Then ack or reject (nack) the message.
+    channelHost.Channel.BasicAck(result.DeliveryTag, multiple: false);
 }
 catch (Exception ex)
 {
-	// Log your exception.
+    // Log your exception.
     error = true;
-    channel.BasicNack(result.DeliveryTag, multiple: false, requeue: true);
+
+    if (result is not null)
+    {
+        channelHost.Channel.BasicNack(result.DeliveryTag, multiple: false, requeue: true);
+    }
 }
 finally
 {
-	await channelPool.ReturnChannelAsync(channelHost, error);
+    await channelPool.ReturnChannelAsync(channelHost, error);
 }
 ```
 
@@ -89,31 +92,33 @@ to manage the life cycle of the `ChannelHost`.
 Do avoid rapid creation and disposal of `ChannelHost` / `IModel` objects. It is unperformant both with the RabbitMQ.Client and the RabbitMQ server.
 
 ```csharp
+using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities;
 using RabbitMQ.Client;
 
-var rabbitOptions = JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
+var rabbitOptions = await JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
 var channelPool = new ChannelPool(rabbitOptions);
+
+BasicGetResult result = null;
+var channelHost = await channelPool.GetTransientChannelAsync(true);
 
 try
 {
-    using var channelHost = await channelPool.GetTransientChannelAsync(true);
+    result = channelHost.Channel.BasicGet("YourQueueName", autoAck: false);
 
-    var error = false;
-	BasicGetResult result = channel.BasicGet("YourQueueName", autoAck: false);
-
-	// Do something with the `result.Body` ...
+    // Do something with the `result.Body` ...
     // var message = Encoding.UTF8.GetString(result.Body.Span);
     // Console.WriteLine(message);
 
-	// Then ack or reject (nack) the message.
-	channel.BasicAck(result.DeliveryTag, multiple: false);
+    // Then ack or reject (nack) the message.
+    channelHost.Channel.BasicAck(result.DeliveryTag, multiple: false);
 }
-catch (Ecxeption ex)
+catch
 {
-	// Log your exception.
-    error = true;
-    channel.BasicNack(result.DeliveryTag, multiple: false, requeue: true);
+    if (result is not null)
+    {
+        channelHost.Channel.BasicNack(result.DeliveryTag, multiple: false, requeue: true);
+    }
 }
 ```

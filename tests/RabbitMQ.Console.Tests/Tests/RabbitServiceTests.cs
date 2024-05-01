@@ -1,5 +1,4 @@
 ﻿using HouseofCat.RabbitMQ;
-using HouseofCat.RabbitMQ.Services;
 using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
@@ -18,11 +17,11 @@ public static class RabbitServiceTests
         await consumer.StartConsumerAsync();
 
         using var preProcessSpan = OpenTelemetryHelpers.StartActiveSpan("messaging.rabbitmq.publisher create message", SpanKind.Internal);
-        var dataAsBytes = rabbitService.SerializationProvider.Serialize(new { Name = "TestName", Age = 42 });
+        var body = rabbitService.SerializationProvider.Serialize(new { Name = "TestName", Age = 42 });
         var message = new Message(
             exchange: Shared.ExchangeName,
             routingKey: Shared.RoutingKey,
-            body: dataAsBytes,
+            body: body,
             payloadId: Guid.NewGuid().ToString())
         {
             ParentSpanContext = preProcessSpan.Context
@@ -46,21 +45,15 @@ public static class RabbitServiceTests
             }
 
             await rabbitService.DecomcryptAsync(receivedMessage.Message);
-            await RequeueMessageAsync(rabbitService, receivedMessage);
+
+            receivedMessage.Message.Exchange = Shared.ExchangeName;
+            receivedMessage.Message.RoutingKey = Shared.RoutingKey;
+            receivedMessage.Message.Metadata.PayloadId = Guid.NewGuid().ToString();
+            await rabbitService.Publisher.QueueMessageAsync(receivedMessage.Message);
 
             receivedMessage.AckMessage();
             consumerSpan.End();
         }
-    }
-
-    private static async Task RequeueMessageAsync(
-        IRabbitService rabbitService,
-        IReceivedMessage receivedMessage)
-    {
-        receivedMessage.Message.Exchange = Shared.ExchangeName;
-        receivedMessage.Message.RoutingKey = Shared.RoutingKey;
-        receivedMessage.Message.Metadata.PayloadId = Guid.NewGuid().ToString();
-        await rabbitService.Publisher.QueueMessageAsync(receivedMessage.Message);
     }
 
     /// <summary>

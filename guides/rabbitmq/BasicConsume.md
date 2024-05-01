@@ -30,10 +30,11 @@ I will use this as a file named `SampleRabbitOptions.json`
 I will use a helper method to load the `RabbitOptions` from the file.
 
 ```csharp
+using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities;
 
-var rabbitOptions = JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
+var rabbitOptions = await JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
 var channelPool = new ChannelPool(rabbitOptions);
 ```
 
@@ -47,9 +48,6 @@ Simply put, use on demand or transient `IChannelHost` for consumers.
 
 ```csharp
 var channelHost = await channelPool.GetTransientChannelAsync(true);
-
-// Get access to the internal RabbitMQ Channel. 
-var channel = channelHost.GetChannel();
 ```
 
 ### BasicConsume With ChannelPool
@@ -65,20 +63,20 @@ You can find more information about that [here](https://www.rabbitmq.com/client-
 `EnableDispatchConsumersAsync` in the `PoolOptions` in the `RabbitOptions`.***
 
 ```csharp
+using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
-var rabbitOptions = JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
+var rabbitOptions = await JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
 var channelPool = new ChannelPool(rabbitOptions);
 var channelHost = await channelPool.GetTransientChannelAsync(true);
 
-var channel = channelHost.GetChannel();
-
 // BasicQos can't be modified after a consumer is started. So set it before.
-channel.BasicQos(prefetchCount: 0, prefetchSize: 10, global: false);
+channelHost.Channel.BasicQos(prefetchCount: 0, prefetchSize: 10, global: false);
 
-AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(channel);
+AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(channelHost.Channel);
 
 // Have to subscribe to events.
 consumer.Received += ReceiveHandlerAsync;
@@ -95,17 +93,17 @@ var consumerOptions = new ConsumerOptions
 
 var consumerTag = channelHost.StartConsuming(consumer, consumerOptions);
 
-private async Task ReceiveHandlerAsync(object _, BasicDeliverEventArgs bdea)
+async Task ReceiveHandlerAsync(object _, BasicDeliverEventArgs bdea)
 {
     // Do something with the message.
     // Then Ack/Nack
 }
 
-private async Task ConsumerShutdownAsync(object sender, ShutdownEventArgs e)
+async Task ConsumerShutdownAsync(object sender, ShutdownEventArgs e)
 {
     // Handle a network outage vs. consumer cancelation/stoppage.
 }
 
 // Sleep until you want to stop consuming. Recommend stopping consumer and disposing channel when done.
-channel.BasicCancel(consumerTag);
+channelHost.Channel.BasicCancel(consumerTag);
 ```

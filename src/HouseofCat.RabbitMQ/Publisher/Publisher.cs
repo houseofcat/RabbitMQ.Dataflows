@@ -207,32 +207,34 @@ public class Publisher : IPublisher, IDisposable
 
         try
         {
-            if (AutoPublisherStarted)
+            if (!AutoPublisherStarted) return;
+
+            // Signal to Channel to stop writing.
+            _messageQueue.Writer.Complete();
+
+            if (!immediately)
             {
-                _messageQueue.Writer.Complete();
+                // Wait for Channel to fully drain.
+                await _messageQueue
+                    .Reader
+                    .Completion
+                    .ConfigureAwait(false);
 
-                if (!immediately)
+                // Wait for the publishing to finish.
+                while (!_publishingTask.IsCompleted)
                 {
-                    await _messageQueue
-                        .Reader
-                        .Completion
-                        .ConfigureAwait(false);
-
-                    // Wait for Publishing To Finish.
-                    while (!_publishingTask.IsCompleted)
-                    {
-                        await Task.Delay(10).ConfigureAwait(false);
-                    }
+                    await Task.Delay(10).ConfigureAwait(false);
                 }
-
-                AutoPublisherStarted = false;
             }
+
+            AutoPublisherStarted = false;
+
         }
         finally
         { _pubLock.Release(); }
     }
 
-    private static readonly string _autoPublisherNotStartedError = "AutoPublisher has not been started.";
+    private static readonly string _autoPublisherNotStartedError = "AutoPublisher is not started (possibly shutdown).";
     private static readonly string _messageQueued = "AutoPublisher queued message [MessageId:{0} InternalId:{1}].";
 
     public void QueueMessage(IMessage message)
@@ -273,7 +275,7 @@ public class Publisher : IPublisher, IDisposable
     private static readonly string _encryptEventName = "encrypted";
     private static readonly string _messagePublished = "AutoPublisher published message [MessageId:{0} InternalId:{1}]. Listen for receipt to indicate success...";
 
-    private async Task ProcessMessagesAsync(ChannelReader<IMessage> channelReader)
+    protected async Task ProcessMessagesAsync(ChannelReader<IMessage> channelReader)
     {
         await Task.Yield();
         while (await channelReader.WaitToReadAsync().ConfigureAwait(false))

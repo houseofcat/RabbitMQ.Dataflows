@@ -30,10 +30,11 @@ I will use this as a file named `SampleRabbitOptions.json`
 I will use a helper method to load the `RabbitOptions` from the file.
 
 ```csharp
+using HouseofCat.RabbitMQ;
 using HouseofCat.RabbitMQ.Pools;
 using HouseofCat.Utilities;
 
-var rabbitOptions = JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
+var rabbitOptions = await JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
 var channelPool = new ChannelPool(rabbitOptions);
 ```
 
@@ -42,9 +43,6 @@ channels inside of `ChannelHost` objects. Here's how you get one!
 
 ```csharp
 var channelHost = await channelPool.GetChannelAsync();
-
-// Get access to the internal RabbitMQ Channel. 
-var channel = channelHost.GetChannel();
 ```
 
 ### DeliveryMode
@@ -58,23 +56,33 @@ properties.DeliveryMode = 2;
 ```
 
 ### BasicPublish
+Everything together to demonstrate a very basic publish.
+
 ```csharp
+using HouseofCat.RabbitMQ;
+using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Utilities;
+using System.Text;
+
+var rabbitOptions = await JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
+var channelPool = new ChannelPool(rabbitOptions);
+
+var channelHost = await channelPool.GetChannelAsync();
+
 // Now you can publish a message to a RabbitMQ Exchange our RoutingKey.
-var properties = channel.CreateBasicProperties();
+var properties = channelHost.Channel.CreateBasicProperties();
 properties.DeliveryMode = 2;
 
 // RabbitMQ publishes `byte[]` with `IBasicProperties` to the `Exchange` with a `RoutingKey`.
 var messageAsBytes = Encoding.UTF8.GetBytes("Hello World");
 
-var error = false;
 try
 {
-    channel.BasicPublish("MyExchange", "MyRoutingKey", properties, messageAsBytes);
+    channelHost.Channel.BasicPublish("MyExchange", "MyRoutingKey", false, properties, messageAsBytes);
 }
-catch (Exception ex)
+catch
 {
-    // Log the exception.
-    error = true;
+
 }
 ```
 
@@ -83,10 +91,26 @@ Now we want to return our channel to the ChannelPool and indicate an error (or n
 An error on Publish is good indicator the Channel can't be recovered (not always but usually
 true).
 ```csharp
+using HouseofCat.RabbitMQ;
+using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Utilities;
+using System.Text;
+
+var rabbitOptions = await JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
+var channelPool = new ChannelPool(rabbitOptions);
+var channelHost = await channelPool.GetChannelAsync();
+
+// Now you can publish a message to a RabbitMQ Exchange our RoutingKey.
+var properties = channelHost.Channel.CreateBasicProperties();
+properties.DeliveryMode = 2;
+
+// RabbitMQ publishes `byte[]` with `IBasicProperties` to the `Exchange` with a `RoutingKey`.
+var messageAsBytes = Encoding.UTF8.GetBytes("Hello World");
+
 var error = false;
 try
 {
-    channel.BasicPublish("MyExchange", "MyRoutingKey", properties, messageAsBytes);
+    channelHost.Channel.BasicPublish("MyExchange", "MyRoutingKey", false, properties, messageAsBytes);
 }
 catch (Exception ex)
 {
@@ -104,45 +128,29 @@ to then manage the life cycle of the `ChannelHost`.
 Do avoid rapid creation and disposal of `ChannelHost` / `IModel` objects. It is unperformant both with the RabbitMQ.Client and the RabbitMQ server.
 
 ```csharp
-var rabbitOptions = JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
+using HouseofCat.RabbitMQ;
+using HouseofCat.RabbitMQ.Pools;
+using HouseofCat.Utilities;
+using System.Text;
+
+var rabbitOptions = await JsonFileReader.ReadFileAsync<RabbitOptions>("SampleRabbitOptions.json");
 var channelPool = new ChannelPool(rabbitOptions);
-
 var channelHost = await channelPool.GetTransientChannelAsync(true);
-var channel = channelHost.GetChannel();
 
-var properties = channel.CreateBasicProperties();
+var properties = channelHost.Channel.CreateBasicProperties();
 properties.DeliveryMode = 2;
 
 var messageAsBytes = Encoding.UTF8.GetBytes("Hello World");
 
 try
 {
-    channel.BasicPublish("YourExchangeName", "YourRoutingKey", properties, messageAsBytes);
+    channelHost.Channel.BasicPublish("YourExchangeName", "YourRoutingKey", false, properties, messageAsBytes);
 }
-catch (Exception ex)
+catch
 {
-	// Log your exception.
+    // Log your exception.
 }
 
 channelHost.Close();
 ```
 
-Alternatively you can use dispose.
-```csharp
-using var channelHost = await channelPool.GetTransientChannelAsync(true);
-var channel = channelHost.GetChannel();
-
-var properties = channel.CreateBasicProperties();
-properties.DeliveryMode = 2;
-
-var messageAsBytes = Encoding.UTF8.GetBytes("Hello World");
-
-try
-{
-    channel.BasicPublish("YourExchangeName", "YourRoutingKey", properties, messageAsBytes);
-}
-catch (Exception ex)
-{
-	// Log your exception.
-}
-```
