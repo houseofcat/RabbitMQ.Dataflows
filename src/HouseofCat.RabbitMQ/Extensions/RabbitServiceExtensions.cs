@@ -183,14 +183,14 @@ public static class RabbitServiceExtensions
         {
             if (rabbitService.CompressionProvider is not null && options.WorkflowSendCompressed)
             {
-                dataflow = dataflow.WithSendCompressedStep();
+                dataflow.WithSendCompressedStep();
             }
             if (rabbitService.EncryptionProvider is not null && options.WorkflowSendEncrypted)
             {
-                dataflow = dataflow.WithSendEncryptedStep();
+                dataflow.WithSendEncryptedStep();
             }
 
-            dataflow = dataflow.WithSendStep();
+            dataflow.WithSendStep();
         }
 
         return dataflow;
