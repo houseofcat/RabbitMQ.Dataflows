@@ -111,6 +111,13 @@ public class RabbitService : IRabbitService, IDisposable
 
     private bool _started;
 
+    /// <summary>
+    /// Starts the RabbitService connection pool, channel pool, and auto-publishing. It prepares consumers and builds the consumer topology so they
+    /// are ready to go.
+    /// <para>If you pass in a processReceiptAsync function, it will be used to process receipts from the auto-publishing instead of the default method.</para>
+    /// </summary>
+    /// <param name="processReceiptAsync"></param>
+    /// <returns></returns>
     public async Task StartAsync(Func<IPublishReceipt, ValueTask> processReceiptAsync = null)
     {
         if (!await _serviceLock.WaitAsync(0).ConfigureAwait(false)) return;
