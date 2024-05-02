@@ -298,17 +298,17 @@ public class Publisher : IPublisher, IDisposable
                     message.ParentSpanContext = span.Context;
                 }
 
-                if (Options.PublisherOptions.Compress)
+                if (Options.PublisherOptions.Compress && !message.Metadata.Compressed())
                 {
-                    message.Body = _compressionProvider.Compress(message.Body).ToArray();
+                    message.Body = _compressionProvider.Compress(message.Body);
                     message.Metadata.Fields[Constants.HeaderForCompressed] = true;
                     message.Metadata.Fields[Constants.HeaderForCompression] = _compressionProvider.Type;
                     span?.AddEvent(_compressEventName);
                 }
 
-                if (Options.PublisherOptions.Encrypt)
+                if (Options.PublisherOptions.Encrypt && !message.Metadata.Encrypted())
                 {
-                    message.Body = _encryptionProvider.Encrypt(message.Body).ToArray();
+                    message.Body = _encryptionProvider.Encrypt(message.Body);
                     message.Metadata.Fields[Constants.HeaderForEncrypted] = true;
                     message.Metadata.Fields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
                     message.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeHelpers.Formats.RFC3339Long);
