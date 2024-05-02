@@ -75,7 +75,7 @@ public class ConsumerDataflowService<TState> : IConsumerDataflowService<TState> 
 
     public void AddDefaultFinalization()
     {
-        Dataflow.WithDefaultErrorHandling();
+        Dataflow.WithDefaultFinalization();
     }
 
     public void AddFinalization(Action<TState> step)
