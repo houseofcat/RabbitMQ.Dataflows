@@ -40,7 +40,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Compression/HouseofCat.Compression.csproj
           INCLUDE_SYMBOLS: true
-          TAG_COMMIT: true # This will tag the commit with the version number. Only one needs to be true.
 
     - name: Publish HouseofCat.Data
       uses: alirezanet/publish-nuget@v3.1.0
@@ -50,7 +49,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Data/HouseofCat.Data.csproj
           INCLUDE_SYMBOLS: true
-          TAG_COMMIT: false
 
     - name: Publish HouseofCat.Dataflows
       uses: alirezanet/publish-nuget@v3.1.0
@@ -60,7 +58,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Dataflows/HouseofCat.Dataflows.csproj
           INCLUDE_SYMBOLS: true
-          TAG_COMMIT: false
 
     - name: Publish HouseofCat.Encryption
       uses: alirezanet/publish-nuget@v3.1.0
@@ -70,7 +67,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Encryption/HouseofCat.Encryption.csproj
           INCLUDE_SYMBOLS: true
-          TAG_COMMIT: false
 
     - name: Publish HouseofCat.Hashing
       uses: alirezanet/publish-nuget@v3.1.0
@@ -80,7 +76,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Hashing/HouseofCat.Hashing.csproj
           INCLUDE_SYMBOLS: true
-          TAG_COMMIT: false
 
     - name: Publish HouseofCat.RabbitMQ
       uses: alirezanet/publish-nuget@v3.1.0
@@ -90,7 +85,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.RabbitMQ/HouseofCat.RabbitMQ.csproj
           INCLUDE_SYMBOLS: true
-          TAG_COMMIT: false
 
     - name: Publish HouseofCat.Serialization
       uses: alirezanet/publish-nuget@v3.1.0
@@ -100,7 +94,6 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Serialization/HouseofCat.Serialization.csproj
           INCLUDE_SYMBOLS: true
-          TAG_COMMIT: false
 
     - name: Publish HouseofCat.Utilities
       uses: alirezanet/publish-nuget@v3.1.0
@@ -110,4 +103,3 @@ jobs:
           VERSION_FILE_PATH: version.props
           PROJECT_FILE_PATH: src/HouseofCat.Utilities/HouseofCat.Utilities.csproj
           INCLUDE_SYMBOLS: true
-          TAG_COMMIT: false

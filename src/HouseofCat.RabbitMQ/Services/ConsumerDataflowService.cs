@@ -85,7 +85,7 @@ public class ConsumerDataflowService<TState> : IConsumerDataflowService<TState> 
     }
 
     protected static readonly string _defaultFinalizationMessage = "Message [{0}] finished processing. Acking message.";
-    private bool _logFinalizationMessage = false;
+    private bool _logFinalizationMessage;
 
     protected void DefaultFinalization(TState state)
     {

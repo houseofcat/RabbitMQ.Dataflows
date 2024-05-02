@@ -18,7 +18,7 @@ namespace HouseofCat.RabbitMQ.Extensions;
 public static class RabbitServiceExtensions
 {
     /// <summary>
-    /// Sets up RabbitService with JsonProvider, GzipProvider (recyclable), and optional Aes256 (GCM) encryption/decryption.
+    /// Sets up RabbitService with JsonProvider, GzipProvider (recyclable), and optional AesGcm (256-bit) encryption/decryption.
     /// <para>Because this uses the configured LoggerFactory for internal logging, it is recommended calling this after you've setup your Logging configuration.</para>
     /// <para>Default RabbitOptions config key is "RabbitOptions".</para>
     /// </summary>
@@ -41,17 +41,20 @@ public static class RabbitServiceExtensions
         var options = config.GetRabbitOptions(configSectionKey);
 
         var jsonProvider = new JsonProvider();
+        var gzipProvider = new RecyclableGzipProvider();
 
-        var hashProvider = new ArgonHashingProvider();
-
-        IEncryptionProvider encryptionProvider = null;
+        AesGcmEncryptionProvider encryptionProvider = null;
         if (!string.IsNullOrEmpty(encryptionPassword) && !string.IsNullOrEmpty(encryptionSalt))
         {
+            var hashProvider = new ArgonHashingProvider();
             var aes256Key = hashProvider.GetHashKey(encryptionPassword, encryptionSalt, 32);
             encryptionProvider = new AesGcmEncryptionProvider(aes256Key);
         }
 
-        var gzipProvider = new RecyclableGzipProvider();
+        services.TryAddSingleton<ISerializationProvider>(jsonProvider);
+        services.TryAddSingleton<ICompressionProvider>(gzipProvider);
+        if (encryptionProvider is not null)
+        { services.TryAddSingleton<IEncryptionProvider>(encryptionProvider); }
 
         var rabbitService = await options.BuildRabbitServiceAsync(
             jsonProvider,
@@ -86,6 +89,48 @@ public static class RabbitServiceExtensions
 
         var loggerFactory = scope.ServiceProvider.GetService<ILoggerFactory>();
         var options = config.GetRabbitOptions(configSectionKey);
+
+        var rabbitService = await options.BuildRabbitServiceAsync(
+            serializationProvider,
+            encryptionProvider,
+            compressionProvider,
+            loggerFactory);
+
+        services.TryAddSingleton(serializationProvider);
+
+        if (encryptionProvider is not null)
+        { services.TryAddSingleton(compressionProvider); }
+        if (encryptionProvider is not null)
+        { services.TryAddSingleton(encryptionProvider); }
+
+        services.TryAddSingleton<IRabbitService>(rabbitService);
+    }
+
+    /// <summary>
+    /// Setup RabbitService which will look for required and optional providers in the ServiceProvider.
+    /// <para>Because this uses the configured LoggerFactory for internal logging, it is recommended calling this after you've setup your Logging configuration.</para>
+    /// <para>Default RabbitOptions config key is "RabbitOptions".</para>
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="config"></param>
+    /// <param name="configSectionKey"></param>
+    /// <param name="serializationProvider"></param>
+    /// <param name="encryptionProvider"></param>
+    /// <param name="compressionProvider"></param>
+    /// <returns></returns>
+    public static async Task AddRabbitServiceAsync(
+        this IServiceCollection services,
+        IConfiguration config,
+        string configSectionKey = "RabbitOptions")
+    {
+        using var scope = services.BuildServiceProvider().CreateScope();
+
+        var options = config.GetRabbitOptions(configSectionKey);
+
+        var serializationProvider = scope.ServiceProvider.GetRequiredService<ISerializationProvider>();
+        var encryptionProvider = scope.ServiceProvider.GetService<IEncryptionProvider>();
+        var compressionProvider = scope.ServiceProvider.GetService<ICompressionProvider>();
+        var loggerFactory = scope.ServiceProvider.GetService<ILoggerFactory>();
 
         var rabbitService = await options.BuildRabbitServiceAsync(
             serializationProvider,
