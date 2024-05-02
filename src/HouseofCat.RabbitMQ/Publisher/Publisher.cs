@@ -291,6 +291,7 @@ public class Publisher : IPublisher, IDisposable
                     message.ParentSpanContext ?? default);
 
                 message.Metadata ??= new Metadata();
+                message.Exchange ??= string.Empty;
 
                 // If parent span context is not set, set it to the current span.
                 if (message.ParentSpanContext == default)
