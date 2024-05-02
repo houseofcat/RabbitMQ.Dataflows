@@ -49,6 +49,8 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
     public IChannelPool ChannelPool { get; }
     public bool Started { get; private set; }
 
+    protected JsonSerializerOptions _defaultOptions;
+
     public Consumer(
         RabbitOptions options,
         string consumerName,
@@ -395,8 +397,6 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         }
     }
 
-    protected JsonSerializerOptions _defaultOptions;
-
     protected virtual void AutoDeserialize(ReceivedMessage receivedMessage)
     {
         if (receivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType
@@ -407,7 +407,10 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                 case Constants.HeaderValueForContentTypeJson:
                     try
                     {
-                        receivedMessage.Message = JsonSerializer.Deserialize<Message>(receivedMessage.Body.Span, _defaultOptions);
+                        receivedMessage.Message = JsonSerializer
+                            .Deserialize<Message>(
+                                receivedMessage.Body.Span,
+                                _defaultOptions);
                     }
                     catch
                     { receivedMessage.FailedToDeserialize = true; }
@@ -415,7 +418,9 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                 case Constants.HeaderValueForContentTypeMessagePack:
                     try
                     {
-                        receivedMessage.Message = MessagePackProvider.GlobalDeserialize<Message>(receivedMessage.Body);
+                        receivedMessage.Message = MessagePackProvider
+                            .GlobalDeserialize<Message>(
+                                receivedMessage.Body);
                     }
                     catch
                     { receivedMessage.FailedToDeserialize = true; }
