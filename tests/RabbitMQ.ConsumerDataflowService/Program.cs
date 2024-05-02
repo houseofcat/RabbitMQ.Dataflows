@@ -5,6 +5,7 @@ using HouseofCat.Utilities.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RabbitMQ.ConsumerDataflowService;
 using System.Text;
 
@@ -39,7 +40,7 @@ dataflowService.Dataflow.WithCreateSendMessage(
         var message = new Message
         {
             Exchange = "",
-            RoutingKey = state.ReceivedMessage?.Message?.RoutingKey ?? "TestQueue",
+            RoutingKey = dataflowService.Options.SendQueueName,
             Body = Encoding.UTF8.GetBytes("New Secret Message"),
             Metadata = new Metadata
             {
