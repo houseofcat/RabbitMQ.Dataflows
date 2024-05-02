@@ -11,7 +11,7 @@ using System.Text;
 var loggerFactory = LogHelpers.CreateConsoleLoggerFactory(LogLevel.Information);
 LogHelpers.LoggerFactory = loggerFactory;
 var logger = loggerFactory.CreateLogger<Program>();
-var logMessage = false;
+var logMessage = true;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = new ConfigurationBuilder()
@@ -59,7 +59,11 @@ dataflowService.AddStep(
     "write_message_to_log",
     (state) =>
     {
-        var message = Encoding.UTF8.GetString(state.ReceivedMessage.Body.Span);
+        string message;
+        if (state.ReceivedMessage.Message is null)
+        { message = Encoding.UTF8.GetString(state.ReceivedMessage.Body.Span); }
+        else
+        { message = Encoding.UTF8.GetString(state.ReceivedMessage.Message.Body.Span); }
         if (message == "throw")
         {
             throw new Exception("Throwing an exception!");

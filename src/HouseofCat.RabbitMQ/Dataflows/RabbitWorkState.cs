@@ -10,8 +10,9 @@ namespace HouseofCat.RabbitMQ.Dataflows;
 public interface IRabbitWorkState : IWorkState
 {
     IReceivedMessage ReceivedMessage { get; set; }
+
+    ReadOnlyMemory<byte> SendData { get; set; }
     IMessage SendMessage { get; set; }
-    bool SendMessageSent { get; set; }
 }
 
 public abstract class RabbitWorkState : IRabbitWorkState
@@ -20,13 +21,10 @@ public abstract class RabbitWorkState : IRabbitWorkState
     public virtual IReceivedMessage ReceivedMessage { get; set; }
 
     public virtual ReadOnlyMemory<byte> SendData { get; set; }
+
     public virtual IMessage SendMessage { get; set; }
-    public virtual bool SendMessageSent { get; set; }
 
     public virtual IDictionary<string, object> Data { get; set; }
-
-    public virtual IDictionary<string, bool> StepSuccess { get; set; }
-    public virtual string StepIdentifier { get; set; }
 
     public bool IsFaulted { get; set; }
     public ExceptionDispatchInfo EDI { get; set; }

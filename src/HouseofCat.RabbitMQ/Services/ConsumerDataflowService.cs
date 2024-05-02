@@ -15,7 +15,7 @@ public interface IConsumerDataflowService<TState> where TState : class, IRabbitW
     void AddErrorHandling(Action<TState> step);
     void AddErrorHandling(Func<TState, Task> step);
 
-    void AddDefaultFinalization(bool log = true);
+    void AddDefaultFinalization();
     void AddFinalization(Action<TState> step);
     void AddFinalization(Func<TState, Task> step);
 
@@ -73,28 +73,9 @@ public class ConsumerDataflowService<TState> : IConsumerDataflowService<TState> 
             Options.WorkflowBatchSize);
     }
 
-    public void AddDefaultFinalization(bool log = true)
+    public void AddDefaultFinalization()
     {
-        _logFinalizationMessage = log;
-
-        Dataflow.WithFinalization(
-            DefaultFinalization,
-            Options.WorkflowMaxDegreesOfParallelism,
-            Options.WorkflowEnsureOrdered,
-            Options.WorkflowBatchSize);
-    }
-
-    protected static readonly string _defaultFinalizationMessage = "Message [{0}] finished processing. Acking message.";
-    private bool _logFinalizationMessage;
-
-    protected void DefaultFinalization(TState state)
-    {
-        if (_logFinalizationMessage)
-        {
-            _logger.LogInformation(_defaultFinalizationMessage, state?.ReceivedMessage?.Message?.MessageId);
-        }
-
-        state?.ReceivedMessage?.AckMessage();
+        Dataflow.WithDefaultFinalization();
     }
 
     public void AddFinalization(Action<TState> step)
@@ -135,51 +116,7 @@ public class ConsumerDataflowService<TState> : IConsumerDataflowService<TState> 
 
     public void AddDefaultErrorHandling()
     {
-        Dataflow.WithErrorHandling(
-            DefaultErrorHandlerAsync,
-            Options.WorkflowBatchSize,
-            Options.WorkflowMaxDegreesOfParallelism,
-            Options.WorkflowEnsureOrdered);
-    }
-
-    // First, check if DLQ is configured in QueueArgs.
-    // Second, check if ErrorQueue is set in Options.
-    // Lastly, decide if you want to Nack with requeue, or anything else.
-    protected async Task DefaultErrorHandlerAsync(TState state)
-    {
-        _logger.LogError(state?.EDI?.SourceException, "Error Handler: {0}", state?.EDI?.SourceException?.Message);
-
-        if (Options.RejectOnError())
-        {
-            state.ReceivedMessage?.RejectMessage(requeue: false);
-        }
-        else if (!string.IsNullOrEmpty(Options.ErrorQueueName))
-        {
-            // If type is currently an IMessage, republish with new RoutingKey.
-            if (state.ReceivedMessage.Message is not null)
-            {
-                state.ReceivedMessage.Message.RoutingKey = Options.ErrorQueueName;
-                await _rabbitService.Publisher.QueueMessageAsync(state.ReceivedMessage.Message);
-            }
-            else
-            {
-                await _rabbitService.Publisher.PublishAsync(
-                    exchangeName: "",
-                    routingKey: Options.ErrorQueueName,
-                    body: state.ReceivedMessage.Body,
-                    headers: state.ReceivedMessage.Properties.Headers,
-                    messageId: Guid.NewGuid().ToString(),
-                    deliveryMode: 2,
-                    mandatory: false);
-            }
-
-            // Don't forget to Ack the original message when sending it to a different Queue.
-            state.ReceivedMessage?.AckMessage();
-        }
-        else
-        {
-            state.ReceivedMessage?.NackMessage(requeue: true);
-        }
+        Dataflow.WithDefaultErrorHandling();
     }
 
     public async Task StartAsync()

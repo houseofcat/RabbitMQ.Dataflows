@@ -19,12 +19,12 @@ public interface IReceivedMessage
 
     string ObjectType { get; }
 
-    bool Encrypted { get; }
-    string EncryptionType { get; }
-    DateTime EncryptedDateTime { get; }
+    bool Encrypted { get; set; }
+    string EncryptionType { get; set; }
+    DateTime EncryptedDateTime { get; set; }
 
-    bool Compressed { get; }
-    string CompressionType { get; }
+    bool Compressed { get; set; }
+    string CompressionType { get; set; }
 
     public string TraceParentHeader { get; }
     public SpanContext? ParentSpanContext { get; set; }
@@ -52,12 +52,12 @@ public class ReceivedMessage : IReceivedMessage, IDisposable
 
     public string ObjectType { get; private set; }
 
-    public bool Encrypted { get; private set; }
-    public string EncryptionType { get; private set; }
-    public DateTime EncryptedDateTime { get; private set; }
+    public bool Encrypted { get; set; }
+    public string EncryptionType { get; set; }
+    public DateTime EncryptedDateTime { get; set; }
 
-    public bool Compressed { get; private set; }
-    public string CompressionType { get; private set; }
+    public bool Compressed { get; set; }
+    public string CompressionType { get; set; }
 
     public string TraceParentHeader { get; private set; }
     public SpanContext? ParentSpanContext { get; set; }

@@ -20,6 +20,7 @@ namespace HouseofCat.RabbitMQ.Dataflows;
 public interface IConsumerDataflow<TState> where TState : class, IRabbitWorkState, new()
 {
     string WorkflowName { get; }
+    string TimeFormat { get; set; }
 
     TState BuildState(IReceivedMessage receivedMessage);
 
@@ -91,6 +92,8 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
             return _consumerOptions?.WorkflowName;
         }
     }
+
+    public string TimeFormat { get; set; } = TimeHelpers.Formats.RFC3339Long;
 
     public ConsumerDataflow(
         IRabbitService rabbitService,
@@ -393,7 +396,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         return this;
     }
 
-    protected static readonly string _defaultFinalizationMessage = "Message [{0}] finished processing. Acking message.";
+    protected static readonly string _defaultFinalizationMessage = "Message [Id: {0}] finished processing. Acking message.";
 
     protected void DefaultFinalization(TState state)
     {
@@ -433,7 +436,17 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 executionOptions,
                 false,
                 x => x.ReceivedMessage.Encrypted,
-                GetSpanName("decrypt"));
+                GetSpanName("receive_decrypt"),
+                (state) =>
+                {
+                    if (state?.ReceivedMessage?.Message?.Metadata?.Fields is null) return;
+                    state.ReceivedMessage.Encrypted = false;
+                    state.ReceivedMessage.EncryptionType = null;
+                    state.ReceivedMessage.EncryptedDateTime = default;
+                    state.ReceivedMessage.Message.Metadata.Fields[Constants.HeaderForEncrypted] = false;
+                    state.ReceivedMessage.Message.Metadata.Fields.Remove(Constants.HeaderForEncryption);
+                    state.ReceivedMessage.Message.Metadata.Fields.Remove(Constants.HeaderForEncryptDate);
+                });
         }
         return this;
     }
@@ -454,7 +467,15 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 executionOptions,
                 false,
                 x => x.ReceivedMessage.Compressed,
-                GetSpanName("decompress"));
+                GetSpanName("receive_decompress"),
+                (state) =>
+                {
+                    if (state?.ReceivedMessage?.Message?.Metadata?.Fields is null) return;
+                    state.ReceivedMessage.Compressed = false;
+                    state.ReceivedMessage.CompressionType = null;
+                    state.ReceivedMessage.Message.Metadata.Fields[Constants.HeaderForCompressed] = false;
+                    state.ReceivedMessage.Message.Metadata.Fields.Remove(Constants.HeaderForCompression);
+                });
         }
 
         return this;
@@ -470,7 +491,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         if (_createSendMessage is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("create send message"));
+            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("send_create"));
         }
         return this;
     }
@@ -485,7 +506,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         if (_createSendMessage is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("create send message"));
+            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("send_create"));
         }
         return this;
     }
@@ -505,8 +526,14 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 _compressionProvider.Compress,
                 executionOptions,
                 true,
-                x => !x.ReceivedMessage.Compressed,
-                GetSpanName("compress send message"));
+                x => !x.SendMessage.Metadata.Compressed(),
+                GetSpanName("send_compress"),
+                (state) =>
+                {
+                    if (state?.SendMessage?.Metadata?.Fields is null) return;
+                    state.SendMessage.Metadata.Fields[Constants.HeaderForCompressed] = true;
+                    state.SendMessage.Metadata.Fields[Constants.HeaderForCompression] = _compressionProvider.Type;
+                });
         }
         return this;
     }
@@ -526,8 +553,15 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 _encryptionProvider.Encrypt,
                 executionOptions,
                 true,
-                x => !x.ReceivedMessage.Encrypted,
-                GetSpanName("encrypt send message"));
+                x => !x.SendMessage.Metadata.Encrypted(),
+                GetSpanName("send_encrypt"),
+                (state) =>
+                {
+                    if (state?.SendMessage?.Metadata?.Fields is null) return;
+                    state.SendMessage.Metadata.Fields[Constants.HeaderForEncrypted] = true;
+                    state.SendMessage.Metadata.Fields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
+                    state.SendMessage.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeFormat);
+                });
         }
         return this;
     }
@@ -714,7 +748,8 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         ExecutionDataflowBlockOptions options,
         bool outbound,
         Predicate<TState> predicate,
-        string spanName)
+        string spanName,
+        Action<TState> callback = null)
     {
         TState WrapAction(TState state)
         {
@@ -730,16 +765,17 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 }
                 else if (predicate.Invoke(state))
                 {
-                    if (state.ReceivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType)
+                    if (state.ReceivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType
+                        && state.ReceivedMessage.Message is not null)
                     {
-                        if (state.ReceivedMessage.Message is null)
-                        { state.ReceivedMessage.Message = _serializationProvider.Deserialize<Message>(state.ReceivedMessage.Body); }
-
                         state.ReceivedMessage.Message.Body = action(state.ReceivedMessage.Message.Body);
                     }
                     else
                     { state.ReceivedMessage.Body = action(state.ReceivedMessage.Body); }
                 }
+
+                if (callback is not null)
+                { callback(state); }
             }
             catch (Exception ex)
             {
@@ -761,7 +797,8 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         ExecutionDataflowBlockOptions options,
         bool outbound,
         Predicate<TState> predicate,
-        string spanName)
+        string spanName,
+        Action<TState> callback = null)
     {
         async Task<TState> WrapActionAsync(TState state)
         {
@@ -778,16 +815,18 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 }
                 else if (predicate.Invoke(state))
                 {
-                    if (state.ReceivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType)
+                    if (state.ReceivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType
+                        && state.ReceivedMessage.Message is not null)
                     {
-                        if (state.ReceivedMessage.Message is null)
-                        { state.ReceivedMessage.Message = _serializationProvider.Deserialize<Message>(state.ReceivedMessage.Body); }
-
-                        state.ReceivedMessage.Message.Body = await action(state.ReceivedMessage.Message.Body).ConfigureAwait(false);
+                        state.ReceivedMessage.Message.Body = await action(state.ReceivedMessage.Message.Body)
+                            .ConfigureAwait(false);
                     }
                     else
                     { state.ReceivedMessage.Body = await action(state.ReceivedMessage.Body).ConfigureAwait(false); }
                 }
+
+                if (callback is not null)
+                { callback(state); }
             }
             catch (Exception ex)
             {
@@ -818,7 +857,6 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
             try
             {
                 await rabbitService.Publisher.QueueMessageAsync(state.SendMessage).ConfigureAwait(false);
-                state.SendMessageSent = true;
             }
             // Shutdown is likely in progress, so we can't publish this message.
             catch (InvalidOperationException ex) when (ex.Message.StartsWith("AutoPublisher"))
