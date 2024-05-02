@@ -263,7 +263,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
         return consumer;
     }
 
-    private static readonly string _consumerMessageReceived = "Consumer [{0}] message received (DT:{1}]. Adding to buffer...";
+    private static readonly string _consumerMessageReceived = "Consumer [{0}] message received [DT:{1}]. Adding to buffer...";
 
     protected virtual async void ReceiveHandler(object _, BasicDeliverEventArgs bdea)
     {
