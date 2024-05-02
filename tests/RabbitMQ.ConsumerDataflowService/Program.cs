@@ -36,10 +36,12 @@ dataflowService.AddDefaultErrorHandling();
 dataflowService.Dataflow.WithCreateSendMessage(
     (state) =>
     {
+        if (string.IsNullOrEmpty(dataflowService.Options.SendQueueName)) return state;
+
         var message = new Message
         {
             Exchange = "",
-            RoutingKey = state.ReceivedMessage?.Message?.RoutingKey ?? "TestQueue",
+            RoutingKey = dataflowService.Options.SendQueueName,
             Body = Encoding.UTF8.GetBytes("New Secret Message"),
             Metadata = new Metadata
             {

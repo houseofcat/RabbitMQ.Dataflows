@@ -291,6 +291,7 @@ public class Publisher : IPublisher, IDisposable
                     message.ParentSpanContext ?? default);
 
                 message.Metadata ??= new Metadata();
+                message.Exchange ??= string.Empty;
 
                 // If parent span context is not set, set it to the current span.
                 if (message.ParentSpanContext == default)
@@ -298,17 +299,17 @@ public class Publisher : IPublisher, IDisposable
                     message.ParentSpanContext = span.Context;
                 }
 
-                if (Options.PublisherOptions.Compress)
+                if (Options.PublisherOptions.Compress && !message.Metadata.Compressed())
                 {
-                    message.Body = _compressionProvider.Compress(message.Body).ToArray();
+                    message.Body = _compressionProvider.Compress(message.Body);
                     message.Metadata.Fields[Constants.HeaderForCompressed] = true;
                     message.Metadata.Fields[Constants.HeaderForCompression] = _compressionProvider.Type;
                     span?.AddEvent(_compressEventName);
                 }
 
-                if (Options.PublisherOptions.Encrypt)
+                if (Options.PublisherOptions.Encrypt && !message.Metadata.Encrypted())
                 {
-                    message.Body = _encryptionProvider.Encrypt(message.Body).ToArray();
+                    message.Body = _encryptionProvider.Encrypt(message.Body);
                     message.Metadata.Fields[Constants.HeaderForEncrypted] = true;
                     message.Metadata.Fields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
                     message.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeHelpers.Formats.RFC3339Long);
@@ -506,7 +507,7 @@ public class Publisher : IPublisher, IDisposable
             {
                 using var innerSpan = OpenTelemetryHelpers.StartActiveSpan("IBasicPublishBatch.Add", SpanKind.Producer);
                 EnrichSpanWithTags(span, exchangeName, routingKey);
-                batch.Add(exchangeName, routingKey, mandatory, basicProperties, bodies[i]);
+                batch.Add(exchangeName ?? string.Empty, routingKey, mandatory, basicProperties, bodies[i]);
             }
 
             batch.Publish();
@@ -561,7 +562,7 @@ public class Publisher : IPublisher, IDisposable
                 EnrichSpanWithTags(span, exchangeName, routingKey);
 
                 var properties = BuildProperties(headers, channelHost, null, priority, deliveryMode, contentType);
-                batch.Add(exchangeName, routingKey, mandatory, properties, bodies[i]);
+                batch.Add(exchangeName ?? string.Empty, routingKey, mandatory, properties, bodies[i]);
             }
 
             batch.Publish();
@@ -618,7 +619,7 @@ public class Publisher : IPublisher, IDisposable
             chanHost
                 .Channel
                 .BasicPublish(
-                    message.Exchange,
+                    message.Exchange ?? string.Empty,
                     message.RoutingKey,
                     message.Mandatory,
                     message.BuildProperties(chanHost, withOptionalHeaders, _serializationProvider.ContentType),
@@ -679,7 +680,7 @@ public class Publisher : IPublisher, IDisposable
             chanHost
                 .Channel
                 .BasicPublish(
-                    message.Exchange,
+                    message.Exchange ?? string.Empty,
                     message.RoutingKey,
                     message.Mandatory,
                     message.BuildProperties(chanHost, withOptionalHeaders, _serializationProvider.ContentType),
@@ -745,7 +746,7 @@ public class Publisher : IPublisher, IDisposable
                 innerSpan?.SetAttribute(Constants.MessagingMessageEnvelopeSizeKey, body.Length);
 
                 chanHost.Channel.BasicPublish(
-                    messages[i].Exchange,
+                    messages[i].Exchange ?? string.Empty,
                     messages[i].RoutingKey,
                     messages[i].Mandatory,
                     messages[i].BuildProperties(chanHost, withOptionalHeaders, _serializationProvider.ContentType),
@@ -810,7 +811,7 @@ public class Publisher : IPublisher, IDisposable
                 innerSpan?.SetAttribute(Constants.MessagingMessageEnvelopeSizeKey, body.Length);
 
                 publishBatch.Add(
-                    messages[i].Exchange,
+                    messages[i].Exchange ?? string.Empty,
                     messages[i].RoutingKey,
                     messages[i].Mandatory,
                     messages[i].BuildProperties(chanHost, withOptionalHeaders, _serializationProvider.ContentType),
