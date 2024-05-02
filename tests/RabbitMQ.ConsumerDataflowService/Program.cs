@@ -5,7 +5,6 @@ using HouseofCat.Utilities.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using RabbitMQ.ConsumerDataflowService;
 using System.Text;
 
@@ -37,6 +36,8 @@ dataflowService.AddDefaultErrorHandling();
 dataflowService.Dataflow.WithCreateSendMessage(
     (state) =>
     {
+        if (string.IsNullOrEmpty(dataflowService.Options.SendQueueName)) return state;
+
         var message = new Message
         {
             Exchange = "",
