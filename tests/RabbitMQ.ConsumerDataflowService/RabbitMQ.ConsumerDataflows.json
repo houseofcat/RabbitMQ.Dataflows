@@ -50,8 +50,8 @@
       "WorkflowBatchSize": 50,
       "WorkflowEnsureOrdered": false,
       "WorkflowWaitForCompletion": false,
-      "WorkflowSendCompressed": false,
-      "WorkflowSendEncrypted": false
+      "WorkflowSendCompressed": true,
+      "WorkflowSendEncrypted": true
     }
   }
 }

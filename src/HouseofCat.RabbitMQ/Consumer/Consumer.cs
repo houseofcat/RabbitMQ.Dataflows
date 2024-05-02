@@ -411,6 +411,8 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                             .Deserialize<Message>(
                                 receivedMessage.Body.Span,
                                 _defaultOptions);
+
+                        receivedMessage.Body = default;
                     }
                     catch
                     { receivedMessage.FailedToDeserialize = true; }
@@ -421,6 +423,8 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                         receivedMessage.Message = MessagePackProvider
                             .GlobalDeserialize<Message>(
                                 receivedMessage.Body);
+
+                        receivedMessage.Body = default;
                     }
                     catch
                     { receivedMessage.FailedToDeserialize = true; }

@@ -1,4 +1,5 @@
 ﻿using HouseofCat.Utilities.Errors;
+using HouseofCat.Utilities.Json;
 using System;
 using System.IO;
 using System.Text;
@@ -15,7 +16,12 @@ public class JsonProvider : ISerializationProvider
 
     public JsonProvider(JsonSerializerOptions options = null)
     {
-        _options = options;
+        _options = options ?? new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+        };
+
+        _options.Converters.Add(new FlexibleObjectJsonConverter());
     }
 
     public TOut Deserialize<TOut>(string input)

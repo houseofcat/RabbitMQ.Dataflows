@@ -396,7 +396,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         return this;
     }
 
-    protected static readonly string _defaultFinalizationMessage = "Message [{0}] finished processing. Acking message.";
+    protected static readonly string _defaultFinalizationMessage = "Message [Id: {0}] finished processing. Acking message.";
 
     protected void DefaultFinalization(TState state)
     {
@@ -436,7 +436,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 executionOptions,
                 false,
                 x => x.ReceivedMessage.Encrypted,
-                GetSpanName("decrypt"),
+                GetSpanName("receive_decrypt"),
                 (state) =>
                 {
                     if (state?.ReceivedMessage?.Message?.Metadata?.Fields is null) return;
@@ -467,7 +467,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 executionOptions,
                 false,
                 x => x.ReceivedMessage.Compressed,
-                GetSpanName("decompress"),
+                GetSpanName("receive_decompress"),
                 (state) =>
                 {
                     if (state?.ReceivedMessage?.Message?.Metadata?.Fields is null) return;
@@ -491,7 +491,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         if (_createSendMessage is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("create send message"));
+            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("send_create"));
         }
         return this;
     }
@@ -506,7 +506,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         if (_createSendMessage is null)
         {
             var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("create send message"));
+            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("send_create"));
         }
         return this;
     }
@@ -527,7 +527,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 executionOptions,
                 true,
                 x => !x.SendMessage.Metadata.Compressed(),
-                GetSpanName("compress send message"),
+                GetSpanName("send_compress"),
                 (state) =>
                 {
                     if (state?.SendMessage?.Metadata?.Fields is null) return;
@@ -554,7 +554,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 executionOptions,
                 true,
                 x => !x.SendMessage.Metadata.Encrypted(),
-                GetSpanName("encrypt send message"),
+                GetSpanName("send_encrypt"),
                 (state) =>
                 {
                     if (state?.SendMessage?.Metadata?.Fields is null) return;
@@ -857,7 +857,6 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
             try
             {
                 await rabbitService.Publisher.QueueMessageAsync(state.SendMessage).ConfigureAwait(false);
-                state.SendMessageSent = true;
             }
             // Shutdown is likely in progress, so we can't publish this message.
             catch (InvalidOperationException ex) when (ex.Message.StartsWith("AutoPublisher"))
