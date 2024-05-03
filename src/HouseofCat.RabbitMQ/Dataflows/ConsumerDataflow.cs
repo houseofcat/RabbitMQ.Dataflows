@@ -439,10 +439,12 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 GetSpanName("receive_decrypt"),
                 (state) =>
                 {
-                    if (state?.ReceivedMessage?.Message?.Metadata?.Fields is null) return;
+                    if (state?.ReceivedMessage is null) return;
                     state.ReceivedMessage.Encrypted = false;
                     state.ReceivedMessage.EncryptionType = null;
                     state.ReceivedMessage.EncryptedDateTime = default;
+
+                    if (state?.ReceivedMessage?.Message?.Metadata?.Fields is null) return;
                     state.ReceivedMessage.Message.Metadata.Fields[Constants.HeaderForEncrypted] = false;
                     state.ReceivedMessage.Message.Metadata.Fields.Remove(Constants.HeaderForEncryption);
                     state.ReceivedMessage.Message.Metadata.Fields.Remove(Constants.HeaderForEncryptDate);
@@ -470,9 +472,11 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 GetSpanName("receive_decompress"),
                 (state) =>
                 {
-                    if (state?.ReceivedMessage?.Message?.Metadata?.Fields is null) return;
+                    if (state?.ReceivedMessage is null) return;
                     state.ReceivedMessage.Compressed = false;
                     state.ReceivedMessage.CompressionType = null;
+
+                    if (state?.ReceivedMessage?.Message?.Metadata?.Fields is null) return;
                     state.ReceivedMessage.Message.Metadata.Fields[Constants.HeaderForCompressed] = false;
                     state.ReceivedMessage.Message.Metadata.Fields.Remove(Constants.HeaderForCompression);
                 });
@@ -694,12 +698,10 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
             Data = new Dictionary<string, object>()
         };
 
-        var attributes = GetSpanAttributes(state, receivedMessage);
-
         state.StartWorkflowSpan(
             WorkflowName,
             spanKind: SpanKind.Internal,
-            suppliedAttributes: attributes,
+            suppliedAttributes: GetSpanAttributes(state, receivedMessage),
             parentSpanContext: receivedMessage.ParentSpanContext);
 
         return state;
@@ -765,11 +767,8 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 }
                 else if (predicate.Invoke(state))
                 {
-                    if (state.ReceivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType
-                        && state.ReceivedMessage.Message is not null)
-                    {
-                        state.ReceivedMessage.Message.Body = action(state.ReceivedMessage.Message.Body);
-                    }
+                    if (state.ReceivedMessage?.Message?.Body.Length > 0)
+                    { state.ReceivedMessage.Message.Body = action(state.ReceivedMessage.Message.Body); }
                     else
                     { state.ReceivedMessage.Body = action(state.ReceivedMessage.Body); }
                 }
@@ -785,7 +784,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 state.EDI = ExceptionDispatchInfo.Capture(ex);
             }
 
-            childSpan.End();
+            childSpan?.End();
             return state;
         }
 
@@ -815,12 +814,8 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 }
                 else if (predicate.Invoke(state))
                 {
-                    if (state.ReceivedMessage.ObjectType == Constants.HeaderValueForMessageObjectType
-                        && state.ReceivedMessage.Message is not null)
-                    {
-                        state.ReceivedMessage.Message.Body = await action(state.ReceivedMessage.Message.Body)
-                            .ConfigureAwait(false);
-                    }
+                    if (state.ReceivedMessage?.Message?.Body.Length > 0)
+                    { state.ReceivedMessage.Message.Body = await action(state.ReceivedMessage.Message.Body).ConfigureAwait(false); }
                     else
                     { state.ReceivedMessage.Body = await action(state.ReceivedMessage.Body).ConfigureAwait(false); }
                 }
@@ -836,7 +831,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 state.EDI = ExceptionDispatchInfo.Capture(ex);
             }
 
-            childSpan.End();
+            childSpan?.End();
             return state;
         }
 
@@ -845,6 +840,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
 
     private string SendStepIdentifier => $"{WorkflowName} send";
     private static readonly string _shutdownInProgress = "Shutdown in progress.";
+
     protected TransformBlock<TState, TState> GetWrappedSendTransformBlock(
         IRabbitService rabbitService,
         ExecutionDataflowBlockOptions options)
@@ -872,7 +868,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 state.EDI = ExceptionDispatchInfo.Capture(ex);
             }
 
-            childSpan.End();
+            childSpan?.End();
             return state;
         }
 

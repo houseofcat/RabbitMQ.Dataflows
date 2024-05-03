@@ -96,7 +96,6 @@ public class Publisher : IPublisher, IDisposable
 
     private Task _publishingTask;
     private Task _processReceiptsAsync;
-    private bool _disposedValue;
 
     public string TimeFormat { get; set; } = TimeHelpers.Formats.RFC3339Long;
 
@@ -321,7 +320,7 @@ public class Publisher : IPublisher, IDisposable
                 await PublishAsync(message, Options.PublisherOptions.CreatePublishReceipts, Options.PublisherOptions.WithHeaders)
                     .ConfigureAwait(false);
 
-                span.End();
+                span?.End();
             }
         }
     }
@@ -409,7 +408,7 @@ public class Publisher : IPublisher, IDisposable
         }
         finally
         {
-            span.End();
+            span?.End();
             await _channelPool
                 .ReturnChannelAsync(channelHost, error);
         }
@@ -460,7 +459,7 @@ public class Publisher : IPublisher, IDisposable
         }
         finally
         {
-            span.End();
+            span?.End();
             await _channelPool
                 .ReturnChannelAsync(channelHost, error);
         }
@@ -524,7 +523,7 @@ public class Publisher : IPublisher, IDisposable
         }
         finally
         {
-            span.End();
+            span?.End();
             await _channelPool
                 .ReturnChannelAsync(channelHost, error);
         }
@@ -580,7 +579,7 @@ public class Publisher : IPublisher, IDisposable
         }
         finally
         {
-            span.End();
+            span?.End();
             await _channelPool
                 .ReturnChannelAsync(channelHost, error);
         }
@@ -638,7 +637,7 @@ public class Publisher : IPublisher, IDisposable
         }
         finally
         {
-            span.End();
+            span?.End();
             if (createReceipt)
             {
                 await CreateReceiptAsync(message, error)
@@ -701,7 +700,7 @@ public class Publisher : IPublisher, IDisposable
         }
         finally
         {
-            span.End();
+            span?.End();
             if (createReceipt)
             {
                 await CreateReceiptAsync(message, error)
@@ -770,7 +769,7 @@ public class Publisher : IPublisher, IDisposable
             if (error) { break; }
         }
 
-        span.End();
+        span?.End();
         await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false);
     }
 
@@ -836,7 +835,7 @@ public class Publisher : IPublisher, IDisposable
         }
         finally
         {
-            span.End();
+            span?.End();
             await _channelPool.ReturnChannelAsync(chanHost, error).ConfigureAwait(false);
         }
     }
@@ -933,6 +932,8 @@ public class Publisher : IPublisher, IDisposable
         if (!string.IsNullOrEmpty(messageId))
         { span.SetAttribute(Constants.MessagingMessageMessageIdKey, messageId); }
     }
+
+    private bool _disposedValue;
 
     protected virtual void Dispose(bool disposing)
     {

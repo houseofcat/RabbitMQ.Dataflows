@@ -28,7 +28,7 @@ public static class RabbitServiceTests
         };
 
         await rabbitService.Publisher.QueueMessageAsync(message);
-        preProcessSpan.End();
+        preProcessSpan?.End();
 
         // Ping pong the same message.
         await foreach (var receivedMessage in await consumer.ReadUntilStopAsync())
@@ -52,7 +52,7 @@ public static class RabbitServiceTests
             await rabbitService.Publisher.QueueMessageAsync(receivedMessage.Message);
 
             receivedMessage.AckMessage();
-            consumerSpan.End();
+            consumerSpan?.End();
         }
     }
 
@@ -69,11 +69,11 @@ public static class RabbitServiceTests
         var consumer = rabbitService.GetConsumer(Shared.ConsumerName);
         await consumer.StartConsumerAsync();
 
-        var dataAsBytes = rabbitService.SerializationProvider.Serialize(new { Name = "TestName", Age = 42 });
+        var body = rabbitService.SerializationProvider.Serialize(new { Name = "TestName", Age = 42 });
         var message = new Message(
             exchange: Shared.ExchangeName,
             routingKey: Shared.RoutingKey,
-            body: dataAsBytes,
+            body: body,
             payloadId: Guid.NewGuid().ToString());
 
         rabbitService.Publisher.QueueMessage(message);

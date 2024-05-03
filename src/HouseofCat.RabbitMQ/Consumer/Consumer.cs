@@ -345,7 +345,7 @@ public class Consumer : IConsumer<IReceivedMessage>, IDisposable
                 .WriteAsync(receivedMessage)
                 .ConfigureAwait(false);
 
-            span.End();
+            span?.End();
             return true;
         }
         catch (Exception ex)

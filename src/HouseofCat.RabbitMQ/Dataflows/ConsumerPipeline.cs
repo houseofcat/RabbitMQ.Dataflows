@@ -28,9 +28,10 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
     private IConsumer<PipeReceivedMessage> Consumer { get; }
     private IPipeline<PipeReceivedMessage, TOut> Pipeline { get; }
     private Task FeedPipelineWithDataTasks { get; set; }
+
     private TaskCompletionSource<bool> _completionSource;
     private CancellationTokenSource _cancellationTokenSource;
-    private bool _disposedValue;
+
     private readonly SemaphoreSlim _cpLock = new SemaphoreSlim(1, 1);
 
     public ConsumerPipeline(
@@ -248,6 +249,8 @@ public class ConsumerPipeline<TOut> : IConsumerPipeline, IDisposable where TOut 
     {
         await _completionSource.Task.ConfigureAwait(false);
     }
+
+    private bool _disposedValue;
 
     protected virtual void Dispose(bool disposing)
     {

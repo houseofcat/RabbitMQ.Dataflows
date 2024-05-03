@@ -156,7 +156,7 @@ public static class WorkStateExtensions
         {
             state.SetOpenTelemetryError();
         }
-        state.WorkflowSpan.End();
+        state.WorkflowSpan?.End();
         state.WorkflowSpan?.Dispose();
     }
 }

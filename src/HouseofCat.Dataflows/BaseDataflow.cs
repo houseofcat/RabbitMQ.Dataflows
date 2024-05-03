@@ -130,7 +130,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
                 childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
             }
 
-            childSpan.End();
+            childSpan?.End();
             state.EndStateSpan(true);
         }
 
@@ -155,7 +155,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
                 childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
             }
 
-            childSpan.End();
+            childSpan?.End();
             state.EndStateSpan(true);
         }
 
@@ -180,7 +180,7 @@ public abstract class BaseDataflow<TState> where TState : class, IWorkState, new
                 childSpan?.SetStatus(Status.Error.WithDescription(ex.Message));
             }
 
-            childSpan.End();
+            childSpan?.End();
             state.EndStateSpan(true);
         }
 
