@@ -5,9 +5,10 @@ to just help manage durable connectivity with the `RabbitMQ.Client`!
 
 ## Status
 
-Test Server: `Windows 11`  
-RabbitMQ Server: `v3.13`  
-Erlang: `v26.2.3`  
+Updated: `05/03/2024`  
+Test Server: `Windows 11 Pro (v10.0.22631 [Build 22631])`  
+RabbitMQ Server: `v3.13.2`  
+Erlang: `v26.2.5`  
 
 ![Release](https://img.shields.io/github/v/release/houseofcat/RabbitMQ.Dataflows)
 [![build](https://github.com/houseofcat/RabbitMQ.Dataflows/workflows/build/badge.svg)](https://github.com/houseofcat/RabbitMQ.Dataflows/actions/workflows/build.yml)  
@@ -58,7 +59,7 @@ developer.
 * Future case will include much more complex abstract UnitTesting as time allows.  
 * The developer should only need to unit test their functional business code.  
 
-## Help & Guides
+## Guides, Code, and Examples
 
  * Getting started with *RabbitMQ.Dataflows* [ConnectionPool](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ConnectionPools.md).
  * Getting started with *RabbitMQ.Dataflows* [ChannelPool](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ChannelPools.md).
@@ -72,6 +73,19 @@ developer.
  * ***Getting started with RabbitMQ.Dataflows [ConsumerDataflow](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ConsumerDataflow.md)***.  
 
 More to come!
+
+## Visual Aids
+I have included a high level Excalidraw file with screenshots below. Be sure to open the file
+for better quality and up-to-date information.
+
+### RabbitService - Start Life Cycle
+![Rabbit Service Start](guides/rabbitmq/misc/rabbit_service_start.png)
+
+### Consumer - Start Life Cycle
+![Rabbit Service Consumer Start](guides/rabbitmq/misc/rabbit_service_consumer_start.png)
+
+### ConsumerDataflow - Data Flow
+![Consumer Dataflow Flow](guides/rabbitmq/misc/consumer_dataflow_flow.png)
 
 You can also find various library examples inside the `tests/UnitTests` or the `tests/RabbitMQ.Console.Test` project.
 
