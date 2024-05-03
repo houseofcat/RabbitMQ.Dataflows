@@ -20,7 +20,6 @@ public static class RabbitServiceExtensions
     /// <summary>
     /// Sets up RabbitService with JsonProvider, GzipProvider (recyclable), and optional AesGcm (256-bit) encryption/decryption.
     /// <para>Because this uses the configured LoggerFactory for internal logging, it is recommended calling this after you've setup your Logging configuration.</para>
-    /// <para>Default RabbitOptions config key is "RabbitOptions".</para>
     /// </summary>
     /// <param name="services"></param>
     /// <param name="config"></param>
@@ -33,7 +32,7 @@ public static class RabbitServiceExtensions
         IConfiguration config,
         string encryptionPassword = null,
         string encryptionSalt = null,
-        string configSectionKey = "RabbitOptions")
+        string configSectionKey = Constants.DefaultRabbitOptionsConfigKey)
     {
         using var scope = services.BuildServiceProvider().CreateScope();
 
@@ -68,7 +67,6 @@ public static class RabbitServiceExtensions
     /// <summary>
     /// Setup RabbitService with supplied providers.
     /// <para>Because this uses the configured LoggerFactory for internal logging, it is recommended calling this after you've setup your Logging configuration.</para>
-    /// <para>Default RabbitOptions config key is "RabbitOptions".</para>
     /// </summary>
     /// <param name="services"></param>
     /// <param name="config"></param>
@@ -83,7 +81,7 @@ public static class RabbitServiceExtensions
         ISerializationProvider serializationProvider,
         IEncryptionProvider encryptionProvider = null,
         ICompressionProvider compressionProvider = null,
-        string configSectionKey = "RabbitOptions")
+        string configSectionKey = Constants.DefaultRabbitOptionsConfigKey)
     {
         using var scope = services.BuildServiceProvider().CreateScope();
 
@@ -109,7 +107,6 @@ public static class RabbitServiceExtensions
     /// <summary>
     /// Setup RabbitService which will look for required and optional providers in the ServiceProvider.
     /// <para>Because this uses the configured LoggerFactory for internal logging, it is recommended calling this after you've setup your Logging configuration.</para>
-    /// <para>Default RabbitOptions config key is "RabbitOptions".</para>
     /// </summary>
     /// <param name="services"></param>
     /// <param name="config"></param>
@@ -121,7 +118,7 @@ public static class RabbitServiceExtensions
     public static async Task AddRabbitServiceAsync(
         this IServiceCollection services,
         IConfiguration config,
-        string configSectionKey = "RabbitOptions")
+        string configSectionKey = Constants.DefaultRabbitOptionsConfigKey)
     {
         using var scope = services.BuildServiceProvider().CreateScope();
 
@@ -205,6 +202,16 @@ public static class RabbitServiceExtensions
         return new ConsumerPipeline<TOut>((IConsumer<PipeReceivedMessage>)consumer, pipeline);
     }
 
+    /// <summary>
+    /// CreateConsumerDataflow will create a ConsumerDataflow with the specified consumerName and TaskScheduler.
+    /// <para>It will also configure SerializationProvider, CompressionProvider, and EncryptionProvider assigned inside the RabbitService.</para>
+    /// <para>Conditionally, it will also configure SendMessage, SendCompressed, and SendEncrypted based off how the ConsumerOptions are configured.</para>
+    /// </summary>
+    /// <typeparam name="TState"></typeparam>
+    /// <param name="rabbitService"></param>
+    /// <param name="consumerName"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
     public static ConsumerDataflow<TState> CreateConsumerDataflow<TState>(
         this IRabbitService rabbitService,
         string consumerName,
@@ -235,7 +242,7 @@ public static class RabbitServiceExtensions
                 dataflow.WithSendEncryptedStep();
             }
 
-            dataflow.WithSendStep();
+            dataflow.WithSendMessageStep();
         }
 
         return dataflow;

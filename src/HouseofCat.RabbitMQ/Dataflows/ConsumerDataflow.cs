@@ -50,7 +50,7 @@ public interface IConsumerDataflow<TState> where TState : class, IRabbitWorkStat
     ConsumerDataflow<TState> WithCreateSendMessage(Func<TState, TState> createMessage, int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
     ConsumerDataflow<TState> WithSendCompressedStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
     ConsumerDataflow<TState> WithSendEncryptedStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
-    ConsumerDataflow<TState> WithSendStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
+    ConsumerDataflow<TState> WithSendMessageStep(int? maxDoP = null, bool? ensureOrdered = null, int? boundedCapacity = null, TaskScheduler taskScheduler = null);
 
     Task StartAsync();
     Task StopAsync(bool immediate = false, bool shutdownService = false);
@@ -217,6 +217,15 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
                 TaskScheduler = taskScheduler ?? _taskScheduler
             });
 
+    /// <summary>
+    /// This method allows you to set the action as the async error handler for the ConsumerDataflow.
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="boundedCapacity"></param>
+    /// <param name="maxDoP"></param>
+    /// <param name="ensureOrdered"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
     public ConsumerDataflow<TState> WithErrorHandling(
         Action<TState> action,
         int boundedCapacity,
@@ -225,15 +234,24 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(action, nameof(action));
-        if (_errorBuffer is null)
-        {
-            _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _errorAction = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("error_handler"));
-        }
+        if (_errorBuffer is not null) return this;
+
+        _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
+        var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+        _errorAction = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("error_handler"));
+
         return this;
     }
 
+    /// <summary>
+    /// This method allows you to set the asynchronous function as the async error handler for the ConsumerDataflow.
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="boundedCapacity"></param>
+    /// <param name="maxDoP"></param>
+    /// <param name="ensureOrdered"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
     public ConsumerDataflow<TState> WithErrorHandling(
         Func<TState, Task> action,
         int boundedCapacity,
@@ -242,27 +260,38 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(action, nameof(action));
-        if (_errorBuffer is null)
-        {
+        if (_errorBuffer is not null)
+
             _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _errorAction = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("error_handler"));
-        }
+        var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+        _errorAction = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("error_handler"));
+
         return this;
     }
 
+    /// <summary>
+    /// This method sets up the default error handler for the ConsumerDataflow.
+    /// <para>1.) It will check to use rejection without requeue if the ConsumerOptions QueueArgs has the DLQ in it.</para>
+    /// <para>2.) It will check to use ErrorQueueName in ConsumerOptions to send change the routingkey and send to AutoPublisher.</para>
+    /// <para>3.) It will Nack with retry: true.</para>
+    /// </summary>
+    /// <param name="boundedCapacity"></param>
+    /// <param name="maxDoP"></param>
+    /// <param name="ensureOrdered"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
     public ConsumerDataflow<TState> WithDefaultErrorHandling(
         int boundedCapacity = 100,
         int? maxDoP = null,
         bool? ensureOrdered = null,
         TaskScheduler taskScheduler = null)
     {
-        if (_errorBuffer is null)
-        {
-            _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _errorAction = GetLastWrappedActionBlock(DefaultErrorHandlerAsync, executionOptions, GetSpanName("error_handler"));
-        }
+        if (_errorBuffer is not null) return this;
+
+        _errorBuffer = CreateTargetBlock(boundedCapacity, taskScheduler);
+        var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+        _errorAction = GetLastWrappedActionBlock(DefaultErrorHandlerAsync, executionOptions, GetSpanName("error_handler"));
+
         return this;
     }
 
@@ -313,6 +342,16 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         return this;
     }
 
+    /// <summary>
+    /// This is the method that lets you add your supplied synchronous function.
+    /// </summary>
+    /// <param name="suppliedStep"></param>
+    /// <param name="stepName"></param>
+    /// <param name="maxDoP"></param>
+    /// <param name="ensureOrdered"></param>
+    /// <param name="boundedCapacity"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
     public ConsumerDataflow<TState> AddStep(
         Func<TState, TState> suppliedStep,
         string stepName,
@@ -328,6 +367,16 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         return this;
     }
 
+    /// <summary>
+    /// This is the method that lets you add your supplied asynchronous function.
+    /// </summary>
+    /// <param name="suppliedStep"></param>
+    /// <param name="stepName"></param>
+    /// <param name="maxDoP"></param>
+    /// <param name="ensureOrdered"></param>
+    /// <param name="boundedCapacity"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
     public ConsumerDataflow<TState> AddStep(
         Func<TState, Task<TState>> suppliedStep,
         string stepName,
@@ -350,6 +399,15 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         return this;
     }
 
+    /// <summary>
+    /// This method sets up the last step of the ConsumerDataflow with your supplied action.
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="maxDoP"></param>
+    /// <param name="ensureOrdered"></param>
+    /// <param name="boundedCapacity"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
     public ConsumerDataflow<TState> WithFinalization(
         Action<TState> action,
         int? maxDoP = null,
@@ -358,14 +416,23 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(action, nameof(action));
-        if (_finalization is null)
-        {
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _finalization = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("finalization"));
-        }
+        if (_finalization is not null) return this;
+
+        var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+        _finalization = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("finalization"));
+
         return this;
     }
 
+    /// <summary>
+    /// This method sets up the last step of the ConsumerDataflow with your supplied function.
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="maxDoP"></param>
+    /// <param name="ensureOrdered"></param>
+    /// <param name="boundedCapacity"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
     public ConsumerDataflow<TState> WithFinalization(
         Func<TState, Task> action,
         int? maxDoP = null,
@@ -374,25 +441,33 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(action, nameof(action));
-        if (_finalization is null)
-        {
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _finalization = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("finalization"));
-        }
+        if (_finalization is not null) return this;
+
+        var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+        _finalization = GetLastWrappedActionBlock(action, executionOptions, GetSpanName("finalization"));
         return this;
     }
 
+    /// <summary>
+    /// This method sets up the last step of the ConsumerDataflow with a default Finalization method that the Message has finished and acks the
+    /// IReceivedMessage.
+    /// </summary>
+    /// <param name="maxDoP"></param>
+    /// <param name="ensureOrdered"></param>
+    /// <param name="boundedCapacity"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
     public ConsumerDataflow<TState> WithDefaultFinalization(
         int? maxDoP = null,
         bool? ensureOrdered = null,
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        if (_finalization is null)
-        {
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _finalization = GetLastWrappedActionBlock(DefaultFinalization, executionOptions, GetSpanName("finalization"));
-        }
+        if (_finalization is not null) return this;
+
+        var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+        _finalization = GetLastWrappedActionBlock(DefaultFinalization, executionOptions, GetSpanName("finalization"));
+
         return this;
     }
 
@@ -406,20 +481,37 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         state.ReceivedMessage?.AckMessage();
     }
 
+    /// <summary>
+    /// This simple method ensures you have a IRabbitWorkState object to work with you IReceivedMessage assigned to it.
+    /// </summary>
+    /// <param name="maxDoP"></param>
+    /// <param name="ensureOrdered"></param>
+    /// <param name="boundedCapacity"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
     public ConsumerDataflow<TState> WithBuildState(
         int? maxDoP = null,
         bool? ensureOrdered = null,
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        if (_buildStateBlock is null)
-        {
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _buildStateBlock = GetBuildStateBlock(executionOptions);
-        }
+        if (_buildStateBlock is not null) return this;
+
+        var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+        _buildStateBlock = GetBuildStateBlock(executionOptions);
+
         return this;
     }
 
+    /// <summary>
+    /// This method will automatically decrypt the IReceivedMessage.Body or IReceivedMessage.Message.Body.
+    /// <para>It will skip execution if the body is not encrypted.</para>
+    /// </summary>
+    /// <param name="maxDoP"></param>
+    /// <param name="ensureOrdered"></param>
+    /// <param name="boundedCapacity"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
     public ConsumerDataflow<TState> WithDecryptionStep(
         int? maxDoP = null,
         bool? ensureOrdered = null,
@@ -427,32 +519,41 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
-        if (_decryptBlock is null)
-        {
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+        if (_decryptBlock is not null) return this;
 
-            _decryptBlock = GetByteManipulationTransformBlock(
-                _encryptionProvider.Decrypt,
-                executionOptions,
-                false,
-                x => x.ReceivedMessage.Encrypted,
-                GetSpanName("receive_decrypt"),
-                (state) =>
-                {
-                    if (state?.ReceivedMessage is null) return;
-                    state.ReceivedMessage.Encrypted = false;
-                    state.ReceivedMessage.EncryptionType = null;
-                    state.ReceivedMessage.EncryptedDateTime = default;
+        var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
-                    if (state?.ReceivedMessage?.Message?.Metadata?.Fields is null) return;
-                    state.ReceivedMessage.Message.Metadata.Fields[Constants.HeaderForEncrypted] = false;
-                    state.ReceivedMessage.Message.Metadata.Fields.Remove(Constants.HeaderForEncryption);
-                    state.ReceivedMessage.Message.Metadata.Fields.Remove(Constants.HeaderForEncryptDate);
-                });
-        }
+        _decryptBlock = GetByteManipulationTransformBlock(
+            _encryptionProvider.Decrypt,
+            executionOptions,
+            false,
+            x => x.ReceivedMessage.Encrypted,
+            GetSpanName("receive_decrypt"),
+            (state) =>
+            {
+                if (state?.ReceivedMessage is null) return;
+                state.ReceivedMessage.Encrypted = false;
+                state.ReceivedMessage.EncryptionType = null;
+                state.ReceivedMessage.EncryptedDateTime = default;
+
+                if (state?.ReceivedMessage?.Message?.Metadata?.Fields is null) return;
+                state.ReceivedMessage.Message.Metadata.Fields[Constants.HeaderForEncrypted] = false;
+                state.ReceivedMessage.Message.Metadata.Fields.Remove(Constants.HeaderForEncryption);
+                state.ReceivedMessage.Message.Metadata.Fields.Remove(Constants.HeaderForEncryptDate);
+            });
+
         return this;
     }
 
+    /// <summary>
+    /// This method will automatically decompress the IReceivedMessage.Body or IReceivedMessage.Message.Body.
+    /// <para>It will skip execution if the body is not compressed.</para>
+    /// </summary>
+    /// <param name="maxDoP"></param>
+    /// <param name="ensureOrdered"></param>
+    /// <param name="boundedCapacity"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
     public ConsumerDataflow<TState> WithDecompressionStep(
         int? maxDoP = null,
         bool? ensureOrdered = null,
@@ -460,27 +561,26 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(_compressionProvider, nameof(_compressionProvider));
-        if (_decompressBlock is null)
-        {
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+        if (_decompressBlock is not null) return this;
 
-            _decompressBlock = GetByteManipulationTransformBlock(
-                _compressionProvider.Decompress,
-                executionOptions,
-                false,
-                x => x.ReceivedMessage.Compressed,
-                GetSpanName("receive_decompress"),
-                (state) =>
-                {
-                    if (state?.ReceivedMessage is null) return;
-                    state.ReceivedMessage.Compressed = false;
-                    state.ReceivedMessage.CompressionType = null;
+        var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
-                    if (state?.ReceivedMessage?.Message?.Metadata?.Fields is null) return;
-                    state.ReceivedMessage.Message.Metadata.Fields[Constants.HeaderForCompressed] = false;
-                    state.ReceivedMessage.Message.Metadata.Fields.Remove(Constants.HeaderForCompression);
-                });
-        }
+        _decompressBlock = GetByteManipulationTransformBlock(
+            _compressionProvider.Decompress,
+            executionOptions,
+            false,
+            x => x.ReceivedMessage.Compressed,
+            GetSpanName("receive_decompress"),
+            (state) =>
+            {
+                if (state?.ReceivedMessage is null) return;
+                state.ReceivedMessage.Compressed = false;
+                state.ReceivedMessage.CompressionType = null;
+
+                if (state?.ReceivedMessage?.Message?.Metadata?.Fields is null) return;
+                state.ReceivedMessage.Message.Metadata.Fields[Constants.HeaderForCompressed] = false;
+                state.ReceivedMessage.Message.Metadata.Fields.Remove(Constants.HeaderForCompression);
+            });
 
         return this;
     }
@@ -492,11 +592,10 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        if (_createSendMessage is null)
-        {
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("send_create"));
-        }
+        if (_createSendMessage is not null) return this;
+
+        var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+        _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("send_create"));
         return this;
     }
 
@@ -507,14 +606,22 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        if (_createSendMessage is null)
-        {
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("send_create"));
-        }
+        if (_createSendMessage is not null) return this;
+
+        var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+        _createSendMessage = GetWrappedTransformBlock(createMessage, executionOptions, GetSpanName("send_create"));
         return this;
     }
 
+    /// <summary>
+    /// This method will Compress any SendMessage.Body before sending it out.
+    /// <para>It will skip if the message body is already compressed.</para>
+    /// </summary>
+    /// <param name="maxDoP"></param>
+    /// <param name="ensureOrdered"></param>
+    /// <param name="boundedCapacity"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
     public ConsumerDataflow<TState> WithSendCompressedStep(
         int? maxDoP = null,
         bool? ensureOrdered = null,
@@ -522,26 +629,35 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(_compressionProvider, nameof(_compressionProvider));
-        if (_compressBlock is null)
-        {
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
 
-            _compressBlock = GetByteManipulationTransformBlock(
-                _compressionProvider.Compress,
-                executionOptions,
-                true,
-                x => !x.SendMessage.Metadata.Compressed(),
-                GetSpanName("send_compress"),
-                (state) =>
-                {
-                    if (state?.SendMessage?.Metadata?.Fields is null) return;
-                    state.SendMessage.Metadata.Fields[Constants.HeaderForCompressed] = true;
-                    state.SendMessage.Metadata.Fields[Constants.HeaderForCompression] = _compressionProvider.Type;
-                });
-        }
+        if (_compressBlock is not null) return this;
+        var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+
+        _compressBlock = GetByteManipulationTransformBlock(
+            _compressionProvider.Compress,
+            executionOptions,
+            true,
+            x => !x.SendMessage.Metadata.Compressed(),
+            GetSpanName("send_compress"),
+            (state) =>
+            {
+                if (state?.SendMessage?.Metadata?.Fields is null) return;
+                state.SendMessage.Metadata.Fields[Constants.HeaderForCompressed] = true;
+                state.SendMessage.Metadata.Fields[Constants.HeaderForCompression] = _compressionProvider.Type;
+            });
+
         return this;
     }
 
+    /// <summary>
+    /// This method will Encrypted any SendMessage.Body before sending it out.
+    /// <para>It will skip if the message body is already encrypted.</para>
+    /// </summary>
+    /// <param name="maxDoP"></param>
+    /// <param name="ensureOrdered"></param>
+    /// <param name="boundedCapacity"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
     public ConsumerDataflow<TState> WithSendEncryptedStep(
         int? maxDoP = null,
         bool? ensureOrdered = null,
@@ -549,38 +665,46 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
         TaskScheduler taskScheduler = null)
     {
         Guard.AgainstNull(_encryptionProvider, nameof(_encryptionProvider));
-        if (_encryptBlock is null)
-        {
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+        if (_encryptBlock is not null) return this;
 
-            _encryptBlock = GetByteManipulationTransformBlock(
-                _encryptionProvider.Encrypt,
-                executionOptions,
-                true,
-                x => !x.SendMessage.Metadata.Encrypted(),
-                GetSpanName("send_encrypt"),
-                (state) =>
-                {
-                    if (state?.SendMessage?.Metadata?.Fields is null) return;
-                    state.SendMessage.Metadata.Fields[Constants.HeaderForEncrypted] = true;
-                    state.SendMessage.Metadata.Fields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
-                    state.SendMessage.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeFormat);
-                });
-        }
+        var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+
+        _encryptBlock = GetByteManipulationTransformBlock(
+            _encryptionProvider.Encrypt,
+            executionOptions,
+            true,
+            x => !x.SendMessage.Metadata.Encrypted(),
+            GetSpanName("send_encrypt"),
+            (state) =>
+            {
+                if (state?.SendMessage?.Metadata?.Fields is null) return;
+                state.SendMessage.Metadata.Fields[Constants.HeaderForEncrypted] = true;
+                state.SendMessage.Metadata.Fields[Constants.HeaderForEncryption] = _encryptionProvider.Type;
+                state.SendMessage.Metadata.Fields[Constants.HeaderForEncryptDate] = TimeHelpers.GetDateTimeNow(TimeFormat);
+            });
+
         return this;
     }
 
-    public ConsumerDataflow<TState> WithSendStep(
+    /// <summary>
+    /// This method will put any SendMessage into the AutoPublisher for delivery.
+    /// </summary>
+    /// <param name="maxDoP"></param>
+    /// <param name="ensureOrdered"></param>
+    /// <param name="boundedCapacity"></param>
+    /// <param name="taskScheduler"></param>
+    /// <returns></returns>
+    public ConsumerDataflow<TState> WithSendMessageStep(
         int? maxDoP = null,
         bool? ensureOrdered = null,
         int? boundedCapacity = null,
         TaskScheduler taskScheduler = null)
     {
-        if (_sendMessageBlock is null)
-        {
-            var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
-            _sendMessageBlock = GetWrappedSendTransformBlock(_rabbitService, executionOptions);
-        }
+        if (_sendMessageBlock is not null) return this;
+
+        var executionOptions = GetExecuteStepOptions(maxDoP, ensureOrdered, boundedCapacity, taskScheduler ?? _taskScheduler);
+        _sendMessageBlock = GetWrappedSendTransformBlock(_rabbitService, executionOptions);
+
         return this;
     }
 

@@ -2,6 +2,8 @@ namespace HouseofCat.RabbitMQ;
 
 public static class Constants
 {
+    public const string DefaultRabbitOptionsConfigKey = "RabbitOptions";
+
     public const string HeaderValueForContentTypeBinary = "application/octet-stream";
     public const string HeaderValueForContentTypePlainText = "text/plain";
     public const string HeaderValueForContentTypeJson = "application/json";

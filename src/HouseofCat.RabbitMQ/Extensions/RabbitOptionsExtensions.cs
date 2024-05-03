@@ -10,7 +10,7 @@ public static class RabbitOptionsExtensions
 {
     public static RabbitOptions GetRabbitOptions(
         this IConfiguration configuration,
-        string configSectionKey = "RabbitOptions")
+        string configSectionKey = Constants.DefaultRabbitOptionsConfigKey)
     {
         var options = new RabbitOptions();
         configuration.GetSection(configSectionKey).Bind(options);
