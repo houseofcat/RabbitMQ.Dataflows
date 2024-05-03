@@ -847,7 +847,7 @@ public class ConsumerDataflow<TState> : BaseDataflow<TState>, IConsumerDataflow<
     {
         async Task<TState> WrapPublishAsync(TState state)
         {
-            if (state is null || state.SendMessage is null) return state;
+            if (state?.SendMessage is null) return state;
 
             using var childSpan = state.CreateActiveChildSpan(SendStepIdentifier, SpanKind.Producer);
             try

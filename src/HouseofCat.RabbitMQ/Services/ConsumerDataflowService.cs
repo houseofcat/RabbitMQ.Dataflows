@@ -1,6 +1,5 @@
 ﻿using HouseofCat.RabbitMQ.Dataflows;
 using HouseofCat.RabbitMQ.Extensions;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
@@ -28,8 +27,6 @@ public interface IConsumerDataflowService<TState> where TState : class, IRabbitW
 
 public class ConsumerDataflowService<TState> : IConsumerDataflowService<TState> where TState : class, IRabbitWorkState, new()
 {
-    private readonly ILogger<ConsumerDataflowService<TState>> _logger;
-    private readonly IRabbitService _rabbitService;
     public ConsumerDataflow<TState> Dataflow { get; }
     public ConsumerOptions Options { get; }
 
@@ -41,14 +38,10 @@ public class ConsumerDataflowService<TState> : IConsumerDataflowService<TState> 
     /// <param name="consumerName"></param>
     /// <param name="taskScheduler"></param>
     public ConsumerDataflowService(
-        ILogger<ConsumerDataflowService<TState>> logger,
         IRabbitService rabbitService,
         string consumerName,
         TaskScheduler taskScheduler = null)
     {
-        _logger = logger;
-        _rabbitService = rabbitService;
-
         Options = rabbitService.Options.GetConsumerOptions(consumerName);
         Dataflow = rabbitService.CreateConsumerDataflow<TState>(consumerName, taskScheduler);
     }
