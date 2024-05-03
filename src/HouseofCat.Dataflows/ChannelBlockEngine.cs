@@ -6,7 +6,7 @@ using System.Threading.Tasks.Dataflow;
 
 namespace HouseofCat.Dataflows;
 
-public class ChannelBlockEngine<TIn, TOut> : ChannelReaderBlockEngine<TIn, TOut>, IDataBlockEngine<TIn>
+public class ChannelBlockEngine<TIn, TOut> : ChannelReaderBlockEngine<TIn, TOut>, IDataflowEngine<TIn>
 {
     protected ChannelBlock<TIn> _channelBlock;
 
@@ -86,5 +86,10 @@ public class ChannelBlockEngine<TIn, TOut> : ChannelReaderBlockEngine<TIn, TOut>
         await _channelBlock
             .SendAsync(data)
             .ConfigureAwait(false);
+    }
+
+    public virtual Task ExecuteWorkBodyAsync(TIn data)
+    {
+        throw new NotImplementedException();
     }
 }

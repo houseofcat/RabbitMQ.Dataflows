@@ -7,7 +7,13 @@ using System.Threading.Tasks.Dataflow;
 
 namespace HouseofCat.Dataflows;
 
-public class DataflowEngine<TIn, TOut> : IDataBlockEngine<TIn>
+public interface IDataflowEngine<in TIn>
+{
+    Task ExecuteWorkBodyAsync(TIn data);
+    ValueTask EnqueueWorkAsync(TIn data);
+}
+
+public class DataflowEngine<TIn, TOut> : IDataflowEngine<TIn>
 {
     private readonly ILogger<DataflowEngine<TIn, TOut>> _logger;
     protected BufferBlock<TIn> _bufferBlock;
@@ -64,8 +70,10 @@ public class DataflowEngine<TIn, TOut> : IDataBlockEngine<TIn>
 
     private static readonly string _error = "Execption occurred in the Dataflow Engine when running work body steps.";
 
-    protected virtual async Task ExecuteWorkBodyAsync(TIn data)
+    public virtual async Task ExecuteWorkBodyAsync(TIn data)
     {
+        await Task.Yield();
+
         try
         {
             if (_preWorkBodyAsync is not null)
@@ -73,17 +81,11 @@ public class DataflowEngine<TIn, TOut> : IDataBlockEngine<TIn>
                 data = await _preWorkBodyAsync(data).ConfigureAwait(false);
             }
 
-            if (_postWorkBodyAsync is not null)
+            var output = await _workBodyAsync(data).ConfigureAwait(false);
+            if (_postWorkBodyAsync is not null
+                && !EqualityComparer<TIn>.Default.Equals(data, default))
             {
-                var output = await _workBodyAsync(data).ConfigureAwait(false);
-                if (!EqualityComparer<TIn>.Default.Equals(data, default))
-                {
-                    await _postWorkBodyAsync(output).ConfigureAwait(false);
-                }
-            }
-            else
-            {
-                await _workBodyAsync(data).ConfigureAwait(false);
+                await _postWorkBodyAsync(output).ConfigureAwait(false);
             }
         }
         catch (Exception ex)

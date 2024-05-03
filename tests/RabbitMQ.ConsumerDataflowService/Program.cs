@@ -25,7 +25,6 @@ using var app = builder.Build();
 
 var rabbitService = await Shared.SetupRabbitServiceAsync(loggerFactory, "RabbitMQ.ConsumerDataflows.json");
 var dataflowService = new ConsumerDataflowService<CustomWorkState>(
-    loggerFactory.CreateLogger<ConsumerDataflowService<CustomWorkState>>(),
     rabbitService,
     "TestConsumer");
 

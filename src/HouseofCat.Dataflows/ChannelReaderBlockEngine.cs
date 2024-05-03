@@ -1,6 +1,7 @@
 using HouseofCat.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -66,17 +67,11 @@ public class ChannelReaderBlockEngine<TIn, TOut>
     {
         try
         {
-            if (_postWorkBodyAsync is not null)
+            var output = await _workBodyAsync(data).ConfigureAwait(false);
+            if (_postWorkBodyAsync is not null
+                && !EqualityComparer<TIn>.Default.Equals(data, default))
             {
-                var output = await _workBodyAsync(data).ConfigureAwait(false);
-                if (output is not null)
-                {
-                    await _postWorkBodyAsync(output).ConfigureAwait(false);
-                }
-            }
-            else
-            {
-                await _workBodyAsync(data).ConfigureAwait(false);
+                await _postWorkBodyAsync(output).ConfigureAwait(false);
             }
         }
         catch (Exception ex)
