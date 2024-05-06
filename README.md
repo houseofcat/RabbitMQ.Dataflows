@@ -75,8 +75,11 @@ developer.
 More to come!
 
 ## Visual Aids
-I have included a high level Excalidraw file with screenshots below. Be sure to open the file
-for better quality and up-to-date information.
+I have included a high level Excalidraw file with screenshots below. Be sure to open the file though
+for better quality and more up-to-date information as I will continue enhancing it over time. The goal
+isn't to have everything in here, but I myself understand the flow of a library with the addition of
+a visual aid. There is nothing truly special about this library, it's just the basics, but there are
+a lot of moving parts when you step back.
 
 ### RabbitService - Start Life Cycle
 ![Rabbit Service Start](guides/rabbitmq/misc/rabbit_service_start.png)
