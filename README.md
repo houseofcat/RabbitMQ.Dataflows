@@ -72,23 +72,7 @@ developer.
  * Getting started with *RabbitMQ.Dataflows* [Consumer](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/Consumer.md).  
  * ***Getting started with RabbitMQ.Dataflows [ConsumerDataflow](https://github.com/houseofcat/RabbitMQ.Dataflows/blob/main/guides/rabbitmq/ConsumerDataflow.md)***.  
 
-More to come!
-
-## Visual Aids
-I have included a high level Excalidraw file with screenshots below. Be sure to open the file though
-for better quality and more up-to-date information as I will continue enhancing it over time. The goal
-isn't to have everything in here, but I myself understand the flow of a library with the addition of
-a visual aid. There is nothing truly special about this library, it's just the basics, but there are
-a lot of moving parts when you step back.
-
-### RabbitService - Start Life Cycle
-![Rabbit Service Start](guides/rabbitmq/misc/rabbit_service_start.png)
-
-### Consumer - Start Life Cycle
-![Rabbit Service Consumer Start](guides/rabbitmq/misc/rabbit_service_consumer_start.png)
-
-### ConsumerDataflow - Data Flow
-![Consumer Dataflow Flow](guides/rabbitmq/misc/consumer_dataflow_flow.png)
+More to come and visual aids can be found towards the bottom!
 
 You can also find various library examples inside the `tests/UnitTests` or the `tests/RabbitMQ.Console.Test` project.
 
@@ -153,6 +137,12 @@ well as the interface to make your own.
  * Supports BouncyCastle AesGcm 128/192/256.  
  * Supports RecyclableMemoryStream variants.  
 
+## HouseofCat.Utilities
+[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Utilities.svg)](https://www.nuget.org/packages/HouseofCat.Utilities/)  
+[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Utilities.svg)](https://www.nuget.org/packages/HouseofCat.Utilities/)  
+
+A library that focuses on general purpose re-usable functions and extensions that simplify the coding experience.  
+
 # Non-Critical Library Integrations
 
 ## HouseofCat.Data
@@ -172,10 +162,21 @@ Also provides Database abstractions, a simple Dapper integration, and SqlKata in
  * Oracle
  * SQLite
 
-## HouseofCat.Utilities
-[![NuGet](https://img.shields.io/nuget/v/HouseofCat.Utilities.svg)](https://www.nuget.org/packages/HouseofCat.Utilities/)  
-[![NuGet](https://img.shields.io/nuget/dt/HouseofCat.Utilities.svg)](https://www.nuget.org/packages/HouseofCat.Utilities/)  
+## Visual Aids
 
-A library that focuses on general purpose utilities and functions that simplify the coding experience.  
+I have included a high level Excalidraw file with screenshots below. Be sure to open the file though
+for better quality and more up-to-date information as I will continue enhancing it over time. The goal
+isn't to have everything in here, but I myself understand the flow of a library with the addition of
+a visual aid. There is nothing truly special about this library, it's just the basics, but there are
+a lot of moving parts when you step back.
+
+### RabbitService - Start Life Cycle
+![Rabbit Service Start](guides/rabbitmq/misc/rabbit_service_start.png)
+
+### Consumer - Start Life Cycle
+![Rabbit Service Consumer Start](guides/rabbitmq/misc/rabbit_service_consumer_start.png)
+
+### ConsumerDataflow - Data Flow
+![Consumer Dataflow Flow](guides/rabbitmq/misc/consumer_dataflow_flow.png)
 
 # [HouseofCat.io](https://houseofcat.io)
