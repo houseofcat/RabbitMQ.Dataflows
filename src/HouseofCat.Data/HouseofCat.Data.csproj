@@ -5,7 +5,7 @@
     <PackageReference Include="dotMorten.Microsoft.SqlServer.Types" Version="2.5.0" />
     <PackageReference Include="Microsoft.Spatial" Version="7.21.1" />
     <PackageReference Include="MySql.Data" Version="8.4.0" />
-    <PackageReference Include="Npgsql" Version="8.0.2" />
+    <PackageReference Include="Npgsql" Version="8.0.3" />
     <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.4.0" />
     <PackageReference Include="SqlKata" Version="2.4.0" />
     <PackageReference Include="System.Data.Odbc" Version="8.0.0" />
