@@ -40,7 +40,7 @@ Here are some features ready with `RabbitMQ.Dataflows`.
 
 ### Built-Ins
 
-* A RabbitMQ ConnectionPool and ChannelPool (connection durability).  
+* A RabbitMQ `IConnectionPool` and `IChannelPool` (connection durability).  
 * Supports `ILogger<T>` via LogHelpers static singleton. 
 * Contracted `IWorkState` simplifies functional generic returns and integration.  
 * Has `ISerializationProvider` support for `System.Text.Json` and `MessagePack`.
